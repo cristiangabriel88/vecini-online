@@ -182,6 +182,77 @@ test('F53: comitet can add a key record', async ({ page }) => {
   await expect(page.getByText('Test spațiu E2E')).toBeVisible();
 });
 
+test('F05: resident can send an anonymous message', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/anonim');
+  await page.getByRole('button', { name: /Mesaj anonim/i }).click();
+  await page.getByLabel(/Mesajul tău/i).fill('Sesizare anonimă de test E2E pentru comitet.');
+  await page.getByRole('button', { name: /Trimite/i }).click();
+  await expect(page.getByText(/trimis anonim/i)).toBeVisible();
+});
+
+test('F11: comitet can add a minutes document', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/procese-verbale');
+  await page.getByRole('button', { name: /Adaugă document/i }).click();
+  await page.getByLabel('Titlu').fill('PV test E2E');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText('PV test E2E')).toBeVisible();
+});
+
+test('F22: comitet can post an RFP', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/oferte');
+  await page.getByRole('button', { name: /Cerere nouă/i }).click();
+  await page.getByLabel('Titlu').fill('RFP test E2E');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText('RFP test E2E')).toBeVisible();
+});
+
+test('F23: resident can sign up for weekend duty', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/garda');
+  await page.getByRole('button', { name: /Mă înscriu/i }).first().click();
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText(/de gardă\. Mulțumim/i)).toBeVisible();
+});
+
+test('F31: resident can sign up for a green-space task', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/plante');
+  await page.getByRole('button', { name: /Mă înscriu/i }).first().click();
+  await expect(page.getByText('Popescu Andrei').first()).toBeVisible();
+});
+
+test('F39: resident can add a wiki page', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/wiki');
+  await page.getByRole('button', { name: /Pagină nouă/i }).click();
+  await page.getByLabel('Titlu').fill('Pagină wiki E2E');
+  await page.getByLabel('Conținut').fill('Conținut de test pentru wiki.');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText('Pagină wiki E2E')).toBeVisible();
+});
+
+test('F43: comitet can add a contractor', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/contractori');
+  await page.getByRole('button', { name: /Adaugă contractor/i }).click();
+  await page.getByLabel('Nume').fill('Contractor E2E');
+  await page.getByLabel('Specialitate').fill('Testare');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText('Contractor E2E')).toBeVisible();
+});
+
+test('F55: admin can add an alarm system', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/alarma');
+  await page.getByRole('button', { name: /Adaugă sistem/i }).click();
+  await page.getByLabel(/Denumire sistem/i).fill('Sistem alarmă E2E');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText('Sistem alarmă E2E')).toBeVisible();
+});
+
 test('home page has no critical accessibility violations', async ({ page }) => {
   await enterDemo(page);
   const results = await new AxeBuilder({ page })

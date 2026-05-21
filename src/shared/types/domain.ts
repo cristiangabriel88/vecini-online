@@ -662,3 +662,115 @@ export interface KeyRecord {
   holder_name: string;
   notes: string | null;
 }
+
+/** F05 — anonymous message to the comitet (`anonymous_messages`). Sender is
+ *  stored for abuse prevention but hidden from the comitet at the app layer. */
+export type AnonymousStatus = 'nou' | 'rezolvat';
+
+export interface AnonymousMessage {
+  id: string;
+  asociatie_id: string;
+  sender_user_id: string;
+  body: string;
+  status: AnonymousStatus;
+  created_at: string;
+}
+
+/** F11 — archived signed minutes / decisions (`pv_documents`). */
+export interface PvDocument {
+  id: string;
+  asociatie_id: string;
+  title: string;
+  doc_date: string;
+  category: string;
+  content_text: string;
+  storage_path: string | null;
+  created_at: string;
+}
+
+/** F22 — contractor request for proposals (`rfps`) with its quotes. */
+export type RfpStatus = 'deschis' | 'decis';
+
+export interface RfpQuote {
+  id: string;
+  rfp_id: string;
+  contractor: string;
+  amount: number;
+  selected: boolean;
+}
+
+export interface Rfp {
+  id: string;
+  asociatie_id: string;
+  title: string;
+  description: string;
+  status: RfpStatus;
+  created_at: string;
+  quotes: RfpQuote[];
+}
+
+/** F23 — weekend duty rotation entry (`duty_volunteers` + `duty_schedule`). */
+export interface DutySlot {
+  id: string;
+  asociatie_id: string;
+  /** Saturday of the duty weekend (YYYY-MM-DD). */
+  week_start: string;
+  volunteer_user_id: string | null;
+  volunteer_name: string | null;
+  note: string | null;
+}
+
+/** F31 — shared green-space volunteer task (`green_space_tasks` + `task_signups`). */
+export interface GreenTask {
+  id: string;
+  asociatie_id: string;
+  title: string;
+  /** Monday of the task week (YYYY-MM-DD). */
+  week_start: string;
+  volunteer_user_id: string | null;
+  volunteer_name: string | null;
+}
+
+/** F39 — collaborative wiki page (`wiki_pages`). */
+export interface WikiPage {
+  id: string;
+  asociatie_id: string;
+  slug: string;
+  title: string;
+  body_md: string;
+  updated_at: string;
+}
+
+/** F43 — vetted contractor with its aggregate rating (`contractors` + `contractor_ratings`). */
+export interface Contractor {
+  id: string;
+  asociatie_id: string;
+  name: string;
+  specialty: string;
+  price_tier: string;
+  contact: string;
+  last_used: string | null;
+  available: boolean;
+  /** Average rating 0–5 over recorded ratings (demo-aggregated). */
+  rating: number;
+  rating_count: number;
+}
+
+/** F55 — centralized alarm / detection system status (`alarm_systems` + `alarm_events`). */
+export type AlarmStatus = 'ok' | 'test' | 'alarma' | 'defect';
+
+export interface AlarmEvent {
+  id: string;
+  system_id: string;
+  kind: string;
+  occurred_at: string;
+}
+
+export interface AlarmSystem {
+  id: string;
+  asociatie_id: string;
+  name: string;
+  status: AlarmStatus;
+  last_test: string | null;
+  events: AlarmEvent[];
+}

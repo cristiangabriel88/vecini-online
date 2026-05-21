@@ -71,6 +71,14 @@ const FEATURE_COMMANDS: Record<string, string> = {
   '/psi': '🔥 Verificări PSI — urmărește termenele verificărilor de stingătoare, hidranți și instalație electrică în secțiunea „Verificări PSI” (comitet).',
   '/asigurare': '☂ Asigurare bloc — vezi polița și data de reînnoire în secțiunea „Asigurare bloc” (comitet).',
   '/chei': '🔑 Registru de chei — vezi cine deține cheile spațiilor comune în secțiunea „Registru de chei” (comitet).',
+  '/anonim': '🕶 Mesaj anonim — trimite o sesizare către comitet fără să-ți dezvălui identitatea, în secțiunea „Mesaj anonim”.',
+  '/procese_verbale': '📑 Procese verbale — caută în arhiva proceselor verbale semnate (AGA, comitet, recepții) în secțiunea „Procese verbale”.',
+  '/oferte': '📋 Solicitare oferte — vezi cererile de ofertă active și ofertele primite în secțiunea „Solicitare oferte” (comitet).',
+  '/garda': '🛡 Vecin de gardă — vezi cine e de gardă în acest weekend sau înscrie-te în secțiunea „Vecin de gardă”.',
+  '/plante': '🌱 Spații verzi — vezi sarcinile de îngrijire a spațiilor verzi și înscrie-te ca voluntar în secțiunea „Plante / spații verzi”.',
+  '/wiki': '📚 Wiki bloc — caută instrucțiuni utile despre bloc (apă, lift, curent) în secțiunea „Wiki bloc”.',
+  '/contractori': '👷 Contractori — caută în biblioteca de contractori verificați, cu rating, în secțiunea „Contractori” (comitet).',
+  '/alarma': '🔔 Sistem alarmă — vezi statusul sistemelor de alarmă și detecție și istoricul testelor în secțiunea „Sistem alarmă”.',
 };
 
 async function handleMessage(msg: TelegramMessage) {

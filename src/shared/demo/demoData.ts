@@ -43,6 +43,14 @@ import type {
   PsiAsset,
   InsurancePolicy,
   KeyRecord,
+  AnonymousMessage,
+  PvDocument,
+  Rfp,
+  DutySlot,
+  GreenTask,
+  WikiPage,
+  Contractor,
+  AlarmSystem,
 } from '@/shared/types/domain';
 import { RECOMMENDED_FEATURES } from '@/shared/features/registry';
 
@@ -408,4 +416,80 @@ export const DEMO_KEYS: KeyRecord[] = [
   { id: 'key-1', asociatie_id: 'demo-asoc', space: 'Centrală termică (subsol)', holder_name: 'Administrator — Ionescu Mihai', notes: 'Cheie unică, copie la președinte.' },
   { id: 'key-2', asociatie_id: 'demo-asoc', space: 'Terasă / acoperiș', holder_name: 'Președinte — Popescu Andrei', notes: null },
   { id: 'key-3', asociatie_id: 'demo-asoc', space: 'Magazia administrației', holder_name: 'Administrator — Ionescu Mihai', notes: null },
+];
+
+// F05 — Mesaj anonim către comitet.
+export const DEMO_ANONYMOUS_MESSAGES: AnonymousMessage[] = [
+  { id: 'an-1', asociatie_id: 'demo-asoc', sender_user_id: 'u-res2', body: 'Vecinul de la parter lasă gunoiul pe casa scării de câteva zile. Aș vrea să fie discutat fără să se știe că eu am sesizat.', status: 'nou', created_at: new Date(Date.now() - 2 * 86_400_000).toISOString() },
+  { id: 'an-2', asociatie_id: 'demo-asoc', sender_user_id: 'u-res3', body: 'Cred că becul de la etajul 3 e spart de mai bine de o lună. Mulțumesc.', status: 'rezolvat', created_at: new Date(Date.now() - 12 * 86_400_000).toISOString() },
+];
+
+// F11 — Procese verbale (arhivă).
+export const DEMO_PV_DOCUMENTS: PvDocument[] = [
+  { id: 'pv-1', asociatie_id: 'demo-asoc', title: 'Proces verbal AGA ordinară 2026', doc_date: dayOffset(-40), category: 'AGA', content_text: 'Adunarea Generală a aprobat bugetul pe 2026, alegerea comitetului și majorarea fondului de reparații.', storage_path: null, created_at: new Date(Date.now() - 40 * 86_400_000).toISOString() },
+  { id: 'pv-2', asociatie_id: 'demo-asoc', title: 'Proces verbal ședință comitet — martie', doc_date: dayOffset(-70), category: 'Comitet', content_text: 'Comitetul a decis schimbarea firmei de salubritate și recepția lucrărilor la acoperiș.', storage_path: null, created_at: new Date(Date.now() - 70 * 86_400_000).toISOString() },
+  { id: 'pv-3', asociatie_id: 'demo-asoc', title: 'Proces verbal recepție lucrări fațadă', doc_date: dayOffset(-200), category: 'Recepție lucrări', content_text: 'Recepția finală a lucrărilor de anvelopare termică, fără obiecțiuni majore.', storage_path: null, created_at: new Date(Date.now() - 200 * 86_400_000).toISOString() },
+];
+
+// F22 — Solicitare oferte (RFP).
+export const DEMO_RFPS: Rfp[] = [
+  {
+    id: 'rfp-1', asociatie_id: 'demo-asoc', title: 'Reabilitare instalație de hidrofor', description: 'Înlocuirea pompei și a vasului de expansiune la hidroforul din subsol.', status: 'deschis', created_at: new Date(Date.now() - 6 * 86_400_000).toISOString(),
+    quotes: [
+      { id: 'q-1', rfp_id: 'rfp-1', contractor: 'HidroTech SRL', amount: 8500, selected: false },
+      { id: 'q-2', rfp_id: 'rfp-1', contractor: 'AquaFix', amount: 7200, selected: false },
+    ],
+  },
+  {
+    id: 'rfp-2', asociatie_id: 'demo-asoc', title: 'Zugrăvit casa scării A', description: 'Zugrăvire integrală pe toate cele 8 etaje, inclusiv holuri.', status: 'decis', created_at: new Date(Date.now() - 30 * 86_400_000).toISOString(),
+    quotes: [
+      { id: 'q-3', rfp_id: 'rfp-2', contractor: 'ZugravExpert', amount: 12000, selected: true },
+      { id: 'q-4', rfp_id: 'rfp-2', contractor: 'Renov SRL', amount: 13500, selected: false },
+    ],
+  },
+];
+
+// F23 — Vecin de gardă (weekend rotation).
+export const DEMO_DUTY: DutySlot[] = [
+  { id: 'duty-1', asociatie_id: 'demo-asoc', week_start: dayOffset(-((new Date().getDay() + 1) % 7)), volunteer_user_id: 'u-res', volunteer_name: 'Popescu Andrei', note: 'Disponibil pentru urgențe de instalator.' },
+  { id: 'duty-2', asociatie_id: 'demo-asoc', week_start: dayOffset(7 - ((new Date().getDay() + 1) % 7)), volunteer_user_id: null, volunteer_name: null, note: null },
+  { id: 'duty-3', asociatie_id: 'demo-asoc', week_start: dayOffset(14 - ((new Date().getDay() + 1) % 7)), volunteer_user_id: 'u-res2', volunteer_name: 'Georgescu Elena', note: null },
+];
+
+// F31 — Plante / spații verzi.
+export const DEMO_GREEN_TASKS: GreenTask[] = [
+  { id: 'gt-1', asociatie_id: 'demo-asoc', title: 'Udat plantele din curte', week_start: dayOffset(-((new Date().getDay() + 6) % 7)), volunteer_user_id: 'u-res3', volunteer_name: 'Stan Gabriela' },
+  { id: 'gt-2', asociatie_id: 'demo-asoc', title: 'Tuns gazonul din față', week_start: dayOffset(7 - ((new Date().getDay() + 6) % 7)), volunteer_user_id: null, volunteer_name: null },
+  { id: 'gt-3', asociatie_id: 'demo-asoc', title: 'Curățat aleea și jardinierele', week_start: dayOffset(14 - ((new Date().getDay() + 6) % 7)), volunteer_user_id: null, volunteer_name: null },
+];
+
+// F39 — Wiki bloc.
+export const DEMO_WIKI: WikiPage[] = [
+  { id: 'wk-1', asociatie_id: 'demo-asoc', slug: 'inchidere-apa', title: 'Cum se închide apa pe toată scara', body_md: 'Robinetul general este în subsol, lângă hidrofor. Se rotește în sensul acelor de ceasornic până se oprește. Anunță vecinii înainte — apa caldă revine greu după repornire.', updated_at: new Date(Date.now() - 10 * 86_400_000).toISOString() },
+  { id: 'wk-2', asociatie_id: 'demo-asoc', slug: 'lift-blocat', title: 'Ce faci dacă se blochează liftul', body_md: 'Apasă butonul de alarmă din cabină. Sună la dispeceratul liftului: numărul e afișat în cabină și în secțiunea „Numere de urgență”. Nu încerca să forțezi ușile.', updated_at: new Date(Date.now() - 25 * 86_400_000).toISOString() },
+  { id: 'wk-3', asociatie_id: 'demo-asoc', slug: 'cheie-pivnita', title: 'Unde e cheia de la pivniță', body_md: 'Cheia de la pivniță e la administrator și o copie la președinte. Vezi „Registru de chei” pentru detalii de contact.', updated_at: new Date(Date.now() - 60 * 86_400_000).toISOString() },
+];
+
+// F43 — Contractor library.
+export const DEMO_CONTRACTORS: Contractor[] = [
+  { id: 'ct-1', asociatie_id: 'demo-asoc', name: 'HidroTech SRL', specialty: 'Instalații sanitare', price_tier: 'mediu', contact: '+40 721 100 100', last_used: dayOffset(-90), available: true, rating: 4.5, rating_count: 4 },
+  { id: 'ct-2', asociatie_id: 'demo-asoc', name: 'ElectroBloc', specialty: 'Instalații electrice', price_tier: 'ridicat', contact: '+40 722 200 200', last_used: dayOffset(-200), available: true, rating: 4, rating_count: 2 },
+  { id: 'ct-3', asociatie_id: 'demo-asoc', name: 'ZugravExpert', specialty: 'Zugrăveli și finisaje', price_tier: 'scazut', contact: '+40 723 300 300', last_used: dayOffset(-30), available: false, rating: 3.5, rating_count: 6 },
+];
+
+// F55 — Sistem alarmă (status).
+export const DEMO_ALARM_SYSTEMS: AlarmSystem[] = [
+  {
+    id: 'al-1', asociatie_id: 'demo-asoc', name: 'Detecție incendiu subsol', status: 'ok', last_test: dayOffset(-20),
+    events: [
+      { id: 'ae-1', system_id: 'al-1', kind: 'Test lunar', occurred_at: new Date(Date.now() - 20 * 86_400_000).toISOString() },
+      { id: 'ae-2', system_id: 'al-1', kind: 'Test lunar', occurred_at: new Date(Date.now() - 50 * 86_400_000).toISOString() },
+    ],
+  },
+  {
+    id: 'al-2', asociatie_id: 'demo-asoc', name: 'Sirenă casa scării', status: 'defect', last_test: dayOffset(-95),
+    events: [
+      { id: 'ae-3', system_id: 'al-2', kind: 'Defecțiune semnalată', occurred_at: new Date(Date.now() - 5 * 86_400_000).toISOString() },
+    ],
+  },
 ];

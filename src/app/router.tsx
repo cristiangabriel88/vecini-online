@@ -53,6 +53,14 @@ const ProfilePage = lazy(() => import('@/features/profile/ProfilePage'));
 const NotificationsPage = lazy(() => import('@/features/profile/NotificationsPage'));
 const FeaturesAdminPage = lazy(() => import('@/features/admin/FeaturesAdminPage'));
 const ApartmentsPage = lazy(() => import('@/features/admin/ApartmentsPage'));
+const AnonymousPage = lazy(() => import('@/features/anonymous/AnonymousPage'));
+const PvDocumentsPage = lazy(() => import('@/features/pv/PvDocumentsPage'));
+const RfpPage = lazy(() => import('@/features/rfp/RfpPage'));
+const DutyPage = lazy(() => import('@/features/duty/DutyPage'));
+const GreenSpacePage = lazy(() => import('@/features/greenspace/GreenSpacePage'));
+const WikiPage = lazy(() => import('@/features/wiki/WikiPage'));
+const ContractorsPage = lazy(() => import('@/features/contractors/ContractorsPage'));
+const AlarmPage = lazy(() => import('@/features/alarm/AlarmPage'));
 const NotImplementedPage = lazy(() => import('@/features/home/NotImplementedPage'));
 const FeatureHubPage = lazy(() =>
   import('@/features/home/FeatureHubPage').then((m) => ({ default: m.FeatureHubPage })),
@@ -115,6 +123,14 @@ export const router = createBrowserRouter([
       { path: 'chei', element: <S><KeysPage /></S> },
       { path: 'urgenta', element: <S><EmergencyPage /></S> },
       { path: 'alerte', element: <S><AlertsPage /></S> },
+      { path: 'anonim', element: <S><AnonymousPage /></S> },
+      { path: 'procese-verbale', element: <S><PvDocumentsPage /></S> },
+      { path: 'oferte', element: <S><RfpPage /></S> },
+      { path: 'garda', element: <S><DutyPage /></S> },
+      { path: 'plante', element: <S><GreenSpacePage /></S> },
+      { path: 'wiki', element: <S><WikiPage /></S> },
+      { path: 'contractori', element: <S><ContractorsPage /></S> },
+      { path: 'alarma', element: <S><AlarmPage /></S> },
       { path: 'actiuni', element: <S><FeatureHubPage actions /></S> },
       { path: 'mai-mult', element: <S><FeatureHubPage /></S> },
       { path: 'profil', element: <S><ProfilePage /></S> },
