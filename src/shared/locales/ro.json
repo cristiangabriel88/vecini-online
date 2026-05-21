@@ -877,5 +877,18 @@
     "moveDown": "Mută mai jos",
     "added": "Proiect adăugat.",
     "empty": "Niciun proiect. Adaugă primul cu butonul de mai sus."
+  },
+  "laundry": {
+    "title": "Rezervare spălătorie",
+    "subtitle": "Rezervă un slot la mașinile și uscătorul din spălătoria comună. Vezi ce e ocupat și anulează-ți propriile rezervări.",
+    "book": "Rezervă slot",
+    "resource": "Echipament",
+    "date": "Ziua",
+    "slot": "Interval orar",
+    "mine": "Rezervarea mea",
+    "cancel": "Anulează",
+    "taken": "Acest slot este deja rezervat.",
+    "booked": "Slot rezervat.",
+    "empty": "Nicio rezervare. Rezervă primul slot cu butonul de mai sus."
   }
 }

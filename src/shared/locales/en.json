@@ -877,5 +877,18 @@
     "moveDown": "Move down",
     "added": "Project added.",
     "empty": "No projects yet. Add the first with the button above."
+  },
+  "laundry": {
+    "title": "Laundry booking",
+    "subtitle": "Book a slot on the shared washing machines and dryer. See what's taken and cancel your own bookings.",
+    "book": "Book slot",
+    "resource": "Equipment",
+    "date": "Day",
+    "slot": "Time slot",
+    "mine": "My booking",
+    "cancel": "Cancel",
+    "taken": "This slot is already booked.",
+    "booked": "Slot booked.",
+    "empty": "No bookings yet. Book the first slot with the button above."
   }
 }

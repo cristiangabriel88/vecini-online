@@ -829,3 +829,16 @@ export interface PriorityProject {
   description: string;
   rank: number;
 }
+
+/** F25 — shared-laundry slot reservation (`bookable_resources` + `bookings`). */
+export interface LaundryBooking {
+  id: string;
+  asociatie_id: string;
+  resource: string;
+  /** Reserved day (YYYY-MM-DD). */
+  date: string;
+  /** Slot label, e.g. "08:00–10:00". */
+  slot: string;
+  user_id: string;
+  user_name: string;
+}

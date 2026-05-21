@@ -76,7 +76,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'F24', title: 'Listă obiecte împrumutabile', category: 'maintenance', icon: 'Handshake', audience: ['all'], path: 'imprumut', description: 'Unelte și obiecte pe care vecinii le împrumută.', implemented: true },
 
   // Category 4 — Shared Spaces & Resources
-  { key: 'F25', title: 'Rezervare spălătorie', category: 'spaces', icon: 'WashingMachine', audience: ['all'], path: 'spalatorie', description: 'Rezervarea sloturilor pentru spălătoria comună.', implemented: false },
+  { key: 'F25', title: 'Rezervare spălătorie', category: 'spaces', icon: 'WashingMachine', audience: ['all'], path: 'spalatorie', description: 'Rezervarea sloturilor pentru spălătoria comună.', implemented: true },
   { key: 'F26', title: 'Rezervare lift pentru mutare', category: 'spaces', icon: 'Truck', audience: ['all'], path: 'lift-mutare', description: 'Rezervarea liftului pentru mutări.', implemented: false },
   { key: 'F27', title: 'Rezervare sală comună / terasă', category: 'spaces', icon: 'PartyPopper', audience: ['all'], path: 'sala', description: 'Rezervarea sălii comune sau a terasei.', implemented: false },
   { key: 'F28', title: 'Parcare', category: 'spaces', icon: 'Car', audience: ['all'], path: 'parcare', description: 'Registru locuri de parcare cu mesagerie anonimă.', implemented: true },

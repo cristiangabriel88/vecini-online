@@ -54,6 +54,7 @@ import type {
   DiscussionThread,
   BudgetCycle,
   PriorityProject,
+  LaundryBooking,
 } from '@/shared/types/domain';
 import { RECOMMENDED_FEATURES } from '@/shared/features/registry';
 
@@ -538,4 +539,12 @@ export const DEMO_PRIORITIES: PriorityProject[] = [
   { id: 'pr-2', asociatie_id: 'demo-asoc', title: 'Anvelopare termică fațadă', description: 'Reduce costurile de încălzire pe termen lung.', rank: 2 },
   { id: 'pr-3', asociatie_id: 'demo-asoc', title: 'Modernizare lift', description: 'Liftul actual e funcțional dar vechi.', rank: 3 },
   { id: 'pr-4', asociatie_id: 'demo-asoc', title: 'Refacere instalație electrică comună', description: 'Tabloul de la subsol necesită înlocuire.', rank: 4 },
+];
+
+// F25 — Rezervare spălătorie.
+export const DEMO_LAUNDRY_RESOURCES = ['Mașină 1', 'Mașină 2', 'Uscător'];
+export const DEMO_LAUNDRY_BOOKINGS: LaundryBooking[] = [
+  { id: 'lb-1', asociatie_id: 'demo-asoc', resource: 'Mașină 1', date: dayOffset(0), slot: '10:00–12:00', user_id: 'u-res2', user_name: 'Georgescu Elena' },
+  { id: 'lb-2', asociatie_id: 'demo-asoc', resource: 'Mașină 2', date: dayOffset(0), slot: '18:00–20:00', user_id: 'u-res', user_name: 'Popescu Andrei' },
+  { id: 'lb-3', asociatie_id: 'demo-asoc', resource: 'Uscător', date: dayOffset(1), slot: '08:00–10:00', user_id: 'u-res3', user_name: 'Stan Gabriela' },
 ];

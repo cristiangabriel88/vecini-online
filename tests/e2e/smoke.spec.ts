@@ -276,6 +276,15 @@ test('F13: resident can reorder project priorities', async ({ page }) => {
   await expect(page.getByText('Modernizare lift')).toBeVisible();
 });
 
+test('F25: resident can book a laundry slot', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/spalatorie');
+  await page.getByRole('button', { name: /Rezervă slot/i }).click();
+  await page.getByLabel('Interval orar').selectOption('12:00–14:00');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText('12:00–14:00')).toBeVisible();
+});
+
 test('home page has no critical accessibility violations', async ({ page }) => {
   await enterDemo(page);
   const results = await new AxeBuilder({ page })
