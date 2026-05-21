@@ -63,6 +63,7 @@ const ContractorsPage = lazy(() => import('@/features/contractors/ContractorsPag
 const AlarmPage = lazy(() => import('@/features/alarm/AlarmPage'));
 const DiscussionsPage = lazy(() => import('@/features/discussions/DiscussionsPage'));
 const BudgetPage = lazy(() => import('@/features/budget/BudgetPage'));
+const PrioritiesPage = lazy(() => import('@/features/priorities/PrioritiesPage'));
 const NotImplementedPage = lazy(() => import('@/features/home/NotImplementedPage'));
 const FeatureHubPage = lazy(() =>
   import('@/features/home/FeatureHubPage').then((m) => ({ default: m.FeatureHubPage })),
@@ -135,6 +136,7 @@ export const router = createBrowserRouter([
       { path: 'alarma', element: <S><AlarmPage /></S> },
       { path: 'discutii', element: <S><DiscussionsPage /></S> },
       { path: 'buget', element: <S><BudgetPage /></S> },
+      { path: 'prioritati', element: <S><PrioritiesPage /></S> },
       { path: 'actiuni', element: <S><FeatureHubPage actions /></S> },
       { path: 'mai-mult', element: <S><FeatureHubPage /></S> },
       { path: 'profil', element: <S><ProfilePage /></S> },

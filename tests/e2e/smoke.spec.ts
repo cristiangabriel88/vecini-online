@@ -269,6 +269,13 @@ test('F12: resident can vote on a budget proposal', async ({ page }) => {
   await expect(page.getByRole('button', { name: /Votat/i }).first()).toBeVisible();
 });
 
+test('F13: resident can reorder project priorities', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/prioritati');
+  await page.getByRole('button', { name: /Mută mai sus/i }).nth(1).click();
+  await expect(page.getByText('Modernizare lift')).toBeVisible();
+});
+
 test('home page has no critical accessibility violations', async ({ page }) => {
   await enterDemo(page);
   const results = await new AxeBuilder({ page })

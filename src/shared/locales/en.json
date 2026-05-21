@@ -866,5 +866,16 @@
     "cost": "Estimated cost (lei)",
     "added": "Proposal added.",
     "empty": "No proposals yet. Add the first with the button above."
+  },
+  "priorities": {
+    "title": "Major-project priorities",
+    "subtitle": "Rank major projects by priority. The committee uses the ranking before the formal AGA proposal.",
+    "new": "Add project",
+    "projectTitle": "Project title",
+    "description": "Description",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "added": "Project added.",
+    "empty": "No projects yet. Add the first with the button above."
   }
 }

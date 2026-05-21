@@ -866,5 +866,16 @@
     "cost": "Cost estimat (lei)",
     "added": "Propunere adăugată.",
     "empty": "Nicio propunere încă. Adaugă prima cu butonul de mai sus."
+  },
+  "priorities": {
+    "title": "Prioritizare proiecte mari",
+    "subtitle": "Ordonează proiectele majore după prioritate. Comitetul folosește clasamentul înainte de propunerea formală la AGA.",
+    "new": "Adaugă proiect",
+    "projectTitle": "Titlu proiect",
+    "description": "Descriere",
+    "moveUp": "Mută mai sus",
+    "moveDown": "Mută mai jos",
+    "added": "Proiect adăugat.",
+    "empty": "Niciun proiect. Adaugă primul cu butonul de mai sus."
   }
 }

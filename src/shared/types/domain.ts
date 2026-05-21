@@ -819,3 +819,13 @@ export interface BudgetCycle {
   phase: BudgetPhase;
   proposals: BudgetProposal[];
 }
+
+/** F13 — major-project priority ranking (`project_priorities` +
+ *  `priority_rankings`). `rank` is 1-based; lower means higher priority. */
+export interface PriorityProject {
+  id: string;
+  asociatie_id: string;
+  title: string;
+  description: string;
+  rank: number;
+}

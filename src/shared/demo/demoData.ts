@@ -53,6 +53,7 @@ import type {
   AlarmSystem,
   DiscussionThread,
   BudgetCycle,
+  PriorityProject,
 } from '@/shared/types/domain';
 import { RECOMMENDED_FEATURES } from '@/shared/features/registry';
 
@@ -530,3 +531,11 @@ export const DEMO_BUDGET_CYCLE: BudgetCycle = {
     { id: 'bp-4', cycle_id: 'bc-1', title: 'Suport pentru biciclete', cost: 2600, author_name: 'Popa Radu', votes: 4, voted: false },
   ],
 };
+
+// F13 — Prioritizare proiecte mari.
+export const DEMO_PRIORITIES: PriorityProject[] = [
+  { id: 'pr-1', asociatie_id: 'demo-asoc', title: 'Reabilitare acoperiș', description: 'Infiltrații la ultimul etaj; cea mai urgentă lucrare.', rank: 1 },
+  { id: 'pr-2', asociatie_id: 'demo-asoc', title: 'Anvelopare termică fațadă', description: 'Reduce costurile de încălzire pe termen lung.', rank: 2 },
+  { id: 'pr-3', asociatie_id: 'demo-asoc', title: 'Modernizare lift', description: 'Liftul actual e funcțional dar vechi.', rank: 3 },
+  { id: 'pr-4', asociatie_id: 'demo-asoc', title: 'Refacere instalație electrică comună', description: 'Tabloul de la subsol necesită înlocuire.', rank: 4 },
+];

@@ -82,6 +82,7 @@ const FEATURE_COMMANDS: Record<string, string> = {
   '/discutii': '💬 Canal de discuții — participă la discuțiile moderate ale blocului (parcare, curățenie, vecini) în secțiunea „Canal de discuții”.',
   '/buget_voteaza': '🐷 Buget participativ — votează propunerile pentru fondul discreționar în secțiunea „Buget participativ”.',
   '/buget_propune': '🐷 Buget participativ — propune o idee pentru fondul discreționar în secțiunea „Buget participativ”.',
+  '/prioritati': '🔢 Prioritizare proiecte — ordonează proiectele mari (acoperiș, fațadă, lift) după prioritate în secțiunea „Prioritizare proiecte mari”.',
 };
 
 async function handleMessage(msg: TelegramMessage) {
