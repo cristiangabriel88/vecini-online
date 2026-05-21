@@ -1,0 +1,138 @@
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
+import { ShoppingBag, Plus } from 'lucide-react';
+import { PageHeader } from '@/shared/components/PageHeader';
+import { Card } from '@/shared/components/Card';
+import { Button } from '@/shared/components/Button';
+import { Badge } from '@/shared/components/Badge';
+import { Input, Textarea } from '@/shared/components/Input';
+import { Select } from '@/shared/components/Select';
+import { EmptyState } from '@/shared/components/EmptyState';
+import { Modal } from '@/shared/components/Modal';
+import { formatLei, formatDate } from '@/shared/lib/format';
+import { useMarketplaceStore } from './marketplaceStore';
+import { activeListings, isValidListing, MARKETPLACE_CATEGORIES } from './marketplaceLogic';
+
+export default function MarketplacePage() {
+  const { t } = useTranslation();
+  const { listings, add } = useMarketplaceStore();
+  const [query, setQuery] = useState('');
+  const [category, setCategory] = useState('all');
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [newCategory, setNewCategory] = useState<string>(MARKETPLACE_CATEGORIES[0]);
+  const [price, setPrice] = useState('');
+
+  const results = activeListings(listings, query, category);
+  const valid = isValidListing(title);
+
+  const submit = () => {
+    if (!valid) return;
+    const parsed = price.trim() === '' ? null : Math.max(0, Number(price.replace(',', '.')) || 0);
+    add({ title, description, category: newCategory, price: parsed });
+    toast.success(t('marketplace.added'));
+    setOpen(false);
+    setTitle('');
+    setDescription('');
+    setPrice('');
+    setNewCategory(MARKETPLACE_CATEGORIES[0]);
+  };
+
+  return (
+    <div>
+      <PageHeader
+        title={t('marketplace.title')}
+        subtitle={t('marketplace.subtitle')}
+        action={
+          <Button onClick={() => setOpen(true)}>
+            <Plus className="h-4 w-4" /> {t('marketplace.new')}
+          </Button>
+        }
+      />
+
+      <div className="mb-4 flex flex-wrap gap-3">
+        <Input
+          aria-label={t('common.search')}
+          placeholder={t('marketplace.searchPlaceholder')}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="flex-1"
+        />
+        <Select aria-label={t('marketplace.category')} value={category} onChange={(e) => setCategory(e.target.value)}>
+          <option value="all">{t('common.all')}</option>
+          {MARKETPLACE_CATEGORIES.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </Select>
+      </div>
+
+      {results.length === 0 ? (
+        <EmptyState body={t('marketplace.empty')} icon={<ShoppingBag className="h-10 w-10" />} />
+      ) : (
+        <div className="space-y-3">
+          {results.map((l) => (
+            <Card key={l.id} className="space-y-2 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <p className="font-medium">{l.title}</p>
+                <Badge tone={l.price ? 'primary' : 'success'}>
+                  {l.price ? formatLei(l.price) : t('marketplace.free')}
+                </Badge>
+              </div>
+              {l.description && <p className="text-sm text-text">{l.description}</p>}
+              <p className="text-sm text-muted">
+                {l.seller_name} · {l.category} · {t('marketplace.until', { date: formatDate(l.expires_at) })}
+              </p>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title={t('marketplace.new')}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setOpen(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button onClick={submit} disabled={!valid}>
+              {t('common.publish')}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <Input label={t('marketplace.titleLabel')} value={title} onChange={(e) => setTitle(e.target.value)} />
+          <Textarea
+            label={t('marketplace.description')}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+          <Select
+            label={t('marketplace.category')}
+            value={newCategory}
+            onChange={(e) => setNewCategory(e.target.value)}
+          >
+            {MARKETPLACE_CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </Select>
+          <Input
+            label={t('marketplace.priceLabel')}
+            hint={t('marketplace.priceHint')}
+            inputMode="decimal"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+          />
+        </div>
+      </Modal>
+    </div>
+  );
+}

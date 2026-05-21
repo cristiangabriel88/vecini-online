@@ -364,5 +364,20 @@
     "status_rezolvat": "Rezolvat",
     "added": "Raport trimis. Mulțumim că ai anunțat vecinii.",
     "empty": "Nicio raportare. Folosește butonul de mai sus dacă observi ceva suspect."
+  },
+  "marketplace": {
+    "title": "Marketplace intern",
+    "subtitle": "Vinde sau donează obiecte vecinilor înainte de OLX. Anunțurile expiră automat după 14 zile.",
+    "new": "Anunț nou",
+    "titleLabel": "Titlu",
+    "description": "Descriere",
+    "category": "Categorie",
+    "priceLabel": "Preț (lei)",
+    "priceHint": "Lasă gol sau 0 dacă donezi obiectul.",
+    "free": "Gratis",
+    "until": "până la {{date}}",
+    "searchPlaceholder": "Caută după titlu sau descriere…",
+    "added": "Anunț publicat.",
+    "empty": "Niciun anunț activ. Publică primul cu butonul de mai sus."
   }
 }

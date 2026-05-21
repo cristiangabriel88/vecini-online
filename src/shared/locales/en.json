@@ -364,5 +364,20 @@
     "status_rezolvat": "Resolved",
     "added": "Report submitted. Thanks for letting neighbours know.",
     "empty": "No reports. Use the button above if you notice something suspicious."
+  },
+  "marketplace": {
+    "title": "Internal marketplace",
+    "subtitle": "Sell or give away items to neighbours before OLX. Listings auto-expire after 14 days.",
+    "new": "New listing",
+    "titleLabel": "Title",
+    "description": "Description",
+    "category": "Category",
+    "priceLabel": "Price (lei)",
+    "priceHint": "Leave empty or 0 if you are giving it away.",
+    "free": "Free",
+    "until": "until {{date}}",
+    "searchPlaceholder": "Search by title or description…",
+    "added": "Listing published.",
+    "empty": "No active listings. Post the first one with the button above."
   }
 }

@@ -565,7 +565,7 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F54 | Vizitatori / străini observați | ✅ | Quick suspicious-visitor log: report a note, recent feed with open reports floated above resolved, comitet cycles status nou→cunoscut→rezolvat; validation + status-cycle + ordering logic unit-tested; `/strain` bot command. Table `visitor_reports` + member-insert RLS. |
 | F55 | Sistem alarmă (status) | 🟦 | Tables `alarm_systems`, `alarm_events` + RLS. |
 | F56 | Numere de urgență localizate | ✅ | Tap-to-call list; table `emergency_contacts` + RLS; seeded. |
-| F57 | Marketplace intern | 🟦 | Table `marketplace_listings` + owner RLS. |
+| F57 | Marketplace intern | ✅ | Sell/give-away listings with category, price (0 = gratis), search and 14-day auto-expiry that hides stale posts; expiry math, validation, category + search filtering unit-tested; `/marketplace` bot command. Table `marketplace_listings` (+ `category`) + owner RLS. |
 | F58 | Carpooling | 🟦 | Table `carpool_profiles` + owner RLS. |
 | F59 | Babysitting / pet-sitting | 🟦 | Tables `sitter_profiles/ratings` + RLS. |
 | F60 | Skill exchange / barter | 🟦 | Tables `skill_offerings`, `skill_exchanges` + RLS. |
