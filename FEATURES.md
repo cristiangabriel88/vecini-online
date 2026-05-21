@@ -538,7 +538,7 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F27 | Rezervare sală comună / terasă | 🟦 | Uses `bookings`, `booking_inspections` + RLS. |
 | F28 | Parcare | 🟦 | Tables `parking_spots/assignments/reports` + RLS. |
 | F29 | Bicicletăria | ✅ | Bike registry with register, search and active/abandoned marking; validation + search/filter logic unit-tested; `/biciclete` bot command. Table `bikes` + owner RLS. |
-| F30 | Boxa / dependinți | 🟦 | Table `storage_units` + RLS. |
+| F30 | Boxa / dependinți | ✅ | Storage-room registry with assigned/unassigned filter, apartment badges, notes and add (assigned units float to top); validation + assignment filter + search/sort logic unit-tested; `/boxe` bot command. Table `storage_units` + RLS. |
 | F31 | Plante / spații verzi | 🟦 | Tables `green_space_tasks`, `task_signups` + RLS. |
 | F32 | Acces curierat (cod temporar) | 🟦 | Table `access_codes` + RLS. |
 | F33 | Document arhivă | ✅ | Searchable document repository (statut/regulament/contracte/cadastru) with category filter, version display and add; category + diacritic-insensitive search logic unit-tested; `/documente` bot command. Table `documents` with GIN full-text search + RLS. |

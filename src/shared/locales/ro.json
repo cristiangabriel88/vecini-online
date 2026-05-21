@@ -427,5 +427,22 @@
     "alertSummary": "{{count}} contracte expirate sau care expiră în curând.",
     "added": "Furnizor adăugat.",
     "empty": "Niciun furnizor înregistrat. Adaugă primul cu butonul de mai sus."
+  },
+  "storage": {
+    "title": "Boxe și dependinți",
+    "subtitle": "Registru al boxelor și dependințelor — cine deține fiecare spațiu de depozitare.",
+    "new": "Adaugă boxă",
+    "label": "Denumire / locație",
+    "apartment": "Apartament",
+    "apartmentHint": "Lasă gol dacă boxa este neatribuită.",
+    "notes": "Observații",
+    "unassigned": "Neatribuită",
+    "filter": "Stare",
+    "filter_all": "Toate",
+    "filter_assigned": "Atribuite",
+    "filter_unassigned": "Neatribuite",
+    "searchPlaceholder": "Caută după denumire, apartament sau observații…",
+    "added": "Boxă adăugată.",
+    "empty": "Nicio boxă înregistrată. Adaugă prima cu butonul de mai sus."
   }
 }

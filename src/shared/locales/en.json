@@ -427,5 +427,22 @@
     "alertSummary": "{{count}} contracts expired or expiring soon.",
     "added": "Supplier added.",
     "empty": "No suppliers registered. Add the first with the button above."
+  },
+  "storage": {
+    "title": "Storage rooms",
+    "subtitle": "Registry of storage rooms and outbuildings — who owns each storage space.",
+    "new": "Add storage room",
+    "label": "Label / location",
+    "apartment": "Apartment",
+    "apartmentHint": "Leave empty if the room is unassigned.",
+    "notes": "Notes",
+    "unassigned": "Unassigned",
+    "filter": "State",
+    "filter_all": "All",
+    "filter_assigned": "Assigned",
+    "filter_unassigned": "Unassigned",
+    "searchPlaceholder": "Search by label, apartment or notes…",
+    "added": "Storage room added.",
+    "empty": "No storage rooms registered. Add the first with the button above."
   }
 }
