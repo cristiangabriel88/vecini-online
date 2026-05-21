@@ -571,6 +571,6 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F60 | Skill exchange / barter | 🟦 | Tables `skill_offerings`, `skill_exchanges` + RLS. |
 | F61 | Grupuri de cumpărături comune | 🟦 | Tables `group_buys`, `group_buy_signups` + RLS. |
 | F62 | Welcome kit for new residents | 🟦 | Table `welcome_kit_templates` + RLS. |
-| F63 | Aniversări (opt-in) | 🟦 | Table `birthdays_consent` + owner RLS. |
+| F63 | Aniversări (opt-in) | ✅ | Opt-in birthday consent (day/month only, save/edit/leave) with a "today" section and a soonest-first upcoming list (29-Feb-safe validation, next-occurrence day math); validation + days-until + today/upcoming split logic unit-tested; `/aniversari` bot command. Table `birthdays_consent` + owner RLS. |
 | F64 | Activități copii și adolescenți | 🟦 | Tables `kids_age_ranges`, `kids_events` + RLS. |
 | F65 | Feedback platformă | ✅ | Submit feedback about the platform with sentiment (idee/problemă/laudă) and optional anonymous flag; recent-feedback list newest-first; validation + sort logic unit-tested; `/feedback` bot command. Table `platform_feedback` + authenticated-insert RLS. |

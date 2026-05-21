@@ -471,6 +471,8 @@
     "day": "Zi",
     "month": "Lună",
     "today": "Astăzi",
+    "tomorrow": "mâine",
+    "inDays": "peste {{days}} zile",
     "todayHeading": "Aniversări azi",
     "upcomingHeading": "Următoarele aniversări",
     "saved": "Ziua ta a fost salvată.",

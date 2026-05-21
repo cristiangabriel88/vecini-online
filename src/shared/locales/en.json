@@ -471,6 +471,8 @@
     "day": "Day",
     "month": "Month",
     "today": "Today",
+    "tomorrow": "tomorrow",
+    "inDays": "in {{days}} days",
     "todayHeading": "Birthdays today",
     "upcomingHeading": "Upcoming birthdays",
     "saved": "Your birthday was saved.",
