@@ -553,7 +553,7 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F42 | Project photo journal | 🟦 | Table `project_photos` + RLS. |
 | F43 | Contractor library | 🟦 | Tables `contractors`, `contractor_ratings` + RLS. |
 | F44 | Crowdfunding proiecte mici | 🟦 | Tables `crowdfunds`, `pledges` + RLS. |
-| F45 | Plan multianual de mentenanță | 🟦 | Table `multiyear_plan_items` + RLS. |
+| F45 | Plan multianual de mentenanță | ✅ | Multi-year works roadmap with add (year/title/cost/notes), items bucketed by ascending year and a total-estimated-cost summary; year/title validation + sort + total + group-by-year logic unit-tested; `/plan_multianual` bot command. Table `multiyear_plan_items` (comitet-managed RLS). |
 | F46 | Recomandări fond de reparații | 🟦 | Computed; calculator helper to come. |
 | F47 | Energy efficiency tracker | ✅ | Monthly common-area consumption log (lighting/lift/heating) with add, period/kind, a total-cost summary and per-kind breakdown, newest-period-first ordering; validation + period formatting + sort + totals/by-kind logic unit-tested; `/energie` bot command. Table `energy_records` (comitet-managed RLS). |
 | F48 | Garanție tracker | ✅ | Equipment warranty dashboard sorted by expiry with active/expiring/expired badges and add (auto-computes expiry); expiry math, validation, sort and alert-count logic unit-tested; `/garantii` bot command. Table `warranties` + RLS. |
