@@ -774,3 +774,24 @@ export interface AlarmSystem {
   last_test: string | null;
   events: AlarmEvent[];
 }
+
+/** F02 — moderated discussion thread with its messages (`discussion_threads` +
+ *  `discussion_messages`). */
+export interface DiscussionMessage {
+  id: string;
+  thread_id: string;
+  author_user_id: string;
+  author_name: string;
+  body: string;
+  created_at: string;
+}
+
+export interface DiscussionThread {
+  id: string;
+  asociatie_id: string;
+  topic: string;
+  title: string;
+  pinned: boolean;
+  created_at: string;
+  messages: DiscussionMessage[];
+}

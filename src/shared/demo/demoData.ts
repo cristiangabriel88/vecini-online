@@ -51,6 +51,7 @@ import type {
   WikiPage,
   Contractor,
   AlarmSystem,
+  DiscussionThread,
 } from '@/shared/types/domain';
 import { RECOMMENDED_FEATURES } from '@/shared/features/registry';
 
@@ -491,5 +492,29 @@ export const DEMO_ALARM_SYSTEMS: AlarmSystem[] = [
     events: [
       { id: 'ae-3', system_id: 'al-2', kind: 'Defecțiune semnalată', occurred_at: new Date(Date.now() - 5 * 86_400_000).toISOString() },
     ],
+  },
+];
+
+// F02 — Canal de discuții moderat.
+export const DEMO_DISCUSSIONS: DiscussionThread[] = [
+  {
+    id: 'dt-1', asociatie_id: 'demo-asoc', topic: '#anunturi', title: 'Reguli pentru zona de parcare', pinned: true,
+    created_at: new Date(Date.now() - 12 * 86_400_000).toISOString(),
+    messages: [
+      { id: 'dm-1', thread_id: 'dt-1', author_user_id: 'u-com', author_name: 'Ionescu Maria (comitet)', body: 'Vă rugăm să nu blocați accesul la pubele când parcați pe locurile vizitatorilor.', created_at: new Date(Date.now() - 12 * 86_400_000).toISOString() },
+      { id: 'dm-2', thread_id: 'dt-1', author_user_id: 'u-res2', author_name: 'Georgescu Elena', body: 'Mulțumim! S-a întâmplat des în ultima vreme.', created_at: new Date(Date.now() - 11 * 86_400_000).toISOString() },
+    ],
+  },
+  {
+    id: 'dt-2', asociatie_id: 'demo-asoc', topic: '#curatenie', title: 'Firma de curățenie sare scara B?', pinned: false,
+    created_at: new Date(Date.now() - 4 * 86_400_000).toISOString(),
+    messages: [
+      { id: 'dm-3', thread_id: 'dt-2', author_user_id: 'u-res3', author_name: 'Stan Gabriela', body: 'A treia oară săptămâna asta când scara B nu e măturată. Cineva mai observă?', created_at: new Date(Date.now() - 4 * 86_400_000).toISOString() },
+    ],
+  },
+  {
+    id: 'dt-3', asociatie_id: 'demo-asoc', topic: '#vecini', title: 'Schimb de roșii din grădină 🍅', pinned: false,
+    created_at: new Date(Date.now() - 2 * 86_400_000).toISOString(),
+    messages: [],
   },
 ];

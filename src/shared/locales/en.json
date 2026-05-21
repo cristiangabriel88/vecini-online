@@ -837,5 +837,20 @@
     "name": "System name",
     "added": "System added.",
     "empty": "No systems recorded. Add the first with the button above."
+  },
+  "discussions": {
+    "title": "Discussion channel",
+    "subtitle": "Informal resident discussions, moderated by the committee. Organised by topic (#parking, #cleaning, #neighbours).",
+    "newThread": "New thread",
+    "threadTitle": "Title",
+    "topic": "Tag (optional)",
+    "messageCount": "{{count}} messages",
+    "pinned": "Pinned",
+    "pin": "Pin",
+    "unpin": "Unpin",
+    "deleteMessage": "Delete message",
+    "replyPlaceholder": "Write a message…",
+    "threadAdded": "Thread created.",
+    "empty": "No discussion threads yet. Start the first with the button above."
   }
 }

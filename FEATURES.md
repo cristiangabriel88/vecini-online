@@ -510,7 +510,7 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | Key | Title | Status | Notes |
 |-----|-------|--------|-------|
 | F01 | Anunțuri oficiale | ✅ | Compose/publish, categories, read receipts; DOMPurify-sanitized HTML; tables + GIN search + RLS. |
-| F02 | Canal de discuții moderat | 🟦 | Tables `discussion_*`, `moderation_actions` + RLS. |
+| F02 | Canal de discuții moderat | ✅ | Moderated discussion channel: topic-tagged threads (pinned float first, then most-recent-activity), expand to read/post messages, comitet pin/unpin and delete-message; validation/sort/last-activity/rate-limit logic unit-tested; `/discutii` bot command. Tables `discussion_threads/messages`, `moderation_actions` + RLS. |
 | F03 | Alertă de bloc (urgență) | ✅ | Send flow with double-confirm bypassing quiet hours; recipient count. |
 | F04 | Mesagerie privată cu administratorul | 🟦 | Tables `private_threads/messages` + RLS. |
 | F05 | Mesaj anonim către comitet | ✅ | Residents send messages to the comitet with their identity hidden at the app layer; queue floats open above resolved (newest-first), a pending banner, and toggle resolve/reopen; validation/toggle/order/open-count logic unit-tested; `/anonim` bot command. Table `anonymous_messages` + owner RLS on sender. |

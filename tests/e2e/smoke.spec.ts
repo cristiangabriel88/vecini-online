@@ -253,6 +253,15 @@ test('F55: admin can add an alarm system', async ({ page }) => {
   await expect(page.getByText('Sistem alarmă E2E')).toBeVisible();
 });
 
+test('F02: resident can start a discussion thread', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/discutii');
+  await page.getByRole('button', { name: /Subiect nou/i }).click();
+  await page.getByLabel('Titlu').fill('Subiect E2E');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText('Subiect E2E')).toBeVisible();
+});
+
 test('home page has no critical accessibility violations', async ({ page }) => {
   await enterDemo(page);
   const results = await new AxeBuilder({ page })

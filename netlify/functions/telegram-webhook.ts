@@ -79,6 +79,7 @@ const FEATURE_COMMANDS: Record<string, string> = {
   '/wiki': '📚 Wiki bloc — caută instrucțiuni utile despre bloc (apă, lift, curent) în secțiunea „Wiki bloc”.',
   '/contractori': '👷 Contractori — caută în biblioteca de contractori verificați, cu rating, în secțiunea „Contractori” (comitet).',
   '/alarma': '🔔 Sistem alarmă — vezi statusul sistemelor de alarmă și detecție și istoricul testelor în secțiunea „Sistem alarmă”.',
+  '/discutii': '💬 Canal de discuții — participă la discuțiile moderate ale blocului (parcare, curățenie, vecini) în secțiunea „Canal de discuții”.',
 };
 
 async function handleMessage(msg: TelegramMessage) {

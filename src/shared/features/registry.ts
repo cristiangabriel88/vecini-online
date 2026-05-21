@@ -47,7 +47,7 @@ export const FEATURE_CATEGORIES: Record<FeatureCategory, string> = {
 export const FEATURES: FeatureDef[] = [
   // Category 1 — Communication
   { key: 'F01', title: 'Anunțuri oficiale', category: 'communication', icon: 'Megaphone', audience: ['all'], path: 'anunturi', description: 'Anunțuri oficiale cu confirmare de citire și difuzare țintită.', implemented: true },
-  { key: 'F02', title: 'Canal de discuții moderat', category: 'communication', icon: 'MessagesSquare', audience: ['all'], path: 'discutii', description: 'Canal de discuții între locatari, moderat de comitet.', implemented: false },
+  { key: 'F02', title: 'Canal de discuții moderat', category: 'communication', icon: 'MessagesSquare', audience: ['all'], path: 'discutii', description: 'Canal de discuții între locatari, moderat de comitet.', implemented: true },
   { key: 'F03', title: 'Alertă de bloc (urgență)', category: 'communication', icon: 'Siren', audience: ['all'], path: 'alerte', description: 'Difuzare de urgență care ignoră orele de liniște.', implemented: true },
   { key: 'F04', title: 'Mesagerie privată cu administratorul', category: 'communication', icon: 'MessageCircle', audience: ['proprietar', 'chirias', 'admin'], path: 'mesaje-admin', description: 'Canal privat între locatar și administrator.', implemented: false },
   { key: 'F05', title: 'Mesaj anonim către comitet', category: 'communication', icon: 'EyeOff', audience: ['all'], path: 'anonim', description: 'Mesaj către comitet cu identitate ascunsă.', implemented: true },

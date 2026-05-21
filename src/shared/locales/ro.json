@@ -837,5 +837,20 @@
     "name": "Denumire sistem",
     "added": "Sistem adăugat.",
     "empty": "Niciun sistem înregistrat. Adaugă primul cu butonul de mai sus."
+  },
+  "discussions": {
+    "title": "Canal de discuții",
+    "subtitle": "Discuții informale între locatari, moderate de comitet. Pe subiecte (#parcare, #curățenie, #vecini).",
+    "newThread": "Subiect nou",
+    "threadTitle": "Titlu",
+    "topic": "Etichetă (opțional)",
+    "messageCount": "{{count}} mesaje",
+    "pinned": "Fixat",
+    "pin": "Fixează",
+    "unpin": "Anulează fixarea",
+    "deleteMessage": "Șterge mesajul",
+    "replyPlaceholder": "Scrie un mesaj…",
+    "threadAdded": "Subiect creat.",
+    "empty": "Niciun subiect de discuție. Pornește primul cu butonul de mai sus."
   }
 }
