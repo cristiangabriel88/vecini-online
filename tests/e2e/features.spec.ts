@@ -54,3 +54,12 @@ test('F20 — resident submits a meter reading', async ({ page }) => {
   await page.getByRole('button', { name: /Salvează/i }).click();
   await expect(page.getByText(/Ultimul index: 320/)).toBeVisible();
 });
+
+test('F36 — resident searches the opt-in neighbour directory', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/vecini');
+  await expect(page.getByText('Georgescu Elena')).toBeVisible();
+  await page.getByLabel(/caută/i).fill('georgescu');
+  await expect(page.getByText('Georgescu Elena')).toBeVisible();
+  await expect(page.getByText('Stan Gabriela')).toHaveCount(0);
+});

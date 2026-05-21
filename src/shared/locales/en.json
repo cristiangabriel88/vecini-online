@@ -219,6 +219,18 @@
     "window": "Submission window: 1st–5th of the month",
     "submitted": "Index submitted. Thank you!"
   },
+  "directory": {
+    "title": "Neighbours",
+    "subtitle": "A contact directory between neighbours. You appear only if you opt in.",
+    "myConsent": "What I share",
+    "consentHint": "You control what others see. Change it anytime.",
+    "show_name": "My name",
+    "show_apartment": "Apartment",
+    "show_phone": "Phone",
+    "show_email": "Email",
+    "searchPlaceholder": "Search by name or apartment…",
+    "empty": "No neighbours listed yet. Be the first to opt in above."
+  },
   "emergency": {
     "title": "Emergency numbers",
     "call": "Call",

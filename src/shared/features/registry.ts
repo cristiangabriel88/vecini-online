@@ -89,7 +89,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'F33', title: 'Document arhivă', category: 'information', icon: 'FileText', audience: ['all'], path: 'documente', description: 'Repertoriu de documente oficiale, căutabil.', implemented: false },
   { key: 'F34', title: 'Furnizori / contracte', category: 'information', icon: 'Building2', audience: ['comitet', 'admin'], path: 'furnizori', description: 'Catalog de furnizori cu alerte de expirare a contractelor.', implemented: false },
   { key: 'F35', title: 'Apartament info', category: 'information', icon: 'DoorOpen', audience: ['proprietar'], path: 'apartament-info', description: 'Pagina informativă a fiecărui apartament.', implemented: false },
-  { key: 'F36', title: 'Locator directory', category: 'information', icon: 'Contact', audience: ['all'], path: 'vecini', description: 'Agendă de contacte ale locatarilor (opt-in).', implemented: false },
+  { key: 'F36', title: 'Locator directory', category: 'information', icon: 'Contact', audience: ['all'], path: 'vecini', description: 'Agendă de contacte ale locatarilor (opt-in).', implemented: true },
   { key: 'F37', title: 'Pet directory', category: 'information', icon: 'PawPrint', audience: ['all'], path: 'animale', description: 'Registru de animale de companie (opt-in).', implemented: false },
   { key: 'F38', title: 'Carte de aur (mulțumiri)', category: 'information', icon: 'Heart', audience: ['all'], path: 'multumiri', description: 'Perete public de mulțumiri între vecini.', implemented: false },
   { key: 'F39', title: 'Wiki bloc', category: 'information', icon: 'BookOpen', audience: ['all'], path: 'wiki', description: 'Wiki colaborativ cu cunoștințe locale.', implemented: false },

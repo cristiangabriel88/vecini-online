@@ -544,7 +544,7 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F33 | Document arhivă | 🟦 | Table `documents` with full-text search + RLS. |
 | F34 | Furnizori / contracte | 🟦 | Tables `suppliers`, `supplier_complaints` + RLS. |
 | F35 | Apartament info | 🟦 | Views across apartments/readings/tickets/votes. |
-| F36 | Locator directory | 🟦 | Table `resident_directory_consent` + owner RLS. |
+| F36 | Locator directory | ✅ | Per-field opt-in consent toggles + searchable list of opted-in neighbours (tap-to-call/email); consent-masking + search logic unit-tested; `/vecini` bot command. Table `resident_directory_consent` + RLS. |
 | F37 | Pet directory | 🟦 | Table `pets` + owner RLS. |
 | F38 | Carte de aur (mulțumiri) | 🟦 | Table `thank_yous` + RLS. |
 | F39 | Wiki bloc | 🟦 | Tables `wiki_pages/revisions/suggested_edits` + search + RLS. |

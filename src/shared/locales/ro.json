@@ -219,6 +219,18 @@
     "window": "Fereastră de trimitere: 1–5 ale lunii",
     "submitted": "Index trimis. Mulțumim!"
   },
+  "directory": {
+    "title": "Vecini",
+    "subtitle": "Agendă de contacte între vecini. Apari doar dacă alegi tu.",
+    "myConsent": "Ce informații afișez",
+    "consentHint": "Tu controlezi ce văd ceilalți. Poți modifica oricând.",
+    "show_name": "Numele meu",
+    "show_apartment": "Apartamentul",
+    "show_phone": "Telefonul",
+    "show_email": "Emailul",
+    "searchPlaceholder": "Caută după nume sau apartament…",
+    "empty": "Niciun vecin listat încă. Fii primul care optează mai sus."
+  },
   "emergency": {
     "title": "Numere de urgență",
     "call": "Sună",
