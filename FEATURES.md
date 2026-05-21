@@ -567,7 +567,7 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F56 | Numere de urgență localizate | ✅ | Tap-to-call list; table `emergency_contacts` + RLS; seeded. |
 | F57 | Marketplace intern | ✅ | Sell/give-away listings with category, price (0 = gratis), search and 14-day auto-expiry that hides stale posts; expiry math, validation, category + search filtering unit-tested; `/marketplace` bot command. Table `marketplace_listings` (+ `category`) + owner RLS. |
 | F58 | Carpooling | ✅ | Opt-in carpool profile (save/edit/leave) + searchable list of neighbours by destination/schedule/name, sorted by destination; validation + diacritic-insensitive search logic unit-tested; `/carpool` bot command. Table `carpool_profiles` + owner RLS. |
-| F59 | Babysitting / pet-sitting | 🟦 | Tables `sitter_profiles/ratings` + RLS. |
+| F59 | Babysitting / pet-sitting | ✅ | Opt-in sitter profile (kind/availability/rate, save/edit/leave) + searchable, kind-filterable board sorted by name; validation + kind-filter + diacritic-insensitive search logic unit-tested; `/babysit` & `/petsit` bot commands. Table `sitter_profiles` + owner RLS. |
 | F60 | Skill exchange / barter | 🟦 | Tables `skill_offerings`, `skill_exchanges` + RLS. |
 | F61 | Grupuri de cumpărături comune | 🟦 | Tables `group_buys`, `group_buy_signups` + RLS. |
 | F62 | Welcome kit for new residents | 🟦 | Table `welcome_kit_templates` + RLS. |
