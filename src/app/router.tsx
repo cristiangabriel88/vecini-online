@@ -17,6 +17,7 @@ const FaqPage = lazy(() => import('@/features/faq/FaqPage'));
 const IdeasPage = lazy(() => import('@/features/ideas/IdeasPage'));
 const SurveysPage = lazy(() => import('@/features/surveys/SurveysPage'));
 const LendingPage = lazy(() => import('@/features/lending/LendingPage'));
+const BikesPage = lazy(() => import('@/features/bikes/BikesPage'));
 const RepairsPage = lazy(() => import('@/features/repairs/RepairsPage'));
 const MetersPage = lazy(() => import('@/features/meters/MetersPage'));
 const DirectoryPage = lazy(() => import('@/features/directory/DirectoryPage'));
@@ -58,6 +59,7 @@ export const router = createBrowserRouter([
       { path: 'idei', element: <S><IdeasPage /></S> },
       { path: 'sondaje', element: <S><SurveysPage /></S> },
       { path: 'imprumut', element: <S><LendingPage /></S> },
+      { path: 'biciclete', element: <S><BikesPage /></S> },
       { path: 'istoric-reparatii', element: <S><RepairsPage /></S> },
       { path: 'contoare', element: <S><MetersPage /></S> },
       { path: 'vecini', element: <S><DirectoryPage /></S> },

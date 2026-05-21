@@ -80,7 +80,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'F26', title: 'Rezervare lift pentru mutare', category: 'spaces', icon: 'Truck', audience: ['all'], path: 'lift-mutare', description: 'Rezervarea liftului pentru mutări.', implemented: false },
   { key: 'F27', title: 'Rezervare sală comună / terasă', category: 'spaces', icon: 'PartyPopper', audience: ['all'], path: 'sala', description: 'Rezervarea sălii comune sau a terasei.', implemented: false },
   { key: 'F28', title: 'Parcare', category: 'spaces', icon: 'Car', audience: ['all'], path: 'parcare', description: 'Registru locuri de parcare cu mesagerie anonimă.', implemented: false },
-  { key: 'F29', title: 'Bicicletăria', category: 'spaces', icon: 'Bike', audience: ['all'], path: 'biciclete', description: 'Registru al bicicletelor din camera comună.', implemented: false },
+  { key: 'F29', title: 'Bicicletăria', category: 'spaces', icon: 'Bike', audience: ['all'], path: 'biciclete', description: 'Registru al bicicletelor din camera comună.', implemented: true },
   { key: 'F30', title: 'Boxa / dependinți', category: 'spaces', icon: 'Box', audience: ['all'], path: 'boxe', description: 'Registru al boxelor și dependințelor.', implemented: false },
   { key: 'F31', title: 'Plante / spații verzi', category: 'spaces', icon: 'Sprout', audience: ['all'], path: 'plante', description: 'Program de voluntariat pentru spațiile verzi.', implemented: false },
   { key: 'F32', title: 'Acces curierat (cod temporar)', category: 'spaces', icon: 'KeyRound', audience: ['all'], path: 'curier', description: 'Coduri temporare de interfon pentru curieri.', implemented: false },

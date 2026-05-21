@@ -537,7 +537,7 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F26 | Rezervare lift pentru mutare | 🟦 | Uses `bookings` (resource_type) + RLS. |
 | F27 | Rezervare sală comună / terasă | 🟦 | Uses `bookings`, `booking_inspections` + RLS. |
 | F28 | Parcare | 🟦 | Tables `parking_spots/assignments/reports` + RLS. |
-| F29 | Bicicletăria | 🟦 | Table `bikes` + owner RLS. |
+| F29 | Bicicletăria | ✅ | Bike registry with register, search and active/abandoned marking; validation + search/filter logic unit-tested; `/biciclete` bot command. Table `bikes` + owner RLS. |
 | F30 | Boxa / dependinți | 🟦 | Table `storage_units` + RLS. |
 | F31 | Plante / spații verzi | 🟦 | Tables `green_space_tasks`, `task_signups` + RLS. |
 | F32 | Acces curierat (cod temporar) | 🟦 | Table `access_codes` + RLS. |

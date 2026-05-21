@@ -212,6 +212,24 @@
     "warranty_none": "fără garanție",
     "empty": "Nicio reparație găsită. Modifică filtrele sau termenul de căutare."
   },
+  "bikes": {
+    "title": "Bicicletărie",
+    "subtitle": "Registrul bicicletelor din camera comună. Ajută la recuperarea celor furate și la identificarea celor abandonate.",
+    "new": "Înregistrează bicicletă",
+    "description": "Descriere",
+    "descriptionHint": "ex: mountain bike negru, marca Cube",
+    "serial": "Serie",
+    "searchPlaceholder": "Caută după descriere, serie sau proprietar…",
+    "filter": "Stare",
+    "filter_all": "Toate",
+    "filter_active": "Active",
+    "filter_abandoned": "Abandonate",
+    "abandoned": "Abandonată",
+    "markAbandoned": "Marchează abandonată",
+    "markActive": "Marchează activă",
+    "added": "Bicicletă înregistrată.",
+    "empty": "Nicio bicicletă înregistrată. Adaugă prima cu butonul de mai sus."
+  },
   "lending": {
     "title": "Obiecte împrumutabile",
     "subtitle": "Unelte și obiecte pe care vecinii le pun la dispoziție. Scrie-i direct proprietarului.",

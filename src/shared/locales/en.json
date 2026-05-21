@@ -212,6 +212,24 @@
     "warranty_none": "no warranty",
     "empty": "No repairs found. Adjust the filters or search term."
   },
+  "bikes": {
+    "title": "Bike room",
+    "subtitle": "Registry of bikes in the shared room. Helps recover stolen bikes and identify abandoned ones.",
+    "new": "Register bike",
+    "description": "Description",
+    "descriptionHint": "e.g. black mountain bike, Cube",
+    "serial": "Serial",
+    "searchPlaceholder": "Search by description, serial or owner…",
+    "filter": "State",
+    "filter_all": "All",
+    "filter_active": "Active",
+    "filter_abandoned": "Abandoned",
+    "abandoned": "Abandoned",
+    "markAbandoned": "Mark abandoned",
+    "markActive": "Mark active",
+    "added": "Bike registered.",
+    "empty": "No bikes registered. Add the first one with the button above."
+  },
   "lending": {
     "title": "Borrowable items",
     "subtitle": "Tools and items neighbours lend out. Message the owner directly.",

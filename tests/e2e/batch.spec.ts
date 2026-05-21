@@ -25,3 +25,12 @@ test('F24 — resident adds a borrowable item', async ({ page }) => {
   await page.getByRole('button', { name: /Salvează/i }).click();
   await expect(page.getByText('Aspirator de frunze')).toBeVisible();
 });
+
+test('F29 — resident registers a bike in the bike room', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/biciclete');
+  await page.getByRole('button', { name: /Înregistrează bicicletă/i }).click();
+  await page.getByLabel('Descriere').fill('Trek galben de cursă');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText('Trek galben de cursă')).toBeVisible();
+});
