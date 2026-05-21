@@ -167,6 +167,20 @@
     "notHelpful": "Not helpful",
     "empty": "No results. Try other terms or ask your administrator."
   },
+  "ideas": {
+    "title": "Idea box",
+    "subtitle": "Suggest ideas for the building. The most-voted reach the committee agenda.",
+    "new": "Suggest an idea",
+    "ideaTitle": "Title",
+    "body": "Description",
+    "vote": "Vote for this idea",
+    "submitted": "Idea submitted. Thank you!",
+    "status_in_discutie": "Under discussion",
+    "status_aprobat": "Approved",
+    "status_implementat": "Implemented",
+    "status_respins": "Rejected",
+    "empty": "No ideas yet. Suggest the first one with the button above."
+  },
   "emergency": {
     "title": "Emergency numbers",
     "call": "Call",

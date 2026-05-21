@@ -61,7 +61,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'F11', title: 'Procese verbale (arhivă)', category: 'governance', icon: 'FileSignature', audience: ['all'], path: 'procese-verbale', description: 'Arhivă căutabilă de procese verbale semnate.', implemented: false },
   { key: 'F12', title: 'Buget participativ', category: 'governance', icon: 'PiggyBank', audience: ['proprietar', 'admin'], path: 'buget', description: 'Fond discreționar votat de locatari.', implemented: false },
   { key: 'F13', title: 'Prioritizare proiecte mari', category: 'governance', icon: 'ListOrdered', audience: ['proprietar'], path: 'prioritati', description: 'Clasare prin tragere-și-plasare a proiectelor mari.', implemented: false },
-  { key: 'F14', title: 'Cutie de idei', category: 'governance', icon: 'Lightbulb', audience: ['all'], path: 'idei', description: 'Sugestii deschise cu vot, promovate trimestrial.', implemented: false },
+  { key: 'F14', title: 'Cutie de idei', category: 'governance', icon: 'Lightbulb', audience: ['all'], path: 'idei', description: 'Sugestii deschise cu vot, promovate trimestrial.', implemented: true },
   { key: 'F15', title: 'Sondaje de opinie', category: 'governance', icon: 'BarChart3', audience: ['all'], path: 'sondaje', description: 'Sondaje neobligatorii, anonime implicit.', implemented: false },
   { key: 'F16', title: 'Petiții interne', category: 'governance', icon: 'ScrollText', audience: ['all'], path: 'petitii', description: 'Petiții cu strângere de semnături și prag de înaintare.', implemented: false },
 

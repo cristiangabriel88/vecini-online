@@ -27,3 +27,13 @@ test('F07 — resident searches the FAQ and marks an answer helpful', async ({ p
   await expect(card).toBeVisible();
   await page.getByRole('button', { name: /^Util$/i }).first().click();
 });
+
+test('F14 — resident submits an idea to the idea box', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/idei');
+  await page.getByRole('button', { name: /Propune o idee/i }).click();
+  await page.getByLabel('Titlu').fill('Ghivece cu flori la intrare');
+  await page.getByLabel('Descriere').fill('Câteva ghivece ar înviora intrarea în bloc.');
+  await page.getByRole('button', { name: /Creează/i }).click();
+  await expect(page.getByRole('heading', { name: 'Ghivece cu flori la intrare' })).toBeVisible();
+});

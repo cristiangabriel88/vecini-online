@@ -167,6 +167,20 @@
     "notHelpful": "Neutil",
     "empty": "Niciun rezultat. Încearcă alți termeni sau întreabă administratorul."
   },
+  "ideas": {
+    "title": "Cutie de idei",
+    "subtitle": "Propune idei pentru bloc. Cele mai votate ajung pe agenda comitetului.",
+    "new": "Propune o idee",
+    "ideaTitle": "Titlu",
+    "body": "Descriere",
+    "vote": "Votează ideea",
+    "submitted": "Idee trimisă. Mulțumim!",
+    "status_in_discutie": "În discuție",
+    "status_aprobat": "Aprobat",
+    "status_implementat": "Implementat",
+    "status_respins": "Respins",
+    "empty": "Nicio idee încă. Propune prima cu butonul de mai sus."
+  },
   "emergency": {
     "title": "Numere de urgență",
     "call": "Sună",
