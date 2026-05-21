@@ -548,7 +548,7 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F37 | Pet directory | 🟦 | Table `pets` + owner RLS. |
 | F38 | Carte de aur (mulțumiri) | ✅ | Public thank-you wall: post a note tagging a neighbour's apartment, recency-ordered feed; validation + apartment-label logic unit-tested; `/multumeste` bot command. Table `thank_yous` + RLS. |
 | F39 | Wiki bloc | 🟦 | Tables `wiki_pages/revisions/suggested_edits` + search + RLS. |
-| F40 | Glosar de termeni | 🟦 | Table `glossary_entries` + RLS. |
+| F40 | Glosar de termeni | ✅ | Searchable, alphabetically-sorted glossary of association jargon; search + exact-term lookup logic unit-tested; `/glosar` bot command. Table `glossary_entries` + RLS. |
 | F41 | Project tracker | 🟦 | Tables `projects`, `project_phases/updates` + RLS. |
 | F42 | Project photo journal | 🟦 | Table `project_photos` + RLS. |
 | F43 | Contractor library | 🟦 | Tables `contractors`, `contractor_ratings` + RLS. |

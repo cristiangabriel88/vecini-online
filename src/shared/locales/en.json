@@ -241,6 +241,12 @@
     "posted": "Your thank-you has been posted.",
     "empty": "No messages yet. Be the first to thank a neighbour."
   },
+  "glossary": {
+    "title": "Glossary",
+    "subtitle": "Definitions for terms from bills and General Assemblies.",
+    "searchPlaceholder": "Search a term…",
+    "empty": "No term found. Try another word."
+  },
   "emergency": {
     "title": "Emergency numbers",
     "call": "Call",

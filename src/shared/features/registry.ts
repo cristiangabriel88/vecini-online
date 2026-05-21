@@ -93,7 +93,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'F37', title: 'Pet directory', category: 'information', icon: 'PawPrint', audience: ['all'], path: 'animale', description: 'Registru de animale de companie (opt-in).', implemented: false },
   { key: 'F38', title: 'Carte de aur (mulțumiri)', category: 'information', icon: 'Heart', audience: ['all'], path: 'multumiri', description: 'Perete public de mulțumiri între vecini.', implemented: true },
   { key: 'F39', title: 'Wiki bloc', category: 'information', icon: 'BookOpen', audience: ['all'], path: 'wiki', description: 'Wiki colaborativ cu cunoștințe locale.', implemented: false },
-  { key: 'F40', title: 'Glosar de termeni', category: 'information', icon: 'BookA', audience: ['all'], path: 'glosar', description: 'Definiții pentru termenii din facturi și AGA.', implemented: false },
+  { key: 'F40', title: 'Glosar de termeni', category: 'information', icon: 'BookA', audience: ['all'], path: 'glosar', description: 'Definiții pentru termenii din facturi și AGA.', implemented: true },
 
   // Category 6 — Projects & Major Works
   { key: 'F41', title: 'Project tracker', category: 'projects', icon: 'KanbanSquare', audience: ['all'], path: 'proiecte', description: 'Urmărirea lucrărilor majore: faze, buget, fotografii.', implemented: false },

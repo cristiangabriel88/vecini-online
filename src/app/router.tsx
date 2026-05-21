@@ -19,6 +19,7 @@ const RepairsPage = lazy(() => import('@/features/repairs/RepairsPage'));
 const MetersPage = lazy(() => import('@/features/meters/MetersPage'));
 const DirectoryPage = lazy(() => import('@/features/directory/DirectoryPage'));
 const ThankYousPage = lazy(() => import('@/features/thankyous/ThankYousPage'));
+const GlossaryPage = lazy(() => import('@/features/glossary/GlossaryPage'));
 const EmergencyPage = lazy(() => import('@/features/emergency/EmergencyPage'));
 const AlertsPage = lazy(() => import('@/features/alerts/AlertsPage'));
 const ProfilePage = lazy(() => import('@/features/profile/ProfilePage'));
@@ -57,6 +58,7 @@ export const router = createBrowserRouter([
       { path: 'contoare', element: <S><MetersPage /></S> },
       { path: 'vecini', element: <S><DirectoryPage /></S> },
       { path: 'multumiri', element: <S><ThankYousPage /></S> },
+      { path: 'glosar', element: <S><GlossaryPage /></S> },
       { path: 'urgenta', element: <S><EmergencyPage /></S> },
       { path: 'alerte', element: <S><AlertsPage /></S> },
       { path: 'actiuni', element: <S><FeatureHubPage actions /></S> },

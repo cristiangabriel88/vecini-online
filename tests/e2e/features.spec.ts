@@ -73,3 +73,12 @@ test('F38 — resident posts a thank-you to the wall', async ({ page }) => {
   await page.getByRole('button', { name: /Publică/i }).click();
   await expect(page.getByText(/ajutorul cu mutarea canapelei/i)).toBeVisible();
 });
+
+test('F40 — resident searches the glossary', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/glosar');
+  await expect(page.getByText('Cenzor')).toBeVisible();
+  await page.getByLabel(/caută/i).fill('rulment');
+  await expect(page.getByText('Fond de rulment')).toBeVisible();
+  await expect(page.getByText('Cenzor')).toHaveCount(0);
+});

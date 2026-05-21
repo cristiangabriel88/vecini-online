@@ -241,6 +241,12 @@
     "posted": "Mulțumirea a fost publicată.",
     "empty": "Niciun mesaj încă. Fii primul care mulțumește unui vecin."
   },
+  "glossary": {
+    "title": "Glosar de termeni",
+    "subtitle": "Definiții pentru termenii din facturi și din Adunările Generale.",
+    "searchPlaceholder": "Caută un termen…",
+    "empty": "Niciun termen găsit. Încearcă alt cuvânt."
+  },
   "emergency": {
     "title": "Numere de urgență",
     "call": "Sună",
