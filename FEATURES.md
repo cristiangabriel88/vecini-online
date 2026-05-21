@@ -523,7 +523,7 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F12 | Buget participativ | 🟦 | Tables `budget_cycles/proposals/votes` + RLS. |
 | F13 | Prioritizare proiecte mari | 🟦 | Tables `project_priorities`, `priority_rankings` + RLS. |
 | F14 | Cutie de idei | ✅ | Submit ideas, one-vote upvoting, status badges, vote-ranked list; ranking + top-N promotion logic unit-tested; `/idei` bot command. Tables `ideas`, `idea_votes/comments` + RLS. |
-| F15 | Sondaje de opinie | 🟦 | Tables `surveys`, `survey_responses` + RLS. |
+| F15 | Sondaje de opinie | ✅ | Non-binding surveys with anonymous voting and live percentage bars; results shown after voting or close; tally/percent/close logic unit-tested; `/sondaje` bot command. Tables `surveys`, `survey_responses` + member-insert RLS. |
 | F16 | Petiții interne | 🟦 | Tables `petitions`, `petition_signatures` + RLS. |
 | F17 | Sesizări cu foto | ✅ | Create with severity/category/location; SLA logic unit-tested; status badges. |
 | F18 | Istoric reparații | ✅ | Searchable repair log with system filter, cost/contractor, and warranty-expiry badges (active/expiring/expired); search + warranty logic unit-tested; `/istoric_reparatii` bot command. Table `repair_records` + RLS. |

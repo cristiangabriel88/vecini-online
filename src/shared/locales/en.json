@@ -181,6 +181,16 @@
     "status_respins": "Rejected",
     "empty": "No ideas yet. Suggest the first one with the button above."
   },
+  "surveys": {
+    "title": "Opinion surveys",
+    "subtitle": "Non-binding surveys. Anonymous by default, no quorum.",
+    "anonymous": "Anonymous",
+    "closed": "Closed",
+    "voted": "Response recorded. Thank you!",
+    "responses": "{{count}} responses",
+    "closesAt": "closes on {{date}}",
+    "empty": "No active surveys right now."
+  },
   "repairs": {
     "title": "Repair history",
     "subtitle": "Search past building repairs and check warranties.",

@@ -41,6 +41,16 @@ const FEATURE_COMMANDS: Record<string, string> = {
   '/vecini': '📇 Agenda vecinilor — vezi vecinii care au optat să fie listați în secțiunea „Vecini”.',
   '/multumeste': '💛 Carte de aur — lasă o mulțumire publică unui vecin în secțiunea „Mulțumiri”.',
   '/glosar': '📖 Glosar — caută definiții pentru termenii din facturi și AGA în secțiunea „Glosar”.',
+  '/sondaje': '📊 Sondaje de opinie — răspunde la sondajele neobligatorii în secțiunea „Sondaje de opinie”.',
+  '/imprumut': '🤝 Obiecte împrumutabile — caută unelte și obiecte pe care vecinii le împrumută în secțiunea „Împrumuturi”.',
+  '/imprumut_adauga': '🤝 Pentru a adăuga un obiect, deschide „Împrumuturi” în aplicație și apasă „Adaugă obiect”.',
+  '/biciclete': '🚲 Bicicletăria — vezi sau înregistrează bicicletele din camera comună în secțiunea „Bicicletărie”.',
+  '/animale': '🐾 Animale de companie — vezi animalele înregistrate sau anunță o pierdere în secțiunea „Animale”.',
+  '/garantii': '🛡 Garanții — urmărește garanțiile echipamentelor instalate în secțiunea „Garanții” (comitet).',
+  '/strain': '👀 Vizitatori observați — raportează rapid o persoană suspectă în secțiunea „Vizitatori”.',
+  '/marketplace': '🛍 Marketplace intern — vinde sau donează obiecte vecinilor în secțiunea „Marketplace”.',
+  '/marketplace_vand': '🛍 Pentru a publica un anunț de vânzare, deschide „Marketplace” și apasă „Anunț nou”.',
+  '/feedback': '💬 Feedback — trimite-ne o părere despre aplicația IntreVecini din secțiunea „Feedback”.',
 };
 
 async function handleMessage(msg: TelegramMessage) {

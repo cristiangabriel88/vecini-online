@@ -350,3 +350,110 @@ export interface GlossaryEntry {
   term: string;
   definition: string;
 }
+
+/** F15 — non-binding opinion survey (`surveys` / `survey_responses`). */
+export interface Survey {
+  id: string;
+  asociatie_id: string;
+  title: string;
+  options: string[];
+  anonymous: boolean;
+  closes_at: string | null;
+  created_at: string;
+}
+
+/** Aggregate response counts keyed by option label. */
+export type SurveyTally = Record<string, number>;
+
+/** F24 — borrowable item registry (`lending_items`). */
+export interface LendingItem {
+  id: string;
+  asociatie_id: string;
+  owner_user_id: string;
+  owner_name: string;
+  name: string;
+  category: string;
+  photo_path: string | null;
+  available: boolean;
+  created_at: string;
+}
+
+/** F29 — bike room registry (`bikes`). */
+export interface Bike {
+  id: string;
+  asociatie_id: string;
+  owner_user_id: string;
+  owner_name: string;
+  description: string;
+  serial: string | null;
+  photo_path: string | null;
+  abandoned: boolean;
+  created_at: string;
+}
+
+/** F37 — opt-in pet directory (`pets`). */
+export interface Pet {
+  id: string;
+  asociatie_id: string;
+  owner_user_id: string;
+  owner_name: string;
+  name: string;
+  species: string;
+  photo_path: string | null;
+  emergency_contact: string | null;
+  lost: boolean;
+  created_at: string;
+}
+
+/** F48 — equipment warranty tracker (`warranties`). */
+export interface Warranty {
+  id: string;
+  asociatie_id: string;
+  asset: string;
+  purchased_at: string;
+  warranty_months: number;
+  expires_at: string;
+  document_path: string | null;
+}
+
+/** F54 — suspicious-visitor log (`visitor_reports`). */
+export type VisitorStatus = 'nou' | 'cunoscut' | 'rezolvat';
+
+export interface VisitorReport {
+  id: string;
+  asociatie_id: string;
+  reporter_user_id: string;
+  reporter_name: string;
+  note: string;
+  photo_path: string | null;
+  status: VisitorStatus;
+  created_at: string;
+}
+
+/** F57 — internal marketplace listing (`marketplace_listings`). */
+export interface MarketplaceListing {
+  id: string;
+  asociatie_id: string;
+  seller_user_id: string;
+  seller_name: string;
+  category: string;
+  title: string;
+  description: string;
+  price: number | null;
+  photo_path: string | null;
+  expires_at: string;
+  created_at: string;
+}
+
+/** F65 — platform feedback (`platform_feedback`). */
+export type FeedbackSentiment = 'idee' | 'problema' | 'lauda';
+
+export interface PlatformFeedback {
+  id: string;
+  asociatie_id: string | null;
+  user_id: string | null;
+  anonymous: boolean;
+  body: string;
+  sentiment: FeedbackSentiment;
+  created_at: string;
+}

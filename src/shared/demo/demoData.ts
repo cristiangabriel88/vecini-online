@@ -2,20 +2,28 @@ import type {
   Announcement,
   Apartment,
   Asociatie,
+  Bike,
   BuildingEvent,
   EmergencyContact,
   FaqEntry,
   GlossaryEntry,
   Idea,
+  LendingItem,
+  MarketplaceListing,
   Meter,
   MeterReading,
+  Pet,
   Poll,
   PollOption,
   RepairRecord,
   ResidentPost,
+  Survey,
+  SurveyTally,
   DirectoryEntry,
   ThankYou,
   Ticket,
+  VisitorReport,
+  Warranty,
 } from '@/shared/types/domain';
 import { RECOMMENDED_FEATURES } from '@/shared/features/registry';
 
@@ -184,6 +192,59 @@ export const DEMO_MY_DIRECTORY: DirectoryEntry = DEMO_DIRECTORY[0];
 export const DEMO_THANK_YOUS: ThankYou[] = [
   { id: 'ty-1', asociatie_id: 'demo-asoc', from_user_id: 'u-res2', from_name: 'Georgescu Elena', to_apartment: 'Ap. 13', message: 'Mulțumesc lui Andrei de la 13 care a urcat sacii cu pământ ai bunicii. Mare ajutor!', created_at: '2026-05-18T16:00:00Z' },
   { id: 'ty-2', asociatie_id: 'demo-asoc', from_user_id: 'u-res3', from_name: 'Stan Gabriela', to_apartment: 'Ap. 1', message: 'Mulțumiri doamnei Maria de la 1 pentru că a udat florile de pe casa scării toată vara.', created_at: '2026-05-10T11:00:00Z' },
+];
+
+// F15 — Sondaje de opinie. Tally is keyed by option label.
+export const DEMO_SURVEYS: Survey[] = [
+  { id: 'sv-1', asociatie_id: 'demo-asoc', title: 'Ce culoare să aibă noua fațadă?', options: ['Crem', 'Gri deschis', 'Teracotă'], anonymous: true, closes_at: '2026-06-15T23:59:00Z', created_at: '2026-05-14T09:00:00Z' },
+  { id: 'sv-2', asociatie_id: 'demo-asoc', title: 'La ce oră preferi curățenia generală pe casa scării?', options: ['Dimineața', 'După-amiaza', 'În weekend'], anonymous: true, closes_at: null, created_at: '2026-05-10T09:00:00Z' },
+];
+
+export const DEMO_SURVEY_TALLIES: Record<string, SurveyTally> = {
+  'sv-1': { Crem: 6, 'Gri deschis': 11, Teracotă: 3 },
+  'sv-2': { Dimineața: 4, 'După-amiaza': 2, 'În weekend': 14 },
+};
+
+// F24 — Listă obiecte împrumutabile.
+export const DEMO_LENDING_ITEMS: LendingItem[] = [
+  { id: 'li-1', asociatie_id: 'demo-asoc', owner_user_id: 'u-res', owner_name: 'Popescu Andrei', name: 'Bormașină Bosch', category: 'unelte', photo_path: null, available: true, created_at: '2026-05-12T09:00:00Z' },
+  { id: 'li-2', asociatie_id: 'demo-asoc', owner_user_id: 'u-res2', owner_name: 'Georgescu Elena', name: 'Scară aluminiu 3m', category: 'unelte', photo_path: null, available: false, created_at: '2026-05-08T09:00:00Z' },
+  { id: 'li-3', asociatie_id: 'demo-asoc', owner_user_id: 'u-res3', owner_name: 'Stan Gabriela', name: 'Set cabluri pornire auto', category: 'auto', photo_path: null, available: true, created_at: '2026-05-04T09:00:00Z' },
+];
+
+// F29 — Bicicletăria.
+export const DEMO_BIKES: Bike[] = [
+  { id: 'bk-1', asociatie_id: 'demo-asoc', owner_user_id: 'u-res', owner_name: 'Popescu Andrei', description: 'Mountain bike negru, Cube', serial: 'CB-2291', photo_path: null, abandoned: false, created_at: '2026-04-20T09:00:00Z' },
+  { id: 'bk-2', asociatie_id: 'demo-asoc', owner_user_id: 'u-res2', owner_name: 'Georgescu Elena', description: 'Bicicletă de oraș albă, coș împletit', serial: null, photo_path: null, abandoned: false, created_at: '2026-04-15T09:00:00Z' },
+  { id: 'bk-3', asociatie_id: 'demo-asoc', owner_user_id: 'u-res3', owner_name: 'Necunoscut', description: 'Bicicletă copii roșie, ruginită, fără roată față', serial: null, photo_path: null, abandoned: true, created_at: '2025-11-01T09:00:00Z' },
+];
+
+// F37 — Pet directory (opt-in).
+export const DEMO_PETS: Pet[] = [
+  { id: 'pet-1', asociatie_id: 'demo-asoc', owner_user_id: 'u-res', owner_name: 'Popescu Andrei', name: 'Rex', species: 'caine', photo_path: null, emergency_contact: '+40 721 111 222', lost: false, created_at: '2026-03-01T09:00:00Z' },
+  { id: 'pet-2', asociatie_id: 'demo-asoc', owner_user_id: 'u-res2', owner_name: 'Georgescu Elena', name: 'Miru', species: 'pisica', photo_path: null, emergency_contact: '+40 722 333 444', lost: true, created_at: '2026-02-10T09:00:00Z' },
+  { id: 'pet-3', asociatie_id: 'demo-asoc', owner_user_id: 'u-res3', owner_name: 'Stan Gabriela', name: 'Coco', species: 'papagal', photo_path: null, emergency_contact: null, lost: false, created_at: '2026-01-20T09:00:00Z' },
+];
+
+// F48 — Garanție tracker. Expiries straddle "now" (2026-05) so the dashboard
+// shows active, expiring-soon and expired assets.
+export const DEMO_WARRANTIES: Warranty[] = [
+  { id: 'wr-1', asociatie_id: 'demo-asoc', asset: 'Hidrofor Grundfos', purchased_at: '2025-09-15', warranty_months: 24, expires_at: '2027-09-15', document_path: null },
+  { id: 'wr-2', asociatie_id: 'demo-asoc', asset: 'Centrală termică comună', purchased_at: '2024-06-01', warranty_months: 24, expires_at: '2026-06-01', document_path: null },
+  { id: 'wr-3', asociatie_id: 'demo-asoc', asset: 'Pompă circulație încălzire', purchased_at: '2022-04-01', warranty_months: 24, expires_at: '2024-04-01', document_path: null },
+];
+
+// F54 — Vizitatori / străini observați.
+export const DEMO_VISITOR_REPORTS: VisitorReport[] = [
+  { id: 'vr-1', asociatie_id: 'demo-asoc', reporter_user_id: 'u-res', reporter_name: 'Popescu Andrei', note: 'Persoană necunoscută a sunat la mai multe interfoane, ora 21:30. Spunea că e curier dar nu avea colete.', photo_path: null, status: 'nou', created_at: '2026-05-20T21:35:00Z' },
+  { id: 'vr-2', asociatie_id: 'demo-asoc', reporter_user_id: 'u-res2', reporter_name: 'Georgescu Elena', note: 'Mașină parcată în fața intrării toată ziua, fără localnic cunoscut.', photo_path: null, status: 'cunoscut', created_at: '2026-05-18T14:00:00Z' },
+];
+
+// F57 — Marketplace intern. Expiries kept ahead of the seeded "now".
+export const DEMO_MARKETPLACE: MarketplaceListing[] = [
+  { id: 'ml-1', asociatie_id: 'demo-asoc', seller_user_id: 'u-res', seller_name: 'Popescu Andrei', category: 'mobilă', title: 'Canapea extensibilă 3 locuri', description: 'Stare foarte bună, gri, ridicare din ap. 5. Preț negociabil.', price: 600, photo_path: null, expires_at: '2026-06-03T09:00:00Z', created_at: '2026-05-20T09:00:00Z' },
+  { id: 'ml-2', asociatie_id: 'demo-asoc', seller_user_id: 'u-res2', seller_name: 'Georgescu Elena', category: 'electrocasnice', title: 'Mașină de spălat Arctic', description: 'Funcțională, 6 kg, o donez pentru ridicare.', price: 0, photo_path: null, expires_at: '2026-05-31T09:00:00Z', created_at: '2026-05-17T09:00:00Z' },
+  { id: 'ml-3', asociatie_id: 'demo-asoc', seller_user_id: 'u-res3', seller_name: 'Stan Gabriela', category: 'copii', title: 'Haine copii 2-3 ani (lot)', description: 'Lot de ~20 piese, fete, stare bună.', price: 80, photo_path: null, expires_at: '2026-05-30T09:00:00Z', created_at: '2026-05-16T09:00:00Z' },
 ];
 
 // F40 — Glosar de termeni.

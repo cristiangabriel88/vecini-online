@@ -181,6 +181,16 @@
     "status_respins": "Respins",
     "empty": "Nicio idee încă. Propune prima cu butonul de mai sus."
   },
+  "surveys": {
+    "title": "Sondaje de opinie",
+    "subtitle": "Sondaje neobligatorii. Anonime implicit, fără cvorum.",
+    "anonymous": "Anonim",
+    "closed": "Încheiat",
+    "voted": "Răspuns înregistrat. Mulțumim!",
+    "responses": "{{count}} răspunsuri",
+    "closesAt": "se închide la {{date}}",
+    "empty": "Niciun sondaj activ momentan."
+  },
   "repairs": {
     "title": "Istoric reparații",
     "subtitle": "Caută reparațiile efectuate în bloc și verifică garanțiile.",

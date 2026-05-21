@@ -15,6 +15,7 @@ const EventsPage = lazy(() => import('@/features/events/EventsPage'));
 const LocatorPage = lazy(() => import('@/features/locator/LocatorPage'));
 const FaqPage = lazy(() => import('@/features/faq/FaqPage'));
 const IdeasPage = lazy(() => import('@/features/ideas/IdeasPage'));
+const SurveysPage = lazy(() => import('@/features/surveys/SurveysPage'));
 const RepairsPage = lazy(() => import('@/features/repairs/RepairsPage'));
 const MetersPage = lazy(() => import('@/features/meters/MetersPage'));
 const DirectoryPage = lazy(() => import('@/features/directory/DirectoryPage'));
@@ -54,6 +55,7 @@ export const router = createBrowserRouter([
       { path: 'locator', element: <S><LocatorPage /></S> },
       { path: 'faq', element: <S><FaqPage /></S> },
       { path: 'idei', element: <S><IdeasPage /></S> },
+      { path: 'sondaje', element: <S><SurveysPage /></S> },
       { path: 'istoric-reparatii', element: <S><RepairsPage /></S> },
       { path: 'contoare', element: <S><MetersPage /></S> },
       { path: 'vecini', element: <S><DirectoryPage /></S> },

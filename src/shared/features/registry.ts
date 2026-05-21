@@ -62,7 +62,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'F12', title: 'Buget participativ', category: 'governance', icon: 'PiggyBank', audience: ['proprietar', 'admin'], path: 'buget', description: 'Fond discreționar votat de locatari.', implemented: false },
   { key: 'F13', title: 'Prioritizare proiecte mari', category: 'governance', icon: 'ListOrdered', audience: ['proprietar'], path: 'prioritati', description: 'Clasare prin tragere-și-plasare a proiectelor mari.', implemented: false },
   { key: 'F14', title: 'Cutie de idei', category: 'governance', icon: 'Lightbulb', audience: ['all'], path: 'idei', description: 'Sugestii deschise cu vot, promovate trimestrial.', implemented: true },
-  { key: 'F15', title: 'Sondaje de opinie', category: 'governance', icon: 'BarChart3', audience: ['all'], path: 'sondaje', description: 'Sondaje neobligatorii, anonime implicit.', implemented: false },
+  { key: 'F15', title: 'Sondaje de opinie', category: 'governance', icon: 'BarChart3', audience: ['all'], path: 'sondaje', description: 'Sondaje neobligatorii, anonime implicit.', implemented: true },
   { key: 'F16', title: 'Petiții interne', category: 'governance', icon: 'ScrollText', audience: ['all'], path: 'petitii', description: 'Petiții cu strângere de semnături și prag de înaintare.', implemented: false },
 
   // Category 3 — Maintenance & Issues
