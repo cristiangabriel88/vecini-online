@@ -530,7 +530,7 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F19 | Calendar service-uri programate | ✅ | Scheduled-maintenance list (revizie/ISCIR/deratizare) sorted soonest-first with overdue/due-soon/scheduled badges, add and mark-done (rolls next due forward); status/validation/sort/count logic unit-tested; `/mentenanta` bot command. Table `scheduled_maintenance` + RLS. |
 | F20 | Citire contoare | ✅ | Monthly index submission per meter with ≥-previous validation and anomaly flagging on large jumps; validation + anomaly logic unit-tested; `/contor` bot command. Tables `meters`, `meter_readings` + RLS. |
 | F21 | Sesizări recurente | 🟦 | Computed over `tickets`. |
-| F22 | Solicitare oferte (RFP) | 🟦 | Tables `rfps`, `rfp_quotes`, `contractor_recommendations` + RLS. |
+| F22 | Solicitare oferte (RFP) | ✅ | Post an RFP, add contractor quotes (cheapest auto-highlighted), and choose a winner which closes the RFP and marks the selected quote; open RFPs float above decided ones; validation/cheapest/quote-sort/RFP-sort logic unit-tested; `/oferte` bot command. Tables `rfps`, `rfp_quotes`, `contractor_recommendations` + owner RLS on recommendations. |
 | F23 | Vecin de gardă | 🟦 | Tables `duty_volunteers`, `duty_schedule` + RLS. |
 | F24 | Listă obiecte împrumutabile | ✅ | Registry of borrowable items with add, category, search and available/borrowed toggle; validation + search/filter logic unit-tested; `/imprumut` bot command. Tables `lending_items/records` + owner RLS. |
 | F25 | Rezervare spălătorie | 🟦 | Tables `bookable_resources`, `bookings` + owner RLS. |
