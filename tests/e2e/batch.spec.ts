@@ -34,3 +34,12 @@ test('F29 — resident registers a bike in the bike room', async ({ page }) => {
   await page.getByRole('button', { name: /Salvează/i }).click();
   await expect(page.getByText('Trek galben de cursă')).toBeVisible();
 });
+
+test('F37 — resident adds a pet to the directory', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/animale');
+  await page.getByRole('button', { name: /Adaugă animal/i }).click();
+  await page.getByLabel('Nume').fill('Bruno');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText('Bruno')).toBeVisible();
+});

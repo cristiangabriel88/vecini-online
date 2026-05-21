@@ -545,7 +545,7 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F34 | Furnizori / contracte | 🟦 | Tables `suppliers`, `supplier_complaints` + RLS. |
 | F35 | Apartament info | 🟦 | Views across apartments/readings/tickets/votes. |
 | F36 | Locator directory | ✅ | Per-field opt-in consent toggles + searchable list of opted-in neighbours (tap-to-call/email); consent-masking + search logic unit-tested; `/vecini` bot command. Table `resident_directory_consent` + RLS. |
-| F37 | Pet directory | 🟦 | Table `pets` + owner RLS. |
+| F37 | Pet directory | ✅ | Opt-in pet registry with add, species filter, search and lost & found marking (lost pets float to top); validation + search/sort logic unit-tested; `/animale` bot command. Table `pets` (+ `lost`, `created_at`) + owner RLS. |
 | F38 | Carte de aur (mulțumiri) | ✅ | Public thank-you wall: post a note tagging a neighbour's apartment, recency-ordered feed; validation + apartment-label logic unit-tested; `/multumeste` bot command. Table `thank_yous` + RLS. |
 | F39 | Wiki bloc | 🟦 | Tables `wiki_pages/revisions/suggested_edits` + search + RLS. |
 | F40 | Glosar de termeni | ✅ | Searchable, alphabetically-sorted glossary of association jargon; search + exact-term lookup logic unit-tested; `/glosar` bot command. Table `glossary_entries` + RLS. |

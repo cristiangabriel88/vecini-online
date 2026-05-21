@@ -265,6 +265,26 @@
     "window": "Fereastră de trimitere: 1–5 ale lunii",
     "submitted": "Index trimis. Mulțumim!"
   },
+  "pets": {
+    "title": "Animale de companie",
+    "subtitle": "Registru opt-in al animalelor din bloc. Ajută la regăsirea celor pierduți și la îngrijirea reciprocă.",
+    "new": "Adaugă animal",
+    "name": "Nume",
+    "species": "Specie",
+    "species_caine": "Câine",
+    "species_pisica": "Pisică",
+    "species_papagal": "Papagal",
+    "species_rozator": "Rozător",
+    "species_altele": "Altele",
+    "emergencyContact": "Contact de urgență",
+    "emergencyContactHint": "telefon pentru urgențe",
+    "searchPlaceholder": "Caută după nume sau proprietar…",
+    "lost": "Pierdut",
+    "markLost": "Marchează pierdut",
+    "markFound": "Marchează găsit",
+    "added": "Animal înregistrat.",
+    "empty": "Niciun animal înregistrat. Adaugă primul cu butonul de mai sus."
+  },
   "directory": {
     "title": "Vecini",
     "subtitle": "Agendă de contacte între vecini. Apari doar dacă alegi tu.",

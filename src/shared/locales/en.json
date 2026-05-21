@@ -265,6 +265,26 @@
     "window": "Submission window: 1st–5th of the month",
     "submitted": "Index submitted. Thank you!"
   },
+  "pets": {
+    "title": "Pets",
+    "subtitle": "Opt-in registry of building pets. Helps reunite lost pets and arrange mutual care.",
+    "new": "Add pet",
+    "name": "Name",
+    "species": "Species",
+    "species_caine": "Dog",
+    "species_pisica": "Cat",
+    "species_papagal": "Parrot",
+    "species_rozator": "Rodent",
+    "species_altele": "Other",
+    "emergencyContact": "Emergency contact",
+    "emergencyContactHint": "phone for emergencies",
+    "searchPlaceholder": "Search by name or owner…",
+    "lost": "Lost",
+    "markLost": "Mark lost",
+    "markFound": "Mark found",
+    "added": "Pet registered.",
+    "empty": "No pets registered. Add the first one with the button above."
+  },
   "directory": {
     "title": "Neighbours",
     "subtitle": "A contact directory between neighbours. You appear only if you opt in.",
