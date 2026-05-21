@@ -6,17 +6,23 @@ import type {
   Bike,
   BuildingEvent,
   CarpoolProfile,
+  AccessCode,
   DocumentRecord,
   EmergencyContact,
+  EnergyRecord,
   FaqEntry,
   GlossaryEntry,
+  GroupBuy,
   Idea,
   LendingItem,
   MarketplaceListing,
   Meter,
   MeterReading,
+  MultiyearPlanItem,
   Pet,
   PlatformFeedback,
+  SitterProfile,
+  SkillOffering,
   Poll,
   PollOption,
   RepairRecord,
@@ -293,6 +299,52 @@ export const DEMO_BIRTHDAYS: BirthdayConsent[] = [
   { id: 'bd-1', asociatie_id: 'demo-asoc', user_id: 'u-res', user_name: 'Popescu Andrei', birth_day: 24, birth_month: 5 },
   { id: 'bd-2', asociatie_id: 'demo-asoc', user_id: 'u-res2', user_name: 'Georgescu Elena', birth_day: 3, birth_month: 6 },
   { id: 'bd-3', asociatie_id: 'demo-asoc', user_id: 'u-res3', user_name: 'Stan Gabriela', birth_day: 12, birth_month: 1 },
+];
+
+// F47 — Energy efficiency tracker.
+export const DEMO_ENERGY: EnergyRecord[] = [
+  { id: 'en-1', asociatie_id: 'demo-asoc', period: '2026-04-01', kind: 'Iluminat comun', amount: 540, cost: 410 },
+  { id: 'en-2', asociatie_id: 'demo-asoc', period: '2026-04-01', kind: 'Lift', amount: 320, cost: 245 },
+  { id: 'en-3', asociatie_id: 'demo-asoc', period: '2026-03-01', kind: 'Iluminat comun', amount: 580, cost: 440 },
+  { id: 'en-4', asociatie_id: 'demo-asoc', period: '2026-03-01', kind: 'Lift', amount: 335, cost: 256 },
+];
+
+// F45 — Plan multianual de mentenanță.
+export const DEMO_MULTIYEAR: MultiyearPlanItem[] = [
+  { id: 'mp-1', asociatie_id: 'demo-asoc', year: 2026, title: 'Reparație acoperiș (terasă)', estimated_cost: 45000, notes: 'Hidroizolație + jgheaburi.' },
+  { id: 'mp-2', asociatie_id: 'demo-asoc', year: 2027, title: 'Înlocuire coloane apă rece', estimated_cost: 80000, notes: null },
+  { id: 'mp-3', asociatie_id: 'demo-asoc', year: 2029, title: 'Anvelopare termică fațadă', estimated_cost: 320000, notes: 'Posibil cofinanțare program local.' },
+];
+
+// F32 — Acces curierat (coduri temporare). Seeded with one active code.
+export const DEMO_ACCESS_CODES: AccessCode[] = [
+  {
+    id: 'ac-1',
+    asociatie_id: 'demo-asoc',
+    generated_by: 'u-res',
+    code: '482190',
+    expires_at: new Date(Date.now() + 18 * 60_000).toISOString(),
+    used_at: null,
+    created_at: new Date(Date.now() - 12 * 60_000).toISOString(),
+  },
+];
+
+// F59 — Babysitting / pet-sitting bord (opt-in).
+export const DEMO_SITTERS: SitterProfile[] = [
+  { id: 'st-1', asociatie_id: 'demo-asoc', user_id: 'u-res2', user_name: 'Georgescu Elena', kind: 'babysitting', availability: 'Seri în weekend', rate: '40 lei/oră' },
+  { id: 'st-2', asociatie_id: 'demo-asoc', user_id: 'u-res3', user_name: 'Stan Gabriela', kind: 'petsitting', availability: 'Flexibil, anunț cu o zi înainte', rate: 'Negociabil' },
+];
+
+// F60 — Skill exchange / barter.
+export const DEMO_SKILLS: SkillOffering[] = [
+  { id: 'sk-1', asociatie_id: 'demo-asoc', user_id: 'u-res2', user_name: 'Georgescu Elena', offers: 'Reparații biciclete, ascuțit cuțite', needs: 'Ajutor cu Excel și formulare online' },
+  { id: 'sk-2', asociatie_id: 'demo-asoc', user_id: 'u-res3', user_name: 'Stan Gabriela', offers: 'Croitorie, mici reparații haine', needs: 'Transport ocazional la piață' },
+];
+
+// F61 — Grupuri de cumpărături comune.
+export const DEMO_GROUP_BUYS: GroupBuy[] = [
+  { id: 'gb-1', asociatie_id: 'demo-asoc', organizer_user_id: 'u-res2', organizer_name: 'Georgescu Elena', title: '50 kg cartofi de la fermă', description: 'Comand direct de la producător, ridicare sâmbătă în parcare.', deadline: new Date(Date.now() + 4 * 86_400_000).toISOString(), created_at: new Date(Date.now() - 2 * 86_400_000).toISOString(), signups: 6 },
+  { id: 'gb-2', asociatie_id: 'demo-asoc', organizer_user_id: 'u-res3', organizer_name: 'Stan Gabriela', title: 'Lemne de foc (bax 1 mc)', description: 'Comandă comună pentru livrare cu transport unic.', deadline: new Date(Date.now() + 9 * 86_400_000).toISOString(), created_at: new Date(Date.now() - 1 * 86_400_000).toISOString(), signups: 3 },
 ];
 
 // F40 — Glosar de termeni.

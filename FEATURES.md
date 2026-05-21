@@ -555,7 +555,7 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F44 | Crowdfunding proiecte mici | 🟦 | Tables `crowdfunds`, `pledges` + RLS. |
 | F45 | Plan multianual de mentenanță | 🟦 | Table `multiyear_plan_items` + RLS. |
 | F46 | Recomandări fond de reparații | 🟦 | Computed; calculator helper to come. |
-| F47 | Energy efficiency tracker | 🟦 | Table `energy_records` + RLS. |
+| F47 | Energy efficiency tracker | ✅ | Monthly common-area consumption log (lighting/lift/heating) with add, period/kind, a total-cost summary and per-kind breakdown, newest-period-first ordering; validation + period formatting + sort + totals/by-kind logic unit-tested; `/energie` bot command. Table `energy_records` (comitet-managed RLS). |
 | F48 | Garanție tracker | ✅ | Equipment warranty dashboard sorted by expiry with active/expiring/expired badges and add (auto-computes expiry); expiry math, validation, sort and alert-count logic unit-tested; `/garantii` bot command. Table `warranties` + RLS. |
 | F49 | Cod portari / vecini de încredere | 🟦 | Table `safety_codes` (owner-only RLS, encrypted payload). |
 | F50 | Plan de evacuare | 🟦 | Tables `evacuation_plans`, `pet_markers` + RLS. |

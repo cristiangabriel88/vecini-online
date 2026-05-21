@@ -512,3 +512,71 @@ export interface BirthdayConsent {
   birth_day: number;
   birth_month: number;
 }
+
+/** F47 — building-wide energy consumption record (`energy_records`). */
+export interface EnergyRecord {
+  id: string;
+  asociatie_id: string;
+  /** ISO date for the first day of the period (month). */
+  period: string;
+  kind: string;
+  amount: number;
+  cost: number;
+}
+
+/** F45 — multi-year maintenance plan line item (`multiyear_plan_items`). */
+export interface MultiyearPlanItem {
+  id: string;
+  asociatie_id: string;
+  year: number;
+  title: string;
+  estimated_cost: number;
+  notes: string | null;
+}
+
+/** F32 — temporary courier access code (`access_codes`). */
+export interface AccessCode {
+  id: string;
+  asociatie_id: string;
+  generated_by: string;
+  code: string;
+  expires_at: string;
+  used_at: string | null;
+  created_at: string;
+}
+
+/** F59 — opt-in babysitting / pet-sitting profile (`sitter_profiles`). */
+export interface SitterProfile {
+  id: string;
+  asociatie_id: string;
+  user_id: string;
+  user_name: string;
+  /** 'babysitting' | 'petsitting' */
+  kind: string;
+  availability: string;
+  rate: string;
+}
+
+/** F60 — skill exchange / barter offering (`skill_offerings`). */
+export interface SkillOffering {
+  id: string;
+  asociatie_id: string;
+  user_id: string;
+  user_name: string;
+  offers: string;
+  needs: string;
+}
+
+/** F61 — group buy (`group_buys`). */
+export interface GroupBuy {
+  id: string;
+  asociatie_id: string;
+  organizer_user_id: string;
+  organizer_name: string;
+  title: string;
+  description: string;
+  deadline: string;
+  created_at: string;
+  /** Local signup tally (demo). */
+  signups: number;
+}
