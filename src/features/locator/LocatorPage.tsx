@@ -1,0 +1,115 @@
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
+import { Plus, StickyNote, Clock } from 'lucide-react';
+import { PageHeader } from '@/shared/components/PageHeader';
+import { Button } from '@/shared/components/Button';
+import { Card } from '@/shared/components/Card';
+import { Badge } from '@/shared/components/Badge';
+import { EmptyState } from '@/shared/components/EmptyState';
+import { Modal } from '@/shared/components/Modal';
+import { Input, Textarea } from '@/shared/components/Input';
+import { Select } from '@/shared/components/Select';
+import { formatDateLong } from '@/shared/lib/format';
+import type { ResidentPostCategory } from '@/shared/types/domain';
+import { useLocatorStore } from './locatorStore';
+import { isExpired, daysLeft } from './locatorLogic';
+
+const CATEGORIES: ResidentPostCategory[] = ['vand', 'caut', 'ofer', 'info'];
+const tone: Record<ResidentPostCategory, 'success' | 'primary' | 'warning' | 'neutral'> = {
+  vand: 'success',
+  caut: 'warning',
+  ofer: 'primary',
+  info: 'neutral',
+};
+
+export default function LocatorPage() {
+  const { t } = useTranslation();
+  const { items, add } = useLocatorStore();
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+  const [category, setCategory] = useState<ResidentPostCategory>('vand');
+
+  const live = items
+    .filter((p) => !isExpired(p.expires_at))
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  const submit = () => {
+    if (!title.trim() || !body.trim()) return;
+    add({ title: title.trim(), body: body.trim(), category });
+    toast.success(t('locator.posted'));
+    setOpen(false);
+    setTitle('');
+    setBody('');
+    setCategory('vand');
+  };
+
+  return (
+    <div>
+      <PageHeader
+        title={t('locator.title')}
+        subtitle={t('locator.subtitle')}
+        action={
+          <Button onClick={() => setOpen(true)}>
+            <Plus className="h-4 w-4" /> {t('locator.new')}
+          </Button>
+        }
+      />
+
+      {live.length === 0 ? (
+        <EmptyState body={t('locator.empty')} icon={<StickyNote className="h-10 w-10" />} />
+      ) : (
+        <div className="space-y-3">
+          {live.map((p) => (
+            <Card key={p.id}>
+              <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-lg font-semibold">{p.title}</h2>
+                <Badge tone={tone[p.category]}>{t(`locator.category_${p.category}`)}</Badge>
+              </div>
+              <p className="mb-2 text-sm text-muted">
+                {p.author_name} · {formatDateLong(p.created_at)}
+              </p>
+              <p className="mb-3 whitespace-pre-line text-text">{p.body}</p>
+              <p className="flex items-center gap-1 text-sm text-muted">
+                <Clock className="h-4 w-4" /> {t('locator.expiresIn', { count: daysLeft(p.expires_at) })}
+              </p>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title={t('locator.new')}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setOpen(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button onClick={submit} disabled={!title.trim() || !body.trim()}>
+              {t('common.publish')}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <Input label={t('locator.postTitle')} value={title} onChange={(e) => setTitle(e.target.value)} />
+          <Select
+            label={t('locator.category')}
+            value={category}
+            onChange={(e) => setCategory(e.target.value as ResidentPostCategory)}
+          >
+            {CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {t(`locator.category_${c}`)}
+              </option>
+            ))}
+          </Select>
+          <Textarea label={t('locator.body')} value={body} onChange={(e) => setBody(e.target.value)} />
+        </div>
+      </Modal>
+    </div>
+  );
+}

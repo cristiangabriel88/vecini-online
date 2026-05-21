@@ -4,8 +4,17 @@ import type {
   Asociatie,
   BuildingEvent,
   EmergencyContact,
+  FaqEntry,
+  GlossaryEntry,
+  Idea,
+  Meter,
+  MeterReading,
   Poll,
   PollOption,
+  RepairRecord,
+  ResidentPost,
+  DirectoryEntry,
+  ThankYou,
   Ticket,
 } from '@/shared/types/domain';
 import { RECOMMENDED_FEATURES } from '@/shared/features/registry';
@@ -117,4 +126,71 @@ export const DEMO_EMERGENCY: EmergencyContact[] = [
   { id: 'em-4', asociatie_id: 'demo-asoc', label: 'Avarii gaz (Distrigaz)', phone: '+40 800 800 928', category: 'gaz', sort_order: 3 },
   { id: 'em-5', asociatie_id: 'demo-asoc', label: 'Administrator', phone: '+40 721 234 567', category: 'admin', sort_order: 4 },
   { id: 'em-6', asociatie_id: 'demo-asoc', label: 'Președinte comitet', phone: '+40 722 345 678', category: 'comitet', sort_order: 5 },
+];
+
+// F06 — Anunțuri vecini (locator). Expiries are kept in the future relative to
+// the seeded "now" (2026-05) so the demo always shows live posts.
+export const DEMO_RESIDENT_POSTS: ResidentPost[] = [
+  { id: 'rp-1', asociatie_id: 'demo-asoc', author_user_id: 'u-res', author_name: 'Popescu Andrei', category: 'vand', title: 'Vând bicicletă copii 20"', body: 'Bicicletă în stare bună, folosită un sezon. 250 lei, negociabil. Sun la interfon ap. 5.', photo_path: null, expires_at: '2026-06-02T10:00:00Z', created_at: '2026-05-19T10:00:00Z' },
+  { id: 'rp-2', asociatie_id: 'demo-asoc', author_user_id: 'u-res2', author_name: 'Georgescu Elena', category: 'caut', title: 'Caut o pisică pierdută (tărcată)', body: 'A fugit pisica noastră tărcată, răspunde la „Miru”. Dacă o vedeți pe casa scării, vă rog sunați la ap. 9.', photo_path: null, expires_at: '2026-05-31T08:00:00Z', created_at: '2026-05-17T08:00:00Z' },
+  { id: 'rp-3', asociatie_id: 'demo-asoc', author_user_id: 'u-res3', author_name: 'Stan Gabriela', category: 'info', title: 'Vine bunica săptămâna viitoare', body: 'Posibil să se audă geamuri trântite la et. 4. Vă rog să aveți răbdare, e în vizită câteva zile.', photo_path: null, expires_at: '2026-05-30T18:00:00Z', created_at: '2026-05-16T18:00:00Z' },
+];
+
+// F07 — Întrebări frecvente (FAQ).
+export const DEMO_FAQ: FaqEntry[] = [
+  { id: 'faq-1', asociatie_id: 'demo-asoc', category: 'Utilități', question: 'Când vine apa caldă după întreruperi?', answer: 'După reluarea furnizării, apa caldă ajunge la etajele superioare în 20–40 de minute. Lăsați robinetul deschis până se elimină aerul din instalație.', sort_order: 0, helpful_count: 12, not_helpful_count: 1 },
+  { id: 'faq-2', asociatie_id: 'demo-asoc', category: 'Contoare', question: 'Cum citesc corect contorul de apă?', answer: 'Citiți doar cifrele negre (mc), ignorând cifrele roșii (litri). Trimiteți indexul între 1 și 5 ale lunii din secțiunea „Citire contoare”.', sort_order: 1, helpful_count: 9, not_helpful_count: 0 },
+  { id: 'faq-3', asociatie_id: 'demo-asoc', category: 'Plăți', question: 'Ce este fondul de rulment?', answer: 'Este o sumă de garanție pe care o depune fiecare apartament, folosită de asociație pentru a acoperi facturile până la încasarea cotelor lunare.', sort_order: 2, helpful_count: 7, not_helpful_count: 2 },
+];
+
+// F14 — Cutie de idei.
+export const DEMO_IDEAS: Idea[] = [
+  { id: 'idea-1', asociatie_id: 'demo-asoc', author_user_id: 'u-res', author_name: 'Popescu Andrei', title: 'Bancă nouă în fața blocului', body: 'O bancă la intrare ar ajuta vârstnicii să se odihnească. Cost estimativ 600 lei.', status: 'in_discutie', votes: 14, created_at: '2026-05-12T09:00:00Z' },
+  { id: 'idea-2', asociatie_id: 'demo-asoc', author_user_id: 'u-res2', author_name: 'Georgescu Elena', title: 'Suport de biciclete la intrare', body: 'Un rastel ar elibera holul de la parter de biciclete.', status: 'aprobat', votes: 21, created_at: '2026-05-08T09:00:00Z' },
+  { id: 'idea-3', asociatie_id: 'demo-asoc', author_user_id: 'u-res3', author_name: 'Stan Gabriela', title: 'Senzori de mișcare pe casa scării', body: 'Ar reduce consumul de curent la iluminatul comun.', status: 'implementat', votes: 30, created_at: '2026-04-20T09:00:00Z' },
+];
+
+// F18 — Istoric reparații.
+export const DEMO_REPAIRS: RepairRecord[] = [
+  { id: 'rr-1', asociatie_id: 'demo-asoc', system: 'apa', title: 'Înlocuire pompă hidrofor', description: 'Pompa principală de presiune a fost înlocuită cu un model Grundfos. Garanție 2 ani.', contractor: 'HidroServ SRL', cost: 4200, warranty_until: '2027-09-15', performed_at: '2025-09-15', created_at: '2025-09-16T10:00:00Z' },
+  { id: 'rr-2', asociatie_id: 'demo-asoc', system: 'lift', title: 'Revizie generală lift + cabluri', description: 'Schimbare cabluri de tracțiune și verificare ISCIR.', contractor: 'Lift Expert', cost: 6800, warranty_until: '2026-06-10', performed_at: '2025-06-10', created_at: '2025-06-11T10:00:00Z' },
+  { id: 'rr-3', asociatie_id: 'demo-asoc', system: 'electric', title: 'Refacere tablou electric parter', description: 'Înlocuire siguranțe și refacere legături în tabloul de la parter.', contractor: 'ElectroFix', cost: 1500, warranty_until: '2024-11-01', performed_at: '2023-11-01', created_at: '2023-11-02T10:00:00Z' },
+];
+
+// F20 — Citire contoare. Meters belong to the demo resident's apartment (ap-2).
+export const DEMO_METERS: Meter[] = [
+  { id: 'mt-1', asociatie_id: 'demo-asoc', apartment_id: 'ap-2', kind: 'apa_rece', serial: 'AR-882140', last_value: 312 },
+  { id: 'mt-2', asociatie_id: 'demo-asoc', apartment_id: 'ap-2', kind: 'apa_calda', serial: 'AC-771203', last_value: 188 },
+  { id: 'mt-3', asociatie_id: 'demo-asoc', apartment_id: 'ap-2', kind: 'gaz', serial: 'GZ-440019', last_value: 1043 },
+];
+
+export const DEMO_METER_READINGS: MeterReading[] = [
+  { id: 'mrd-1', asociatie_id: 'demo-asoc', meter_id: 'mt-1', value: 312, photo_path: null, submitted_by: 'u-res', reading_date: '2026-04-03', created_at: '2026-04-03T09:00:00Z' },
+  { id: 'mrd-2', asociatie_id: 'demo-asoc', meter_id: 'mt-2', value: 188, photo_path: null, submitted_by: 'u-res', reading_date: '2026-04-03', created_at: '2026-04-03T09:00:00Z' },
+  { id: 'mrd-3', asociatie_id: 'demo-asoc', meter_id: 'mt-3', value: 1043, photo_path: null, submitted_by: 'u-res', reading_date: '2026-04-03', created_at: '2026-04-03T09:00:00Z' },
+];
+
+// F36 — Locator directory (opt-in).
+export const DEMO_DIRECTORY: DirectoryEntry[] = [
+  { id: 'dir-1', asociatie_id: 'demo-asoc', user_id: 'u-res', name: 'Popescu Andrei', apartment: 'Ap. 5', phone: '+40 721 111 222', email: 'andrei.popescu@example.ro', show_name: true, show_apartment: true, show_phone: true, show_email: false },
+  { id: 'dir-2', asociatie_id: 'demo-asoc', user_id: 'u-res2', name: 'Georgescu Elena', apartment: 'Ap. 9', phone: '+40 722 333 444', email: 'elena.g@example.ro', show_name: true, show_apartment: true, show_phone: false, show_email: true },
+  { id: 'dir-3', asociatie_id: 'demo-asoc', user_id: 'u-res3', name: 'Stan Gabriela', apartment: 'Ap. 17', phone: '+40 723 555 666', email: 'gabriela.stan@example.ro', show_name: true, show_apartment: false, show_phone: false, show_email: false },
+];
+
+// The current demo user's own directory entry (used by the consent toggles).
+export const DEMO_MY_DIRECTORY: DirectoryEntry = DEMO_DIRECTORY[0];
+
+// F38 — Carte de aur (mulțumiri).
+export const DEMO_THANK_YOUS: ThankYou[] = [
+  { id: 'ty-1', asociatie_id: 'demo-asoc', from_user_id: 'u-res2', from_name: 'Georgescu Elena', to_apartment: 'Ap. 13', message: 'Mulțumesc lui Andrei de la 13 care a urcat sacii cu pământ ai bunicii. Mare ajutor!', created_at: '2026-05-18T16:00:00Z' },
+  { id: 'ty-2', asociatie_id: 'demo-asoc', from_user_id: 'u-res3', from_name: 'Stan Gabriela', to_apartment: 'Ap. 1', message: 'Mulțumiri doamnei Maria de la 1 pentru că a udat florile de pe casa scării toată vara.', created_at: '2026-05-10T11:00:00Z' },
+];
+
+// F40 — Glosar de termeni.
+export const DEMO_GLOSSARY: GlossaryEntry[] = [
+  { id: 'gl-1', asociatie_id: 'demo-asoc', term: 'Cotă-parte indiviză', definition: 'Procentul din proprietatea comună (scări, acoperiș, fațadă) care revine fiecărui apartament, calculat de regulă în funcție de suprafața utilă. Determină ponderea la votul ponderat și la repartizarea unor cheltuieli.' },
+  { id: 'gl-2', asociatie_id: 'demo-asoc', term: 'Fond de rulment', definition: 'Sumă de garanție depusă de fiecare apartament, folosită de asociație pentru a plăti facturile curente până la încasarea cotelor de întreținere.' },
+  { id: 'gl-3', asociatie_id: 'demo-asoc', term: 'Fond de reparații', definition: 'Sumă acumulată lunar pentru lucrări majore viitoare (acoperiș, fațadă, instalații). Se constituie prin hotărâre a Adunării Generale.' },
+  { id: 'gl-4', asociatie_id: 'demo-asoc', term: 'Cenzor', definition: 'Persoana sau firma care verifică gestiunea financiară a asociației și prezintă un raport Adunării Generale.' },
+  { id: 'gl-5', asociatie_id: 'demo-asoc', term: 'Comitet executiv', definition: 'Organul ales de proprietari care administrează curent asociația între Adunările Generale, format din președinte și membri.' },
 ];

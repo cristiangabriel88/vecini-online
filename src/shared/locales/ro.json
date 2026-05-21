@@ -143,6 +143,21 @@
     "rsvpCount": "{{count}} participanți",
     "empty": "Nu sunt evenimente programate. Comitetul va anunța aici următoarea Adunare Generală."
   },
+  "locator": {
+    "title": "Anunțuri vecini",
+    "subtitle": "Anunțuri neoficiale între vecini. Se arhivează automat după 14 zile.",
+    "new": "Anunț nou",
+    "postTitle": "Titlu",
+    "body": "Detalii",
+    "category": "Categorie",
+    "category_vand": "Vând",
+    "category_caut": "Caut",
+    "category_ofer": "Ofer",
+    "category_info": "Informație",
+    "expiresIn": "Expiră în {{count}} zile",
+    "posted": "Anunț publicat. Va fi vizibil 14 zile.",
+    "empty": "Nu sunt anunțuri active. Poți publica primul cu butonul de mai sus."
+  },
   "emergency": {
     "title": "Numere de urgență",
     "call": "Sună",

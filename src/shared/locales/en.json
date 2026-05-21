@@ -143,6 +143,21 @@
     "rsvpCount": "{{count}} attending",
     "empty": "No scheduled events. The committee will announce the next General Assembly here."
   },
+  "locator": {
+    "title": "Neighbour posts",
+    "subtitle": "Informal neighbour-to-neighbour posts. Auto-archived after 14 days.",
+    "new": "New post",
+    "postTitle": "Title",
+    "body": "Details",
+    "category": "Category",
+    "category_vand": "For sale",
+    "category_caut": "Looking for",
+    "category_ofer": "Offering",
+    "category_info": "Notice",
+    "expiresIn": "Expires in {{count}} days",
+    "posted": "Post published. Visible for 14 days.",
+    "empty": "No active posts. Publish the first one with the button above."
+  },
   "emergency": {
     "title": "Emergency numbers",
     "call": "Call",

@@ -28,6 +28,21 @@ const WELCOME_NO_CODE =
   'primit de la administrator (8 caractere, ex: AB23CD45).\n\n' +
   'Trimite-mi codul.';
 
+/** Slash commands that map to a feature page. The reply guides the resident to
+ *  the in-app Mini App; richer flows are handled there. */
+const FEATURE_COMMANDS: Record<string, string> = {
+  '/locator': '📌 Anunțuri vecini — vezi sau publică anunțuri neoficiale (vând, caut, ofer). Deschide secțiunea „Anunțuri vecini” din aplicație.',
+  '/locator_new': '📌 Pentru a publica un anunț nou, deschide „Anunțuri vecini” în aplicație și apasă „Anunț nou”.',
+  '/faq': '❓ Întrebări frecvente — caută răspunsuri rapide în secțiunea „FAQ” din aplicație.',
+  '/idei': '💡 Cutia de idei — propune sau votează idei pentru bloc în secțiunea „Cutie de idei”.',
+  '/idei_propune': '💡 Pentru a propune o idee, deschide „Cutie de idei” în aplicație și apasă „Propune o idee”.',
+  '/istoric_reparatii': '🔧 Istoric reparații — caută reparațiile efectuate în bloc în secțiunea „Istoric reparații”.',
+  '/contor': '🚰 Citire contoare — trimite indexul lunar din secțiunea „Citire contoare” a aplicației.',
+  '/vecini': '📇 Agenda vecinilor — vezi vecinii care au optat să fie listați în secțiunea „Vecini”.',
+  '/multumeste': '💛 Carte de aur — lasă o mulțumire publică unui vecin în secțiunea „Mulțumiri”.',
+  '/glosar': '📖 Glosar — caută definiții pentru termenii din facturi și AGA în secțiunea „Glosar”.',
+};
+
 async function handleMessage(msg: TelegramMessage) {
   const text = (msg.text ?? '').trim();
   if (text.startsWith('/start')) {
@@ -40,6 +55,11 @@ async function handleMessage(msg: TelegramMessage) {
     } else {
       await telegram.sendMessage(msg.chat.id, WELCOME_NO_CODE);
     }
+    return;
+  }
+  const command = text.split(/\s+/)[0].toLowerCase();
+  if (FEATURE_COMMANDS[command]) {
+    await telegram.sendMessage(msg.chat.id, FEATURE_COMMANDS[command]);
     return;
   }
   if (text === '/menu' || text === '/help') {

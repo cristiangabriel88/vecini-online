@@ -514,7 +514,7 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F03 | Alertă de bloc (urgență) | ✅ | Send flow with double-confirm bypassing quiet hours; recipient count. |
 | F04 | Mesagerie privată cu administratorul | 🟦 | Tables `private_threads/messages` + RLS. |
 | F05 | Mesaj anonim către comitet | 🟦 | Table `anonymous_messages` (sender hidden at app layer) + RLS. |
-| F06 | Anunțuri vecini (locator) | 🟦 | Table `resident_posts` + owner RLS. |
+| F06 | Anunțuri vecini (locator) | ✅ | Compose neighbour posts with category + 14-day auto-archive; expiry logic unit-tested; `/locator` bot command. Table `resident_posts` + owner RLS. |
 | F07 | Întrebări frecvente (FAQ) | 🟦 | Tables `faq_entries/votes` + RLS. |
 | F08 | Calendar de evenimente | ✅ | Upcoming list, RSVP toggle, counts; tables `events/event_rsvps`. |
 | F09 | Vot rapid pe propuneri | ✅ | Vote with confirm, live bars; quorum/majority tally logic unit-tested. |

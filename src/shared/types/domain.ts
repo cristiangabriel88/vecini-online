@@ -234,3 +234,119 @@ export interface AppNotification {
   delivered_channels: NotificationChannel[];
   created_at: string;
 }
+
+/** F06 — neighbour-to-neighbour post (`resident_posts`). */
+export type ResidentPostCategory = 'vand' | 'caut' | 'ofer' | 'info';
+
+export interface ResidentPost {
+  id: string;
+  asociatie_id: string;
+  author_user_id: string;
+  author_name: string;
+  category: ResidentPostCategory;
+  title: string;
+  body: string;
+  photo_path: string | null;
+  expires_at: string;
+  created_at: string;
+}
+
+/** F07 — FAQ entry (`faq_entries`) with aggregate vote counts. */
+export interface FaqEntry {
+  id: string;
+  asociatie_id: string;
+  category: string;
+  question: string;
+  answer: string;
+  sort_order: number;
+  helpful_count: number;
+  not_helpful_count: number;
+}
+
+/** F14 — idea-box submission (`ideas`). */
+export type IdeaStatus = 'in_discutie' | 'aprobat' | 'implementat' | 'respins';
+
+export interface Idea {
+  id: string;
+  asociatie_id: string;
+  author_user_id: string;
+  author_name: string;
+  title: string;
+  body: string;
+  status: IdeaStatus;
+  votes: number;
+  created_at: string;
+}
+
+/** F18 — institutional repair log (`repair_records`). */
+export type RepairSystem = 'apa' | 'electric' | 'lift' | 'incalzire' | 'structura' | 'altele';
+
+export interface RepairRecord {
+  id: string;
+  asociatie_id: string;
+  system: RepairSystem;
+  title: string;
+  description: string;
+  contractor: string | null;
+  cost: number | null;
+  warranty_until: string | null;
+  performed_at: string;
+  created_at: string;
+}
+
+/** F20 — utility meter (`meters`) and reading (`meter_readings`). */
+export type MeterKind = 'apa_rece' | 'apa_calda' | 'gaz' | 'incalzire';
+
+export interface Meter {
+  id: string;
+  asociatie_id: string;
+  apartment_id: string;
+  kind: MeterKind;
+  serial: string;
+  last_value: number;
+}
+
+export interface MeterReading {
+  id: string;
+  asociatie_id: string;
+  meter_id: string;
+  value: number;
+  photo_path: string | null;
+  submitted_by: string;
+  reading_date: string;
+  created_at: string;
+}
+
+/** F36 — opt-in resident directory consent (`resident_directory_consent`). */
+export interface DirectoryEntry {
+  id: string;
+  asociatie_id: string;
+  user_id: string;
+  name: string;
+  apartment: string;
+  phone: string;
+  email: string;
+  show_name: boolean;
+  show_apartment: boolean;
+  show_phone: boolean;
+  show_email: boolean;
+}
+
+/** F38 — public thank-you wall post (`thank_yous`). */
+export interface ThankYou {
+  id: string;
+  asociatie_id: string;
+  from_user_id: string;
+  from_name: string;
+  to_apartment: string;
+  message: string;
+  created_at: string;
+}
+
+/** F40 — glossary term (`glossary_entries`). */
+export interface GlossaryEntry {
+  id: string;
+  asociatie_id: string;
+  term: string;
+  definition: string;
+}

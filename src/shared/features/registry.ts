@@ -51,7 +51,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'F03', title: 'Alertă de bloc (urgență)', category: 'communication', icon: 'Siren', audience: ['all'], path: 'alerte', description: 'Difuzare de urgență care ignoră orele de liniște.', implemented: true },
   { key: 'F04', title: 'Mesagerie privată cu administratorul', category: 'communication', icon: 'MessageCircle', audience: ['proprietar', 'chirias', 'admin'], path: 'mesaje-admin', description: 'Canal privat între locatar și administrator.', implemented: false },
   { key: 'F05', title: 'Mesaj anonim către comitet', category: 'communication', icon: 'EyeOff', audience: ['all'], path: 'anonim', description: 'Mesaj către comitet cu identitate ascunsă.', implemented: false },
-  { key: 'F06', title: 'Anunțuri vecini (locator)', category: 'communication', icon: 'StickyNote', audience: ['all'], path: 'locator', description: 'Anunțuri neoficiale între vecini, cu expirare la 14 zile.', implemented: false },
+  { key: 'F06', title: 'Anunțuri vecini (locator)', category: 'communication', icon: 'StickyNote', audience: ['all'], path: 'locator', description: 'Anunțuri neoficiale între vecini, cu expirare la 14 zile.', implemented: true },
   { key: 'F07', title: 'Întrebări frecvente (FAQ)', category: 'communication', icon: 'HelpCircle', audience: ['all'], path: 'faq', description: 'Întrebări frecvente, căutabile, întreținute de administrator.', implemented: false },
   { key: 'F08', title: 'Calendar de evenimente', category: 'communication', icon: 'CalendarDays', audience: ['all'], path: 'evenimente', description: 'Calendar de evenimente cu RSVP și memento-uri.', implemented: true },
 
