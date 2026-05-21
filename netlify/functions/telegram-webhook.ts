@@ -56,6 +56,13 @@ const FEATURE_COMMANDS: Record<string, string> = {
   '/boxe': '📦 Boxe — vezi cine deține fiecare boxă sau dependință în secțiunea „Boxe”.',
   '/carpool': '🚗 Carpooling — găsește vecini cu trasee similare în secțiunea „Carpooling”.',
   '/aniversari': '🎂 Aniversări — vezi zilele de naștere ale vecinilor care au optat în secțiunea „Aniversări”.',
+  '/energie': '⚡ Energie — urmărește consumul energetic al spațiilor comune în secțiunea „Energie”.',
+  '/plan_multianual': '🗓 Plan multianual — vezi planul de lucrări pe mai mulți ani în secțiunea „Plan multianual”.',
+  '/curier': '🔑 Acces curierat — generează un cod temporar de interfon (valabil 30 min) în secțiunea „Acces curierat”.',
+  '/babysit': '🍼 Babysitting / pet-sitting — găsește vecini disponibili în secțiunea „Babysitting / pet-sitting”.',
+  '/petsit': '🐾 Pet-sitting — găsește vecini disponibili în secțiunea „Babysitting / pet-sitting”.',
+  '/barter': '🔁 Barter — oferă și caută servicii între vecini în secțiunea „Schimb de servicii”.',
+  '/bulk': '🛒 Cumpărături comune — vezi sau pornește o comandă în grup în secțiunea „Cumpărături comune”.',
 };
 
 async function handleMessage(msg: TelegramMessage) {

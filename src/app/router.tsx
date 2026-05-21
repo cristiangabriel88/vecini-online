@@ -33,6 +33,12 @@ const SuppliersPage = lazy(() => import('@/features/suppliers/SuppliersPage'));
 const StoragePage = lazy(() => import('@/features/storage/StoragePage'));
 const CarpoolPage = lazy(() => import('@/features/carpool/CarpoolPage'));
 const BirthdaysPage = lazy(() => import('@/features/birthdays/BirthdaysPage'));
+const EnergyPage = lazy(() => import('@/features/energy/EnergyPage'));
+const MultiyearPage = lazy(() => import('@/features/multiyear/MultiyearPage'));
+const AccessPage = lazy(() => import('@/features/access/AccessPage'));
+const SittersPage = lazy(() => import('@/features/sitters/SittersPage'));
+const BarterPage = lazy(() => import('@/features/barter/BarterPage'));
+const GroupBuysPage = lazy(() => import('@/features/groupbuys/GroupBuysPage'));
 const EmergencyPage = lazy(() => import('@/features/emergency/EmergencyPage'));
 const AlertsPage = lazy(() => import('@/features/alerts/AlertsPage'));
 const ProfilePage = lazy(() => import('@/features/profile/ProfilePage'));
@@ -85,6 +91,12 @@ export const router = createBrowserRouter([
       { path: 'boxe', element: <S><StoragePage /></S> },
       { path: 'carpool', element: <S><CarpoolPage /></S> },
       { path: 'aniversari', element: <S><BirthdaysPage /></S> },
+      { path: 'energie', element: <S><EnergyPage /></S> },
+      { path: 'plan-multianual', element: <S><MultiyearPage /></S> },
+      { path: 'curier', element: <S><AccessPage /></S> },
+      { path: 'babysitting', element: <S><SittersPage /></S> },
+      { path: 'barter', element: <S><BarterPage /></S> },
+      { path: 'cumparaturi', element: <S><GroupBuysPage /></S> },
       { path: 'urgenta', element: <S><EmergencyPage /></S> },
       { path: 'alerte', element: <S><AlertsPage /></S> },
       { path: 'actiuni', element: <S><FeatureHubPage actions /></S> },
