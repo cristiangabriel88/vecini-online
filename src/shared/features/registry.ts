@@ -73,7 +73,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'F21', title: 'Sesizări recurente', category: 'maintenance', icon: 'Repeat', audience: ['comitet', 'admin'], path: 'sesizari-recurente', description: 'Detectarea automată a problemelor repetate.', implemented: false },
   { key: 'F22', title: 'Solicitare oferte (RFP)', category: 'maintenance', icon: 'FileSpreadsheet', audience: ['comitet', 'admin'], path: 'oferte', description: 'Solicitarea și compararea ofertelor de la contractori.', implemented: false },
   { key: 'F23', title: 'Vecin de gardă', category: 'maintenance', icon: 'ShieldCheck', audience: ['all'], path: 'garda', description: 'Voluntar de gardă în weekend, prin rotație.', implemented: false },
-  { key: 'F24', title: 'Listă obiecte împrumutabile', category: 'maintenance', icon: 'Handshake', audience: ['all'], path: 'imprumut', description: 'Unelte și obiecte pe care vecinii le împrumută.', implemented: false },
+  { key: 'F24', title: 'Listă obiecte împrumutabile', category: 'maintenance', icon: 'Handshake', audience: ['all'], path: 'imprumut', description: 'Unelte și obiecte pe care vecinii le împrumută.', implemented: true },
 
   // Category 4 — Shared Spaces & Resources
   { key: 'F25', title: 'Rezervare spălătorie', category: 'spaces', icon: 'WashingMachine', audience: ['all'], path: 'spalatorie', description: 'Rezervarea sloturilor pentru spălătoria comună.', implemented: false },

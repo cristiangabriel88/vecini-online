@@ -212,6 +212,24 @@
     "warranty_none": "fără garanție",
     "empty": "Nicio reparație găsită. Modifică filtrele sau termenul de căutare."
   },
+  "lending": {
+    "title": "Obiecte împrumutabile",
+    "subtitle": "Unelte și obiecte pe care vecinii le pun la dispoziție. Scrie-i direct proprietarului.",
+    "new": "Adaugă obiect",
+    "name": "Obiect",
+    "category": "Categorie",
+    "categoryHint": "ex: unelte, auto, grădină",
+    "searchPlaceholder": "Caută un obiect…",
+    "filter": "Disponibilitate",
+    "filter_all": "Toate",
+    "filter_available": "Doar disponibile",
+    "available": "Disponibil",
+    "borrowed": "Împrumutat",
+    "markBorrowed": "Marchează împrumutat",
+    "markAvailable": "Marchează disponibil",
+    "added": "Obiect adăugat în listă.",
+    "empty": "Niciun obiect listat. Adaugă primul cu butonul de mai sus."
+  },
   "meters": {
     "title": "Citire contoare",
     "subtitle": "Trimite lunar indexul contoarelor tale, între 1 și 5 ale lunii.",

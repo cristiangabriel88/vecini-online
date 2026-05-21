@@ -15,3 +15,13 @@ test('F15 — resident votes in an opinion survey and sees results', async ({ pa
   await page.getByRole('button', { name: 'Gri deschis', exact: true }).click();
   await expect(page.getByText(/răspunsuri/).first()).toBeVisible();
 });
+
+test('F24 — resident adds a borrowable item', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/imprumut');
+  await page.getByRole('button', { name: /Adaugă obiect/i }).click();
+  await page.getByLabel('Obiect').fill('Aspirator de frunze');
+  await page.getByLabel('Categorie').fill('grădină');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText('Aspirator de frunze')).toBeVisible();
+});

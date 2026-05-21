@@ -532,7 +532,7 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F21 | Sesizări recurente | 🟦 | Computed over `tickets`. |
 | F22 | Solicitare oferte (RFP) | 🟦 | Tables `rfps`, `rfp_quotes`, `contractor_recommendations` + RLS. |
 | F23 | Vecin de gardă | 🟦 | Tables `duty_volunteers`, `duty_schedule` + RLS. |
-| F24 | Listă obiecte împrumutabile | 🟦 | Tables `lending_items/records` + owner RLS. |
+| F24 | Listă obiecte împrumutabile | ✅ | Registry of borrowable items with add, category, search and available/borrowed toggle; validation + search/filter logic unit-tested; `/imprumut` bot command. Tables `lending_items/records` + owner RLS. |
 | F25 | Rezervare spălătorie | 🟦 | Tables `bookable_resources`, `bookings` + owner RLS. |
 | F26 | Rezervare lift pentru mutare | 🟦 | Uses `bookings` (resource_type) + RLS. |
 | F27 | Rezervare sală comună / terasă | 🟦 | Uses `bookings`, `booking_inspections` + RLS. |

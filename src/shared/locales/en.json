@@ -212,6 +212,24 @@
     "warranty_none": "no warranty",
     "empty": "No repairs found. Adjust the filters or search term."
   },
+  "lending": {
+    "title": "Borrowable items",
+    "subtitle": "Tools and items neighbours lend out. Message the owner directly.",
+    "new": "Add item",
+    "name": "Item",
+    "category": "Category",
+    "categoryHint": "e.g. tools, car, garden",
+    "searchPlaceholder": "Search an item…",
+    "filter": "Availability",
+    "filter_all": "All",
+    "filter_available": "Available only",
+    "available": "Available",
+    "borrowed": "Borrowed",
+    "markBorrowed": "Mark borrowed",
+    "markAvailable": "Mark available",
+    "added": "Item added to the list.",
+    "empty": "No items listed. Add the first one with the button above."
+  },
   "meters": {
     "title": "Meter readings",
     "subtitle": "Submit your meter indices monthly, between the 1st and 5th.",
