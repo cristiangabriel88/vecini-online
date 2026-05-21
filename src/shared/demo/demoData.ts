@@ -36,6 +36,13 @@ import type {
   Ticket,
   VisitorReport,
   Warranty,
+  ScheduledMaintenance,
+  ParkingSpot,
+  Petition,
+  Crowdfund,
+  PsiAsset,
+  InsurancePolicy,
+  KeyRecord,
 } from '@/shared/types/domain';
 import { RECOMMENDED_FEATURES } from '@/shared/features/registry';
 
@@ -354,4 +361,51 @@ export const DEMO_GLOSSARY: GlossaryEntry[] = [
   { id: 'gl-3', asociatie_id: 'demo-asoc', term: 'Fond de reparații', definition: 'Sumă acumulată lunar pentru lucrări majore viitoare (acoperiș, fațadă, instalații). Se constituie prin hotărâre a Adunării Generale.' },
   { id: 'gl-4', asociatie_id: 'demo-asoc', term: 'Cenzor', definition: 'Persoana sau firma care verifică gestiunea financiară a asociației și prezintă un raport Adunării Generale.' },
   { id: 'gl-5', asociatie_id: 'demo-asoc', term: 'Comitet executiv', definition: 'Organul ales de proprietari care administrează curent asociația între Adunările Generale, format din președinte și membri.' },
+];
+
+const dayOffset = (days: number) => new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
+
+// F19 — Calendar service-uri programate.
+export const DEMO_MAINTENANCE: ScheduledMaintenance[] = [
+  { id: 'sm-1', asociatie_id: 'demo-asoc', title: 'Revizie centrală termică', vendor: 'TermoServ SRL', recurrence: 'Anual', last_done: dayOffset(-340), next_due: dayOffset(-5), notes: 'Necesită acces în centrala de la subsol.' },
+  { id: 'sm-2', asociatie_id: 'demo-asoc', title: 'Verificare ISCIR lift', vendor: 'Lift Expert', recurrence: 'Anual', last_done: dayOffset(-350), next_due: dayOffset(12), notes: 'Liftul va fi oprit ~2 ore.' },
+  { id: 'sm-3', asociatie_id: 'demo-asoc', title: 'Deratizare subsol și ghene', vendor: 'DDD Clean', recurrence: 'Trimestrial', last_done: dayOffset(-80), next_due: dayOffset(40), notes: null },
+];
+
+// F28 — Parcare.
+export const DEMO_PARKING: ParkingSpot[] = [
+  { id: 'pk-1', asociatie_id: 'demo-asoc', label: 'P1', zone: 'Față', is_visitor: false, apartment_label: 'Ap. 5', license_plate: 'B 12 ABC' },
+  { id: 'pk-2', asociatie_id: 'demo-asoc', label: 'P2', zone: 'Față', is_visitor: false, apartment_label: 'Ap. 9', license_plate: 'B 99 XYZ' },
+  { id: 'pk-3', asociatie_id: 'demo-asoc', label: 'P3', zone: 'Spate', is_visitor: false, apartment_label: null, license_plate: null },
+  { id: 'pk-4', asociatie_id: 'demo-asoc', label: 'V1', zone: 'Vizitatori', is_visitor: true, apartment_label: null, license_plate: null },
+];
+
+// F16 — Petiții interne.
+export const DEMO_PETITIONS: Petition[] = [
+  { id: 'pt-1', asociatie_id: 'demo-asoc', author_user_id: 'u-res2', author_name: 'Georgescu Elena', title: 'Schimbarea firmei de curățenie', body: 'Calitatea curățeniei a scăzut în ultimele luni. Cerem comitetului să analizeze oferte alternative.', threshold_percent: 25, status: 'deschisa', created_at: new Date(Date.now() - 3 * 86_400_000).toISOString(), signatures: 1, total_apartments: 5 },
+];
+
+// F44 — Crowdfunding proiecte mici.
+export const DEMO_CROWDFUNDS: Crowdfund[] = [
+  { id: 'cf-1', asociatie_id: 'demo-asoc', title: 'Loc de joacă pentru copii în curte', description: 'Un leagăn și un tobogan mic pentru copiii din bloc. Contribuție voluntară.', target_amount: 4000, deadline: dayOffset(30), created_at: new Date(Date.now() - 5 * 86_400_000).toISOString(), pledged: 1500 },
+  { id: 'cf-2', asociatie_id: 'demo-asoc', title: 'Decorațiuni de sărbători', description: 'Instalație luminoasă pentru intrarea blocului în decembrie.', target_amount: 1200, deadline: dayOffset(-2), created_at: new Date(Date.now() - 40 * 86_400_000).toISOString(), pledged: 1200 },
+];
+
+// F51 — Verificări PSI.
+export const DEMO_PSI_ASSETS: PsiAsset[] = [
+  { id: 'psi-1', asociatie_id: 'demo-asoc', asset: 'Stingătoare scara A', kind: 'Stingător', location: 'Câte unul pe fiecare palier', next_check: dayOffset(-3) },
+  { id: 'psi-2', asociatie_id: 'demo-asoc', asset: 'Hidranți interiori', kind: 'Hidrant', location: 'Casa scării, etajele 2 și 6', next_check: dayOffset(20) },
+  { id: 'psi-3', asociatie_id: 'demo-asoc', asset: 'Verificare instalație electrică', kind: 'Instalație electrică', location: 'Tablou general subsol', next_check: dayOffset(400) },
+];
+
+// F52 — Asigurare bloc.
+export const DEMO_INSURANCE: InsurancePolicy[] = [
+  { id: 'ins-1', asociatie_id: 'demo-asoc', insurer: 'Allianz-Țiriac', policy_number: 'POL-2025-44821', expires_at: dayOffset(18), document_path: null },
+];
+
+// F53 — Registru de chei.
+export const DEMO_KEYS: KeyRecord[] = [
+  { id: 'key-1', asociatie_id: 'demo-asoc', space: 'Centrală termică (subsol)', holder_name: 'Administrator — Ionescu Mihai', notes: 'Cheie unică, copie la președinte.' },
+  { id: 'key-2', asociatie_id: 'demo-asoc', space: 'Terasă / acoperiș', holder_name: 'Președinte — Popescu Andrei', notes: null },
+  { id: 'key-3', asociatie_id: 'demo-asoc', space: 'Magazia administrației', holder_name: 'Administrator — Ionescu Mihai', notes: null },
 ];

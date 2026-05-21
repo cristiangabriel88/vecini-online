@@ -111,6 +111,77 @@ test('F61: resident can join a group buy', async ({ page }) => {
   await expect(page.getByText('Te-ai înscris').first()).toBeVisible();
 });
 
+test('F19: admin can add a scheduled maintenance task', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/mentenanta');
+  await page.getByRole('button', { name: /Adaugă lucrare/i }).click();
+  await page.getByLabel('Lucrare').fill('Test revizie E2E');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText('Test revizie E2E')).toBeVisible();
+});
+
+test('F28: resident can add a parking spot', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/parcare');
+  await page.getByRole('button', { name: /Adaugă loc/i }).click();
+  await page.getByLabel('Loc (etichetă)').fill('P99');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText('P99')).toBeVisible();
+});
+
+test('F16: resident can sign a petition', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/petitii');
+  await expect(page.getByText(/firmei de curățenie/i)).toBeVisible();
+  await page.getByRole('button', { name: 'Semnează', exact: true }).first().click();
+  await expect(page.getByText('Ai semnat').first()).toBeVisible();
+});
+
+test('F44: resident can pledge to a crowdfund', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/crowdfund');
+  await page.getByRole('button', { name: /Promite o contribuție/i }).first().click();
+  await page.getByLabel(/Suma promisă/i).fill('100');
+  await page.getByRole('button', { name: /Promite o contribuție/i }).last().click();
+  await expect(page.getByText('Mulțumim pentru promisiune').first()).toBeVisible();
+});
+
+test('F46: repair-fund calculator shows a recommendation', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/fond-reparatii');
+  await page.getByLabel(/Suprafață construită/i).fill('2400');
+  await expect(page.getByText(/lei\/m²\/lună/i)).toBeVisible();
+});
+
+test('F51: comitet can add a PSI asset', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/psi');
+  await page.getByRole('button', { name: /Adaugă echipament/i }).click();
+  await page.getByLabel('Echipament').fill('Test stingător E2E');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText('Test stingător E2E')).toBeVisible();
+});
+
+test('F52: comitet can add an insurance policy', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/asigurare');
+  await page.getByRole('button', { name: /Adaugă poliță/i }).click();
+  await page.getByLabel('Asigurător').fill('Test Asig E2E');
+  await page.getByLabel('Număr poliță').fill('POL-E2E-1');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText('Test Asig E2E')).toBeVisible();
+});
+
+test('F53: comitet can add a key record', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/chei');
+  await page.getByRole('button', { name: /Adaugă cheie/i }).click();
+  await page.getByLabel('Spațiu').fill('Test spațiu E2E');
+  await page.getByLabel('Deținător').fill('Test deținător');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText('Test spațiu E2E')).toBeVisible();
+});
+
 test('home page has no critical accessibility violations', async ({ page }) => {
   await enterDemo(page);
   const results = await new AxeBuilder({ page })

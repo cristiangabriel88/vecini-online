@@ -580,3 +580,85 @@ export interface GroupBuy {
   /** Local signup tally (demo). */
   signups: number;
 }
+
+/** F19 — scheduled maintenance entry (`scheduled_maintenance`). */
+export interface ScheduledMaintenance {
+  id: string;
+  asociatie_id: string;
+  title: string;
+  vendor: string | null;
+  recurrence: string;
+  last_done: string | null;
+  next_due: string;
+  notes: string | null;
+}
+
+/** F28 — parking spot with its (optional) assignment (`parking_spots` + `parking_assignments`). */
+export interface ParkingSpot {
+  id: string;
+  asociatie_id: string;
+  label: string;
+  zone: string | null;
+  is_visitor: boolean;
+  apartment_label: string | null;
+  license_plate: string | null;
+}
+
+/** F16 — internal petition (`petitions`) with demo signature tally. */
+export interface Petition {
+  id: string;
+  asociatie_id: string;
+  author_user_id: string;
+  author_name: string;
+  title: string;
+  body: string;
+  threshold_percent: number;
+  status: string;
+  created_at: string;
+  /** Local signature tally (demo). */
+  signatures: number;
+  /** Apartment count used to compute the forwarding threshold (demo). */
+  total_apartments: number;
+}
+
+/** F44 — small-project crowdfund (`crowdfunds`) with demo pledge total. */
+export interface Crowdfund {
+  id: string;
+  asociatie_id: string;
+  title: string;
+  description: string;
+  target_amount: number;
+  deadline: string;
+  created_at: string;
+  /** Local pledged total in lei (demo). */
+  pledged: number;
+}
+
+/** F51 — PSI (fire-safety) asset with its next due check (`psi_assets`). */
+export interface PsiAsset {
+  id: string;
+  asociatie_id: string;
+  asset: string;
+  kind: string;
+  location: string | null;
+  next_check: string;
+}
+
+/** F52 — building insurance policy (`insurance_policies`). */
+export interface InsurancePolicy {
+  id: string;
+  asociatie_id: string;
+  insurer: string;
+  policy_number: string;
+  expires_at: string;
+  document_path: string | null;
+}
+
+/** F53 — shared-space key holder record (`keys`). */
+export interface KeyRecord {
+  id: string;
+  asociatie_id: string;
+  space: string;
+  holder_name: string;
+  notes: string | null;
+}

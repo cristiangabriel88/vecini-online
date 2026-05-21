@@ -39,6 +39,14 @@ const AccessPage = lazy(() => import('@/features/access/AccessPage'));
 const SittersPage = lazy(() => import('@/features/sitters/SittersPage'));
 const BarterPage = lazy(() => import('@/features/barter/BarterPage'));
 const GroupBuysPage = lazy(() => import('@/features/groupbuys/GroupBuysPage'));
+const MaintenancePage = lazy(() => import('@/features/maintenance/MaintenancePage'));
+const ParkingPage = lazy(() => import('@/features/parking/ParkingPage'));
+const PetitionsPage = lazy(() => import('@/features/petitions/PetitionsPage'));
+const CrowdfundPage = lazy(() => import('@/features/crowdfund/CrowdfundPage'));
+const RepairFundPage = lazy(() => import('@/features/repairfund/RepairFundPage'));
+const PsiPage = lazy(() => import('@/features/psi/PsiPage'));
+const InsurancePage = lazy(() => import('@/features/insurance/InsurancePage'));
+const KeysPage = lazy(() => import('@/features/keys/KeysPage'));
 const EmergencyPage = lazy(() => import('@/features/emergency/EmergencyPage'));
 const AlertsPage = lazy(() => import('@/features/alerts/AlertsPage'));
 const ProfilePage = lazy(() => import('@/features/profile/ProfilePage'));
@@ -97,6 +105,14 @@ export const router = createBrowserRouter([
       { path: 'babysitting', element: <S><SittersPage /></S> },
       { path: 'barter', element: <S><BarterPage /></S> },
       { path: 'cumparaturi', element: <S><GroupBuysPage /></S> },
+      { path: 'mentenanta', element: <S><MaintenancePage /></S> },
+      { path: 'parcare', element: <S><ParkingPage /></S> },
+      { path: 'petitii', element: <S><PetitionsPage /></S> },
+      { path: 'crowdfund', element: <S><CrowdfundPage /></S> },
+      { path: 'fond-reparatii', element: <S><RepairFundPage /></S> },
+      { path: 'psi', element: <S><PsiPage /></S> },
+      { path: 'asigurare', element: <S><InsurancePage /></S> },
+      { path: 'chei', element: <S><KeysPage /></S> },
       { path: 'urgenta', element: <S><EmergencyPage /></S> },
       { path: 'alerte', element: <S><AlertsPage /></S> },
       { path: 'actiuni', element: <S><FeatureHubPage actions /></S> },

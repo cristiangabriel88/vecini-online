@@ -63,6 +63,14 @@ const FEATURE_COMMANDS: Record<string, string> = {
   '/petsit': '🐾 Pet-sitting — găsește vecini disponibili în secțiunea „Babysitting / pet-sitting”.',
   '/barter': '🔁 Barter — oferă și caută servicii între vecini în secțiunea „Schimb de servicii”.',
   '/bulk': '🛒 Cumpărături comune — vezi sau pornește o comandă în grup în secțiunea „Cumpărături comune”.',
+  '/mentenanta': '🗓 Service-uri programate — vezi reviziile și verificările programate (ISCIR, centrală, deratizare) în secțiunea „Service-uri programate”.',
+  '/parcare': '🅿 Parcare — caută un loc sau un număr de înmatriculare în registrul de parcare din secțiunea „Parcare”.',
+  '/petitii': '📜 Petiții — pornește sau semnează o petiție către comitet în secțiunea „Petiții interne”.',
+  '/crowdfund': '🪙 Crowdfunding — contribuie la proiectele mici ale blocului în secțiunea „Crowdfunding”.',
+  '/fond_reparatii': '🧮 Fond de reparații — calculează o rată lunară recomandată în secțiunea „Fond de reparații”.',
+  '/psi': '🔥 Verificări PSI — urmărește termenele verificărilor de stingătoare, hidranți și instalație electrică în secțiunea „Verificări PSI” (comitet).',
+  '/asigurare': '☂ Asigurare bloc — vezi polița și data de reînnoire în secțiunea „Asigurare bloc” (comitet).',
+  '/chei': '🔑 Registru de chei — vezi cine deține cheile spațiilor comune în secțiunea „Registru de chei” (comitet).',
 };
 
 async function handleMessage(msg: TelegramMessage) {

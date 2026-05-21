@@ -524,10 +524,10 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F13 | Prioritizare proiecte mari | 🟦 | Tables `project_priorities`, `priority_rankings` + RLS. |
 | F14 | Cutie de idei | ✅ | Submit ideas, one-vote upvoting, status badges, vote-ranked list; ranking + top-N promotion logic unit-tested; `/idei` bot command. Tables `ideas`, `idea_votes/comments` + RLS. |
 | F15 | Sondaje de opinie | ✅ | Non-binding surveys with anonymous voting and live percentage bars; results shown after voting or close; tally/percent/close logic unit-tested; `/sondaje` bot command. Tables `surveys`, `survey_responses` + member-insert RLS. |
-| F16 | Petiții interne | 🟦 | Tables `petitions`, `petition_signatures` + RLS. |
+| F16 | Petiții interne | ✅ | Start/sign petitions with a per-apartment signature tally, threshold progress bar and auto-forward when the 25% threshold is reached; threshold/progress/sort logic unit-tested; `/petitii` bot command. Tables `petitions`, `petition_signatures` + owner RLS. |
 | F17 | Sesizări cu foto | ✅ | Create with severity/category/location; SLA logic unit-tested; status badges. |
 | F18 | Istoric reparații | ✅ | Searchable repair log with system filter, cost/contractor, and warranty-expiry badges (active/expiring/expired); search + warranty logic unit-tested; `/istoric_reparatii` bot command. Table `repair_records` + RLS. |
-| F19 | Calendar service-uri programate | 🟦 | Tables `scheduled_maintenance`, `maintenance_log` + RLS. |
+| F19 | Calendar service-uri programate | ✅ | Scheduled-maintenance list (revizie/ISCIR/deratizare) sorted soonest-first with overdue/due-soon/scheduled badges, add and mark-done (rolls next due forward); status/validation/sort/count logic unit-tested; `/mentenanta` bot command. Table `scheduled_maintenance` + RLS. |
 | F20 | Citire contoare | ✅ | Monthly index submission per meter with ≥-previous validation and anomaly flagging on large jumps; validation + anomaly logic unit-tested; `/contor` bot command. Tables `meters`, `meter_readings` + RLS. |
 | F21 | Sesizări recurente | 🟦 | Computed over `tickets`. |
 | F22 | Solicitare oferte (RFP) | 🟦 | Tables `rfps`, `rfp_quotes`, `contractor_recommendations` + RLS. |
@@ -536,7 +536,7 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F25 | Rezervare spălătorie | 🟦 | Tables `bookable_resources`, `bookings` + owner RLS. |
 | F26 | Rezervare lift pentru mutare | 🟦 | Uses `bookings` (resource_type) + RLS. |
 | F27 | Rezervare sală comună / terasă | 🟦 | Uses `bookings`, `booking_inspections` + RLS. |
-| F28 | Parcare | 🟦 | Tables `parking_spots/assignments/reports` + RLS. |
+| F28 | Parcare | ✅ | Parking-spot registry with assigned apartment/plate, occupied/free/visitor badges, accent-insensitive search and add; occupancy/search/sort/free-count logic unit-tested; `/parcare` bot command. Tables `parking_spots/assignments` + RLS. |
 | F29 | Bicicletăria | ✅ | Bike registry with register, search and active/abandoned marking; validation + search/filter logic unit-tested; `/biciclete` bot command. Table `bikes` + owner RLS. |
 | F30 | Boxa / dependinți | ✅ | Storage-room registry with assigned/unassigned filter, apartment badges, notes and add (assigned units float to top); validation + assignment filter + search/sort logic unit-tested; `/boxe` bot command. Table `storage_units` + RLS. |
 | F31 | Plante / spații verzi | 🟦 | Tables `green_space_tasks`, `task_signups` + RLS. |
@@ -552,16 +552,16 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F41 | Project tracker | 🟦 | Tables `projects`, `project_phases/updates` + RLS. |
 | F42 | Project photo journal | 🟦 | Table `project_photos` + RLS. |
 | F43 | Contractor library | 🟦 | Tables `contractors`, `contractor_ratings` + RLS. |
-| F44 | Crowdfunding proiecte mici | 🟦 | Tables `crowdfunds`, `pledges` + RLS. |
+| F44 | Crowdfunding proiecte mici | ✅ | Voluntary pledge tracker with target/raised progress bar, one-tap pledge (amount, join-once), funded/closed states and open-first ordering; validation/open/funded-ratio/sort logic unit-tested; `/crowdfund` bot command. Tables `crowdfunds`, `pledges` + owner RLS on pledges. |
 | F45 | Plan multianual de mentenanță | ✅ | Multi-year works roadmap with add (year/title/cost/notes), items bucketed by ascending year and a total-estimated-cost summary; year/title validation + sort + total + group-by-year logic unit-tested; `/plan_multianual` bot command. Table `multiyear_plan_items` (comitet-managed RLS). |
-| F46 | Recomandări fond de reparații | 🟦 | Computed; calculator helper to come. |
+| F46 | Recomandări fond de reparații | ✅ | Calculator that recommends a lei/m²/month accumulation rate from built area, building age and years since last major works, with rationale and a gap vs. current rate; component/validation/recommendation logic unit-tested; `/fond_reparatii` bot command. Computed — no table. |
 | F47 | Energy efficiency tracker | ✅ | Monthly common-area consumption log (lighting/lift/heating) with add, period/kind, a total-cost summary and per-kind breakdown, newest-period-first ordering; validation + period formatting + sort + totals/by-kind logic unit-tested; `/energie` bot command. Table `energy_records` (comitet-managed RLS). |
 | F48 | Garanție tracker | ✅ | Equipment warranty dashboard sorted by expiry with active/expiring/expired badges and add (auto-computes expiry); expiry math, validation, sort and alert-count logic unit-tested; `/garantii` bot command. Table `warranties` + RLS. |
 | F49 | Cod portari / vecini de încredere | 🟦 | Table `safety_codes` (owner-only RLS, encrypted payload). |
 | F50 | Plan de evacuare | 🟦 | Tables `evacuation_plans`, `pet_markers` + RLS. |
-| F51 | Verificări PSI | 🟦 | Tables `psi_assets`, `psi_checks` + RLS. |
-| F52 | Asigurare bloc | 🟦 | Tables `insurance_policies/claims` + RLS. |
-| F53 | Registru de chei | 🟦 | Tables `keys`, `key_handovers` + RLS. |
+| F51 | Verificări PSI | ✅ | Fire-safety asset list (stingătoare/hidranți/electric) sorted soonest-first with overdue/due-soon/ok badges (reuses warranty classifier), a due banner, add and mark-checked; status/validation/sort/count logic unit-tested; `/psi` bot command. Table `psi_assets` + RLS. |
+| F52 | Asigurare bloc | ✅ | Insurance-policy tracker sorted by expiry with expired/expiring/active badges, a renewal-alert banner and add; status (reuses warranty classifier)/validation/sort/count logic unit-tested; `/asigurare` bot command. Table `insurance_policies` + RLS. |
+| F53 | Registru de chei | ✅ | Key-holder registry with accent-insensitive search, add and handover (updates holder); validation/search/sort logic unit-tested; `/chei` bot command. Tables `keys`, `key_handovers` + RLS. |
 | F54 | Vizitatori / străini observați | ✅ | Quick suspicious-visitor log: report a note, recent feed with open reports floated above resolved, comitet cycles status nou→cunoscut→rezolvat; validation + status-cycle + ordering logic unit-tested; `/strain` bot command. Table `visitor_reports` + member-insert RLS. |
 | F55 | Sistem alarmă (status) | 🟦 | Tables `alarm_systems`, `alarm_events` + RLS. |
 | F56 | Numere de urgență localizate | ✅ | Tap-to-call list; table `emergency_contacts` + RLS; seeded. |
