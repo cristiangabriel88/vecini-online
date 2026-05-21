@@ -43,3 +43,13 @@ test('F37 — resident adds a pet to the directory', async ({ page }) => {
   await page.getByRole('button', { name: /Salvează/i }).click();
   await expect(page.getByText('Bruno')).toBeVisible();
 });
+
+test('F48 — comitet adds an equipment warranty', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/garantii');
+  await page.getByRole('button', { name: /Adaugă garanție/i }).click();
+  await page.getByLabel('Echipament').fill('Cazan ACM');
+  await page.getByLabel('Data achiziției').fill('2025-03-01');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText('Cazan ACM')).toBeVisible();
+});

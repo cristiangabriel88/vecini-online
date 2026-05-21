@@ -103,7 +103,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'F45', title: 'Plan multianual de mentenanță', category: 'projects', icon: 'CalendarRange', audience: ['all'], path: 'plan-multianual', description: 'Plan de lucrări pe 5-10 ani.', implemented: false },
   { key: 'F46', title: 'Recomandări fond de reparații', category: 'projects', icon: 'Calculator', audience: ['all'], path: 'fond-reparatii', description: 'Calculator pentru rata fondului de reparații.', implemented: false },
   { key: 'F47', title: 'Energy efficiency tracker', category: 'projects', icon: 'Zap', audience: ['all'], path: 'energie', description: 'Urmărirea consumului energetic al blocului.', implemented: false },
-  { key: 'F48', title: 'Garanție tracker', category: 'projects', icon: 'BadgeCheck', audience: ['comitet', 'admin'], path: 'garantii', description: 'Urmărirea garanțiilor echipamentelor instalate.', implemented: false },
+  { key: 'F48', title: 'Garanție tracker', category: 'projects', icon: 'BadgeCheck', audience: ['comitet', 'admin'], path: 'garantii', description: 'Urmărirea garanțiilor echipamentelor instalate.', implemented: true },
 
   // Category 7 — Safety & Compliance
   { key: 'F49', title: 'Cod portari / vecini de încredere', category: 'safety', icon: 'Lock', audience: ['all'], path: 'cod-siguranta', description: 'Liste de vecini de încredere, stocate criptat.', implemented: false },

@@ -313,6 +313,22 @@
     "searchPlaceholder": "Search a term…",
     "empty": "No term found. Try another word."
   },
+  "warranties": {
+    "title": "Equipment warranties",
+    "subtitle": "Track warranties for the lift, pump, boiler and more so you can claim in time.",
+    "new": "Add warranty",
+    "asset": "Equipment",
+    "purchasedAt": "Purchase date",
+    "warrantyMonths": "Warranty length (months)",
+    "months": "{{count}} months warranty",
+    "expiresOn": "expires on {{date}}",
+    "status_active": "under warranty",
+    "status_expiring": "expiring soon",
+    "status_expired": "expired",
+    "status_none": "no warranty",
+    "added": "Warranty added.",
+    "empty": "No warranties tracked. Add the first one with the button above."
+  },
   "emergency": {
     "title": "Emergency numbers",
     "call": "Call",

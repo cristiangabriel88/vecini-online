@@ -313,6 +313,22 @@
     "searchPlaceholder": "Caută un termen…",
     "empty": "Niciun termen găsit. Încearcă alt cuvânt."
   },
+  "warranties": {
+    "title": "Garanții echipamente",
+    "subtitle": "Urmărește garanțiile lift, hidrofor, centrală și altele, ca să poți reclama la timp.",
+    "new": "Adaugă garanție",
+    "asset": "Echipament",
+    "purchasedAt": "Data achiziției",
+    "warrantyMonths": "Durata garanției (luni)",
+    "months": "{{count}} luni garanție",
+    "expiresOn": "expiră la {{date}}",
+    "status_active": "în garanție",
+    "status_expiring": "expiră curând",
+    "status_expired": "expirată",
+    "status_none": "fără garanție",
+    "added": "Garanție adăugată.",
+    "empty": "Nicio garanție urmărită. Adaugă prima cu butonul de mai sus."
+  },
   "emergency": {
     "title": "Numere de urgență",
     "call": "Sună",

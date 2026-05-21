@@ -556,7 +556,7 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F45 | Plan multianual de mentenanță | 🟦 | Table `multiyear_plan_items` + RLS. |
 | F46 | Recomandări fond de reparații | 🟦 | Computed; calculator helper to come. |
 | F47 | Energy efficiency tracker | 🟦 | Table `energy_records` + RLS. |
-| F48 | Garanție tracker | 🟦 | Table `warranties` + RLS. |
+| F48 | Garanție tracker | ✅ | Equipment warranty dashboard sorted by expiry with active/expiring/expired badges and add (auto-computes expiry); expiry math, validation, sort and alert-count logic unit-tested; `/garantii` bot command. Table `warranties` + RLS. |
 | F49 | Cod portari / vecini de încredere | 🟦 | Table `safety_codes` (owner-only RLS, encrypted payload). |
 | F50 | Plan de evacuare | 🟦 | Tables `evacuation_plans`, `pet_markers` + RLS. |
 | F51 | Verificări PSI | 🟦 | Tables `psi_assets`, `psi_checks` + RLS. |
