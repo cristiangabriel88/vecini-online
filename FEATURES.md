@@ -528,7 +528,7 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F17 | Sesizări cu foto | ✅ | Create with severity/category/location; SLA logic unit-tested; status badges. |
 | F18 | Istoric reparații | ✅ | Searchable repair log with system filter, cost/contractor, and warranty-expiry badges (active/expiring/expired); search + warranty logic unit-tested; `/istoric_reparatii` bot command. Table `repair_records` + RLS. |
 | F19 | Calendar service-uri programate | 🟦 | Tables `scheduled_maintenance`, `maintenance_log` + RLS. |
-| F20 | Citire contoare | 🟦 | Tables `meters`, `meter_readings` + RLS. |
+| F20 | Citire contoare | ✅ | Monthly index submission per meter with ≥-previous validation and anomaly flagging on large jumps; validation + anomaly logic unit-tested; `/contor` bot command. Tables `meters`, `meter_readings` + RLS. |
 | F21 | Sesizări recurente | 🟦 | Computed over `tickets`. |
 | F22 | Solicitare oferte (RFP) | 🟦 | Tables `rfps`, `rfp_quotes`, `contractor_recommendations` + RLS. |
 | F23 | Vecin de gardă | 🟦 | Tables `duty_volunteers`, `duty_schedule` + RLS. |

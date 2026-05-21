@@ -45,3 +45,12 @@ test('F18 — committee searches the repair history', async ({ page }) => {
   await expect(page.getByRole('heading', { name: /pompă hidrofor/i })).toBeVisible();
   await expect(page.getByRole('heading', { name: /revizie/i })).toHaveCount(0);
 });
+
+test('F20 — resident submits a meter reading', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/contoare');
+  await page.getByRole('button', { name: /Trimite index/i }).first().click();
+  await page.getByLabel('Index nou').fill('320');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText(/Ultimul index: 320/)).toBeVisible();
+});

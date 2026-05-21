@@ -202,6 +202,23 @@
     "warranty_none": "no warranty",
     "empty": "No repairs found. Adjust the filters or search term."
   },
+  "meters": {
+    "title": "Meter readings",
+    "subtitle": "Submit your meter indices monthly, between the 1st and 5th.",
+    "kind_apa_rece": "Cold water",
+    "kind_apa_calda": "Hot water",
+    "kind_gaz": "Gas",
+    "kind_incalzire": "Heating",
+    "serial": "Serial",
+    "lastIndex": "Last index",
+    "submit": "Submit index",
+    "newIndex": "New index",
+    "previous": "Previous index: {{value}}",
+    "errorBelowPrevious": "The index cannot be lower than the previous one.",
+    "anomaly": "Unusually high consumption. Check the value — it will be flagged for the administrator.",
+    "window": "Submission window: 1st–5th of the month",
+    "submitted": "Index submitted. Thank you!"
+  },
   "emergency": {
     "title": "Emergency numbers",
     "call": "Call",
