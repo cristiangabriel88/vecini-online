@@ -562,7 +562,7 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F51 | Verificări PSI | 🟦 | Tables `psi_assets`, `psi_checks` + RLS. |
 | F52 | Asigurare bloc | 🟦 | Tables `insurance_policies/claims` + RLS. |
 | F53 | Registru de chei | 🟦 | Tables `keys`, `key_handovers` + RLS. |
-| F54 | Vizitatori / străini observați | 🟦 | Table `visitor_reports` + RLS. |
+| F54 | Vizitatori / străini observați | ✅ | Quick suspicious-visitor log: report a note, recent feed with open reports floated above resolved, comitet cycles status nou→cunoscut→rezolvat; validation + status-cycle + ordering logic unit-tested; `/strain` bot command. Table `visitor_reports` + member-insert RLS. |
 | F55 | Sistem alarmă (status) | 🟦 | Tables `alarm_systems`, `alarm_events` + RLS. |
 | F56 | Numere de urgență localizate | ✅ | Tap-to-call list; table `emergency_contacts` + RLS; seeded. |
 | F57 | Marketplace intern | 🟦 | Table `marketplace_listings` + owner RLS. |

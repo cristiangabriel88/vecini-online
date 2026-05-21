@@ -351,5 +351,18 @@
     "share": "Cotă-parte",
     "generateCodes": "Generează coduri de invitație",
     "empty": "Niciun apartament importat. Folosește pasul de import din configurare."
+  },
+  "visitors": {
+    "title": "Vizitatori observați",
+    "subtitle": "Raportează rapid persoane sau situații suspecte. Vecinii văd raportările recente, iar comitetul le poate marca rezolvate.",
+    "new": "Raportează",
+    "note": "Descriere",
+    "noteHint": "Ce ai observat? Oră, loc, descriere…",
+    "changeStatus": "Schimbă statusul",
+    "status_nou": "Nou",
+    "status_cunoscut": "Cunoscut",
+    "status_rezolvat": "Rezolvat",
+    "added": "Raport trimis. Mulțumim că ai anunțat vecinii.",
+    "empty": "Nicio raportare. Folosește butonul de mai sus dacă observi ceva suspect."
   }
 }

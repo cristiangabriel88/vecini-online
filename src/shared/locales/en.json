@@ -351,5 +351,18 @@
     "share": "Ownership share",
     "generateCodes": "Generate invite codes",
     "empty": "No apartments imported. Use the import step in setup."
+  },
+  "visitors": {
+    "title": "Observed visitors",
+    "subtitle": "Quickly report suspicious people or situations. Neighbours see recent reports and the committee can mark them resolved.",
+    "new": "Report",
+    "note": "Description",
+    "noteHint": "What did you notice? Time, place, description…",
+    "changeStatus": "Change status",
+    "status_nou": "New",
+    "status_cunoscut": "Known",
+    "status_rezolvat": "Resolved",
+    "added": "Report submitted. Thanks for letting neighbours know.",
+    "empty": "No reports. Use the button above if you notice something suspicious."
   }
 }

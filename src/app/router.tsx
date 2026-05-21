@@ -25,6 +25,14 @@ const MetersPage = lazy(() => import('@/features/meters/MetersPage'));
 const DirectoryPage = lazy(() => import('@/features/directory/DirectoryPage'));
 const ThankYousPage = lazy(() => import('@/features/thankyous/ThankYousPage'));
 const GlossaryPage = lazy(() => import('@/features/glossary/GlossaryPage'));
+const VisitorsPage = lazy(() => import('@/features/visitors/VisitorsPage'));
+const MarketplacePage = lazy(() => import('@/features/marketplace/MarketplacePage'));
+const FeedbackPage = lazy(() => import('@/features/feedback/FeedbackPage'));
+const DocumentsPage = lazy(() => import('@/features/documents/DocumentsPage'));
+const SuppliersPage = lazy(() => import('@/features/suppliers/SuppliersPage'));
+const StoragePage = lazy(() => import('@/features/storage/StoragePage'));
+const CarpoolPage = lazy(() => import('@/features/carpool/CarpoolPage'));
+const BirthdaysPage = lazy(() => import('@/features/birthdays/BirthdaysPage'));
 const EmergencyPage = lazy(() => import('@/features/emergency/EmergencyPage'));
 const AlertsPage = lazy(() => import('@/features/alerts/AlertsPage'));
 const ProfilePage = lazy(() => import('@/features/profile/ProfilePage'));
@@ -69,6 +77,14 @@ export const router = createBrowserRouter([
       { path: 'vecini', element: <S><DirectoryPage /></S> },
       { path: 'multumiri', element: <S><ThankYousPage /></S> },
       { path: 'glosar', element: <S><GlossaryPage /></S> },
+      { path: 'vizitatori', element: <S><VisitorsPage /></S> },
+      { path: 'marketplace', element: <S><MarketplacePage /></S> },
+      { path: 'feedback', element: <S><FeedbackPage /></S> },
+      { path: 'documente', element: <S><DocumentsPage /></S> },
+      { path: 'furnizori', element: <S><SuppliersPage /></S> },
+      { path: 'boxe', element: <S><StoragePage /></S> },
+      { path: 'carpool', element: <S><CarpoolPage /></S> },
+      { path: 'aniversari', element: <S><BirthdaysPage /></S> },
       { path: 'urgenta', element: <S><EmergencyPage /></S> },
       { path: 'alerte', element: <S><AlertsPage /></S> },
       { path: 'actiuni', element: <S><FeatureHubPage actions /></S> },
