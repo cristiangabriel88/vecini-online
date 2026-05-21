@@ -542,7 +542,7 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F31 | Plante / spații verzi | 🟦 | Tables `green_space_tasks`, `task_signups` + RLS. |
 | F32 | Acces curierat (cod temporar) | 🟦 | Table `access_codes` + RLS. |
 | F33 | Document arhivă | ✅ | Searchable document repository (statut/regulament/contracte/cadastru) with category filter, version display and add; category + diacritic-insensitive search logic unit-tested; `/documente` bot command. Table `documents` with GIN full-text search + RLS. |
-| F34 | Furnizori / contracte | 🟦 | Tables `suppliers`, `supplier_complaints` + RLS. |
+| F34 | Furnizori / contracte | ✅ | Supplier catalog sorted by contract end (undated last) with active/expiring/expired contract badges, an alert summary banner and add; contract-status (reuses warranty classifier), validation, sort and alert-count logic unit-tested; `/furnizori` bot command. Tables `suppliers`, `supplier_complaints` + RLS. |
 | F35 | Apartament info | 🟦 | Views across apartments/readings/tickets/votes. |
 | F36 | Locator directory | ✅ | Per-field opt-in consent toggles + searchable list of opted-in neighbours (tap-to-call/email); consent-masking + search logic unit-tested; `/vecini` bot command. Table `resident_directory_consent` + RLS. |
 | F37 | Pet directory | ✅ | Opt-in pet registry with add, species filter, search and lost & found marking (lost pets float to top); validation + search/sort logic unit-tested; `/animale` bot command. Table `pets` (+ `lost`, `created_at`) + owner RLS. |

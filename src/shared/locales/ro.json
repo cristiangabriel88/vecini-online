@@ -409,5 +409,23 @@
     "searchPlaceholder": "Caută după titlu sau conținut…",
     "added": "Document adăugat.",
     "empty": "Niciun document găsit. Modifică filtrele sau adaugă unul nou."
+  },
+  "suppliers": {
+    "title": "Furnizori",
+    "subtitle": "Catalog de furnizori cu termenele contractelor și alerte înainte de expirare.",
+    "new": "Adaugă furnizor",
+    "name": "Denumire",
+    "kind": "Tip",
+    "kindHint": "ex: apă, gaz, salubritate, lift, internet",
+    "contact": "Contact",
+    "contractEnd": "Sfârșit contract",
+    "contractUntil": "contract până la {{date}}",
+    "noContractDate": "fără dată de contract",
+    "status_active": "Activ",
+    "status_expiring": "Expiră curând",
+    "status_expired": "Expirat",
+    "alertSummary": "{{count}} contracte expirate sau care expiră în curând.",
+    "added": "Furnizor adăugat.",
+    "empty": "Niciun furnizor înregistrat. Adaugă primul cu butonul de mai sus."
   }
 }

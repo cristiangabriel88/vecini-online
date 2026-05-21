@@ -409,5 +409,23 @@
     "searchPlaceholder": "Search by title or content…",
     "added": "Document added.",
     "empty": "No documents found. Adjust the filters or add a new one."
+  },
+  "suppliers": {
+    "title": "Suppliers",
+    "subtitle": "Supplier catalog with contract dates and alerts before expiry.",
+    "new": "Add supplier",
+    "name": "Name",
+    "kind": "Type",
+    "kindHint": "e.g. water, gas, waste, elevator, internet",
+    "contact": "Contact",
+    "contractEnd": "Contract end",
+    "contractUntil": "contract until {{date}}",
+    "noContractDate": "no contract date",
+    "status_active": "Active",
+    "status_expiring": "Expiring soon",
+    "status_expired": "Expired",
+    "alertSummary": "{{count}} contracts expired or expiring soon.",
+    "added": "Supplier added.",
+    "empty": "No suppliers registered. Add the first with the button above."
   }
 }
