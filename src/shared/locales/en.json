@@ -231,6 +231,16 @@
     "searchPlaceholder": "Search by name or apartment…",
     "empty": "No neighbours listed yet. Be the first to opt in above."
   },
+  "thankyous": {
+    "title": "Wall of thanks",
+    "subtitle": "Publicly thank a neighbour who lent a hand.",
+    "new": "Say thanks",
+    "toApartment": "To apartment",
+    "toApartmentHint": "e.g. 13 or Ap. 13",
+    "message": "Message",
+    "posted": "Your thank-you has been posted.",
+    "empty": "No messages yet. Be the first to thank a neighbour."
+  },
   "emergency": {
     "title": "Emergency numbers",
     "call": "Call",

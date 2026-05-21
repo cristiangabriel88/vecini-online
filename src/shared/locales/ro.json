@@ -231,6 +231,16 @@
     "searchPlaceholder": "Caută după nume sau apartament…",
     "empty": "Niciun vecin listat încă. Fii primul care optează mai sus."
   },
+  "thankyous": {
+    "title": "Carte de aur",
+    "subtitle": "Spune mulțumesc public unui vecin care a dat o mână de ajutor.",
+    "new": "Mulțumește",
+    "toApartment": "Către apartamentul",
+    "toApartmentHint": "ex: 13 sau Ap. 13",
+    "message": "Mesaj",
+    "posted": "Mulțumirea a fost publicată.",
+    "empty": "Niciun mesaj încă. Fii primul care mulțumește unui vecin."
+  },
   "emergency": {
     "title": "Numere de urgență",
     "call": "Sună",

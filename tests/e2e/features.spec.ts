@@ -63,3 +63,13 @@ test('F36 — resident searches the opt-in neighbour directory', async ({ page }
   await expect(page.getByText('Georgescu Elena')).toBeVisible();
   await expect(page.getByText('Stan Gabriela')).toHaveCount(0);
 });
+
+test('F38 — resident posts a thank-you to the wall', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/multumiri');
+  await page.getByRole('button', { name: /Mulțumește/i }).click();
+  await page.getByLabel(/Către apartamentul/i).fill('17');
+  await page.getByLabel('Mesaj').fill('Mulțumesc pentru ajutorul cu mutarea canapelei!');
+  await page.getByRole('button', { name: /Publică/i }).click();
+  await expect(page.getByText(/ajutorul cu mutarea canapelei/i)).toBeVisible();
+});
