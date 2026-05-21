@@ -540,7 +540,7 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F29 | Bicicletăria | ✅ | Bike registry with register, search and active/abandoned marking; validation + search/filter logic unit-tested; `/biciclete` bot command. Table `bikes` + owner RLS. |
 | F30 | Boxa / dependinți | ✅ | Storage-room registry with assigned/unassigned filter, apartment badges, notes and add (assigned units float to top); validation + assignment filter + search/sort logic unit-tested; `/boxe` bot command. Table `storage_units` + RLS. |
 | F31 | Plante / spații verzi | 🟦 | Tables `green_space_tasks`, `task_signups` + RLS. |
-| F32 | Acces curierat (cod temporar) | 🟦 | Table `access_codes` + RLS. |
+| F32 | Acces curierat (cod temporar) | ✅ | One-tap generation of a 6-digit interphone code valid 30 min, with live active/expired badges and minutes-left countdown, newest-first; code generation (injectable RNG), expiry math, active/minutes-left and sort logic unit-tested; `/curier` bot command. Table `access_codes` + owner RLS. |
 | F33 | Document arhivă | ✅ | Searchable document repository (statut/regulament/contracte/cadastru) with category filter, version display and add; category + diacritic-insensitive search logic unit-tested; `/documente` bot command. Table `documents` with GIN full-text search + RLS. |
 | F34 | Furnizori / contracte | ✅ | Supplier catalog sorted by contract end (undated last) with active/expiring/expired contract badges, an alert summary banner and add; contract-status (reuses warranty classifier), validation, sort and alert-count logic unit-tested; `/furnizori` bot command. Tables `suppliers`, `supplier_complaints` + RLS. |
 | F35 | Apartament info | 🟦 | Views across apartments/readings/tickets/votes. |
