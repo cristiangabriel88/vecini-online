@@ -37,3 +37,11 @@ test('F14 — resident submits an idea to the idea box', async ({ page }) => {
   await page.getByRole('button', { name: /Creează/i }).click();
   await expect(page.getByRole('heading', { name: 'Ghivece cu flori la intrare' })).toBeVisible();
 });
+
+test('F18 — committee searches the repair history', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/istoric-reparatii');
+  await page.getByLabel(/caută/i).fill('pompa');
+  await expect(page.getByRole('heading', { name: /pompă hidrofor/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /revizie/i })).toHaveCount(0);
+});

@@ -181,6 +181,27 @@
     "status_respins": "Respins",
     "empty": "Nicio idee încă. Propune prima cu butonul de mai sus."
   },
+  "repairs": {
+    "title": "Istoric reparații",
+    "subtitle": "Caută reparațiile efectuate în bloc și verifică garanțiile.",
+    "searchPlaceholder": "Caută după lucrare sau contractor…",
+    "system": "Sistem",
+    "system_apa": "Apă",
+    "system_electric": "Electric",
+    "system_lift": "Lift",
+    "system_incalzire": "Încălzire",
+    "system_structura": "Structură",
+    "system_altele": "Altele",
+    "performedAt": "Data lucrării",
+    "contractor": "Contractor",
+    "cost": "Cost",
+    "warranty": "Garanție",
+    "warranty_active": "în garanție",
+    "warranty_expiring": "expiră curând",
+    "warranty_expired": "expirată",
+    "warranty_none": "fără garanție",
+    "empty": "Nicio reparație găsită. Modifică filtrele sau termenul de căutare."
+  },
   "emergency": {
     "title": "Numere de urgență",
     "call": "Sună",

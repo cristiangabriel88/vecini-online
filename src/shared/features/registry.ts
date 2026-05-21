@@ -67,7 +67,7 @@ export const FEATURES: FeatureDef[] = [
 
   // Category 3 — Maintenance & Issues
   { key: 'F17', title: 'Sesizări cu foto', category: 'maintenance', icon: 'AlertCircle', audience: ['all'], path: 'sesizari', description: 'Raportarea problemelor cu fotografii și urmărirea statusului.', implemented: true },
-  { key: 'F18', title: 'Istoric reparații', category: 'maintenance', icon: 'Wrench', audience: ['comitet', 'proprietar', 'admin'], path: 'istoric-reparatii', description: 'Jurnal căutabil al tuturor reparațiilor majore.', implemented: false },
+  { key: 'F18', title: 'Istoric reparații', category: 'maintenance', icon: 'Wrench', audience: ['comitet', 'proprietar', 'admin'], path: 'istoric-reparatii', description: 'Jurnal căutabil al tuturor reparațiilor majore.', implemented: true },
   { key: 'F19', title: 'Calendar service-uri programate', category: 'maintenance', icon: 'CalendarClock', audience: ['all'], path: 'mentenanta', description: 'Mentenanță programată cu memento-uri automate.', implemented: false },
   { key: 'F20', title: 'Citire contoare', category: 'maintenance', icon: 'Gauge', audience: ['proprietar', 'admin'], path: 'contoare', description: 'Trimiterea lunară a indexurilor cu fotografie.', implemented: false },
   { key: 'F21', title: 'Sesizări recurente', category: 'maintenance', icon: 'Repeat', audience: ['comitet', 'admin'], path: 'sesizari-recurente', description: 'Detectarea automată a problemelor repetate.', implemented: false },

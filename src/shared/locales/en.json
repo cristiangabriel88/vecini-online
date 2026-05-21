@@ -181,6 +181,27 @@
     "status_respins": "Rejected",
     "empty": "No ideas yet. Suggest the first one with the button above."
   },
+  "repairs": {
+    "title": "Repair history",
+    "subtitle": "Search past building repairs and check warranties.",
+    "searchPlaceholder": "Search by work or contractor…",
+    "system": "System",
+    "system_apa": "Water",
+    "system_electric": "Electrical",
+    "system_lift": "Elevator",
+    "system_incalzire": "Heating",
+    "system_structura": "Structure",
+    "system_altele": "Other",
+    "performedAt": "Date performed",
+    "contractor": "Contractor",
+    "cost": "Cost",
+    "warranty": "Warranty",
+    "warranty_active": "under warranty",
+    "warranty_expiring": "expiring soon",
+    "warranty_expired": "expired",
+    "warranty_none": "no warranty",
+    "empty": "No repairs found. Adjust the filters or search term."
+  },
   "emergency": {
     "title": "Emergency numbers",
     "call": "Call",
