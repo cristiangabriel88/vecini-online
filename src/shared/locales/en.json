@@ -379,5 +379,22 @@
     "searchPlaceholder": "Search by title or description…",
     "added": "Listing published.",
     "empty": "No active listings. Post the first one with the button above."
+  },
+  "feedback": {
+    "title": "Platform feedback",
+    "subtitle": "Tell us what works well and what we could improve about IntreVecini.",
+    "sentiment": "Type",
+    "sentiment_idee": "Idea",
+    "sentiment_problema": "Problem",
+    "sentiment_lauda": "Praise",
+    "body": "Message",
+    "bodyHint": "Describe the idea, problem or praise…",
+    "anonymous": "Send anonymously",
+    "send": "Send feedback",
+    "sent": "Thanks for your feedback!",
+    "recent": "Recent feedback",
+    "byYou": "You",
+    "byAnonymous": "Anonymous",
+    "empty": "No feedback yet. Be the first to write to us."
   }
 }

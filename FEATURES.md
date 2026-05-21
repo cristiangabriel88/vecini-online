@@ -573,4 +573,4 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F62 | Welcome kit for new residents | 🟦 | Table `welcome_kit_templates` + RLS. |
 | F63 | Aniversări (opt-in) | 🟦 | Table `birthdays_consent` + owner RLS. |
 | F64 | Activități copii și adolescenți | 🟦 | Tables `kids_age_ranges`, `kids_events` + RLS. |
-| F65 | Feedback platformă | 🟦 | Table `platform_feedback` + insert RLS. |
+| F65 | Feedback platformă | ✅ | Submit feedback about the platform with sentiment (idee/problemă/laudă) and optional anonymous flag; recent-feedback list newest-first; validation + sort logic unit-tested; `/feedback` bot command. Table `platform_feedback` + authenticated-insert RLS. |

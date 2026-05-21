@@ -13,6 +13,7 @@ import type {
   Meter,
   MeterReading,
   Pet,
+  PlatformFeedback,
   Poll,
   PollOption,
   RepairRecord,
@@ -245,6 +246,12 @@ export const DEMO_MARKETPLACE: MarketplaceListing[] = [
   { id: 'ml-1', asociatie_id: 'demo-asoc', seller_user_id: 'u-res', seller_name: 'Popescu Andrei', category: 'mobilă', title: 'Canapea extensibilă 3 locuri', description: 'Stare foarte bună, gri, ridicare din ap. 5. Preț negociabil.', price: 600, photo_path: null, expires_at: '2026-06-03T09:00:00Z', created_at: '2026-05-20T09:00:00Z' },
   { id: 'ml-2', asociatie_id: 'demo-asoc', seller_user_id: 'u-res2', seller_name: 'Georgescu Elena', category: 'electrocasnice', title: 'Mașină de spălat Arctic', description: 'Funcțională, 6 kg, o donez pentru ridicare.', price: 0, photo_path: null, expires_at: '2026-05-31T09:00:00Z', created_at: '2026-05-17T09:00:00Z' },
   { id: 'ml-3', asociatie_id: 'demo-asoc', seller_user_id: 'u-res3', seller_name: 'Stan Gabriela', category: 'copii', title: 'Haine copii 2-3 ani (lot)', description: 'Lot de ~20 piese, fete, stare bună.', price: 80, photo_path: null, expires_at: '2026-05-30T09:00:00Z', created_at: '2026-05-16T09:00:00Z' },
+];
+
+// F65 — Feedback platformă.
+export const DEMO_FEEDBACK: PlatformFeedback[] = [
+  { id: 'fb-1', asociatie_id: 'demo-asoc', user_id: 'u-res', anonymous: false, body: 'Mi-ar plăcea să primesc o notificare cu o zi înainte de citirea contoarelor.', sentiment: 'idee', created_at: '2026-05-19T10:00:00Z' },
+  { id: 'fb-2', asociatie_id: 'demo-asoc', user_id: null, anonymous: true, body: 'Aplicația e mult mai clară decât grupul de WhatsApp. Mulțumesc!', sentiment: 'lauda', created_at: '2026-05-15T18:30:00Z' },
 ];
 
 // F40 — Glosar de termeni.

@@ -379,5 +379,22 @@
     "searchPlaceholder": "Caută după titlu sau descriere…",
     "added": "Anunț publicat.",
     "empty": "Niciun anunț activ. Publică primul cu butonul de mai sus."
+  },
+  "feedback": {
+    "title": "Feedback platformă",
+    "subtitle": "Spune-ne ce merge bine și ce am putea îmbunătăți la IntreVecini.",
+    "sentiment": "Tip",
+    "sentiment_idee": "Idee",
+    "sentiment_problema": "Problemă",
+    "sentiment_lauda": "Laudă",
+    "body": "Mesaj",
+    "bodyHint": "Descrie ideea, problema sau lauda…",
+    "anonymous": "Trimite anonim",
+    "send": "Trimite feedback",
+    "sent": "Mulțumim pentru feedback!",
+    "recent": "Feedback recent",
+    "byYou": "Tu",
+    "byAnonymous": "Anonim",
+    "empty": "Niciun feedback încă. Fii primul care ne scrie."
   }
 }
