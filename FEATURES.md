@@ -502,12 +502,75 @@ Each feature follows this structure:
 
 ## Implementation tracking
 
-Update this section as features are completed. Format:
+Status legend: ✅ implemented UI end-to-end · 🟦 schema + RLS + registered/toggleable, UI not yet built in this session.
+
+Every feature has its database table(s) with RLS in `supabase/migrations/` and is
+toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 
 | Key | Title | Status | Notes |
 |-----|-------|--------|-------|
-| F01 | Anunțuri oficiale | ⬜ | |
-| F02 | Canal de discuții moderat | ⬜ | |
-| ... | ... | ⬜ | |
-
-Mark ✅ when complete with a one-line implementation note (e.g., "Realtime via Supabase, RLS scoped by asociatie_id, telegram fan-out via notify()").
+| F01 | Anunțuri oficiale | ✅ | Compose/publish, categories, read receipts; DOMPurify-sanitized HTML; tables + GIN search + RLS. |
+| F02 | Canal de discuții moderat | 🟦 | Tables `discussion_*`, `moderation_actions` + RLS. |
+| F03 | Alertă de bloc (urgență) | ✅ | Send flow with double-confirm bypassing quiet hours; recipient count. |
+| F04 | Mesagerie privată cu administratorul | 🟦 | Tables `private_threads/messages` + RLS. |
+| F05 | Mesaj anonim către comitet | 🟦 | Table `anonymous_messages` (sender hidden at app layer) + RLS. |
+| F06 | Anunțuri vecini (locator) | 🟦 | Table `resident_posts` + owner RLS. |
+| F07 | Întrebări frecvente (FAQ) | 🟦 | Tables `faq_entries/votes` + RLS. |
+| F08 | Calendar de evenimente | ✅ | Upcoming list, RSVP toggle, counts; tables `events/event_rsvps`. |
+| F09 | Vot rapid pe propuneri | ✅ | Vote with confirm, live bars; quorum/majority tally logic unit-tested. |
+| F10 | AGA digitală | 🟦 | Tables `agas`, `aga_agenda_items/attendees/votes` + RLS. |
+| F11 | Procese verbale (arhivă) | 🟦 | Table `pv_documents` with full-text search + RLS. |
+| F12 | Buget participativ | 🟦 | Tables `budget_cycles/proposals/votes` + RLS. |
+| F13 | Prioritizare proiecte mari | 🟦 | Tables `project_priorities`, `priority_rankings` + RLS. |
+| F14 | Cutie de idei | 🟦 | Tables `ideas`, `idea_votes/comments` + RLS. |
+| F15 | Sondaje de opinie | 🟦 | Tables `surveys`, `survey_responses` + RLS. |
+| F16 | Petiții interne | 🟦 | Tables `petitions`, `petition_signatures` + RLS. |
+| F17 | Sesizări cu foto | ✅ | Create with severity/category/location; SLA logic unit-tested; status badges. |
+| F18 | Istoric reparații | 🟦 | Table `repair_records` + RLS. |
+| F19 | Calendar service-uri programate | 🟦 | Tables `scheduled_maintenance`, `maintenance_log` + RLS. |
+| F20 | Citire contoare | 🟦 | Tables `meters`, `meter_readings` + RLS. |
+| F21 | Sesizări recurente | 🟦 | Computed over `tickets`. |
+| F22 | Solicitare oferte (RFP) | 🟦 | Tables `rfps`, `rfp_quotes`, `contractor_recommendations` + RLS. |
+| F23 | Vecin de gardă | 🟦 | Tables `duty_volunteers`, `duty_schedule` + RLS. |
+| F24 | Listă obiecte împrumutabile | 🟦 | Tables `lending_items/records` + owner RLS. |
+| F25 | Rezervare spălătorie | 🟦 | Tables `bookable_resources`, `bookings` + owner RLS. |
+| F26 | Rezervare lift pentru mutare | 🟦 | Uses `bookings` (resource_type) + RLS. |
+| F27 | Rezervare sală comună / terasă | 🟦 | Uses `bookings`, `booking_inspections` + RLS. |
+| F28 | Parcare | 🟦 | Tables `parking_spots/assignments/reports` + RLS. |
+| F29 | Bicicletăria | 🟦 | Table `bikes` + owner RLS. |
+| F30 | Boxa / dependinți | 🟦 | Table `storage_units` + RLS. |
+| F31 | Plante / spații verzi | 🟦 | Tables `green_space_tasks`, `task_signups` + RLS. |
+| F32 | Acces curierat (cod temporar) | 🟦 | Table `access_codes` + RLS. |
+| F33 | Document arhivă | 🟦 | Table `documents` with full-text search + RLS. |
+| F34 | Furnizori / contracte | 🟦 | Tables `suppliers`, `supplier_complaints` + RLS. |
+| F35 | Apartament info | 🟦 | Views across apartments/readings/tickets/votes. |
+| F36 | Locator directory | 🟦 | Table `resident_directory_consent` + owner RLS. |
+| F37 | Pet directory | 🟦 | Table `pets` + owner RLS. |
+| F38 | Carte de aur (mulțumiri) | 🟦 | Table `thank_yous` + RLS. |
+| F39 | Wiki bloc | 🟦 | Tables `wiki_pages/revisions/suggested_edits` + search + RLS. |
+| F40 | Glosar de termeni | 🟦 | Table `glossary_entries` + RLS. |
+| F41 | Project tracker | 🟦 | Tables `projects`, `project_phases/updates` + RLS. |
+| F42 | Project photo journal | 🟦 | Table `project_photos` + RLS. |
+| F43 | Contractor library | 🟦 | Tables `contractors`, `contractor_ratings` + RLS. |
+| F44 | Crowdfunding proiecte mici | 🟦 | Tables `crowdfunds`, `pledges` + RLS. |
+| F45 | Plan multianual de mentenanță | 🟦 | Table `multiyear_plan_items` + RLS. |
+| F46 | Recomandări fond de reparații | 🟦 | Computed; calculator helper to come. |
+| F47 | Energy efficiency tracker | 🟦 | Table `energy_records` + RLS. |
+| F48 | Garanție tracker | 🟦 | Table `warranties` + RLS. |
+| F49 | Cod portari / vecini de încredere | 🟦 | Table `safety_codes` (owner-only RLS, encrypted payload). |
+| F50 | Plan de evacuare | 🟦 | Tables `evacuation_plans`, `pet_markers` + RLS. |
+| F51 | Verificări PSI | 🟦 | Tables `psi_assets`, `psi_checks` + RLS. |
+| F52 | Asigurare bloc | 🟦 | Tables `insurance_policies/claims` + RLS. |
+| F53 | Registru de chei | 🟦 | Tables `keys`, `key_handovers` + RLS. |
+| F54 | Vizitatori / străini observați | 🟦 | Table `visitor_reports` + RLS. |
+| F55 | Sistem alarmă (status) | 🟦 | Tables `alarm_systems`, `alarm_events` + RLS. |
+| F56 | Numere de urgență localizate | ✅ | Tap-to-call list; table `emergency_contacts` + RLS; seeded. |
+| F57 | Marketplace intern | 🟦 | Table `marketplace_listings` + owner RLS. |
+| F58 | Carpooling | 🟦 | Table `carpool_profiles` + owner RLS. |
+| F59 | Babysitting / pet-sitting | 🟦 | Tables `sitter_profiles/ratings` + RLS. |
+| F60 | Skill exchange / barter | 🟦 | Tables `skill_offerings`, `skill_exchanges` + RLS. |
+| F61 | Grupuri de cumpărături comune | 🟦 | Tables `group_buys`, `group_buy_signups` + RLS. |
+| F62 | Welcome kit for new residents | 🟦 | Table `welcome_kit_templates` + RLS. |
+| F63 | Aniversări (opt-in) | 🟦 | Table `birthdays_consent` + owner RLS. |
+| F64 | Activități copii și adolescenți | 🟦 | Tables `kids_age_ranges`, `kids_events` + RLS. |
+| F65 | Feedback platformă | 🟦 | Table `platform_feedback` + insert RLS. |
