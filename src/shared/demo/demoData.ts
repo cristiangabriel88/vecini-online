@@ -2,8 +2,11 @@ import type {
   Announcement,
   Apartment,
   Asociatie,
+  BirthdayConsent,
   Bike,
   BuildingEvent,
+  CarpoolProfile,
+  DocumentRecord,
   EmergencyContact,
   FaqEntry,
   GlossaryEntry,
@@ -18,6 +21,8 @@ import type {
   PollOption,
   RepairRecord,
   ResidentPost,
+  StorageUnit,
+  Supplier,
   Survey,
   SurveyTally,
   DirectoryEntry,
@@ -252,6 +257,42 @@ export const DEMO_MARKETPLACE: MarketplaceListing[] = [
 export const DEMO_FEEDBACK: PlatformFeedback[] = [
   { id: 'fb-1', asociatie_id: 'demo-asoc', user_id: 'u-res', anonymous: false, body: 'Mi-ar plăcea să primesc o notificare cu o zi înainte de citirea contoarelor.', sentiment: 'idee', created_at: '2026-05-19T10:00:00Z' },
   { id: 'fb-2', asociatie_id: 'demo-asoc', user_id: null, anonymous: true, body: 'Aplicația e mult mai clară decât grupul de WhatsApp. Mulțumesc!', sentiment: 'lauda', created_at: '2026-05-15T18:30:00Z' },
+];
+
+// F33 — Document arhivă.
+export const DEMO_DOCUMENTS: DocumentRecord[] = [
+  { id: 'doc-1', asociatie_id: 'demo-asoc', category: 'statut', title: 'Statutul asociației de proprietari', storage_path: null, version: 2, content_text: 'Statut adoptat în AGA din 2019, actualizat 2023.', created_at: '2023-03-15T09:00:00Z' },
+  { id: 'doc-2', asociatie_id: 'demo-asoc', category: 'regulament', title: 'Regulament de ordine interioară', storage_path: null, version: 1, content_text: 'Reguli privind liniștea, spațiile comune, animalele de companie și parcarea.', created_at: '2022-09-01T09:00:00Z' },
+  { id: 'doc-3', asociatie_id: 'demo-asoc', category: 'contract', title: 'Contract salubritate 2026', storage_path: null, version: 1, content_text: 'Contract cu firma de salubritate, ridicare de două ori pe săptămână.', created_at: '2026-01-10T09:00:00Z' },
+  { id: 'doc-4', asociatie_id: 'demo-asoc', category: 'cadastru', title: 'Plan cadastral teren', storage_path: null, version: 1, content_text: 'Documentație cadastrală pentru terenul aferent blocului.', created_at: '2020-05-20T09:00:00Z' },
+];
+
+// F34 — Furnizori / contracte. Contract ends straddle "now" (2026-05).
+export const DEMO_SUPPLIERS: Supplier[] = [
+  { id: 'sup-1', asociatie_id: 'demo-asoc', name: 'Apa Nova', kind: 'apă', contact: '021 9999', account_number: 'RO12BANK0001', contract_start: '2024-01-01', contract_end: '2027-01-01', last_invoice_date: '2026-05-05' },
+  { id: 'sup-2', asociatie_id: 'demo-asoc', name: 'Distrigaz Sud', kind: 'gaz', contact: '021 8888', account_number: 'RO34BANK0002', contract_start: '2023-06-01', contract_end: '2026-06-15', last_invoice_date: '2026-05-03' },
+  { id: 'sup-3', asociatie_id: 'demo-asoc', name: 'Salubris SRL', kind: 'salubritate', contact: '0721 000 111', account_number: null, contract_start: '2025-01-01', contract_end: '2026-05-10', last_invoice_date: '2026-04-30' },
+  { id: 'sup-4', asociatie_id: 'demo-asoc', name: 'LiftService SRL', kind: 'lift', contact: '0722 222 333', account_number: 'RO56BANK0004', contract_start: '2024-03-01', contract_end: '2028-03-01', last_invoice_date: '2026-05-01' },
+];
+
+// F30 — Boxa / dependinți.
+export const DEMO_STORAGE_UNITS: StorageUnit[] = [
+  { id: 'su-1', asociatie_id: 'demo-asoc', label: 'Boxa 1 — subsol', apartment_id: 'ap-1', apartment_label: 'Ap. 1', notes: 'Lângă centrala termică.' },
+  { id: 'su-2', asociatie_id: 'demo-asoc', label: 'Boxa 2 — subsol', apartment_id: 'ap-2', apartment_label: 'Ap. 5', notes: null },
+  { id: 'su-3', asociatie_id: 'demo-asoc', label: 'Dependință pod', apartment_id: null, apartment_label: null, notes: 'Neatribuită — în discuție la comitet.' },
+];
+
+// F58 — Carpooling (opt-in).
+export const DEMO_CARPOOL: CarpoolProfile[] = [
+  { id: 'cp-1', asociatie_id: 'demo-asoc', user_id: 'u-res', user_name: 'Popescu Andrei', destination: 'Pipera (zona office)', schedule: 'L–V, plecare 08:00, retur 17:30' },
+  { id: 'cp-2', asociatie_id: 'demo-asoc', user_id: 'u-res2', user_name: 'Georgescu Elena', destination: 'Centru — Universitate', schedule: 'L–V, plecare 07:30' },
+];
+
+// F63 — Aniversări (opt-in). Day/month only.
+export const DEMO_BIRTHDAYS: BirthdayConsent[] = [
+  { id: 'bd-1', asociatie_id: 'demo-asoc', user_id: 'u-res', user_name: 'Popescu Andrei', birth_day: 24, birth_month: 5 },
+  { id: 'bd-2', asociatie_id: 'demo-asoc', user_id: 'u-res2', user_name: 'Georgescu Elena', birth_day: 3, birth_month: 6 },
+  { id: 'bd-3', asociatie_id: 'demo-asoc', user_id: 'u-res3', user_name: 'Stan Gabriela', birth_day: 12, birth_month: 1 },
 ];
 
 // F40 — Glosar de termeni.

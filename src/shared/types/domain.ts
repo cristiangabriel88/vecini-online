@@ -457,3 +457,58 @@ export interface PlatformFeedback {
   sentiment: FeedbackSentiment;
   created_at: string;
 }
+
+/** F33 — official document archive (`documents`). */
+export interface DocumentRecord {
+  id: string;
+  asociatie_id: string;
+  category: string;
+  title: string;
+  storage_path: string | null;
+  version: number;
+  content_text: string | null;
+  created_at: string;
+}
+
+/** F34 — supplier / contract catalog (`suppliers`). */
+export interface Supplier {
+  id: string;
+  asociatie_id: string;
+  name: string;
+  kind: string;
+  contact: string | null;
+  account_number: string | null;
+  contract_start: string | null;
+  contract_end: string | null;
+  last_invoice_date: string | null;
+}
+
+/** F30 — storage room / dependinți registry (`storage_units`). */
+export interface StorageUnit {
+  id: string;
+  asociatie_id: string;
+  label: string;
+  apartment_id: string | null;
+  apartment_label: string | null;
+  notes: string | null;
+}
+
+/** F58 — opt-in carpooling profile (`carpool_profiles`). */
+export interface CarpoolProfile {
+  id: string;
+  asociatie_id: string;
+  user_id: string;
+  user_name: string;
+  destination: string;
+  schedule: string;
+}
+
+/** F63 — opt-in birthday consent (`birthdays_consent`). Day/month only. */
+export interface BirthdayConsent {
+  id: string;
+  asociatie_id: string;
+  user_id: string;
+  user_name: string;
+  birth_day: number;
+  birth_month: number;
+}

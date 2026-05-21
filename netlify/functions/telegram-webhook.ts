@@ -51,6 +51,11 @@ const FEATURE_COMMANDS: Record<string, string> = {
   '/marketplace': '🛍 Marketplace intern — vinde sau donează obiecte vecinilor în secțiunea „Marketplace”.',
   '/marketplace_vand': '🛍 Pentru a publica un anunț de vânzare, deschide „Marketplace” și apasă „Anunț nou”.',
   '/feedback': '💬 Feedback — trimite-ne o părere despre aplicația IntreVecini din secțiunea „Feedback”.',
+  '/documente': '📄 Documente — caută statutul, regulamentul și contractele asociației în secțiunea „Documente”.',
+  '/furnizori': '🏢 Furnizori — vezi furnizorii și termenele contractelor în secțiunea „Furnizori” (comitet).',
+  '/boxe': '📦 Boxe — vezi cine deține fiecare boxă sau dependință în secțiunea „Boxe”.',
+  '/carpool': '🚗 Carpooling — găsește vecini cu trasee similare în secțiunea „Carpooling”.',
+  '/aniversari': '🎂 Aniversări — vezi zilele de naștere ale vecinilor care au optat în secțiunea „Aniversări”.',
 };
 
 async function handleMessage(msg: TelegramMessage) {

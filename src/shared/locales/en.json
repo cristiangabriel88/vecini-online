@@ -396,5 +396,18 @@
     "byYou": "You",
     "byAnonymous": "Anonymous",
     "empty": "No feedback yet. Be the first to write to us."
+  },
+  "documents": {
+    "title": "Documents",
+    "subtitle": "Statute, rules, contracts and cadastral documents. Search by title or content.",
+    "new": "Add document",
+    "titleLabel": "Title",
+    "category": "Category",
+    "contentLabel": "Content / description",
+    "contentHint": "Searchable text describing the document.",
+    "version": "version {{n}}",
+    "searchPlaceholder": "Search by title or content…",
+    "added": "Document added.",
+    "empty": "No documents found. Adjust the filters or add a new one."
   }
 }

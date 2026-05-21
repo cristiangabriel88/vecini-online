@@ -396,5 +396,18 @@
     "byYou": "Tu",
     "byAnonymous": "Anonim",
     "empty": "Niciun feedback încă. Fii primul care ne scrie."
+  },
+  "documents": {
+    "title": "Documente",
+    "subtitle": "Statut, regulament, contracte și documente cadastrale. Caută după titlu sau conținut.",
+    "new": "Adaugă document",
+    "titleLabel": "Titlu",
+    "category": "Categorie",
+    "contentLabel": "Conținut / descriere",
+    "contentHint": "Text căutabil care descrie documentul.",
+    "version": "versiunea {{n}}",
+    "searchPlaceholder": "Caută după titlu sau conținut…",
+    "added": "Document adăugat.",
+    "empty": "Niciun document găsit. Modifică filtrele sau adaugă unul nou."
   }
 }
