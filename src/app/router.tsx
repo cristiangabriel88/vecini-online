@@ -13,6 +13,7 @@ const PollsPage = lazy(() => import('@/features/polls/PollsPage'));
 const TicketsPage = lazy(() => import('@/features/tickets/TicketsPage'));
 const EventsPage = lazy(() => import('@/features/events/EventsPage'));
 const LocatorPage = lazy(() => import('@/features/locator/LocatorPage'));
+const FaqPage = lazy(() => import('@/features/faq/FaqPage'));
 const EmergencyPage = lazy(() => import('@/features/emergency/EmergencyPage'));
 const AlertsPage = lazy(() => import('@/features/alerts/AlertsPage'));
 const ProfilePage = lazy(() => import('@/features/profile/ProfilePage'));
@@ -45,6 +46,7 @@ export const router = createBrowserRouter([
       { path: 'sesizari', element: <S><TicketsPage /></S> },
       { path: 'evenimente', element: <S><EventsPage /></S> },
       { path: 'locator', element: <S><LocatorPage /></S> },
+      { path: 'faq', element: <S><FaqPage /></S> },
       { path: 'urgenta', element: <S><EmergencyPage /></S> },
       { path: 'alerte', element: <S><AlertsPage /></S> },
       { path: 'actiuni', element: <S><FeatureHubPage actions /></S> },

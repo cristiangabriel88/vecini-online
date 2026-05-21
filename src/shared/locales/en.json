@@ -158,6 +158,15 @@
     "posted": "Post published. Visible for 14 days.",
     "empty": "No active posts. Publish the first one with the button above."
   },
+  "faq": {
+    "title": "Frequently asked questions",
+    "subtitle": "Search quick answers to common questions.",
+    "searchPlaceholder": "Search a question…",
+    "wasHelpful": "Was this helpful?",
+    "helpful": "Helpful",
+    "notHelpful": "Not helpful",
+    "empty": "No results. Try other terms or ask your administrator."
+  },
   "emergency": {
     "title": "Emergency numbers",
     "call": "Call",

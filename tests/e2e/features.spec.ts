@@ -18,3 +18,12 @@ test('F06 — resident publishes a neighbour post', async ({ page }) => {
   await page.getByRole('button', { name: /Publică/i }).click();
   await expect(page.getByRole('heading', { name: 'Vând masă de bucătărie' })).toBeVisible();
 });
+
+test('F07 — resident searches the FAQ and marks an answer helpful', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/faq');
+  await page.getByLabel(/caută/i).fill('apa calda');
+  const card = page.getByRole('heading', { name: /apa caldă/i });
+  await expect(card).toBeVisible();
+  await page.getByRole('button', { name: /^Util$/i }).first().click();
+});

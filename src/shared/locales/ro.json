@@ -158,6 +158,15 @@
     "posted": "Anunț publicat. Va fi vizibil 14 zile.",
     "empty": "Nu sunt anunțuri active. Poți publica primul cu butonul de mai sus."
   },
+  "faq": {
+    "title": "Întrebări frecvente",
+    "subtitle": "Caută răspunsuri rapide la întrebările uzuale.",
+    "searchPlaceholder": "Caută o întrebare…",
+    "wasHelpful": "Ți-a fost de ajutor?",
+    "helpful": "Util",
+    "notHelpful": "Neutil",
+    "empty": "Niciun rezultat. Încearcă alți termeni sau întreabă administratorul."
+  },
   "emergency": {
     "title": "Numere de urgență",
     "call": "Sună",
