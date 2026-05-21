@@ -795,3 +795,27 @@ export interface DiscussionThread {
   created_at: string;
   messages: DiscussionMessage[];
 }
+
+/** F12 — participatory budget cycle and its proposals (`budget_cycles` +
+ *  `budget_proposals` + `budget_votes`). */
+export type BudgetPhase = 'idei' | 'vot' | 'incheiat';
+
+export interface BudgetProposal {
+  id: string;
+  cycle_id: string;
+  title: string;
+  cost: number;
+  author_name: string;
+  votes: number;
+  /** Whether the current apartment has voted for this proposal (demo). */
+  voted: boolean;
+}
+
+export interface BudgetCycle {
+  id: string;
+  asociatie_id: string;
+  title: string;
+  pool: number;
+  phase: BudgetPhase;
+  proposals: BudgetProposal[];
+}

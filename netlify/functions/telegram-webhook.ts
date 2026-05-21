@@ -80,6 +80,8 @@ const FEATURE_COMMANDS: Record<string, string> = {
   '/contractori': '👷 Contractori — caută în biblioteca de contractori verificați, cu rating, în secțiunea „Contractori” (comitet).',
   '/alarma': '🔔 Sistem alarmă — vezi statusul sistemelor de alarmă și detecție și istoricul testelor în secțiunea „Sistem alarmă”.',
   '/discutii': '💬 Canal de discuții — participă la discuțiile moderate ale blocului (parcare, curățenie, vecini) în secțiunea „Canal de discuții”.',
+  '/buget_voteaza': '🐷 Buget participativ — votează propunerile pentru fondul discreționar în secțiunea „Buget participativ”.',
+  '/buget_propune': '🐷 Buget participativ — propune o idee pentru fondul discreționar în secțiunea „Buget participativ”.',
 };
 
 async function handleMessage(msg: TelegramMessage) {

@@ -262,6 +262,13 @@ test('F02: resident can start a discussion thread', async ({ page }) => {
   await expect(page.getByText('Subiect E2E')).toBeVisible();
 });
 
+test('F12: resident can vote on a budget proposal', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/buget');
+  await page.getByRole('button', { name: 'Votează', exact: true }).first().click();
+  await expect(page.getByRole('button', { name: /Votat/i }).first()).toBeVisible();
+});
+
 test('home page has no critical accessibility violations', async ({ page }) => {
   await enterDemo(page);
   const results = await new AxeBuilder({ page })

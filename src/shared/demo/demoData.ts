@@ -52,6 +52,7 @@ import type {
   Contractor,
   AlarmSystem,
   DiscussionThread,
+  BudgetCycle,
 } from '@/shared/types/domain';
 import { RECOMMENDED_FEATURES } from '@/shared/features/registry';
 
@@ -518,3 +519,14 @@ export const DEMO_DISCUSSIONS: DiscussionThread[] = [
     messages: [],
   },
 ];
+
+// F12 — Buget participativ.
+export const DEMO_BUDGET_CYCLE: BudgetCycle = {
+  id: 'bc-1', asociatie_id: 'demo-asoc', title: 'Fond discreționar 2026 — 5.000 lei', pool: 5000, phase: 'vot',
+  proposals: [
+    { id: 'bp-1', cycle_id: 'bc-1', title: 'Bănci noi în curte', cost: 2200, author_name: 'Georgescu Elena', votes: 14, voted: false },
+    { id: 'bp-2', cycle_id: 'bc-1', title: 'Decorațiuni de sărbători', cost: 1800, author_name: 'Stan Gabriela', votes: 9, voted: false },
+    { id: 'bp-3', cycle_id: 'bc-1', title: 'Trei copaci ornamentali', cost: 1500, author_name: 'Marin Vlad', votes: 7, voted: false },
+    { id: 'bp-4', cycle_id: 'bc-1', title: 'Suport pentru biciclete', cost: 2600, author_name: 'Popa Radu', votes: 4, voted: false },
+  ],
+};

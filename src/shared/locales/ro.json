@@ -852,5 +852,19 @@
     "replyPlaceholder": "Scrie un mesaj…",
     "threadAdded": "Subiect creat.",
     "empty": "Niciun subiect de discuție. Pornește primul cu butonul de mai sus."
+  },
+  "budget": {
+    "title": "Buget participativ",
+    "subtitle": "Comitetul alocă un fond discreționar. Propune idei și votează — cele mai votate care încap în buget sunt finanțate.",
+    "propose": "Propune o idee",
+    "remaining": "Rămân {{amount}}",
+    "funded": "Finanțat",
+    "vote": "Votează",
+    "voted": "Votat",
+    "voteCount": "{{count}} voturi",
+    "proposalTitle": "Titlu propunere",
+    "cost": "Cost estimat (lei)",
+    "added": "Propunere adăugată.",
+    "empty": "Nicio propunere încă. Adaugă prima cu butonul de mai sus."
   }
 }

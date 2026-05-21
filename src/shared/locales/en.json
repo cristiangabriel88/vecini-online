@@ -852,5 +852,19 @@
     "replyPlaceholder": "Write a message…",
     "threadAdded": "Thread created.",
     "empty": "No discussion threads yet. Start the first with the button above."
+  },
+  "budget": {
+    "title": "Participatory budget",
+    "subtitle": "The committee allocates a discretionary fund. Submit ideas and vote — the most-voted that fit the budget get funded.",
+    "propose": "Propose an idea",
+    "remaining": "{{amount}} left",
+    "funded": "Funded",
+    "vote": "Vote",
+    "voted": "Voted",
+    "voteCount": "{{count}} votes",
+    "proposalTitle": "Proposal title",
+    "cost": "Estimated cost (lei)",
+    "added": "Proposal added.",
+    "empty": "No proposals yet. Add the first with the button above."
   }
 }
