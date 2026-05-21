@@ -444,5 +444,37 @@
     "searchPlaceholder": "Caută după denumire, apartament sau observații…",
     "added": "Boxă adăugată.",
     "empty": "Nicio boxă înregistrată. Adaugă prima cu butonul de mai sus."
+  },
+  "carpool": {
+    "title": "Carpooling",
+    "subtitle": "Găsește vecini cu trasee similare pentru a împărți drumul. Profil opt-in.",
+    "addProfile": "Adaugă profilul meu",
+    "editProfile": "Editează profilul meu",
+    "youAreListed": "Ești listat",
+    "leave": "Renunță",
+    "destination": "Destinație",
+    "destinationHint": "ex: Pipera (zona office), Centru — Universitate",
+    "schedule": "Program",
+    "scheduleHint": "ex: L–V, plecare 08:00, retur 17:30",
+    "searchPlaceholder": "Caută după destinație, program sau nume…",
+    "saved": "Profil salvat. Vecinii cu trasee similare te pot găsi.",
+    "left": "Ai renunțat la profilul de carpooling.",
+    "empty": "Niciun profil de carpooling. Adaugă-l pe al tău cu butonul de mai sus."
+  },
+  "birthdays": {
+    "title": "Aniversări",
+    "subtitle": "Felicitări de ziua de naștere pentru vecinii care au optat. Se afișează doar ziua și luna.",
+    "addConsent": "Adaugă ziua mea",
+    "editConsent": "Editează ziua mea",
+    "youAreListed": "Ziua ta este listată",
+    "leave": "Renunță",
+    "day": "Zi",
+    "month": "Lună",
+    "today": "Astăzi",
+    "todayHeading": "Aniversări azi",
+    "upcomingHeading": "Următoarele aniversări",
+    "saved": "Ziua ta a fost salvată.",
+    "left": "Ai renunțat la afișarea zilei de naștere.",
+    "empty": "Nimeni nu și-a împărtășit ziua de naștere încă. Adaug-o pe a ta."
   }
 }

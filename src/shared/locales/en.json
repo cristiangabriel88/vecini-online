@@ -444,5 +444,37 @@
     "searchPlaceholder": "Search by label, apartment or notes…",
     "added": "Storage room added.",
     "empty": "No storage rooms registered. Add the first with the button above."
+  },
+  "carpool": {
+    "title": "Carpooling",
+    "subtitle": "Find neighbours with similar commutes to share the ride. Opt-in profile.",
+    "addProfile": "Add my profile",
+    "editProfile": "Edit my profile",
+    "youAreListed": "You are listed",
+    "leave": "Opt out",
+    "destination": "Destination",
+    "destinationHint": "e.g. Pipera (office area), Downtown — University",
+    "schedule": "Schedule",
+    "scheduleHint": "e.g. Mon–Fri, leave 08:00, return 17:30",
+    "searchPlaceholder": "Search by destination, schedule or name…",
+    "saved": "Profile saved. Neighbours with similar commutes can find you.",
+    "left": "You opted out of carpooling.",
+    "empty": "No carpooling profiles. Add yours with the button above."
+  },
+  "birthdays": {
+    "title": "Birthdays",
+    "subtitle": "Birthday greetings for neighbours who opted in. Only day and month are shown.",
+    "addConsent": "Add my birthday",
+    "editConsent": "Edit my birthday",
+    "youAreListed": "Your birthday is listed",
+    "leave": "Opt out",
+    "day": "Day",
+    "month": "Month",
+    "today": "Today",
+    "todayHeading": "Birthdays today",
+    "upcomingHeading": "Upcoming birthdays",
+    "saved": "Your birthday was saved.",
+    "left": "You opted out of birthday display.",
+    "empty": "Nobody has shared their birthday yet. Add yours."
   }
 }
