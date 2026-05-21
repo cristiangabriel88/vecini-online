@@ -519,7 +519,7 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F08 | Calendar de evenimente | ✅ | Upcoming list, RSVP toggle, counts; tables `events/event_rsvps`. |
 | F09 | Vot rapid pe propuneri | ✅ | Vote with confirm, live bars; quorum/majority tally logic unit-tested. |
 | F10 | AGA digitală | 🟦 | Tables `agas`, `aga_agenda_items/attendees/votes` + RLS. |
-| F11 | Procese verbale (arhivă) | 🟦 | Table `pv_documents` with full-text search + RLS. |
+| F11 | Procese verbale (arhivă) | ✅ | Searchable archive of signed minutes with category badge and accent-insensitive search over title/category/content, newest-document-date first, and add (title/date/category/summary); validation/search/sort/category logic unit-tested; `/procese_verbale` bot command. Table `pv_documents` with GIN full-text search + RLS. |
 | F12 | Buget participativ | 🟦 | Tables `budget_cycles/proposals/votes` + RLS. |
 | F13 | Prioritizare proiecte mari | 🟦 | Tables `project_priorities`, `priority_rankings` + RLS. |
 | F14 | Cutie de idei | ✅ | Submit ideas, one-vote upvoting, status badges, vote-ranked list; ranking + top-N promotion logic unit-tested; `/idei` bot command. Tables `ideas`, `idea_votes/comments` + RLS. |
