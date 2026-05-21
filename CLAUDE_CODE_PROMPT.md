@@ -1,4 +1,4 @@
-# Master Prompt for Claude Code — BlocHub
+# Master Prompt for Claude Code — IntreVecini
 
 Paste this entire prompt into Claude Code in the root of an empty git repo. Then leave it running.
 
@@ -6,7 +6,7 @@ Paste this entire prompt into Claude Code in the root of an empty git repo. Then
 
 ## Mission
 
-Build **BlocHub** — a complete, production-ready, multi-tenant React web application for Romanian *asociații de proprietari*, deployable to Netlify, that integrates with a Telegram bot for resident-facing interactions. The app must support buildings from 10 to 1000+ apartments with the same codebase. Every feature must be toggleable per asociație by the admin during onboarding and afterwards.
+Build **IntreVecini** — a complete, production-ready, multi-tenant React web application for Romanian _asociații de proprietari_, deployable to Netlify, that integrates with a Telegram bot for resident-facing interactions. The app must support buildings from 10 to 1000+ apartments with the same codebase. Every feature must be toggleable per asociație by the admin during onboarding and afterwards.
 
 **You will work autonomously and continuously until the entire app is built, tested, and verified.** Do not stop to ask the user questions. Do not pause for confirmation. If you encounter ambiguity, make the most reasonable decision, document it in `DECISIONS.md`, and continue.
 
@@ -33,6 +33,7 @@ Read every file in the `/docs` directory before writing any code. The documentat
 Follow this loop until completion. Do not deviate.
 
 ### Phase 0 — Setup (do once)
+
 1. Read `docs/ARCHITECTURE.md`, `docs/FEATURES.md`, `docs/DATA_MODEL.md`, `docs/UI_UX.md`, `docs/TELEGRAM_BOT.md`, `docs/TESTING.md`, `docs/DEPLOYMENT.md` in full.
 2. Create the directory structure exactly as specified in `ARCHITECTURE.md`.
 3. Initialize the project: `npm create vite@latest . -- --template react-ts`, install all dependencies listed in `ARCHITECTURE.md § Dependencies`.
@@ -42,7 +43,9 @@ Follow this loop until completion. Do not deviate.
 7. Commit: `chore: project scaffold and schema`.
 
 ### Phase 1 — Core platform (do once)
+
 Build, in this order, committing after each:
+
 1. Auth flow (admin login via Supabase Auth, email + password)
 2. Asociație onboarding wizard (5-step: profile → import apartments from CSV → feature selection → branding → invite admins/comitet)
 3. Apartment & resident management (CRUD, invite codes, Telegram linking flow)
@@ -53,7 +56,9 @@ Build, in this order, committing after each:
 8. Base layout, navigation, theme system
 
 ### Phase 2 — Features (loop until all 60+ done)
+
 For each feature in `FEATURES.md`:
+
 1. Read its spec section.
 2. Add any missing database tables/migrations.
 3. Add RLS policies.
@@ -67,6 +72,7 @@ For each feature in `FEATURES.md`:
 **Critical:** do not skip features. Do not collapse multiple features into one. If a feature seems redundant with another, build both — the admin can toggle one off.
 
 ### Phase 3 — Telegram bot (after Phase 2)
+
 1. Implement every command and callback handler defined in `TELEGRAM_BOT.md`.
 2. Implement the webhook signature verification.
 3. Implement the Mini App authentication (validating `initData`).
@@ -74,7 +80,9 @@ For each feature in `FEATURES.md`:
 5. Write integration tests using the Telegram Bot API test mode.
 
 ### Phase 4 — Verification (autonomous)
+
 Run, fix, repeat:
+
 1. `npm run lint` — fix everything until zero errors and zero warnings.
 2. `npm run typecheck` — fix everything until zero errors.
 3. `npm run test` — all unit tests must pass.
@@ -88,7 +96,9 @@ Run, fix, repeat:
 11. Generate `README.md` with project overview, quickstart, and links to all other docs.
 
 ### Phase 5 — Polish loop
+
 Run this loop at least 3 times, more if you find issues:
+
 1. Open every page in the app via Playwright with screenshots.
 2. Inspect each screenshot. Note any visual issues: misalignment, broken layouts, illegible text, ugly empty states.
 3. Fix them.
@@ -96,6 +106,7 @@ Run this loop at least 3 times, more if you find issues:
 5. Commit fixes.
 
 Stop only when:
+
 - All 60+ features are built and toggleable
 - All tests pass
 - Lint and typecheck are clean
@@ -126,6 +137,7 @@ Stop only when:
 ## What the user will do after you finish
 
 The user (the developer who launched you) will:
+
 1. Create a Supabase project and paste the keys into `.env`.
 2. Create a Telegram bot via BotFather and paste the token into `.env`.
 3. Run the migrations.
