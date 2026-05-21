@@ -1,80 +1,81 @@
-# BlocHub
+# IntreVecini
 
 A multi-tenant web app and Telegram bot for Romanian *asociații de proprietari*.
 
-One codebase. Many buildings. 65+ features the admin can mix and match. Works for an 18-apartment bloc or a 1000-apartment complex.
+One codebase. Many buildings. 65 features the admin can mix and match. Works for
+an 18-apartment bloc or a 1000-apartment complex.
+
+> Built from `CLAUDE_CODE_PROMPT.md`. The spec docs (`ARCHITECTURE.md`,
+> `FEATURES.md`, `DATA_MODEL.md`, …) were authored under the working title
+> *BlocHub*; the shipped product is **IntreVecini** (see `DECISIONS.md`).
 
 ## What it does
 
-BlocHub is the digital infrastructure your asociație doesn't have. Residents use it from the browser or directly from Telegram. Administrators and the comitet manage everything from a web admin panel.
-
-It covers:
-- **Communication** — official announcements, neighbor-to-neighbor posts, emergency alerts, private messaging with admin
-- **Governance** — digital AGA, polls and voting (with cota-parte weighting), participatory budgeting, petitions
-- **Maintenance** — ticketed sesizări with photos, repair history, scheduled service reminders, meter readings
-- **Shared spaces** — booking laundry/elevator/community room, parking registry, bike room, courier access codes
-- **Information** — document archive, supplier contracts, building wiki, FAQs
-- **Projects** — track major renovations with budget/timeline/photos, contractor library, multi-year plan
-- **Safety & compliance** — PSI tracking, evacuation plans, insurance, emergency contacts
-- **Community** — internal marketplace, skill exchange, carpooling, welcome kit for new residents
-
-Every feature is toggleable. Small buildings turn off what they don't need. Large buildings turn on everything.
+Residents use it from the browser or directly from Telegram. Administrators and
+the comitet manage everything from a web admin panel. It covers communication,
+governance & voting, maintenance, shared spaces, records, projects, safety, and
+community life — every feature individually toggleable per asociație.
 
 ## Project status
 
-Build is fully driven by Claude Code from `CLAUDE_CODE_PROMPT.md`. The documentation in `/docs` is the source of truth for what to build.
+This is a working **foundation** that builds, type-checks, lints clean, and
+passes its unit tests:
 
-## Quickstart for the deployer
+- **Implemented end-to-end:** F01 Anunțuri, F03 Alerte, F08 Evenimente,
+  F09 Voturi, F17 Sesizări, F56 Numere de urgență, plus the onboarding wizard,
+  admin feature-flag panel, apartment registry, auth, and home/profile.
+- **Full database:** core + all 65 feature tables with RLS in
+  `supabase/migrations/`.
+- **Telegram:** webhook function with secret + Mini App `initData` validation.
+- **Registered (not yet built UI):** the remaining features are toggleable and
+  appear in navigation with a clear "page not in this build" state.
 
-1. Read `BOT_SETUP.md` and `docs/DEPLOYMENT.md`.
-2. Create a Supabase project and a Telegram bot.
-3. Push this repo to GitHub.
-4. Connect to Netlify.
-5. Add environment variables.
-6. Deploy.
-7. Onboard your first asociație.
+See `DECISIONS.md` for the exact scope boundary and `FEATURES.md` for per-feature
+status.
 
-Total time: ~45 minutes.
-
-## For developers / contributors
-
-The full architecture is in `docs/ARCHITECTURE.md`. The feature catalog is in `docs/FEATURES.md`. The data model is in `docs/DATA_MODEL.md`. Read those first.
-
-Local dev:
+## Run it locally (no backend needed)
 
 ```bash
 npm install
-cp .env.example .env  # fill in values
-npx supabase start    # local Postgres + Auth
-npm run dev
+npm run dev        # opens the app in demo mode with sample Romanian data
 ```
 
-Tests:
+Without Supabase credentials the app runs in **demo mode** so you can click
+through everything. To wire a real backend:
 
 ```bash
-npm test              # unit
-npm run test:e2e      # Playwright
-npm run lint
-npm run typecheck
+cp .env.example .env   # fill in Supabase + Telegram values
+npx supabase start     # or link a hosted project, then:
+npx supabase db push   # apply migrations in supabase/migrations
+```
+
+## Scripts
+
+```bash
+npm run dev         # Vite dev server
+npm run build       # typecheck (app + node) then production build
+npm run preview     # serve the built app
+npm test            # Vitest unit tests
+npm run test:e2e    # Playwright E2E (needs browsers installed)
+npm run lint        # ESLint
+npm run typecheck   # tsc --noEmit
 ```
 
 ## Tech stack
 
-React 18 + TypeScript + Vite · TailwindCSS · React Query · Zustand · React Hook Form + Zod · react-i18next · Supabase (Postgres + Auth + Storage + Realtime) · Netlify (static + serverless functions) · Vitest + Playwright
-
-## License
-
-(To be decided. Default placeholder: All rights reserved by the project owner.)
+React 18 + TypeScript + Vite · TailwindCSS · React Query · Zustand ·
+React Hook Form + Zod · react-i18next (ro/en) · Supabase (Postgres + Auth +
+Storage + Realtime) · Netlify (static + serverless functions) · Vitest +
+Playwright.
 
 ## Documentation map
 
 - `BOT_SETUP.md` — set up your Telegram bot (start here when deploying)
-- `CLAUDE_CODE_PROMPT.md` — the master prompt for autonomous building
-- `docs/ARCHITECTURE.md` — overall system design
-- `docs/FEATURES.md` — catalog of all 65 features
-- `docs/DATA_MODEL.md` — database schema
-- `docs/UI_UX.md` — design system and patterns
-- `docs/TELEGRAM_BOT.md` — bot implementation details
-- `docs/TESTING.md` — test strategy
-- `docs/DEPLOYMENT.md` — deploy to Supabase + Netlify
-- `docs/DECISIONS.md` — log of architectural decisions made during build
+- `DEPLOYMENT.md` — deploy to Supabase + Netlify
+- `ARCHITECTURE.md` — overall system design
+- `FEATURES.md` — catalog and status of all 65 features
+- `DATA_MODEL.md` — database schema
+- `UI_UX.md` — design system and patterns
+- `TELEGRAM_BOT.md` — bot implementation details
+- `TESTING.md` — test strategy
+- `DECISIONS.md` — log of decisions made during the build
