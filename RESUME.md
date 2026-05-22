@@ -13,6 +13,11 @@ accurate for architecture/data/feature specs.
 
 ---
 
+> **Next work is driven by `BACKLOG.md`** (the ordered task queue) via the
+> autonomous `make progress` protocol in `CLAUDE.md`. Trigger it by typing
+> `make progress` (one task) or running `scripts/run-overnight.ps1` (continuous,
+> unattended). Section 4 below is historical context, not the live queue.
+
 ## 0. Current status (updated 2026-05-22)
 
 - **Overall completion: 63 / 65 features built end-to-end (≈97%).**
