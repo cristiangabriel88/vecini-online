@@ -295,6 +295,65 @@ test('F26: resident can book the moving elevator', async ({ page }) => {
   await expect(page.getByText('11:00–14:00')).toBeVisible();
 });
 
+test('F27: resident can book the community room', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/sala');
+  await page.getByRole('button', { name: /Rezervă spațiul/i }).click();
+  await page.getByLabel('Interval orar').selectOption('14:00–18:00');
+  await page.getByLabel('Eveniment').fill('Aniversare');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText('Aniversare').first()).toBeVisible();
+});
+
+test('F04: resident can message the administrator', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/mesaje-admin');
+  await page.getByRole('button', { name: /Mesaj nou/i }).click();
+  await page.getByLabel('Subiect').fill('Întrebare despre fond rulment');
+  await page.getByLabel('Mesaj').fill('Bună ziua, am o întrebare despre fondul de rulment.');
+  await page.getByRole('button', { name: /Trimite/i }).click();
+  await expect(page.getByText('Întrebare despre fond rulment')).toBeVisible();
+});
+
+test('F62: resident can add a welcome-kit step', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/welcome-kit');
+  await page.getByRole('button', { name: /Adaugă pas/i }).click();
+  await page.getByLabel('Titlu').fill('Pas de test E2E');
+  await page.getByLabel('Detalii').fill('Descriere de test pentru pasul de bun-venit.');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText('Pas de test E2E')).toBeVisible();
+});
+
+test('F64: resident can propose a kids activity', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/copii');
+  await page.getByRole('button', { name: /Propune o activitate/i }).click();
+  await page.getByLabel('Titlu').fill('Concurs de desene pe asfalt');
+  await page.getByLabel('Locul').fill('Locul de joacă din curte');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText('Concurs de desene pe asfalt')).toBeVisible();
+});
+
+test('F41: comitet can add a project', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/proiecte');
+  await page.getByRole('button', { name: /Proiect nou/i }).click();
+  await page.getByLabel('Titlu').fill('Înlocuire interfon E2E');
+  await page.getByLabel(/Buget alocat/i).fill('15000');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText('Înlocuire interfon E2E')).toBeVisible();
+});
+
+test('F42: resident can add a photo-journal entry', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/jurnal-foto');
+  await page.getByRole('button', { name: /Adaugă fotografie/i }).click();
+  await page.getByLabel('Descriere').fill('Fotografie de test E2E pentru jurnal.');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText('Fotografie de test E2E pentru jurnal.')).toBeVisible();
+});
+
 test('home page has no critical accessibility violations', async ({ page }) => {
   await enterDemo(page);
   const results = await new AxeBuilder({ page })

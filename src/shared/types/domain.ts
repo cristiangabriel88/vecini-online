@@ -676,6 +676,34 @@ export interface AnonymousMessage {
   created_at: string;
 }
 
+/** F04 — private resident ↔ administrator channel (`private_threads` +
+ *  `private_messages`). A thread groups one resident's conversation with the
+ *  administrator; messages carry a read receipt for the counterpart. */
+export type PrivateThreadStatus = 'open' | 'resolved';
+
+export interface PrivateMessage {
+  id: string;
+  thread_id: string;
+  /** Who wrote it — the resident or the administrator. */
+  sender: 'resident' | 'admin';
+  sender_name: string;
+  body: string;
+  created_at: string;
+  /** Whether the counterpart has read it. */
+  read: boolean;
+}
+
+export interface PrivateThread {
+  id: string;
+  asociatie_id: string;
+  resident_user_id: string;
+  resident_name: string;
+  subject: string;
+  status: PrivateThreadStatus;
+  created_at: string;
+  messages: PrivateMessage[];
+}
+
 /** F11 — archived signed minutes / decisions (`pv_documents`). */
 export interface PvDocument {
   id: string;
@@ -855,4 +883,132 @@ export interface MovingBooking {
   floor: string;
   user_id: string;
   user_name: string;
+}
+
+/** Community-room / terrace booking — 4-hour windows (`bookable_resources` + `bookings`). */
+export interface VenueBooking {
+  id: string;
+  asociatie_id: string;
+  /** Which venue — community room or terrace. */
+  venue: string;
+  /** Reserved day (YYYY-MM-DD). */
+  date: string;
+  /** Slot label, e.g. "10:00–14:00". */
+  slot: string;
+  /** What the booking is for. */
+  purpose: string;
+  user_id: string;
+  user_name: string;
+}
+
+/** A single step in the new-resident welcome kit (`welcome_kit_templates`). */
+export interface WelcomeKitItem {
+  id: string;
+  asociatie_id: string;
+  /** Ordering within the kit (ascending). */
+  order: number;
+  /** Short step title, e.g. "Citește regulamentul". */
+  title: string;
+  /** One- or two-sentence explanation of the step. */
+  body: string;
+}
+
+/** Age buckets used for the privacy-preserving kids registry (F64). */
+export type KidsAgeBucket = '0-3' | '4-6' | '7-10' | '11-14' | '15-18';
+
+/**
+ * A parent's privacy-preserving registration of how many children they have in
+ * an age bucket (`kids_age_ranges`). Names are never stored — only counts, so
+ * the building can see "3 copii 7-10 ani" without identifying any child.
+ */
+export interface KidsAgeRange {
+  id: string;
+  asociatie_id: string;
+  user_id: string;
+  bucket: KidsAgeBucket;
+  /** How many children this parent has in the bucket. */
+  count: number;
+}
+
+/** A coordinated children/teens activity (`kids_events`). */
+export interface KidsEvent {
+  id: string;
+  asociatie_id: string;
+  /** Short activity title, e.g. "Întâlnire la locul de joacă". */
+  title: string;
+  /** ISO date (YYYY-MM-DD). */
+  date: string;
+  /** Free-text time, e.g. "17:00". */
+  time: string;
+  /** Where it happens, e.g. "Locul de joacă din curte". */
+  location: string;
+  /** Target age bucket, or 'all' for any age. */
+  bucket: KidsAgeBucket | 'all';
+  /** Optional details. */
+  note: string;
+  /** How many other parents have already said they will come. */
+  interested: number;
+  organizer_user_id: string;
+  organizer_name: string;
+  created_at: string;
+}
+
+/** F41 — lifecycle of a major works project. */
+export type ProjectStatus = 'planificat' | 'in_curs' | 'finalizat' | 'suspendat';
+
+/** State of a single phase within a project. */
+export type ProjectPhaseStatus = 'asteptare' | 'in_curs' | 'finalizat';
+
+/** A phase within a major-works project (`project_phases`). */
+export interface ProjectPhase {
+  id: string;
+  /** Short phase name, e.g. "Demontare schelă". */
+  name: string;
+  status: ProjectPhaseStatus;
+}
+
+/**
+ * F41 — a major-works project (`projects` + `project_phases` + `project_updates`):
+ * anvelopare, schimbare instalație, reabilitare acoperiș. Percentage complete is
+ * derived from the phases; budget tracks allocated vs spent.
+ */
+export interface Project {
+  id: string;
+  asociatie_id: string;
+  /** Project title, e.g. "Reabilitare termică (anvelopare)". */
+  title: string;
+  description: string;
+  /** Contractor handling the works (may be empty while still planning). */
+  contractor: string;
+  status: ProjectStatus;
+  /** Lei budgeted for the project. */
+  budget_allocated: number;
+  /** Lei spent so far. */
+  budget_spent: number;
+  phases: ProjectPhase[];
+  created_at: string;
+}
+
+/**
+ * F42 — a photo-journal entry for a project (`project_photos`). In demo mode the
+ * image is represented by a gradient `swatch` (no binary assets ship), with the
+ * caption, date and optional phase carrying the time-lapse story.
+ */
+export interface ProjectPhoto {
+  id: string;
+  asociatie_id: string;
+  /** Project this entry belongs to. */
+  project_id: string;
+  /** Denormalized project title so the journal renders without a join. */
+  project_title: string;
+  /** ISO date (YYYY-MM-DD) the photo was taken. */
+  date: string;
+  /** Short caption describing what the photo shows. */
+  caption: string;
+  /** Optional phase label, e.g. "Turnare șapă". */
+  phase: string;
+  /** Tailwind gradient classes standing in for the image in demo mode. */
+  swatch: string;
+  author_name: string;
+  created_at: string;
 }

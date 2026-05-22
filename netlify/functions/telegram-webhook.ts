@@ -72,6 +72,7 @@ const FEATURE_COMMANDS: Record<string, string> = {
   '/asigurare': '☂ Asigurare bloc — vezi polița și data de reînnoire în secțiunea „Asigurare bloc” (comitet).',
   '/chei': '🔑 Registru de chei — vezi cine deține cheile spațiilor comune în secțiunea „Registru de chei” (comitet).',
   '/anonim': '🕶 Mesaj anonim — trimite o sesizare către comitet fără să-ți dezvălui identitatea, în secțiunea „Mesaj anonim”.',
+  '/contact_admin': '✉️ Mesagerie privată — scrie-i direct administratorului despre o problemă personală sau sensibilă, în secțiunea „Mesagerie privată cu administratorul”.',
   '/procese_verbale': '📑 Procese verbale — caută în arhiva proceselor verbale semnate (AGA, comitet, recepții) în secțiunea „Procese verbale”.',
   '/oferte': '📋 Solicitare oferte — vezi cererile de ofertă active și ofertele primite în secțiunea „Solicitare oferte” (comitet).',
   '/garda': '🛡 Vecin de gardă — vezi cine e de gardă în acest weekend sau înscrie-te în secțiunea „Vecin de gardă”.',
@@ -85,6 +86,11 @@ const FEATURE_COMMANDS: Record<string, string> = {
   '/prioritati': '🔢 Prioritizare proiecte — ordonează proiectele mari (acoperiș, fațadă, lift) după prioritate în secțiunea „Prioritizare proiecte mari”.',
   '/spalatorie': '🧺 Spălătorie — vezi disponibilitatea și rezervă un slot la spălătoria comună în secțiunea „Rezervare spălătorie”.',
   '/lift': '🛗 Lift mutare — rezervă liftul pentru o mutare în ferestre de 3 ore în secțiunea „Rezervare lift pentru mutare”.',
+  '/sala': '🎉 Sală comună / terasă — rezervă sala comună sau terasa pentru un eveniment în secțiunea „Rezervare sală comună / terasă”.',
+  '/bun_venit': '🎁 Kit de bun-venit — parcurge pașii esențiali pentru locatarii noi (regulament, contoare, vecini, AGA) în secțiunea „Kit de bun-venit”.',
+  '/copii_evenimente': '🧒 Activități copii — vezi câți copii sunt în bloc (pe grupe de vârstă, fără nume) și coordonează întâlniri la locul de joacă în secțiunea „Activități copii și adolescenți”.',
+  '/proiecte': '🏗️ Urmărire proiecte — vezi stadiul lucrărilor majore (anvelopare, lift, acoperiș): faze, progres și buget alocat vs. cheltuit în secțiunea „Urmărire proiecte”.',
+  '/jurnal_foto': '📸 Jurnal foto lucrări — urmărește lucrările în desfășurare printr-un jurnal foto cronologic, pe proiecte și faze, în secțiunea „Jurnal foto lucrări”.',
 };
 
 async function handleMessage(msg: TelegramMessage) {

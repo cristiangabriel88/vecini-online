@@ -15,15 +15,29 @@ accurate for architecture/data/feature specs.
 
 ## 0. Current status (updated 2026-05-22)
 
-- **Overall completion: 54 / 65 features built end-to-end (≈83%).**
-- **Completed this turn (1):** F26 Rezervare lift pentru mutare — finished the
-  overnight's orphaned `movingLogic.ts` into a full feature (Zustand demo store +
-  `MovingPage` + registry toggle flipped to `implemented` + route `lift-mutare` +
-  `/lift` bot command + RO/EN locales + demo bookings + unit tests + one E2E
-  happy-path). Built on the F25 laundry booking pattern (shared `bookings` schema).
-- **Pipeline:** `npm run lint`, `npm run typecheck`, `npm test` (54 files / 217
+- **Overall completion: 60 / 65 features built end-to-end (≈92%).**
+- **Completed this turn (2):** F41 Urmărire proiecte + F42 Jurnal foto lucrări —
+  paired `projects` + `photojournal` slices sharing the `projects` domain.
+  F41: major-works tracker with changeable status, phase-derived progress bar,
+  budget alloc-vs-spent bar (remaining/over-budget), advanceable phases, and
+  active/planned-first sort. F42: reverse-chronological photo journal grouped by
+  day with a per-project filter; demo images render as gradient swatches (no
+  binary assets ship), reading project titles from the F41 store. Both wired
+  end-to-end (logic + Zustand demo store + page + registry toggle + routes
+  `proiecte`/`jurnal-foto` + `/proiecte` & `/jurnal_foto` bot commands + RO/EN
+  locales + demo projects/photos + unit tests + one E2E each).
+- **Previously (F64):** Activități copii și adolescenți — `kids` slice
+  (privacy-preserving children registry + coordinated activities).
+- **Previously (F62):** Kit de bun-venit — `welcomekit` slice (new-resident
+  onboarding checklist with progress bar + comitet add/delete steps).
+- **Previously (F04):** Mesagerie privată cu administratorul — `adminchat` slice
+  (private resident↔admin channel, chat timeline, SLA hint, resolve/reopen).
+- **Previously (F27):** Rezervare sală comună / terasă — `venue` slice on the
+  F25/F26 booking pattern. Note: F04, F27, F62, F64 and this turn's F41/F42
+  slices are still uncommitted in the working tree.
+- **Pipeline:** `npm run lint`, `npm run typecheck`, `npm test` (60 files / 259
   unit tests), and `npm run build` all pass.
-- **Remaining (11):** F04, F10, F21, F27, F35, F41, F42, F49, F50, F62, F64.
+- **Remaining (5):** F10, F21, F35, F49, F50.
 - **Source of truth:** the **FEATURES.md** tracking table (legend: ✅ UI done ·
   🟦 schema-only) is authoritative for per-feature status — sections 2–3 below are
   historical and undercount what's shipped. Trust the table.
@@ -110,22 +124,17 @@ Notable clusters still to build:
    live features read/write against real tables and RLS.
 3. **Wire the Telegram webhook** — deploy the Netlify function, register the bot
    webhook + Mini App, and verify `initData`/secret validation end-to-end.
-4. **Build out the remaining 11 features**, reusing the established pattern
+4. **Build out the remaining 7 features**, reusing the established pattern
    (logic module → Zustand demo store seeded from `demoData.ts` → feature page →
    `registry.ts` toggle flipped to `implemented` → route → `/command` bot help →
    RO/EN locales → unit test → one E2E happy-path). Suggested order — lowest
    complexity / highest reuse first:
-   - **F27 Rezervare sală comună / terasă** — booking domain now proven twice
-     (F25 laundry, F26 lift); copy `MovingPage`, swap slots/fields. Easiest next.
-   - **F04 Mesagerie privată cu administratorul** — simple two-party thread on
-     `private_threads/messages`; mirror the F02/F05 messaging pattern.
-   - **F62 Welcome kit** and **F64 Activități copii** — template/event CRUD.
-   - **F41 Project tracker + F42 Project photo journal** — share the `projects`
-     domain; build them in one batch.
    - **F49 Cod portari / vecini de încredere** and **F50 Plan de evacuare** —
      safety pair (F49 holds an encrypted payload, owner-only RLS).
    - **F10 AGA digitală last** — carries Legea 196/2018 compliance + PV PDF
      generation weight; implement it alone in its own session.
+   - *(Done: F41 Project tracker + F42 Project photo journal — `projects` +
+     `photojournal` slices.)*
 5. **Fill the computed views** (F21 recurring-ticket detection over `tickets`;
    F35 apartament info over apartments/readings/tickets/votes) — these are
    read-only aggregations, no new tables.

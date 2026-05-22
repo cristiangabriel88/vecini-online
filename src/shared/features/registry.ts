@@ -49,7 +49,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'F01', title: 'Anunțuri oficiale', category: 'communication', icon: 'Megaphone', audience: ['all'], path: 'anunturi', description: 'Anunțuri oficiale cu confirmare de citire și difuzare țintită.', implemented: true },
   { key: 'F02', title: 'Canal de discuții moderat', category: 'communication', icon: 'MessagesSquare', audience: ['all'], path: 'discutii', description: 'Canal de discuții între locatari, moderat de comitet.', implemented: true },
   { key: 'F03', title: 'Alertă de bloc (urgență)', category: 'communication', icon: 'Siren', audience: ['all'], path: 'alerte', description: 'Difuzare de urgență care ignoră orele de liniște.', implemented: true },
-  { key: 'F04', title: 'Mesagerie privată cu administratorul', category: 'communication', icon: 'MessageCircle', audience: ['proprietar', 'chirias', 'admin'], path: 'mesaje-admin', description: 'Canal privat între locatar și administrator.', implemented: false },
+  { key: 'F04', title: 'Mesagerie privată cu administratorul', category: 'communication', icon: 'MessageCircle', audience: ['proprietar', 'chirias', 'admin'], path: 'mesaje-admin', description: 'Canal privat între locatar și administrator.', implemented: true },
   { key: 'F05', title: 'Mesaj anonim către comitet', category: 'communication', icon: 'EyeOff', audience: ['all'], path: 'anonim', description: 'Mesaj către comitet cu identitate ascunsă.', implemented: true },
   { key: 'F06', title: 'Anunțuri vecini (locator)', category: 'communication', icon: 'StickyNote', audience: ['all'], path: 'locator', description: 'Anunțuri neoficiale între vecini, cu expirare la 14 zile.', implemented: true },
   { key: 'F07', title: 'Întrebări frecvente (FAQ)', category: 'communication', icon: 'HelpCircle', audience: ['all'], path: 'faq', description: 'Întrebări frecvente, căutabile, întreținute de administrator.', implemented: true },
@@ -78,7 +78,7 @@ export const FEATURES: FeatureDef[] = [
   // Category 4 — Shared Spaces & Resources
   { key: 'F25', title: 'Rezervare spălătorie', category: 'spaces', icon: 'WashingMachine', audience: ['all'], path: 'spalatorie', description: 'Rezervarea sloturilor pentru spălătoria comună.', implemented: true },
   { key: 'F26', title: 'Rezervare lift pentru mutare', category: 'spaces', icon: 'Truck', audience: ['all'], path: 'lift-mutare', description: 'Rezervarea liftului pentru mutări.', implemented: true },
-  { key: 'F27', title: 'Rezervare sală comună / terasă', category: 'spaces', icon: 'PartyPopper', audience: ['all'], path: 'sala', description: 'Rezervarea sălii comune sau a terasei.', implemented: false },
+  { key: 'F27', title: 'Rezervare sală comună / terasă', category: 'spaces', icon: 'PartyPopper', audience: ['all'], path: 'sala', description: 'Rezervarea sălii comune sau a terasei.', implemented: true },
   { key: 'F28', title: 'Parcare', category: 'spaces', icon: 'Car', audience: ['all'], path: 'parcare', description: 'Registru locuri de parcare cu mesagerie anonimă.', implemented: true },
   { key: 'F29', title: 'Bicicletăria', category: 'spaces', icon: 'Bike', audience: ['all'], path: 'biciclete', description: 'Registru al bicicletelor din camera comună.', implemented: true },
   { key: 'F30', title: 'Boxa / dependinți', category: 'spaces', icon: 'Box', audience: ['all'], path: 'boxe', description: 'Registru al boxelor și dependințelor.', implemented: true },
@@ -96,8 +96,8 @@ export const FEATURES: FeatureDef[] = [
   { key: 'F40', title: 'Glosar de termeni', category: 'information', icon: 'BookA', audience: ['all'], path: 'glosar', description: 'Definiții pentru termenii din facturi și AGA.', implemented: true },
 
   // Category 6 — Projects & Major Works
-  { key: 'F41', title: 'Urmărire proiecte', category: 'projects', icon: 'KanbanSquare', audience: ['all'], path: 'proiecte', description: 'Urmărirea lucrărilor majore: faze, buget, fotografii.', implemented: false },
-  { key: 'F42', title: 'Jurnal foto lucrări', category: 'projects', icon: 'Images', audience: ['all'], path: 'jurnal-foto', description: 'Jurnal foto al lucrărilor în desfășurare.', implemented: false },
+  { key: 'F41', title: 'Urmărire proiecte', category: 'projects', icon: 'KanbanSquare', audience: ['all'], path: 'proiecte', description: 'Urmărirea lucrărilor majore: faze, buget, fotografii.', implemented: true },
+  { key: 'F42', title: 'Jurnal foto lucrări', category: 'projects', icon: 'Images', audience: ['all'], path: 'jurnal-foto', description: 'Jurnal foto al lucrărilor în desfășurare.', implemented: true },
   { key: 'F43', title: 'Bibliotecă de contractori', category: 'projects', icon: 'HardHat', audience: ['comitet', 'admin'], path: 'contractori', description: 'Bibliotecă de contractori verificați, cu rating.', implemented: true },
   { key: 'F44', title: 'Crowdfunding proiecte mici', category: 'projects', icon: 'HandCoins', audience: ['all'], path: 'crowdfund', description: 'Contribuții voluntare la proiecte mici.', implemented: true },
   { key: 'F45', title: 'Plan multianual de mentenanță', category: 'projects', icon: 'CalendarRange', audience: ['all'], path: 'plan-multianual', description: 'Plan de lucrări pe 5-10 ani.', implemented: true },
@@ -121,9 +121,9 @@ export const FEATURES: FeatureDef[] = [
   { key: 'F59', title: 'Babysitting / pet-sitting', category: 'community', icon: 'Baby', audience: ['all'], path: 'babysitting', description: 'Bord de babysitting și pet-sitting.', implemented: true },
   { key: 'F60', title: 'Schimb de servicii', category: 'community', icon: 'Repeat2', audience: ['all'], path: 'barter', description: 'Schimb de servicii și abilități între vecini.', implemented: true },
   { key: 'F61', title: 'Grupuri de cumpărături comune', category: 'community', icon: 'ShoppingCart', audience: ['all'], path: 'cumparaturi', description: 'Coordonarea cumpărăturilor în grup.', implemented: true },
-  { key: 'F62', title: 'Kit de bun-venit', category: 'community', icon: 'Gift', audience: ['all'], path: 'welcome-kit', description: 'Mesaj de bun-venit pentru locatarii noi.', implemented: false },
+  { key: 'F62', title: 'Kit de bun-venit', category: 'community', icon: 'Gift', audience: ['all'], path: 'welcome-kit', description: 'Mesaj de bun-venit pentru locatarii noi.', implemented: true },
   { key: 'F63', title: 'Aniversări (opt-in)', category: 'community', icon: 'Cake', audience: ['all'], path: 'aniversari', description: 'Felicitări de ziua de naștere (opt-in).', implemented: true },
-  { key: 'F64', title: 'Activități copii și adolescenți', category: 'community', icon: 'ToyBrick', audience: ['all'], path: 'copii', description: 'Coordonarea activităților pentru copii.', implemented: false },
+  { key: 'F64', title: 'Activități copii și adolescenți', category: 'community', icon: 'ToyBrick', audience: ['all'], path: 'copii', description: 'Coordonarea activităților pentru copii.', implemented: true },
   { key: 'F65', title: 'Feedback platformă', category: 'community', icon: 'MessageSquarePlus', audience: ['all'], path: 'feedback', description: 'Feedback despre platforma vecini.online.', implemented: true },
 ];
 

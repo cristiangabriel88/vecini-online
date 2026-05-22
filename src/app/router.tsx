@@ -66,6 +66,12 @@ const BudgetPage = lazy(() => import('@/features/budget/BudgetPage'));
 const PrioritiesPage = lazy(() => import('@/features/priorities/PrioritiesPage'));
 const LaundryPage = lazy(() => import('@/features/laundry/LaundryPage'));
 const MovingPage = lazy(() => import('@/features/moving/MovingPage'));
+const VenuePage = lazy(() => import('@/features/venue/VenuePage'));
+const AdminChatPage = lazy(() => import('@/features/adminchat/AdminChatPage'));
+const WelcomeKitPage = lazy(() => import('@/features/welcomekit/WelcomeKitPage'));
+const KidsPage = lazy(() => import('@/features/kids/KidsPage'));
+const ProjectsPage = lazy(() => import('@/features/projects/ProjectsPage'));
+const PhotoJournalPage = lazy(() => import('@/features/photojournal/PhotoJournalPage'));
 const NotImplementedPage = lazy(() => import('@/features/home/NotImplementedPage'));
 const FeatureHubPage = lazy(() =>
   import('@/features/home/FeatureHubPage').then((m) => ({ default: m.FeatureHubPage })),
@@ -141,6 +147,12 @@ export const router = createBrowserRouter([
       { path: 'prioritati', element: <S><PrioritiesPage /></S> },
       { path: 'spalatorie', element: <S><LaundryPage /></S> },
       { path: 'lift-mutare', element: <S><MovingPage /></S> },
+      { path: 'sala', element: <S><VenuePage /></S> },
+      { path: 'mesaje-admin', element: <S><AdminChatPage /></S> },
+      { path: 'welcome-kit', element: <S><WelcomeKitPage /></S> },
+      { path: 'copii', element: <S><KidsPage /></S> },
+      { path: 'proiecte', element: <S><ProjectsPage /></S> },
+      { path: 'jurnal-foto', element: <S><PhotoJournalPage /></S> },
       { path: 'actiuni', element: <S><FeatureHubPage actions /></S> },
       { path: 'mai-mult', element: <S><FeatureHubPage /></S> },
       { path: 'profil', element: <S><ProfilePage /></S> },

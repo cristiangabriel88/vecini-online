@@ -44,6 +44,7 @@ import type {
   InsurancePolicy,
   KeyRecord,
   AnonymousMessage,
+  PrivateThread,
   PvDocument,
   Rfp,
   DutySlot,
@@ -56,6 +57,12 @@ import type {
   PriorityProject,
   LaundryBooking,
   MovingBooking,
+  VenueBooking,
+  WelcomeKitItem,
+  KidsAgeRange,
+  KidsEvent,
+  Project,
+  ProjectPhoto,
 } from '@/shared/types/domain';
 import { RECOMMENDED_FEATURES } from '@/shared/features/registry';
 
@@ -429,6 +436,28 @@ export const DEMO_ANONYMOUS_MESSAGES: AnonymousMessage[] = [
   { id: 'an-2', asociatie_id: 'demo-asoc', sender_user_id: 'u-res3', body: 'Cred că becul de la etajul 3 e spart de mai bine de o lună. Mulțumesc.', status: 'rezolvat', created_at: new Date(Date.now() - 12 * 86_400_000).toISOString() },
 ];
 
+// F04 — Mesagerie privată cu administratorul.
+const hoursAgo = (h: number) => new Date(Date.now() - h * 3_600_000).toISOString();
+export const DEMO_PRIVATE_THREADS: PrivateThread[] = [
+  {
+    id: 'pt-1', asociatie_id: 'demo-asoc', resident_user_id: 'u-res', resident_name: 'Popescu Andrei',
+    subject: 'Eroare la cota de întreținere pe luna aceasta', status: 'open', created_at: hoursAgo(30),
+    messages: [
+      { id: 'pm-1', thread_id: 'pt-1', sender: 'resident', sender_name: 'Popescu Andrei', body: 'Bună ziua, cred că la apartamentul 24 a fost trecut greșit consumul de apă caldă luna aceasta. Puteți verifica?', created_at: hoursAgo(30), read: true },
+      { id: 'pm-2', thread_id: 'pt-1', sender: 'admin', sender_name: 'Administrator', body: 'Bună ziua, verific indexul declarat și revin cu un răspuns până mâine.', created_at: hoursAgo(28), read: false },
+      { id: 'pm-3', thread_id: 'pt-1', sender: 'resident', sender_name: 'Popescu Andrei', body: 'Vă mulțumesc!', created_at: hoursAgo(27), read: true },
+    ],
+  },
+  {
+    id: 'pt-2', asociatie_id: 'demo-asoc', resident_user_id: 'u-res', resident_name: 'Popescu Andrei',
+    subject: 'Adeverință pentru fond de rulment', status: 'resolved', created_at: hoursAgo(240),
+    messages: [
+      { id: 'pm-4', thread_id: 'pt-2', sender: 'resident', sender_name: 'Popescu Andrei', body: 'Am nevoie de o adeverință că nu am restanțe la întreținere, pentru bancă.', created_at: hoursAgo(240), read: true },
+      { id: 'pm-5', thread_id: 'pt-2', sender: 'admin', sender_name: 'Administrator', body: 'Am pregătit adeverința, o puteți ridica de la birou sau v-o trimit pe email. Confirmați adresa?', created_at: hoursAgo(236), read: true },
+    ],
+  },
+];
+
 // F11 — Procese verbale (arhivă).
 export const DEMO_PV_DOCUMENTS: PvDocument[] = [
   { id: 'pv-1', asociatie_id: 'demo-asoc', title: 'Proces verbal AGA ordinară 2026', doc_date: dayOffset(-40), category: 'AGA', content_text: 'Adunarea Generală a aprobat bugetul pe 2026, alegerea comitetului și majorarea fondului de reparații.', storage_path: null, created_at: new Date(Date.now() - 40 * 86_400_000).toISOString() },
@@ -554,4 +583,85 @@ export const DEMO_LAUNDRY_BOOKINGS: LaundryBooking[] = [
 export const DEMO_MOVING_BOOKINGS: MovingBooking[] = [
   { id: 'mv-1', asociatie_id: 'demo-asoc', date: dayOffset(2), slot: '08:00–11:00', floor: '4', user_id: 'u-res2', user_name: 'Georgescu Elena' },
   { id: 'mv-2', asociatie_id: 'demo-asoc', date: dayOffset(3), slot: '14:00–17:00', floor: '7', user_id: 'u-res', user_name: 'Popescu Andrei' },
+];
+
+// F27 — Rezervare sală comună / terasă.
+export const DEMO_VENUE_BOOKINGS: VenueBooking[] = [
+  { id: 'vn-1', asociatie_id: 'demo-asoc', venue: 'Sală comună', date: dayOffset(4), slot: '18:00–22:00', purpose: 'Aniversare 7 ani', user_id: 'u-res2', user_name: 'Georgescu Elena' },
+  { id: 'vn-2', asociatie_id: 'demo-asoc', venue: 'Terasă', date: dayOffset(6), slot: '14:00–18:00', purpose: 'Grătar de vară', user_id: 'u-res', user_name: 'Popescu Andrei' },
+];
+
+// F62 — Kit de bun-venit pentru locatari noi.
+export const DEMO_WELCOME_KIT: WelcomeKitItem[] = [
+  { id: 'wk-1', asociatie_id: 'demo-asoc', order: 1, title: 'Citește regulamentul de ordine interioară', body: 'Găsești orele de liniște, regulile pentru spațiile comune și animale în secțiunea „Document arhivă”.' },
+  { id: 'wk-2', asociatie_id: 'demo-asoc', order: 2, title: 'Salvează numerele de urgență', body: 'Dispecerat lift, apă, gaz și administratorul sunt la un tap distanță în secțiunea „Numere de urgență”.' },
+  { id: 'wk-3', asociatie_id: 'demo-asoc', order: 3, title: 'Trimite indexul la contoare', body: 'În fiecare lună, între 1 și 5, trimite-ți indexurile la apă, gaz și căldură din secțiunea „Citire contoare”.' },
+  { id: 'wk-4', asociatie_id: 'demo-asoc', order: 4, title: 'Cunoaște-ți vecinii', body: 'Activează-ți profilul în „Agendă vecini” și aruncă o privire la „Canal de discuții” pentru noutățile zilei.' },
+  { id: 'wk-5', asociatie_id: 'demo-asoc', order: 5, title: 'Notează-ți următoarea Adunare Generală', body: 'Participarea la AGA contează — vezi convocatorul și ordinea de zi în aplicație de îndată ce este publicată.' },
+];
+
+// F64 — Activități copii și adolescenți. Registrul vârstelor păstrează doar numere, niciun nume.
+export const DEMO_KIDS_RANGES: KidsAgeRange[] = [
+  { id: 'kr-1', asociatie_id: 'demo-asoc', user_id: 'u-res', bucket: '4-6', count: 1 },
+  { id: 'kr-2', asociatie_id: 'demo-asoc', user_id: 'u-res2', bucket: '4-6', count: 2 },
+  { id: 'kr-3', asociatie_id: 'demo-asoc', user_id: 'u-res3', bucket: '7-10', count: 1 },
+  { id: 'kr-4', asociatie_id: 'demo-asoc', user_id: 'u-res2', bucket: '0-3', count: 1 },
+  { id: 'kr-5', asociatie_id: 'demo-asoc', user_id: 'u-res3', bucket: '11-14', count: 1 },
+];
+
+export const DEMO_KIDS_EVENTS: KidsEvent[] = [
+  { id: 'ke-1', asociatie_id: 'demo-asoc', title: 'Întâlnire la locul de joacă', date: dayOffset(2), time: '17:00', location: 'Locul de joacă din curte', bucket: '4-6', note: 'Aducem mingi și cretă pentru desenat pe asfalt.', interested: 3, organizer_user_id: 'u-res2', organizer_name: 'Georgescu Elena', created_at: dayOffset(-3) },
+  { id: 'ke-2', asociatie_id: 'demo-asoc', title: 'Săniuș pe derdelușul din spate', date: dayOffset(5), time: '11:00', location: 'Spatele blocului', bucket: 'all', note: 'Dacă ninge până atunci! Confirmăm cu o zi înainte.', interested: 2, organizer_user_id: 'u-res3', organizer_name: 'Stan Gabriela', created_at: dayOffset(-1) },
+  { id: 'ke-3', asociatie_id: 'demo-asoc', title: 'Turneu de fotbal pentru adolescenți', date: dayOffset(-6), time: '18:00', location: 'Terenul din parcare', bucket: '11-14', note: 'A fost super, mulțumim tuturor!', interested: 5, organizer_user_id: 'u-res', organizer_name: 'Popescu Andrei', created_at: dayOffset(-12) },
+];
+
+// F41 — Urmărire proiecte. Lucrări majore cu faze, buget și contractor.
+export const DEMO_PROJECTS: Project[] = [
+  {
+    id: 'pr-1', asociatie_id: 'demo-asoc',
+    title: 'Reabilitare termică (anvelopare)',
+    description: 'Izolarea fațadei și a soclului pentru reducerea pierderilor de căldură. Cofinanțare cu primăria.',
+    contractor: 'Anvelope Construct SRL', status: 'in_curs',
+    budget_allocated: 420000, budget_spent: 168000,
+    phases: [
+      { id: 'ph-1a', name: 'Proiectare și autorizație', status: 'finalizat' },
+      { id: 'ph-1b', name: 'Montare schelă', status: 'finalizat' },
+      { id: 'ph-1c', name: 'Termoizolație fațadă', status: 'in_curs' },
+      { id: 'ph-1d', name: 'Finisaje și demontare schelă', status: 'asteptare' },
+    ],
+    created_at: new Date(Date.now() - 60 * 86_400_000).toISOString(),
+  },
+  {
+    id: 'pr-2', asociatie_id: 'demo-asoc',
+    title: 'Modernizare lift scara A',
+    description: 'Înlocuirea cabinei și a automatizării liftului, conform cerințelor ISCIR.',
+    contractor: 'Lift Expert', status: 'planificat',
+    budget_allocated: 95000, budget_spent: 0,
+    phases: [
+      { id: 'ph-2a', name: 'Selecție ofertă', status: 'in_curs' },
+      { id: 'ph-2b', name: 'Comandă echipament', status: 'asteptare' },
+      { id: 'ph-2c', name: 'Montaj și recepție ISCIR', status: 'asteptare' },
+    ],
+    created_at: new Date(Date.now() - 20 * 86_400_000).toISOString(),
+  },
+  {
+    id: 'pr-3', asociatie_id: 'demo-asoc',
+    title: 'Reabilitare acoperiș terasă',
+    description: 'Hidroizolație nouă și refacerea șapei de protecție pe acoperișul tip terasă.',
+    contractor: 'AcoperișPro', status: 'finalizat',
+    budget_allocated: 78000, budget_spent: 81500,
+    phases: [
+      { id: 'ph-3a', name: 'Demontare strat vechi', status: 'finalizat' },
+      { id: 'ph-3b', name: 'Hidroizolație', status: 'finalizat' },
+      { id: 'ph-3c', name: 'Șapă de protecție', status: 'finalizat' },
+    ],
+    created_at: new Date(Date.now() - 220 * 86_400_000).toISOString(),
+  },
+];
+
+// F42 — Jurnal foto lucrări. În modul demo imaginile sunt reprezentate prin gradiente.
+export const DEMO_PROJECT_PHOTOS: ProjectPhoto[] = [
+  { id: 'pp-1', asociatie_id: 'demo-asoc', project_id: 'pr-1', project_title: 'Reabilitare termică (anvelopare)', date: dayOffset(-2), caption: 'Termoizolația a ajuns la etajul 4 pe fațada de sud.', phase: 'Termoizolație fațadă', swatch: 'from-amber-400 to-orange-500', author_name: 'Georgescu Elena', created_at: dayOffset(-2) },
+  { id: 'pp-2', asociatie_id: 'demo-asoc', project_id: 'pr-1', project_title: 'Reabilitare termică (anvelopare)', date: dayOffset(-15), caption: 'Schela este montată complet pe toate cele trei fațade.', phase: 'Montare schelă', swatch: 'from-sky-400 to-indigo-500', author_name: 'Popescu Andrei', created_at: dayOffset(-15) },
+  { id: 'pp-3', asociatie_id: 'demo-asoc', project_id: 'pr-3', project_title: 'Reabilitare acoperiș terasă', date: dayOffset(-205), caption: 'Recepția finală — terasa cu hidroizolația nouă și șapa turnată.', phase: 'Șapă de protecție', swatch: 'from-emerald-400 to-teal-500', author_name: 'Popescu Andrei', created_at: dayOffset(-205) },
 ];
