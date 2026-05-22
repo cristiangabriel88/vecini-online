@@ -1,0 +1,205 @@
+import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
+import { Copy, KeyRound, Ticket, Trash2 } from 'lucide-react';
+import { PageHeader } from '@/shared/components/PageHeader';
+import { Card } from '@/shared/components/Card';
+import { Button } from '@/shared/components/Button';
+import { Select } from '@/shared/components/Select';
+import { Switch } from '@/shared/components/Switch';
+import { Badge } from '@/shared/components/Badge';
+import { EmptyState } from '@/shared/components/EmptyState';
+import { formatDate } from '@/shared/lib/format';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useInviteStore } from '@/shared/store/inviteStore';
+import { DEMO_APARTMENTS } from '@/shared/demo/demoData';
+import {
+  type ExpiryPreset,
+  type InviteStatus,
+  INVITABLE_ROLES,
+  expiryFromPreset,
+  validateInvite,
+} from '@/features/invites/inviteLogic';
+import type { Role } from '@/shared/types/domain';
+
+const EXPIRY_PRESETS: ExpiryPreset[] = ['7d', '30d', '90d', 'never'];
+
+const STATUS_TONE: Record<InviteStatus, 'success' | 'warning' | 'neutral' | 'danger'> = {
+  ok: 'success',
+  expired: 'warning',
+  used: 'neutral',
+  revoked: 'danger',
+  unknown: 'neutral',
+};
+
+export default function InvitesAdminPage() {
+  const { t } = useTranslation();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const userId = useAuthStore((s) => s.session?.user?.id ?? null);
+  const invites = useInviteStore((s) => s.invites);
+  const issue = useInviteStore((s) => s.issue);
+  const revoke = useInviteStore((s) => s.revoke);
+
+  const [role, setRole] = useState<Role>('proprietar');
+  const [apartmentId, setApartmentId] = useState('');
+  const [expiry, setExpiry] = useState<ExpiryPreset>('30d');
+  const [singleUse, setSingleUse] = useState(true);
+
+  const apartments = useMemo(
+    () => DEMO_APARTMENTS.filter((a) => a.asociatie_id === asociatieId),
+    [asociatieId],
+  );
+
+  // Re-derive (and re-sort, newest first) from the full store on every change.
+  const list = useMemo(
+    () =>
+      invites
+        .filter((invite) => invite.asociatieId === asociatieId)
+        .sort((a, b) => b.createdAt - a.createdAt),
+    [invites, asociatieId],
+  );
+
+  if (!asociatieId) {
+    return (
+      <div>
+        <PageHeader title={t('invites.title')} subtitle={t('invites.subtitle')} />
+        <EmptyState body={t('invites.noAsociatie')} />
+      </div>
+    );
+  }
+
+  const onIssue = () => {
+    const invite = issue({
+      asociatieId,
+      role,
+      apartmentId: apartmentId || null,
+      expiresAt: expiryFromPreset(expiry),
+      singleUse,
+      createdBy: userId,
+    });
+    toast.success(t('invites.issued', { code: invite.code }));
+  };
+
+  const copy = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      toast.success(t('invites.copied'));
+    } catch {
+      toast.error(t('invites.copyFailed'));
+    }
+  };
+
+  const apartmentLabel = (id: string | null) => {
+    if (!id) return null;
+    const apt = apartments.find((a) => a.id === id);
+    return apt ? t('invites.aptShort', { number: apt.numar_apartament, scara: apt.scara }) : id;
+  };
+
+  return (
+    <div>
+      <PageHeader title={t('invites.title')} subtitle={t('invites.subtitle')} />
+
+      <Card className="mb-6">
+        <h2 className="mb-4 text-lg font-semibold">{t('invites.issueTitle')}</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Select
+            label={t('invites.role')}
+            value={role}
+            onChange={(e) => setRole(e.target.value as Role)}
+          >
+            {INVITABLE_ROLES.map((r) => (
+              <option key={r} value={r}>
+                {t(`invites.role_${r}`)}
+              </option>
+            ))}
+          </Select>
+          <Select
+            label={t('invites.apartment')}
+            value={apartmentId}
+            onChange={(e) => setApartmentId(e.target.value)}
+          >
+            <option value="">{t('invites.anyApartment')}</option>
+            {apartments.map((a) => (
+              <option key={a.id} value={a.id}>
+                {t('invites.aptShort', { number: a.numar_apartament, scara: a.scara })}
+              </option>
+            ))}
+          </Select>
+          <Select
+            label={t('invites.expiry')}
+            value={expiry}
+            onChange={(e) => setExpiry(e.target.value as ExpiryPreset)}
+          >
+            {EXPIRY_PRESETS.map((preset) => (
+              <option key={preset} value={preset}>
+                {t(`invites.expiry_${preset}`)}
+              </option>
+            ))}
+          </Select>
+          <label className="flex items-center gap-3 self-end pb-1">
+            <Switch
+              label={t('invites.singleUse')}
+              checked={singleUse}
+              onChange={setSingleUse}
+            />
+            <span className="text-sm">
+              {singleUse ? t('invites.singleUse') : t('invites.reusable')}
+            </span>
+          </label>
+        </div>
+        <div className="mt-4">
+          <Button onClick={onIssue}>
+            <KeyRound className="h-4 w-4" /> {t('invites.issue')}
+          </Button>
+        </div>
+      </Card>
+
+      <h2 className="mb-2 text-lg font-semibold">{t('invites.listTitle')}</h2>
+      {list.length === 0 ? (
+        <EmptyState icon={<Ticket className="h-6 w-6" />} body={t('invites.empty')} />
+      ) : (
+        <div className="space-y-3">
+          {list.map((invite) => {
+            const status = validateInvite(invite);
+            return (
+              <Card key={invite.id}>
+                <div className="flex flex-wrap items-center gap-3">
+                  <code className="rounded bg-surface-2 px-2 py-1 font-mono text-base font-semibold tracking-widest">
+                    {invite.code}
+                  </code>
+                  <Badge tone={STATUS_TONE[status]}>{t(`invites.status_${status}`)}</Badge>
+                  <Badge tone="primary">{t(`invites.role_${invite.role}`)}</Badge>
+                  {invite.apartmentId && (
+                    <Badge tone="neutral">{apartmentLabel(invite.apartmentId)}</Badge>
+                  )}
+                  {!invite.singleUse && (
+                    <Badge tone="neutral">{t('invites.reusable')}</Badge>
+                  )}
+                  <div className="ml-auto flex gap-2">
+                    <Button variant="ghost" size="sm" onClick={() => copy(invite.code)}>
+                      <Copy className="h-4 w-4" /> {t('invites.copy')}
+                    </Button>
+                    {status === 'ok' && (
+                      <Button variant="danger" size="sm" onClick={() => revoke(invite.id)}>
+                        <Trash2 className="h-4 w-4" /> {t('invites.revoke')}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <p className="mt-2 text-sm text-muted">
+                  {t('invites.createdOn', { date: formatDate(invite.createdAt) })}
+                  {' · '}
+                  {invite.expiresAt === null
+                    ? t('invites.neverExpires')
+                    : t('invites.expiresOn', { date: formatDate(invite.expiresAt) })}
+                  {invite.consumedAt !== null &&
+                    ` · ${t('invites.consumedOn', { date: formatDate(invite.consumedAt) })}`}
+                </p>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}

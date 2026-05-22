@@ -1,0 +1,75 @@
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import {
+  type CreateInviteInput,
+  type InviteCode,
+  type InviteStatus,
+  consumeInvite,
+  createInvite,
+  findByCode,
+  revokeInvite,
+  validateInvite,
+} from '@/features/invites/inviteLogic';
+
+interface ConsumeResult {
+  status: InviteStatus;
+  /** The consumed code when `status === 'ok'`, otherwise null. */
+  invite: InviteCode | null;
+}
+
+interface InviteState {
+  /** Every issued code across asociații; filter by asociație with `forAsociatie`. */
+  invites: InviteCode[];
+  /** Issue (mint) a new code for an asociație and persist it. Returns the code. */
+  issue: (input: CreateInviteInput) => InviteCode;
+  /** Revoke a code so it can no longer be redeemed (kept for the audit trail). */
+  revoke: (id: string) => void;
+  /**
+   * Atomically validate and consume a code for `userId`. Re-validates inside the
+   * state update so a single-use code cannot be double-spent under a race (the
+   * replay guard T42 builds the live join flow on). Membership creation is the
+   * caller's concern (T42), not this store's.
+   */
+  consume: (code: string, userId: string) => ConsumeResult;
+  /** Codes issued for one asociație, newest first. */
+  forAsociatie: (asociatieId: string) => InviteCode[];
+}
+
+export const useInviteStore = create<InviteState>()(
+  persist(
+    (set, get) => ({
+      invites: [],
+
+      issue: (input) => {
+        const existing = get().invites.map((i) => i.code);
+        const invite = createInvite(input, existing);
+        set({ invites: [...get().invites, invite] });
+        return invite;
+      },
+
+      revoke: (id) =>
+        set({
+          invites: get().invites.map((invite) =>
+            invite.id === id && invite.revokedAt === null ? revokeInvite(invite) : invite,
+          ),
+        }),
+
+      consume: (code, userId) => {
+        const target = findByCode(get().invites, code);
+        const status = validateInvite(target);
+        if (status !== 'ok' || !target) return { status, invite: null };
+        const consumed = consumeInvite(target, userId);
+        set({
+          invites: get().invites.map((invite) => (invite.id === target.id ? consumed : invite)),
+        });
+        return { status: 'ok', invite: consumed };
+      },
+
+      forAsociatie: (asociatieId) =>
+        get()
+          .invites.filter((invite) => invite.asociatieId === asociatieId)
+          .sort((a, b) => b.createdAt - a.createdAt),
+    }),
+    { name: 'intrevecini.invites' },
+  ),
+);

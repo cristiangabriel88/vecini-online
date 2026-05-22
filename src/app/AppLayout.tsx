@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate, NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Home, Megaphone, Zap, Menu, User, Bell, Moon, Sun, Settings, Search, ChevronDown, Info, Phone, Siren, ArrowUpRight, Globe } from 'lucide-react';
+import { Home, Megaphone, Zap, Menu, User, Bell, Moon, Sun, Settings, Search, ChevronDown, Info, Phone, Siren, ArrowUpRight, Globe, KeyRound } from 'lucide-react';
 import { FEATURES, FEATURE_CATEGORIES, categoryLabel, featureTitle, type FeatureCategory } from '@/shared/features/registry';
 import { useFeatureStore } from '@/shared/features/featureStore';
 import { useThemeStore } from '@/shared/store/themeStore';
@@ -163,6 +163,12 @@ function Sidebar() {
               active={isActive('admin/apartamente')}
               onClick={() => navigate('/app/admin/apartamente')}
               icon={<Home size={16} />}
+            />
+            <NavItem
+              label={t('chrome.invites')}
+              active={isActive('admin/invitatii')}
+              onClick={() => navigate('/app/admin/invitatii')}
+              icon={<KeyRound size={16} />}
             />
           </div>
         </div>

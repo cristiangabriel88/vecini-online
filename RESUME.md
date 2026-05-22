@@ -18,7 +18,23 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-22, T28 profile/membership hydration + MVP-spine rebalance)
+## 0. Current status (updated 2026-05-23, T41 invite-code lifecycle + admin surface)
+
+- **2026-05-23 — T41 (P1) invite-code generation + admin surface.** New pure,
+  unit-tested `inviteLogic` (`createInvite` reusing `generateInviteCode` with
+  collision-regeneration; `validateInvite` → `ok`/`expired`/`used`/`revoked`/
+  `unknown`; `consumeInvite`/`revokeInvite` non-mutating; `findByCode`;
+  `isRedeemable`; `expiryFromPreset`; `INVITABLE_ROLES` minus founder/platform
+  roles). Persisted `inviteStore` (`intrevecini.invites`): `issue`, `revoke`, an
+  atomic double-spend-safe `consume`, and a `forAsociatie` selector. New
+  `InvitesAdminPage` at `/app/admin/invitatii` (admin nav link) to issue (role,
+  optional apartment, expiry preset, single-use) / list / copy / revoke codes,
+  scoped to the active asociație. Fully offline, bilingual `invites.*`,
+  `/invitatii` bot command. Pipeline green: lint, typecheck, 83 files / 487 tests,
+  build. Surfaced T60 (extend `invite_codes` with `role`+`single_use`) and T61
+  (wire/remove the ApartmentsPage generate-codes button). Unblocks T42 (resident
+  join via invite code). Live persistence is T55.
+
 
 - **MVP milestone reframed: "One real asociație works end-to-end."** `BACKLOG.md`
   gained a `## Current MVP milestone` section and an `## MVP spine` block at the top of

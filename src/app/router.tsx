@@ -60,6 +60,7 @@ const ProfilePage = lazy(() => import('@/features/profile/ProfilePage'));
 const NotificationsPage = lazy(() => import('@/features/profile/NotificationsPage'));
 const FeaturesAdminPage = lazy(() => import('@/features/admin/FeaturesAdminPage'));
 const ApartmentsPage = lazy(() => import('@/features/admin/ApartmentsPage'));
+const InvitesAdminPage = lazy(() => import('@/features/invites/InvitesAdminPage'));
 const AnonymousPage = lazy(() => import('@/features/anonymous/AnonymousPage'));
 const PvDocumentsPage = lazy(() => import('@/features/pv/PvDocumentsPage'));
 const RfpPage = lazy(() => import('@/features/rfp/RfpPage'));
@@ -184,6 +185,7 @@ export const router = createBrowserRouter([
       { path: 'confidentialitate', element: <S><PrivacySettingsPage /></S> },
       { path: 'admin/functionalitati', element: <S><FeaturesAdminPage /></S> },
       { path: 'admin/apartamente', element: <S><ApartmentsPage /></S> },
+      { path: 'admin/invitatii', element: <S><InvitesAdminPage /></S> },
       { path: '*', element: <S><NotImplementedPage /></S> },
     ],
   },

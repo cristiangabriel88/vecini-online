@@ -97,6 +97,7 @@ const FEATURE_COMMANDS: Record<string, string> = {
   '/evacuare': '🗺 Plan de evacuare — vezi traseul de evacuare, unde sunt stingătoarele, hidranții și ieșirile, și marchează prezența animalelor pentru pompieri, în secțiunea „Plan de evacuare”.',
   '/apartament_meu': '🚪 Informații apartament — vezi datele apartamentului tău, istoricul indexurilor la contoare, sesizările trimise și voturile exprimate în secțiunea „Informații apartament”.',
   '/securitate': '🔐 Securitate cont — activează autentificarea în doi pași (2FA) cu o aplicație de autentificare, generează coduri de recuperare și gestionează-ți factorul al doilea în secțiunea „Securitate”. Obligatorie pentru rolurile de administrare.',
+  '/invitatii': '🎟 Coduri de invitație — generează, listează și revocă codurile prin care vecinii se alătură asociației (rol, apartament și expirare opționale) în secțiunea „Coduri de invitație” (administrare).',
 };
 
 async function handleMessage(msg: TelegramMessage) {

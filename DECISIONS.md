@@ -280,3 +280,29 @@ header is static in `netlify.toml`; tightening it to the exact origin at
 build/deploy time plus CSP violation reporting is queued as T39. HSTS uses a
 two-year `max-age` with `includeSubDomains; preload` to be submission-ready for
 the preload list. `npm audit` reported 0 vulnerabilities, so nothing to resolve.
+
+## Invite-code lifecycle + admin surface (T41)
+
+The invite model lives in two layers so the offline loop is complete and the
+live path is a thin follow-up. Pure `inviteLogic` owns the lifecycle (create /
+validate / consume / revoke); a persisted `inviteStore` (`intrevecini.invites`)
+keeps issued codes across all asociații and filters by the active one. Codes are
+generated with the existing `generateInviteCode` (unambiguous 8-char alphabet)
+and regenerated on the rare collision so they stay unique within the store.
+
+`validateInvite` returns `ok | expired | used | revoked | unknown` with a
+deliberate precedence: unknown first, then revoked (an admin action overrides
+everything), then `used` for a consumed single-use code (so a spent code reads
+`used` even once also expired), then `expired`, else `ok`. Timestamps are stored
+as epoch ms (not ISO strings) for cheap comparison and compact persistence.
+
+The local `InviteCode` adds a granted `role` and a `singleUse` flag that the
+`invite_codes` table does not yet have (the table models single-use only
+implicitly via `consumed_by_user_id`). Rather than reshape the table now, those
+are local-model extensions and the additive migration to add `role` +
+`single_use` columns for live parity is queued as T60 (folds into T55). The
+store's `consume` re-validates inside the state update so a single-use code
+cannot be double-spent under a race; it does not create the membership, which is
+T42's concern, keeping issue/redeem (T41) and join/membership (T42) cleanly
+split. `INVITABLE_ROLES` excludes `admin`/`super_admin` so an invite can never
+mint a founder/platform role.
