@@ -23,10 +23,10 @@
         commit, even after a replenish attempt) - genuinely nothing actionable,
       * a task/time budget is reached (MaxTasks / MaxHours), or
       * the post-commit pipeline goes red (halt so a break is never built upon),
-      * you press Ctrl+C.
+      * an auth error needs the human, or you press Ctrl+C.
 
-    Every pass that makes progress ends in a commit + push, so "a new commit
-    appeared" remains the signal that real work happened.
+    Usage/rate limits are handled gracefully: the pass waits and retries instead
+    of being counted as a stall.
 
 .PARAMETER MaxTasks
     Safety cap on total passes (build + replenish). 0 = unbounded (default),
@@ -40,6 +40,10 @@
     Consecutive passes with no BUILD commit before the loop concludes there is
     nothing actionable left and stops. Default 3. Replenish commits do not reset
     this; only a completed build task does, so a doc-churn-only loop still ends.
+
+.PARAMETER WaitOnLimitSeconds
+    How long to wait before retrying when a usage/rate limit is detected.
+    Default 1800 (30 min).
 
 .PARAMETER Prompt
     The build trigger sent to Claude. Default "make progress" (see BACKLOG.md).
@@ -64,6 +68,7 @@ param(
     [int]$MaxTasks = 0,
     [double]$MaxHours = 0,
     [int]$StuckLimit = 3,
+    [int]$WaitOnLimitSeconds = 1800,
     [string]$Prompt = "make progress",
     [string]$ReplenishPrompt = @"
 The BACKLOG.md task queue is empty (or the last build pass stalled). Do NOT build a
@@ -153,16 +158,20 @@ function Test-Pipeline {
     return $true
 }
 
-# Run one Claude pass for the given phase; return $true if it produced a commit.
+# Run one Claude pass for the given phase. Returns a hashtable:
+#   Committed = $true if HEAD moved, Output = captured stdout/stderr text.
 function Invoke-Pass([string]$phase, [string]$passPrompt) {
     $before = (git rev-parse HEAD).Trim()
-    & claude -p $passPrompt --dangerously-skip-permissions --verbose | Tee-Object -FilePath $Log -Append
+    $out = & claude -p $passPrompt --dangerously-skip-permissions --verbose 2>&1 |
+        Tee-Object -FilePath $Log -Append | Out-String
     $after = (git rev-parse HEAD).Trim()
-    if ($before -eq $after) { return $false }
-    $subject = (git log -1 --pretty=%s).Trim()
-    Write-Both ""
-    Write-Both "[$phase] committed: $($after.Substring(0,7))  $subject"
-    return $true
+    $committed = ($before -ne $after)
+    if ($committed) {
+        $subject = (git log -1 --pretty=%s).Trim()
+        Write-Both ""
+        Write-Both "[$phase] committed: $($after.Substring(0,7))  $subject"
+    }
+    return @{ Committed = $committed; Output = $out }
 }
 
 Write-Both "=== Self-improving overnight run started $stamp ==="
@@ -206,14 +215,32 @@ while ($true) {
     }
 
     $passPrompt = if ($isBuild) { $Prompt } else { $ReplenishPrompt }
-    $committed  = Invoke-Pass $phase $passPrompt
+    $result     = Invoke-Pass $phase $passPrompt
+
+    # Usage/rate limit: don't burn a pass on it. Wait, then retry the same pass.
+    if ($result.Output -match "(?i)rate limit|usage limit|quota exceeded|too many requests|\b429\b") {
+        Write-Both ""
+        Write-Both "Usage/rate limit detected. Waiting $WaitOnLimitSeconds s, then retrying this pass."
+        $pass--
+        Start-Sleep -Seconds $WaitOnLimitSeconds
+        continue
+    }
+    # Auth failure needs a human; nothing autonomous can recover it.
+    if (-not $result.Committed -and $result.Output -match "(?i)authentication failed|unauthorized|not logged in|please run .?claude.? to (re)?authenticate") {
+        Write-Both ""
+        Write-Both "Auth error detected. Run 'claude' to re-authenticate, then re-run this script. Stopping."
+        break
+    }
+
+    $committed = $result.Committed
 
     # If a build pass stalls (no commit), try one replenish to re-plan / unblock
     # before counting it as a stall. This is how "run until done" recovers when a
     # single task is blocked: it re-plans rather than giving up.
     if ($isBuild -and -not $committed) {
         Write-Both "Build pass produced no commit. Running a replenish pass to re-plan / unblock."
-        $committed = Invoke-Pass "REPLENISH" $ReplenishPrompt
+        $result   = Invoke-Pass "REPLENISH" $ReplenishPrompt
+        $committed = $result.Committed
         $phase = "REPLENISH"
         $isBuild = $false
     }
