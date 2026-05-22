@@ -18,7 +18,7 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-22, audit/replenish pass)
+## 0. Current status (updated 2026-05-22, T34 vote/signature RLS fix)
 
 - **Original-vision coverage: ~58% delivered end-to-end.** The CLAUDE.md vision is a
   "secure, stable, well-polished, GDPR-compliant, multi-tenant SaaS with 2FA, a live
@@ -26,9 +26,9 @@ accurate for architecture/data/feature specs.
   read: **feature set ~95%** (all 65 built end-to-end, but exercised only in demo mode —
   not yet verified live against a provisioned backend); **auth/2FA ~70%** (T01/T02/T03
   wired, server-side parity T32 and live recovery T29 pending); **tenant-isolation
-  security ~45%** (RLS broadly present via `apply_standard_rls`, but this pass found three
-  tables with no RLS at all — see T34 — and the full audit T04, CSP/HSTS, `npm audit` and
-  `SECURITY.md` are not done); **GDPR/privacy ~35%** (consent + legal surface T05 done;
+  security ~50%** (RLS broadly present via `apply_standard_rls`, and the three tables that
+  had no RLS at all are now fixed and regression-guarded — see T34 — but the full audit T04,
+  CSP/HSTS, `npm audit` and `SECURITY.md` are not done); **GDPR/privacy ~35%** (consent + legal surface T05 done;
   data-subject rights T06, DPA/ROPA T21, breach procedure T22, minors enforcement T23 all
   pending); **stability/resilience ~40%** (no global error boundary, no standardized
   loading/empty/error states, E2E not yet run in CI — T07/T08); **Telegram bot ~30%**
@@ -37,8 +37,8 @@ accurate for architecture/data/feature specs.
   **SaaS readiness ~25%** (no billing T19, no super-admin console T20, live onboarding T27
   and profile hydration T28 pending). The features dominate the build effort and are done,
   which pulls the number up; the "deployable for real residents" gates (security audit,
-  GDPR rights, live backend verification) pull it back down. Phase-2 task progress: **4 of
-  ~33 hardening tasks complete**, now plus a confirmed P0 security fix (T34) queued at top.
+  GDPR rights, live backend verification) pull it back down. Phase-2 task progress: **5 of
+  ~33 hardening tasks complete** (T05, T01, T02, T03, T34).
 
 - **2026-05-22 audit/replenish pass (no feature built).** Swept RLS coverage across all
   122 tables: `apply_standard_rls`/`apply_owner_rls` cover 119, but **`budget_votes`,
@@ -52,8 +52,18 @@ accurate for architecture/data/feature specs.
   parity is clean (the only RO-only keys are correct `_few` Romanian plural forms). Pipeline
   green throughout: lint, typecheck, 76 test files / 425 tests, build.
 
+- **2026-05-22 — T34 (P0) closed the vote/signature tenant-isolation hole.** Additive,
+  idempotent migration `20260522000012_vote_signature_rls.sql` enables RLS on `budget_votes`,
+  `idea_votes` and `petition_signatures` and adds parent-scoped `select` + `insert` policies
+  that resolve the owning asociație through the parent (`budget_proposals` / `ideas` /
+  `petitions`) and gate on `is_member(...)`. No `update`/`delete`/`for all` policy is granted,
+  so a cast vote or signature is immutable under RLS. A backend-free regression test
+  (`tests/unit/voteSignatureRls.test.ts`, 9 assertions) parses the migration SQL and fails if
+  any of the three loses RLS, parent-scoping, or gains a mutation policy. The general
+  table-by-table coverage guard remains T35. Pipeline green: 77 test files / 434 tests.
+
 - **Two phases. Phase 1 (features): 65 / 65 built end-to-end (100%, `BUILD_COMPLETE`).
-  Phase 2 (production + legal readiness, `BACKLOG.md`): 4 tasks done (T05, T01, T02, T03);
+  Phase 2 (production + legal readiness, `BACKLOG.md`): 5 tasks done (T05, T01, T02, T03, T34);
   plus T10/T13 resolved as already-delivered features in the 2026-05-22 audit.**
   The app is feature-complete but not yet legally deployable for real residents:
   remaining go-live blockers are the RLS/tenant-isolation audit (T04), GDPR
