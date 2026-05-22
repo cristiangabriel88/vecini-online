@@ -4,6 +4,7 @@ import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import { env } from '@/shared/lib/env';
 import type { Membership, Role, UserProfile } from '@/shared/types/domain';
 import { mergeHydration, roleFor } from '@/features/auth/hydrationLogic';
+import { demoTenantContext } from '@/features/auth/demoTenant';
 import { useSecurityStore } from './securityStore';
 
 /** Where Supabase sends the resident after they click the password-reset link. */
@@ -255,6 +256,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   enterDemo: () => {
     // A demo login is recorded too, so the activity log is exercised offline.
     useSecurityStore.getState().log('login', null);
-    set({ demo: true, loading: false });
+    // Seed local tenant context so demo mode has a real active asociație + role
+    // to scope by (no backend to hydrate from).
+    const { currentAsociatieId, memberships } = demoTenantContext();
+    set({ demo: true, loading: false, currentAsociatieId, memberships });
   },
 }));
