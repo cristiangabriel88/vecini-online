@@ -15,17 +15,21 @@ accurate for architecture/data/feature specs.
 
 ## 0. Current status (updated 2026-05-22)
 
-- **Overall completion: 60 / 65 features built end-to-end (≈92%).**
-- **Completed this turn (2):** F41 Urmărire proiecte + F42 Jurnal foto lucrări —
-  paired `projects` + `photojournal` slices sharing the `projects` domain.
-  F41: major-works tracker with changeable status, phase-derived progress bar,
-  budget alloc-vs-spent bar (remaining/over-budget), advanceable phases, and
-  active/planned-first sort. F42: reverse-chronological photo journal grouped by
-  day with a per-project filter; demo images render as gradient swatches (no
-  binary assets ship), reading project titles from the F41 store. Both wired
-  end-to-end (logic + Zustand demo store + page + registry toggle + routes
-  `proiecte`/`jurnal-foto` + `/proiecte` & `/jurnal_foto` bot commands + RO/EN
-  locales + demo projects/photos + unit tests + one E2E each).
+- **Overall completion: 62 / 65 features built end-to-end (≈95%).**
+- **Completed this turn (2):** F49 Cod de siguranță + F50 Plan de evacuare —
+  the safety pair. F49: a private, owner-only profile — a scam-defeating
+  passphrase + free-text instructions, plus a name-sorted list of trusted
+  contacts (relationship + tap-to-call, add/remove); a privacy banner stresses
+  it's encrypted and never shared. F50: an evacuation plan per scara (text route
+  + safety-fixture list with per-kind icons, sorted by stairwell) plus pet
+  markers — residents flag animals in their apartment with a building-wide count
+  so firefighters know where to look (set/clear own); no binary floor-plan ships.
+  Both wired end-to-end (logic + Zustand demo store + page + registry toggle +
+  routes `cod-siguranta`/`evacuare` + `/cod_siguranta` & `/evacuare` bot commands
+  + RO/EN locales + demo data + unit tests + one E2E each). Added `Droplet` and
+  `FireExtinguisher` to the shared `Icon` registry for F50 fixtures.
+- **Previously (F41+F42):** Urmărire proiecte + Jurnal foto lucrări — `projects`
+  + `photojournal` slices sharing the `projects` domain.
 - **Previously (F64):** Activități copii și adolescenți — `kids` slice
   (privacy-preserving children registry + coordinated activities).
 - **Previously (F62):** Kit de bun-venit — `welcomekit` slice (new-resident
@@ -33,11 +37,11 @@ accurate for architecture/data/feature specs.
 - **Previously (F04):** Mesagerie privată cu administratorul — `adminchat` slice
   (private resident↔admin channel, chat timeline, SLA hint, resolve/reopen).
 - **Previously (F27):** Rezervare sală comună / terasă — `venue` slice on the
-  F25/F26 booking pattern. Note: F04, F27, F62, F64 and this turn's F41/F42
-  slices are still uncommitted in the working tree.
-- **Pipeline:** `npm run lint`, `npm run typecheck`, `npm test` (60 files / 259
+  F25/F26 booking pattern. Note: F04, F27, F62, F64, F41/F42 and this turn's
+  F49/F50 slices are still uncommitted in the working tree.
+- **Pipeline:** `npm run lint`, `npm run typecheck`, `npm test` (62 files / 272
   unit tests), and `npm run build` all pass.
-- **Remaining (5):** F10, F21, F35, F49, F50.
+- **Remaining (3):** F10, F21, F35.
 - **Source of truth:** the **FEATURES.md** tracking table (legend: ✅ UI done ·
   🟦 schema-only) is authoritative for per-feature status — sections 2–3 below are
   historical and undercount what's shipped. Trust the table.
@@ -124,17 +128,15 @@ Notable clusters still to build:
    live features read/write against real tables and RLS.
 3. **Wire the Telegram webhook** — deploy the Netlify function, register the bot
    webhook + Mini App, and verify `initData`/secret validation end-to-end.
-4. **Build out the remaining 7 features**, reusing the established pattern
+4. **Build out the remaining feature**, reusing the established pattern
    (logic module → Zustand demo store seeded from `demoData.ts` → feature page →
    `registry.ts` toggle flipped to `implemented` → route → `/command` bot help →
-   RO/EN locales → unit test → one E2E happy-path). Suggested order — lowest
-   complexity / highest reuse first:
-   - **F49 Cod portari / vecini de încredere** and **F50 Plan de evacuare** —
-     safety pair (F49 holds an encrypted payload, owner-only RLS).
-   - **F10 AGA digitală last** — carries Legea 196/2018 compliance + PV PDF
+   RO/EN locales → unit test → one E2E happy-path).
+   - **F10 AGA digitală** — carries Legea 196/2018 compliance + PV PDF
      generation weight; implement it alone in its own session.
    - *(Done: F41 Project tracker + F42 Project photo journal — `projects` +
-     `photojournal` slices.)*
+     `photojournal` slices. F49 Cod de siguranță + F50 Plan de evacuare —
+     `safety` + `evacuation` slices.)*
 5. **Fill the computed views** (F21 recurring-ticket detection over `tickets`;
    F35 apartament info over apartments/readings/tickets/votes) — these are
    read-only aggregations, no new tables.

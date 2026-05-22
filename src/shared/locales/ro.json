@@ -1041,5 +1041,51 @@
     "phase": "Faza (opțional)",
     "phaseHint": "ex: Termoizolație fațadă",
     "demoNote": "În modul demonstrativ fotografia este reprezentată printr-un fundal colorat — caption-ul și data spun povestea."
+  },
+  "safety": {
+    "title": "Cod de siguranță",
+    "subtitle": "O parolă împotriva escrocheriilor telefonice și o listă privată de persoane de încredere. Util mai ales pentru vârstnici.",
+    "privacyNote": "Doar tu vezi aceste informații. Sunt stocate criptat și nu sunt vizibile comitetului sau celorlalți vecini.",
+    "passphraseSection": "Parolă de siguranță",
+    "passphraseLabel": "Parola",
+    "passphraseHint": "ex: Castanul din curte",
+    "noteLabel": "Instrucțiuni (opțional)",
+    "noteHint": "ex: Dacă cineva sună în numele meu și cere bani, întreabă mai întâi parola.",
+    "saved": "Cod de siguranță salvat.",
+    "contactsSection": "Persoane de încredere",
+    "addContact": "Adaugă persoană",
+    "contactAdded": "Persoană de încredere adăugată.",
+    "removeContact": "Șterge persoana",
+    "empty": "Nicio persoană de încredere adăugată încă.",
+    "call": "Sună pe",
+    "nameLabel": "Nume",
+    "nameHint": "ex: Mihai (fiul)",
+    "relationshipLabel": "Relație",
+    "relationshipHint": "ex: fiu, vecin, medic de familie",
+    "phoneLabel": "Telefon",
+    "phoneHint": "ex: +40 740 123 456"
+  },
+  "evacuation": {
+    "title": "Plan de evacuare",
+    "subtitle": "Traseul de evacuare, locul stingătoarelor, hidranților și ieșirilor, plus marcaje pentru animale ca pompierii să știe unde să caute.",
+    "empty": "Niciun plan de evacuare publicat încă.",
+    "scara": "Scara {{scara}}",
+    "fixtures": "Echipamente de siguranță",
+    "equipment": {
+      "stingator": "Stingător",
+      "hidrant": "Hidrant",
+      "iesire": "Ieșire de urgență",
+      "tablou_electric": "Tablou electric"
+    },
+    "petsSection": "Animale în bloc",
+    "petsHint": "Marchează prezența animalelor din apartamentul tău, ca pompierii să știe unde să caute în caz de evacuare.",
+    "petCount": "{{count}} apartamente cu animale",
+    "myMarker": "Apartamentul tău: {{species}}",
+    "noMarker": "Apartamentul tău nu este marcat cu animale.",
+    "addMarker": "Marchează animale",
+    "removeMarker": "Șterge",
+    "markerSaved": "Marcaj salvat.",
+    "speciesLabel": "Animale (pe scurt)",
+    "speciesHint": "ex: 1 pisică, 2 câini"
   }
 }

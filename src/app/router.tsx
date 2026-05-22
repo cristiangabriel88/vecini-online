@@ -72,6 +72,8 @@ const WelcomeKitPage = lazy(() => import('@/features/welcomekit/WelcomeKitPage')
 const KidsPage = lazy(() => import('@/features/kids/KidsPage'));
 const ProjectsPage = lazy(() => import('@/features/projects/ProjectsPage'));
 const PhotoJournalPage = lazy(() => import('@/features/photojournal/PhotoJournalPage'));
+const SafetyCodePage = lazy(() => import('@/features/safety/SafetyCodePage'));
+const EvacuationPage = lazy(() => import('@/features/evacuation/EvacuationPage'));
 const NotImplementedPage = lazy(() => import('@/features/home/NotImplementedPage'));
 const FeatureHubPage = lazy(() =>
   import('@/features/home/FeatureHubPage').then((m) => ({ default: m.FeatureHubPage })),
@@ -153,6 +155,8 @@ export const router = createBrowserRouter([
       { path: 'copii', element: <S><KidsPage /></S> },
       { path: 'proiecte', element: <S><ProjectsPage /></S> },
       { path: 'jurnal-foto', element: <S><PhotoJournalPage /></S> },
+      { path: 'cod-siguranta', element: <S><SafetyCodePage /></S> },
+      { path: 'evacuare', element: <S><EvacuationPage /></S> },
       { path: 'actiuni', element: <S><FeatureHubPage actions /></S> },
       { path: 'mai-mult', element: <S><FeatureHubPage /></S> },
       { path: 'profil', element: <S><ProfilePage /></S> },

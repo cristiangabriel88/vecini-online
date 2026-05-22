@@ -106,8 +106,8 @@ export const FEATURES: FeatureDef[] = [
   { key: 'F48', title: 'Garanții echipamente', category: 'projects', icon: 'BadgeCheck', audience: ['comitet', 'admin'], path: 'garantii', description: 'Urmărirea garanțiilor echipamentelor instalate.', implemented: true },
 
   // Category 7 — Safety & Compliance
-  { key: 'F49', title: 'Cod portari / vecini de încredere', category: 'safety', icon: 'Lock', audience: ['all'], path: 'cod-siguranta', description: 'Liste de vecini de încredere, stocate criptat.', implemented: false },
-  { key: 'F50', title: 'Plan de evacuare', category: 'safety', icon: 'Map', audience: ['all'], path: 'evacuare', description: 'Planuri de evacuare cu marcaje pentru animale.', implemented: false },
+  { key: 'F49', title: 'Cod portari / vecini de încredere', category: 'safety', icon: 'Lock', audience: ['all'], path: 'cod-siguranta', description: 'Liste de vecini de încredere, stocate criptat.', implemented: true },
+  { key: 'F50', title: 'Plan de evacuare', category: 'safety', icon: 'Map', audience: ['all'], path: 'evacuare', description: 'Planuri de evacuare cu marcaje pentru animale.', implemented: true },
   { key: 'F51', title: 'Verificări PSI', category: 'safety', icon: 'Flame', audience: ['comitet', 'admin'], path: 'psi', description: 'Urmărirea verificărilor PSI obligatorii.', implemented: true },
   { key: 'F52', title: 'Asigurare bloc', category: 'safety', icon: 'Umbrella', audience: ['comitet', 'admin'], path: 'asigurare', description: 'Urmărirea poliței de asigurare a blocului.', implemented: true },
   { key: 'F53', title: 'Registru de chei', category: 'safety', icon: 'KeySquare', audience: ['comitet', 'admin'], path: 'chei', description: 'Cine deține cheile spațiilor comune.', implemented: true },

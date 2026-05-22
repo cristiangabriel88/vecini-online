@@ -1012,3 +1012,74 @@ export interface ProjectPhoto {
   author_name: string;
   created_at: string;
 }
+
+/** F49 — a single trusted contact within an owner's safety profile. */
+export interface TrustedContact {
+  id: string;
+  /** Who they are, e.g. "Andrei (fiul)". */
+  name: string;
+  /** Relationship label, e.g. "fiu", "vecin", "medic de familie". */
+  relationship: string;
+  /** Phone number, tap-to-call. */
+  phone: string;
+}
+
+/**
+ * F49 — Cod portari / vecini de încredere. A private, owner-only safety profile:
+ * a passphrase to defeat phone scams ("dacă sun, întreabă parola X"), free-text
+ * instructions, and a short list of trusted contacts. Stored encrypted at rest;
+ * only the owner can read it (owner-only RLS on `safety_codes`).
+ */
+export interface SafetyProfile {
+  id: string;
+  asociatie_id: string;
+  user_id: string;
+  /** The agreed safety word/phrase a caller must know to be trusted. */
+  passphrase: string;
+  /** Free-text instructions for trusted relatives / the comitet. */
+  note: string;
+  contacts: TrustedContact[];
+  updated_at: string;
+}
+
+/** F50 — kind of safety fixture marked on an evacuation plan. */
+export type EvacuationEquipmentKind = 'stingator' | 'hidrant' | 'iesire' | 'tablou_electric';
+
+/** F50 — one safety fixture on an evacuation plan (`evacuation_plans`). */
+export interface EvacuationEquipment {
+  id: string;
+  kind: EvacuationEquipmentKind;
+  /** Where it is, e.g. "Casa scării, etaj 2". */
+  location: string;
+}
+
+/**
+ * F50 — an evacuation plan for one scara (`evacuation_plans`): the evacuation
+ * route described in text, plus the location of safety fixtures. In demo mode no
+ * binary floor-plan image ships — the route text and fixture list carry the plan.
+ */
+export interface EvacuationPlan {
+  id: string;
+  asociatie_id: string;
+  /** Stairwell this plan covers, e.g. "A". */
+  scara: string;
+  /** Step-by-step evacuation route, free text. */
+  route: string;
+  equipment: EvacuationEquipment[];
+  updated_at: string;
+}
+
+/**
+ * F50 — a pet marker (`pet_markers`): a resident declares that their apartment
+ * has animals so firefighters know where to look during an evacuation.
+ */
+export interface PetMarker {
+  id: string;
+  asociatie_id: string;
+  apartment_id: string;
+  /** Denormalized apartment label, e.g. "Ap. 5 (et. 1)". */
+  apartment_label: string;
+  /** Short species note, e.g. "1 pisică", "2 câini". */
+  species: string;
+  user_id: string;
+}

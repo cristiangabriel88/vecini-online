@@ -1041,5 +1041,51 @@
     "phase": "Phase (optional)",
     "phaseHint": "e.g. Façade insulation",
     "demoNote": "In demo mode the photo is shown as a colored background — the caption and date carry the story."
+  },
+  "safety": {
+    "title": "Safety code",
+    "subtitle": "A passphrase against phone scams and a private list of trusted people. Especially useful for elderly residents.",
+    "privacyNote": "Only you can see this. It is stored encrypted and is not visible to the committee or other neighbours.",
+    "passphraseSection": "Safety passphrase",
+    "passphraseLabel": "Passphrase",
+    "passphraseHint": "e.g. The chestnut tree in the yard",
+    "noteLabel": "Instructions (optional)",
+    "noteHint": "e.g. If someone calls in my name asking for money, ask for the passphrase first.",
+    "saved": "Safety code saved.",
+    "contactsSection": "Trusted people",
+    "addContact": "Add person",
+    "contactAdded": "Trusted person added.",
+    "removeContact": "Remove person",
+    "empty": "No trusted people added yet.",
+    "call": "Call",
+    "nameLabel": "Name",
+    "nameHint": "e.g. Mihai (son)",
+    "relationshipLabel": "Relationship",
+    "relationshipHint": "e.g. son, neighbour, family doctor",
+    "phoneLabel": "Phone",
+    "phoneHint": "e.g. +40 740 123 456"
+  },
+  "evacuation": {
+    "title": "Evacuation plan",
+    "subtitle": "The evacuation route, location of extinguishers, hydrants and exits, plus pet markers so firefighters know where to look.",
+    "empty": "No evacuation plan published yet.",
+    "scara": "Stairwell {{scara}}",
+    "fixtures": "Safety fixtures",
+    "equipment": {
+      "stingator": "Extinguisher",
+      "hidrant": "Hydrant",
+      "iesire": "Emergency exit",
+      "tablou_electric": "Electrical panel"
+    },
+    "petsSection": "Pets in the building",
+    "petsHint": "Mark the pets in your apartment so firefighters know where to look during an evacuation.",
+    "petCount": "{{count}} apartments with pets",
+    "myMarker": "Your apartment: {{species}}",
+    "noMarker": "Your apartment is not marked with pets.",
+    "addMarker": "Mark pets",
+    "removeMarker": "Remove",
+    "markerSaved": "Marker saved.",
+    "speciesLabel": "Pets (short)",
+    "speciesHint": "e.g. 1 cat, 2 dogs"
   }
 }

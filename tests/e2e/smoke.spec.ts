@@ -354,6 +354,27 @@ test('F42: resident can add a photo-journal entry', async ({ page }) => {
   await expect(page.getByText('Fotografie de test E2E pentru jurnal.')).toBeVisible();
 });
 
+test('F49: resident can add a trusted contact', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/cod-siguranta');
+  await page.getByRole('button', { name: /Adaugă persoană/i }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel('Nume').fill('Vecina Ana E2E');
+  await dialog.getByLabel('Telefon').fill('+40 740 222 333');
+  await dialog.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText('Vecina Ana E2E')).toBeVisible();
+});
+
+test('F50: resident can mark pets for the evacuation plan', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/evacuare');
+  await page.getByRole('button', { name: /Marchează animale/i }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel(/Animale/i).fill('2 pisici E2E');
+  await dialog.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText(/2 pisici E2E/)).toBeVisible();
+});
+
 test('home page has no critical accessibility violations', async ({ page }) => {
   await enterDemo(page);
   const results = await new AxeBuilder({ page })

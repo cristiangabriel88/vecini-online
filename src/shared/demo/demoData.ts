@@ -63,6 +63,9 @@ import type {
   KidsEvent,
   Project,
   ProjectPhoto,
+  SafetyProfile,
+  EvacuationPlan,
+  PetMarker,
 } from '@/shared/types/domain';
 import { RECOMMENDED_FEATURES } from '@/shared/features/registry';
 
@@ -664,4 +667,39 @@ export const DEMO_PROJECT_PHOTOS: ProjectPhoto[] = [
   { id: 'pp-1', asociatie_id: 'demo-asoc', project_id: 'pr-1', project_title: 'Reabilitare termică (anvelopare)', date: dayOffset(-2), caption: 'Termoizolația a ajuns la etajul 4 pe fațada de sud.', phase: 'Termoizolație fațadă', swatch: 'from-amber-400 to-orange-500', author_name: 'Georgescu Elena', created_at: dayOffset(-2) },
   { id: 'pp-2', asociatie_id: 'demo-asoc', project_id: 'pr-1', project_title: 'Reabilitare termică (anvelopare)', date: dayOffset(-15), caption: 'Schela este montată complet pe toate cele trei fațade.', phase: 'Montare schelă', swatch: 'from-sky-400 to-indigo-500', author_name: 'Popescu Andrei', created_at: dayOffset(-15) },
   { id: 'pp-3', asociatie_id: 'demo-asoc', project_id: 'pr-3', project_title: 'Reabilitare acoperiș terasă', date: dayOffset(-205), caption: 'Recepția finală — terasa cu hidroizolația nouă și șapa turnată.', phase: 'Șapă de protecție', swatch: 'from-emerald-400 to-teal-500', author_name: 'Popescu Andrei', created_at: dayOffset(-205) },
+];
+
+// F49 — Cod de siguranță. Profil privat al locatarului demo (Popescu Andrei, ap-2).
+export const DEMO_SAFETY_PROFILE: SafetyProfile = {
+  id: 'sc-1',
+  asociatie_id: 'demo-asoc',
+  user_id: 'u-res',
+  passphrase: 'Castanul din curte',
+  note: 'Dacă cineva sună în numele meu și cere bani sau date, întreabă mai întâi parola de mai sus. Nu deschide nimănui fără să mă suni întâi.',
+  contacts: [
+    { id: 'tc-1', name: 'Mihai (fiul)', relationship: 'fiu', phone: '+40 740 123 456' },
+    { id: 'tc-2', name: 'Dr. Ionescu', relationship: 'medic de familie', phone: '+40 721 987 654' },
+  ],
+  updated_at: dayOffset(-10),
+};
+
+// F50 — Plan de evacuare. Fără imagini binare: traseul și fixările sunt text.
+export const DEMO_EVACUATION_PLANS: EvacuationPlan[] = [
+  {
+    id: 'ev-1', asociatie_id: 'demo-asoc', scara: 'A',
+    route: 'Ieșire pe casa scării principale către ușa din față. Nu folosiți liftul. Punct de adunare: parcarea din fața blocului, lângă banca de la intrare.',
+    equipment: [
+      { id: 'eq-1a', kind: 'stingator', location: 'Casa scării, fiecare palier (lângă lift)' },
+      { id: 'eq-1b', kind: 'hidrant', location: 'Holul de la parter, stânga intrării' },
+      { id: 'eq-1c', kind: 'iesire', location: 'Ușa principală + ușa de serviciu spre curtea din spate' },
+      { id: 'eq-1d', kind: 'tablou_electric', location: 'Tablou general la parter, sub casa scării' },
+    ],
+    updated_at: dayOffset(-40),
+  },
+];
+
+// F50 — Marcaje animale: locatarii anunță prezența animalelor pentru pompieri.
+export const DEMO_PET_MARKERS: PetMarker[] = [
+  { id: 'pm-1', asociatie_id: 'demo-asoc', apartment_id: 'ap-3', apartment_label: 'Ap. 9 (et. 2)', species: '1 pisică', user_id: 'u-res2' },
+  { id: 'pm-2', asociatie_id: 'demo-asoc', apartment_id: 'ap-5', apartment_label: 'Ap. 17 (et. 4)', species: '1 câine', user_id: 'u-res3' },
 ];
