@@ -10,6 +10,7 @@ import { DEMO_ASOCIATIE, DEMO_EMERGENCY } from '@/shared/demo/demoData';
 import { Icon } from '@/shared/components/Icon';
 import { Atmosphere } from '@/shared/components/Atmosphere';
 import { UserMenu } from '@/shared/components/UserMenu';
+import { AssistantWidget } from '@/features/assistant/AssistantWidget';
 import { cn } from '@/shared/lib/cn';
 
 function initials(name: string) {
@@ -390,6 +391,7 @@ export function AppLayout() {
         <Footer />
       </main>
       <BottomNav />
+      <AssistantWidget />
     </div>
   );
 }

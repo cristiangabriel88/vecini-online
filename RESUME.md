@@ -16,7 +16,28 @@ accurate for architecture/data/feature specs.
 ## 0. Current status (updated 2026-05-22)
 
 - **Overall completion: 63 / 65 features built end-to-end (≈97%).**
-- **Completed this turn (1):** F21 Sesizări recurente — a comitet/admin view
+- **Completed this turn (1):** Help assistant (cross-cutting, not a numbered
+  feature) — a floating corner chat widget that answers "what is X / how do I X /
+  where is X" using a **local, rule-based grounded matcher (no LLM, no network)**.
+  It returns only pre-written, role-filtered answers from a knowledge base derived
+  from the feature registry (+ a few how-to/concept entries), so it cannot
+  hallucinate or leak; "no admin access" is enforced by filtering entries to the
+  viewer's role (demo/unknown → resident) and only describing enabled features,
+  and it is info-only. It also answers **concrete data lookups** (e.g. "numărul
+  de telefon al președintelui") from user-visible sources only — emergency
+  contacts (F56) and the opt-in directory (F36) through the existing
+  `visibleEntry` consent mask — with prefix matching for Romanian inflections.
+  Bilingual RO/EN. Files under `src/features/assistant/*` (`knowledge`/`match`/
+  `visibility`/`engine`/`dataSources` + `AssistantWidget`) + `assistantStore` +
+  `assistant.css`, mounted in `AppLayout`, with match + visibility + data-lookup
+  unit tests (incl. a consent-masking privacy test). A **human-feel layer** (also
+  fully non-generative, so still jailbreak-proof) adds small talk (`smalltalk.ts`:
+  greetings/thanks/identity/capabilities), turn-seeded varied phrasing of social/
+  clarify/fallback lines, typo tolerance (bounded one-edit incl. transposition),
+  "la care te referi?" clarification on near-ties, and a brief typing indicator;
+  factual answers stay concise. **Phase 2 (planned):** broaden live data answers
+  and swap `dataSources` to Supabase under RLS.
+- **Previously (F21):** Sesizări recurente — a comitet/admin view
   computed entirely over `tickets` (no table of its own). The detector groups
   recent tickets by category+location (accent/case-insensitive), surfaces any
   group that repeats ≥3 times within a 90-day window, takes the max severity,
@@ -41,10 +62,10 @@ accurate for architecture/data/feature specs.
 - **Previously (F04):** Mesagerie privată cu administratorul — `adminchat` slice
   (private resident↔admin channel, chat timeline, SLA hint, resolve/reopen).
 - **Previously (F27):** Rezervare sală comună / terasă — `venue` slice on the
-  F25/F26 booking pattern. Note: F04, F27, F62, F64, F41/F42, F49/F50 and this
-  turn's F21 slice (plus the user-menu/accent-tint polish pass) are still
-  uncommitted in the working tree.
-- **Pipeline:** `npm run lint`, `npm run typecheck`, `npm test` (63 files / 283
+  F25/F26 booking pattern. Note: F04, F27, F62, F64, F41/F42, F49/F50, the F21
+  slice and this turn's help assistant (plus the user-menu/accent-tint polish
+  pass) are still uncommitted in the working tree.
+- **Pipeline:** `npm run lint`, `npm run typecheck`, `npm test` (68 files / 314
   unit tests), and `npm run build` all pass.
 - **Remaining (2):** F10, F35.
 - **Planned for the future (2, not yet specced into schema):** F66 Profil complet

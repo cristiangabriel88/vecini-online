@@ -1,4 +1,85 @@
 {
+  "assistant": {
+    "fab": "Help",
+    "title": "vecini.online Assistant",
+    "subtitle": "Ask me about the app",
+    "placeholder": "How can I help?",
+    "send": "Send",
+    "close": "Close",
+    "greeting": "Hi! I'm the app assistant. I can help you find a feature or learn how something works. Pick a topic or type a question.",
+    "noMatch": "I couldn't find a confident answer for that. I can only answer about app features you have access to. Try one of the suggestions or rephrase your question.",
+    "suggestionsTitle": "Suggestions",
+    "openInApp": "Open",
+    "disclaimer": "I only answer from in-app information visible to you.",
+    "typing": "typing…",
+    "social": {
+      "greeting": [
+        "Hi! How can I help?",
+        "Hello! Tell me what you're looking for.",
+        "Hi there! Ask me anything about the app."
+      ],
+      "thanks": [
+        "You're welcome!",
+        "Glad to help! Anything else?",
+        "Anytime!"
+      ],
+      "bye": [
+        "Have a good day!",
+        "See you!",
+        "Take care!"
+      ],
+      "identity": [
+        "I'm the vecini.online assistant. I help you find information and features in the app.",
+        "I'm the app assistant — I answer from information inside vecini.online."
+      ],
+      "capabilities": [
+        "I help you find features and information in the app: issues, votes, bookings, contacts and more. Pick a topic or type a question.",
+        "I can show you how the app works and where to find things. Try a topic below."
+      ],
+      "affirm": [
+        "Tell me what you're looking for and I'll point you there.",
+        "Sure — which feature do you want to know about?"
+      ]
+    },
+    "clarifyVariants": [
+      "Which one do you mean?",
+      "Did you mean one of these?",
+      "Which of these?"
+    ],
+    "fallbackVariants": [
+      "Hmm, I'm not sure I understood. I can help with the app's features and info — try one of the suggestions.",
+      "I couldn't find an answer for that. I only answer about the app; maybe one of these?",
+      "I'm not sure what you mean. Rephrase, or pick a topic below."
+    ],
+    "quickPrompts": [
+      "How do I report a problem?",
+      "Where do I vote?",
+      "President's phone number?",
+      "What does cotă-parte mean?"
+    ],
+    "kb": {
+      "meta": {
+        "help": {
+          "q": "What can you help with?",
+          "a": "I can help you find the app's features and understand how to use them: announcements, votes, issues, bookings, documents and much more. Tell me what you're looking for or pick a topic below."
+        }
+      },
+      "concept": {
+        "cota-parte": {
+          "q": "What does cotă-parte mean?",
+          "a": "The cotă-parte (indivisible share) is the percentage of common property (stairwells, roof, façade) that belongs to your apartment, usually based on usable area. It sets the weight of your vote and how some costs are split. Full definitions are in the Glossary."
+        },
+        "fond-reparatii": {
+          "q": "What is the repair fund for?",
+          "a": "The repair fund is the amount collected monthly for future major works (roof, façade, installations). It is established by a General Assembly decision. You can estimate a recommended monthly rate in the dedicated section."
+        },
+        "cvorum": {
+          "q": "What is voting quorum?",
+          "a": "Quorum is the minimum number of owners (or shares) that must take part for a vote to be valid. Each proposal has its own quorum and majority threshold. The terms are explained in the Glossary."
+        }
+      }
+    }
+  },
   "common": {
     "appName": "vecini.online",
     "tagline": "The digital platform for your homeowners' association",

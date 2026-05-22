@@ -8,6 +8,7 @@ import '@/styles/globals.css';
 import '@/styles/tokens.css';
 import '@/styles/primitives.css';
 import '@/styles/shell.css';
+import '@/styles/assistant.css';
 
 void useAuthStore.getState().init();
 

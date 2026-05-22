@@ -1,4 +1,85 @@
 {
+  "assistant": {
+    "fab": "Ajutor",
+    "title": "Asistent vecini.online",
+    "subtitle": "Întreabă-mă despre aplicație",
+    "placeholder": "Cum te pot ajuta?",
+    "send": "Trimite",
+    "close": "Închide",
+    "greeting": "Bună! Sunt asistentul aplicației. Te pot ajuta să găsești o funcție sau să afli cum funcționează ceva. Alege un subiect sau scrie-mi o întrebare.",
+    "noMatch": "Nu am găsit un răspuns sigur la asta. Pot răspunde doar despre funcțiile aplicației la care ai acces. Încearcă una dintre sugestii sau reformulează întrebarea.",
+    "suggestionsTitle": "Sugestii",
+    "openInApp": "Deschide",
+    "disclaimer": "Răspund doar pe baza informațiilor din aplicație vizibile pentru tine.",
+    "typing": "scrie…",
+    "social": {
+      "greeting": [
+        "Salut! Cu ce te pot ajuta?",
+        "Bună! Spune-mi ce cauți.",
+        "Salut! Întreabă-mă orice despre aplicație."
+      ],
+      "thanks": [
+        "Cu plăcere!",
+        "Cu drag! Mai ai nevoie de ceva?",
+        "Oricând!"
+      ],
+      "bye": [
+        "O zi bună!",
+        "Pe curând!",
+        "Numai bine!"
+      ],
+      "identity": [
+        "Sunt asistentul vecini.online. Te ajut să găsești informații și funcții din aplicație.",
+        "Sunt asistentul aplicației — răspund pe baza informațiilor din vecini.online."
+      ],
+      "capabilities": [
+        "Te ajut să găsești funcții și informații din aplicație: sesizări, voturi, rezervări, contacte și altele. Alege un subiect sau scrie o întrebare.",
+        "Pot să-ți arăt cum funcționează aplicația și unde găsești ce ai nevoie. Încearcă un subiect de mai jos."
+      ],
+      "affirm": [
+        "Spune-mi ce cauți și te îndrum.",
+        "Sigur — despre ce funcție vrei detalii?"
+      ]
+    },
+    "clarifyVariants": [
+      "La care te referi?",
+      "Te referi la una dintre acestea?",
+      "Care dintre ele?"
+    ],
+    "fallbackVariants": [
+      "Hmm, nu sunt sigur că am înțeles. Pot ajuta cu funcțiile și informațiile din aplicație — încearcă una dintre sugestii.",
+      "Nu am găsit un răspuns pentru asta. Răspund doar despre aplicație; poate una dintre sugestii?",
+      "Nu sunt sigur la ce te referi. Reformulează sau alege un subiect de mai jos."
+    ],
+    "quickPrompts": [
+      "Cum raportez o problemă?",
+      "Unde votez?",
+      "Telefonul președintelui?",
+      "Ce înseamnă cotă-parte?"
+    ],
+    "kb": {
+      "meta": {
+        "help": {
+          "q": "Cu ce mă poți ajuta?",
+          "a": "Te pot ajuta să găsești funcțiile aplicației și să înțelegi cum se folosesc: anunțuri, voturi, sesizări, rezervări, documente și multe altele. Scrie-mi ce cauți sau alege un subiect de mai jos."
+        }
+      },
+      "concept": {
+        "cota-parte": {
+          "q": "Ce înseamnă cotă-parte?",
+          "a": "Cota-parte indiviză este procentul din proprietatea comună (scări, acoperiș, fațadă) care revine apartamentului tău, de obicei după suprafața utilă. Determină ponderea votului tău și repartizarea unor cheltuieli. Definiții complete găsești în Glosar."
+        },
+        "fond-reparatii": {
+          "q": "La ce folosește fondul de reparații?",
+          "a": "Fondul de reparații este suma acumulată lunar pentru lucrări majore viitoare (acoperiș, fațadă, instalații). Se constituie prin hotărâre a Adunării Generale. Poți estima o rată lunară recomandată în secțiunea dedicată."
+        },
+        "cvorum": {
+          "q": "Ce este cvorumul la vot?",
+          "a": "Cvorumul este numărul minim de proprietari (sau cote-părți) care trebuie să participe pentru ca un vot să fie valid. Fiecare propunere își are pragul de cvorum și de majoritate. Termenii sunt explicați în Glosar."
+        }
+      }
+    }
+  },
   "common": {
     "appName": "vecini.online",
     "tagline": "Platforma digitală a asociației tale de proprietari",
