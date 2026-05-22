@@ -1,47 +1,45 @@
 import { create } from 'zustand';
-import type { Ticket, TicketSeverity } from '@/shared/types/domain';
-import { DEMO_TICKETS } from '@/shared/demo/demoData';
-import { slaDueAt } from './ticketLogic';
+import type { Ticket } from '@/shared/types/domain';
+import { useAuthStore } from '@/shared/store/authStore';
+import {
+  type NewTicketInput,
+  type TicketsByAsociatie,
+  addTicketIn,
+  newTicket,
+  seedTickets,
+  ticketsForAsociatie,
+} from './ticketLogic';
 
 interface TicketsState {
-  items: Ticket[];
-  add: (input: {
-    title: string;
-    description: string;
-    category: string;
-    severity: TicketSeverity;
-    location: string;
-  }) => void;
+  /** Tickets per asociație, keyed by asociație id. */
+  byAsociatie: TicketsByAsociatie;
+  /** Submit a sesizare into one asociație, reported by the given user. */
+  add: (asociatieId: string, reporterUserId: string, input: NewTicketInput) => void;
+  /** The tickets for one asociație (stable reference). */
+  forAsociatie: (asociatieId: string | null) => Ticket[];
 }
 
-export const useTicketsStore = create<TicketsState>((set) => ({
-  items: [...DEMO_TICKETS],
-  add: ({ title, description, category, severity, location }) =>
+/**
+ * Sesizări / reclamații scoped per asociație (T49): the demo asociație is seeded
+ * so the offline app is populated, and a submitted sesizare lands only in the
+ * active asociație's list. The demo store is the offline source of truth; live
+ * read/write against `tickets` under RLS is T57.
+ */
+export const useTicketsStore = create<TicketsState>((set, get) => ({
+  byAsociatie: seedTickets(),
+  add: (asociatieId, reporterUserId, input) =>
     set((s) => ({
-      items: [
-        {
-          id: `t-${Date.now()}`,
-          asociatie_id: 'demo-asoc',
-          reporter_user_id: 'u-res',
-          apartment_id: null,
-          title,
-          description,
-          category,
-          severity,
-          location_scara: null,
-          location_etaj: null,
-          location_description: location,
-          status: 'primit',
-          assigned_to_user_id: null,
-          sla_due_at: slaDueAt(severity).toISOString(),
-          resolved_at: null,
-          verified_at: null,
-          resolution_notes: null,
-          rating: null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-        ...s.items,
-      ],
+      byAsociatie: addTicketIn(
+        s.byAsociatie,
+        asociatieId,
+        newTicket(input, asociatieId, reporterUserId),
+      ),
     })),
+  forAsociatie: (asociatieId) => ticketsForAsociatie(get().byAsociatie, asociatieId),
 }));
+
+/** Hook: the tickets for the currently active asociație. */
+export function useAsociatieTickets(): Ticket[] {
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  return useTicketsStore((s) => ticketsForAsociatie(s.byAsociatie, asociatieId));
+}

@@ -36,6 +36,16 @@ test('T48: resident can start a discussion thread and reply in it', async ({ pag
   await expect(page.getByText('Primul răspuns de test.')).toBeVisible();
 });
 
+test('T49: resident can submit a sesizare and see it listed', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/sesizari');
+  await page.getByRole('button', { name: /Sesizare nouă/i }).click();
+  await page.getByLabel('Titlu').fill('Sesizare de test E2E');
+  await page.getByLabel('Descriere').fill('Descriere de test pentru sesizare.');
+  await page.getByRole('button', { name: /Creează/i }).click();
+  await expect(page.getByRole('heading', { name: 'Sesizare de test E2E' })).toBeVisible();
+});
+
 test('resident can cast a vote and see results', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/voturi');

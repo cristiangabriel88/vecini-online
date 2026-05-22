@@ -1,4 +1,5 @@
-import type { TicketSeverity } from '@/shared/types/domain';
+import type { Ticket, TicketSeverity } from '@/shared/types/domain';
+import { DEMO_ASOCIATIE, DEMO_TICKETS } from '@/shared/demo/demoData';
 
 /** SLA response window per severity, in hours. */
 export const SLA_HOURS: Record<TicketSeverity, number> = {
@@ -17,4 +18,106 @@ export function slaDueAt(severity: TicketSeverity, createdAt: Date = new Date())
 export function isSlaBreached(dueAt: string | null, resolvedAt: string | null): boolean {
   if (!dueAt || resolvedAt) return false;
   return new Date(dueAt).getTime() < Date.now();
+}
+
+/**
+ * Sesizări / reclamații (F17) scoped per asociație (T49).
+ *
+ * Pure model so the demo store stays the offline source of truth and the loop
+ * (a resident submits a sesizare, then sees its status) works fully offline.
+ * Each asociație owns its own tickets, keyed by asociație id, so a submitted
+ * sesizare belongs to the active tenant and never leaks across asociații. With a
+ * real backend the list is hydrated from / written back to `tickets` under RLS
+ * (live activation is T57); this module stays the single source of the shape and
+ * the per-asociație partitioning.
+ */
+
+/** All asociații's tickets, keyed by asociație id. */
+export type TicketsByAsociatie = Record<string, Ticket[]>;
+
+/**
+ * Stable empty list returned for an unknown or null asociație so React selectors
+ * keep a constant reference (a fresh `[]` per call would force needless
+ * re-renders). Never mutate it; the helpers always build a new array.
+ */
+const EMPTY_TICKETS = Object.freeze([] as Ticket[]) as Ticket[];
+
+/**
+ * Seed used the first time the store initialises (before any persisted state):
+ * the demo asociație gets the seeded tickets so the offline app is populated.
+ * Other asociații start empty until a resident submits a sesizare.
+ */
+export function seedTickets(): TicketsByAsociatie {
+  return { [DEMO_ASOCIATIE.id]: [...DEMO_TICKETS] };
+}
+
+/**
+ * The tickets for one asociație. Returns the stored list (a stable reference) or
+ * a shared frozen empty list when the asociație has none yet or none is active.
+ */
+export function ticketsForAsociatie(
+  byAsociatie: TicketsByAsociatie,
+  asociatieId: string | null,
+): Ticket[] {
+  if (!asociatieId) return EMPTY_TICKETS;
+  return byAsociatie[asociatieId] ?? EMPTY_TICKETS;
+}
+
+/** The fields a resident supplies to submit a sesizare; the rest is derived. */
+export interface NewTicketInput {
+  title: string;
+  description: string;
+  category: string;
+  severity: TicketSeverity;
+  location: string;
+}
+
+/**
+ * Build a freshly-submitted ticket owned by `asociatieId` and reported by the
+ * given user. Starts at `primit` with its SLA due date derived from severity.
+ */
+export function newTicket(
+  input: NewTicketInput,
+  asociatieId: string,
+  reporterUserId: string,
+  now: Date = new Date(),
+): Ticket {
+  const iso = now.toISOString();
+  return {
+    id: `t-${now.getTime()}`,
+    asociatie_id: asociatieId,
+    reporter_user_id: reporterUserId,
+    apartment_id: null,
+    title: input.title.trim(),
+    description: input.description.trim(),
+    category: input.category,
+    severity: input.severity,
+    location_scara: null,
+    location_etaj: null,
+    location_description: input.location.trim() || null,
+    status: 'primit',
+    assigned_to_user_id: null,
+    sla_due_at: slaDueAt(input.severity, now).toISOString(),
+    resolved_at: null,
+    verified_at: null,
+    resolution_notes: null,
+    rating: null,
+    created_at: iso,
+    updated_at: iso,
+  };
+}
+
+/**
+ * Prepend a ticket to one asociație's list (newest first), returning a new
+ * `byAsociatie` map without mutating the input.
+ */
+export function addTicketIn(
+  byAsociatie: TicketsByAsociatie,
+  asociatieId: string,
+  ticket: Ticket,
+): TicketsByAsociatie {
+  return {
+    ...byAsociatie,
+    [asociatieId]: [ticket, ...(byAsociatie[asociatieId] ?? [])],
+  };
 }

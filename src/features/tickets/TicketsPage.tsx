@@ -12,7 +12,9 @@ import { Input, Textarea } from '@/shared/components/Input';
 import { Select } from '@/shared/components/Select';
 import { formatDateTime } from '@/shared/lib/format';
 import type { TicketSeverity, TicketStatus } from '@/shared/types/domain';
-import { useTicketsStore } from './ticketsStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { DEMO_CURRENT_USER_ID } from '@/shared/demo/demoData';
+import { useAsociatieTickets, useTicketsStore } from './ticketsStore';
 import { isSlaBreached } from './ticketLogic';
 
 const statusTone: Record<TicketStatus, 'neutral' | 'primary' | 'warning' | 'success' | 'danger'> = {
@@ -29,7 +31,10 @@ const CATEGORIES = ['electric', 'apa', 'lift', 'iluminat', 'curatenie', 'incalzi
 
 export default function TicketsPage() {
   const { t } = useTranslation();
-  const { items, add } = useTicketsStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const reporterUserId = useAuthStore((s) => s.profile?.id) ?? DEMO_CURRENT_USER_ID;
+  const items = useAsociatieTickets();
+  const add = useTicketsStore((s) => s.add);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     title: '',
@@ -40,8 +45,8 @@ export default function TicketsPage() {
   });
 
   const submit = () => {
-    if (!form.title.trim() || !form.description.trim()) return;
-    add(form);
+    if (!asociatieId || !form.title.trim() || !form.description.trim()) return;
+    add(asociatieId, reporterUserId, form);
     toast.success(t('tickets.submitted'));
     setOpen(false);
     setForm({ title: '', description: '', category: 'electric', severity: 'medium', location: '' });
@@ -96,7 +101,10 @@ export default function TicketsPage() {
             <Button variant="ghost" onClick={() => setOpen(false)}>
               {t('common.cancel')}
             </Button>
-            <Button onClick={submit} disabled={!form.title.trim() || !form.description.trim()}>
+            <Button
+              onClick={submit}
+              disabled={!asociatieId || !form.title.trim() || !form.description.trim()}
+            >
               {t('common.create')}
             </Button>
           </>

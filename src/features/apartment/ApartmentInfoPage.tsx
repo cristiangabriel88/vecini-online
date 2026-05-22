@@ -17,7 +17,7 @@ import { Badge } from '@/shared/components/Badge';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { formatDate } from '@/shared/lib/format';
 import { useMetersStore } from '@/features/meters/metersStore';
-import { useTicketsStore } from '@/features/tickets/ticketsStore';
+import { useAsociatieTickets } from '@/features/tickets/ticketsStore';
 import { usePollsStore, pollOptions, polls } from '@/features/polls/pollsStore';
 import {
   DEMO_APARTMENTS,
@@ -50,7 +50,7 @@ export default function ApartmentInfoPage() {
   const { t } = useTranslation();
   const meters = useMetersStore((s) => s.meters);
   const readings = useMetersStore((s) => s.readings);
-  const tickets = useTicketsStore((s) => s.items);
+  const tickets = useAsociatieTickets();
   const myVotes = usePollsStore((s) => s.myVotes);
 
   const apartment = useMemo(

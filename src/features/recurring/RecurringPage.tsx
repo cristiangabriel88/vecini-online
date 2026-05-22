@@ -8,7 +8,7 @@ import { Badge } from '@/shared/components/Badge';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { formatDate } from '@/shared/lib/format';
 import { cn } from '@/shared/lib/cn';
-import { useTicketsStore } from '@/features/tickets/ticketsStore';
+import { useAsociatieTickets } from '@/features/tickets/ticketsStore';
 import { useRecurringStore } from './recurringStore';
 import {
   detectRecurring,
@@ -22,7 +22,7 @@ function capitalize(value: string): string {
 
 export default function RecurringPage() {
   const { t } = useTranslation();
-  const items = useTicketsStore((s) => s.items);
+  const items = useAsociatieTickets();
   const acknowledged = useRecurringStore((s) => s.acknowledged);
   const toggleAck = useRecurringStore((s) => s.toggleAck);
 

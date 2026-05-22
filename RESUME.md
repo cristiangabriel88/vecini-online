@@ -18,7 +18,27 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T48 Discuții scoped per asociație)
+## 0. Current status (updated 2026-05-23, T49 Sesizări scoped per asociație)
+
+- **2026-05-23 — T49 (P1) Sesizări / reclamații (F17) scoped to the active
+  asociație.** Extended `ticketLogic` with the per-asociație model mirroring
+  T47/T48 (`TicketsByAsociatie`; `seedTickets` → demo asociație gets
+  `DEMO_TICKETS`; `ticketsForAsociatie` → stored list or a shared frozen empty
+  default for a stable selector reference; `newTicket` builds a freshly-submitted
+  `primit` ticket owned by the asociație + reporter, trimmed, SLA-dated from
+  severity; pure `addTicketIn` prepends newest-first without mutating — 5 new
+  assertions). `ticketsStore` is keyed by asociație (`byAsociatie`, seeded for
+  demo); `add(asociatieId, reporterUserId, input)` submits only into that
+  asociație's list, and a new `useAsociatieTickets()` hook resolves the active
+  asociație's list via `authStore.currentAsociatieId`. `TicketsPage` resolves the
+  active asociație + reporter (`profile`/live, `DEMO_CURRENT_USER_ID` offline)
+  and guards submit on an active asociație; `ApartmentInfoPage` and
+  `RecurringPage` (F21) were migrated off the removed `items` field to the new
+  hook. One E2E added (submit a sesizare → see it listed). The MVP-spine content
+  slices (T47/T48/T49) are now all green offline. Pipeline green: lint, typecheck,
+  87 files / 530 tests, build. Surfaced T67 (comitet status-lifecycle surface, as
+  a ticket is stuck at `primit` offline). Live `tickets` read/write under RLS is
+  T57; offline persistence is in T65's scope.
 
 - **2026-05-23 — T48 (P1) Discuții / forum (F02) scoped to the active asociație.**
   Extended `discussionLogic` with the per-asociație model mirroring T47
