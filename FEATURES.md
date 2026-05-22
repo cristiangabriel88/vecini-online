@@ -15,7 +15,8 @@ Each feature follows this structure:
 
 ## Category 1 — Communication (F01-F08)
 
-### F01 — Anunțuri oficiale
+### F01 — Anunțuri oficiale ✅
+- **Implementation:** compose/publish + read receipts + category badges, scoped per active asociație (T47): `announcementsLogic` (pure, unit-tested) + per-asociație `announcementsStore` (`byAsociatie`, seeded for demo) + `useAsociatieAnnouncements()` selector. Demo store is the offline source of truth; live read/write against `announcements` under RLS is T57. Scheduling, attachments and targeted broadcast remain later refinements.
 - **Audience:** admin/comitet write; everyone reads
 - **Description:** Official building-wide announcements with read receipts. Supports rich text, attachments (PDF/images), and targeted broadcast (all / specific scara / specific floors / specific apartments). Each announcement has a category: `urgent`, `important`, `informativ`, `eveniment`.
 - **Acceptance:** Admin can compose, preview, schedule, and publish. Residents see them in-app with unread badge and receive Telegram + email per their preferences. Read receipts show "X din Y locatari au citit". Urgent announcements bypass quiet hours.

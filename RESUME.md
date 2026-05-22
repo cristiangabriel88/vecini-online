@@ -18,7 +18,23 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T44 disabled-module route gating)
+## 0. Current status (updated 2026-05-23, T47 Anunțuri scoped per asociație)
+
+- **2026-05-23 — T47 (P1) Anunțuri (F01) scoped to the active asociație.** New
+  pure, unit-tested `announcementsLogic` (`seedAnnouncements` → demo asociație
+  gets `DEMO_ANNOUNCEMENTS`; `announcementsForAsociatie` → stored list or a shared
+  frozen empty default for a stable selector reference; `newAnnouncement` builds a
+  published row owned by the asociație + author; pure `addAnnouncementIn` prepends
+  newest-first — 6 assertions). `announcementsStore` is now keyed by asociație
+  (`byAsociatie`, seeded for demo); `add(asociatieId, authorUserId, input)`
+  publishes only into the active asociație's list, and a new
+  `useAsociatieAnnouncements()` hook resolves it via `authStore.currentAsociatieId`
+  (T43 `useAsociatieFlags` pattern). `AnnouncementsPage` resolves the active
+  asociație + publishing author and guards publish on an active asociație;
+  `HomePage`'s recent widget reads the scoped selector. Demo unchanged
+  (`currentAsociatieId='demo-asoc'` holds the seeded list). Pipeline green: lint,
+  typecheck, 87 files / 517 tests, build. Surfaced T65 (persist content stores
+  offline so a publish survives reload). Live `announcements` read/write is T57.
 
 - **2026-05-23 — T44 (P1) gate direct routes for disabled modules.** New pure,
   unit-tested `featureRouteLogic` (`PATH_TO_FEATURE` from the registry,

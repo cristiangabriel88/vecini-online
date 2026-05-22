@@ -7,14 +7,14 @@ import { PageHeader } from '@/shared/components/PageHeader';
 import { useAsociatieFlags } from '@/shared/features/featureStore';
 import { FEATURES, featureTitle } from '@/shared/features/registry';
 import { DEMO_ASOCIATIE } from '@/shared/demo/demoData';
-import { useAnnouncementsStore } from '@/features/announcements/announcementsStore';
+import { useAsociatieAnnouncements } from '@/features/announcements/announcementsStore';
 import { polls } from '@/features/polls/pollsStore';
 import { formatDateTime } from '@/shared/lib/format';
 
 export default function HomePage() {
   const { t } = useTranslation();
   const flags = useAsociatieFlags();
-  const announcements = useAnnouncementsStore((s) => s.items);
+  const announcements = useAsociatieAnnouncements();
   const shortcuts = FEATURES.filter((f) => flags[f.key] && f.path).slice(0, 6);
 
   return (

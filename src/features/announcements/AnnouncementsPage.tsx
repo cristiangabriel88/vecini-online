@@ -13,7 +13,9 @@ import { Select } from '@/shared/components/Select';
 import { formatDateTime } from '@/shared/lib/format';
 import { sanitizeHtml } from '@/shared/lib/sanitize';
 import type { AnnouncementCategory } from '@/shared/types/domain';
-import { useAnnouncementsStore } from './announcementsStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { DEMO_CURRENT_USER_ID } from '@/shared/demo/demoData';
+import { useAnnouncementsStore, useAsociatieAnnouncements } from './announcementsStore';
 
 const categoryTone: Record<AnnouncementCategory, 'urgent' | 'warning' | 'primary' | 'success'> = {
   urgent: 'urgent',
@@ -24,15 +26,22 @@ const categoryTone: Record<AnnouncementCategory, 'urgent' | 'warning' | 'primary
 
 export default function AnnouncementsPage() {
   const { t } = useTranslation();
-  const { items, reads, add, markRead } = useAnnouncementsStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const authorUserId = useAuthStore((s) => s.profile?.id) ?? DEMO_CURRENT_USER_ID;
+  const items = useAsociatieAnnouncements();
+  const { reads, add, markRead } = useAnnouncementsStore();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [category, setCategory] = useState<AnnouncementCategory>('informativ');
 
   const submit = () => {
-    if (!title.trim() || !body.trim()) return;
-    add({ title: title.trim(), body_html: `<p>${body.trim()}</p>`, category });
+    if (!asociatieId || !title.trim() || !body.trim()) return;
+    add(asociatieId, authorUserId, {
+      title: title.trim(),
+      body_html: `<p>${body.trim()}</p>`,
+      category,
+    });
     toast.success(t('announcements.published'));
     setOpen(false);
     setTitle('');
@@ -96,7 +105,7 @@ export default function AnnouncementsPage() {
             <Button variant="ghost" onClick={() => setOpen(false)}>
               {t('common.cancel')}
             </Button>
-            <Button onClick={submit} disabled={!title.trim() || !body.trim()}>
+            <Button onClick={submit} disabled={!asociatieId || !title.trim() || !body.trim()}>
               {t('common.publish')}
             </Button>
           </>
