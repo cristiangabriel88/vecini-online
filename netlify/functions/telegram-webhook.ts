@@ -1,4 +1,11 @@
 import { telegram, verifyWebhookSecret } from './_shared/telegram';
+import {
+  parseStartCommand,
+  payloadLooksLikeCode,
+  normalizeStartPayload,
+  replyChecking,
+  replyForStart,
+} from '../../src/shared/lib/telegramStart';
 
 interface TelegramUser {
   id: number;
@@ -21,12 +28,6 @@ interface Update {
   message?: TelegramMessage;
   callback_query?: CallbackQuery;
 }
-
-const WELCOME_NO_CODE =
-  'Bună! Sunt asistentul digital al asociației tale de proprietari.\n\n' +
-  'Pentru a te lega de apartamentul tău, am nevoie de codul de invitație ' +
-  'primit de la administrator (8 caractere, ex: AB23CD45).\n\n' +
-  'Trimite-mi codul.';
 
 /** Slash commands that map to a feature page. The reply guides the resident to
  *  the in-app Mini App; richer flows are handled there. */
@@ -103,16 +104,20 @@ const FEATURE_COMMANDS: Record<string, string> = {
 
 async function handleMessage(msg: TelegramMessage) {
   const text = (msg.text ?? '').trim();
-  if (text.startsWith('/start')) {
-    const code = text.split(/\s+/)[1];
-    if (code) {
-      await telegram.sendMessage(
-        msg.chat.id,
-        `Verific codul „${code.toUpperCase()}”…\n\nDacă este valid, te voi lega de apartamentul tău.`,
-      );
-    } else {
-      await telegram.sendMessage(msg.chat.id, WELCOME_NO_CODE);
+  const start = parseStartCommand(text);
+  if (start) {
+    if (!start.payload) {
+      await telegram.sendMessage(msg.chat.id, replyForStart('no-code'));
+      return;
     }
+    // Reject obvious junk by format here; full resolution against the
+    // invite-code lifecycle / per-user link codes (telegramLinkLogic) is wired
+    // into the live webhook in T58, where the database is reachable.
+    if (!payloadLooksLikeCode(start.payload)) {
+      await telegram.sendMessage(msg.chat.id, replyForStart('unknown'));
+      return;
+    }
+    await telegram.sendMessage(msg.chat.id, replyChecking(normalizeStartPayload(start.payload)));
     return;
   }
   const command = text.split(/\s+/)[0].toLowerCase();

@@ -18,7 +18,34 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T49 Sesizări scoped per asociație)
+## 0. Current status (updated 2026-05-23, T50 Telegram `/start CODE` mock/linking path)
+
+- **2026-05-23 — T50 (P1) Telegram mock/linking path with `/start CODE`.** New
+  dependency-free `telegramStart` (`src/shared/lib/`, imports only the pure
+  `inviteCode` helper so the esbuild-bundled Netlify webhook can use it without
+  `@/` aliases or Zustand/React): `parseStartCommand` (tolerates `/start@bot`,
+  whitespace, case; payload or null; null for non-`/start` text),
+  `normalizeStartPayload`/`payloadLooksLikeCode`, and `replyForStart`/
+  `replyChecking` (the bot's RO-only onboarding replies per outcome). New
+  `telegramLinkLogic` (`src/features/telegram/`) reuses the T41/T42 invite
+  lifecycle and adds a per-user link-code lifecycle (`TelegramLinkCode`,
+  `createLinkCode`/`validateLinkCode`/`findLinkByCode`/`consumeLinkCode`,
+  `buildLinkFromLinkCode` with a concrete `userId` / `buildLinkFromInvite` with a
+  null `userId` provisioned live in T58) and the pure `resolveTelegramStart`
+  resolver (precedence: no-code → already-linked → link code → invite code →
+  unknown; a found-but-not-redeemable code reports its own status), returning the
+  `telegram_users`-shaped `TelegramLink` + the matched code id to consume. New
+  persisted `telegramLinkStore` (`intrevecini.telegram`) is the local/mock path:
+  `issueLinkCode`, an atomic replay-safe `linkByPayload` (records + consumes the
+  link-code path; the invite path validates but records nothing offline since the
+  app user is provisioned live, T58), `linkFor`, `unlink`. The webhook `/start`
+  handler now uses the shared parser + format check + replies; the existing
+  webhook-secret + `initData` validation is untouched. Tests: `telegramStart`
+  (11), `telegramLinkLogic` (17), `telegramLinkStore` (8). Pipeline green: lint,
+  typecheck, 90 files / 563 tests, build. The MVP spine logic is complete; T54
+  (one green E2E smoke for the whole loop) is the remaining spine item. Surfaced
+  T68 (in-app "Link Telegram" resident surface). Live webhook resolution + deploy
+  is T58.
 
 - **2026-05-23 — T49 (P1) Sesizări / reclamații (F17) scoped to the active
   asociație.** Extended `ticketLogic` with the per-asociație model mirroring

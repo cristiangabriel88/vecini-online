@@ -362,3 +362,38 @@ their specs. A real, newly created asociație is unaffected: onboarding still se
 the curated `RECOMMENDED_FEATURES` starter set, and an admin enables more from the
 features admin page. The guard gates on the enabled flag only; enforcing each
 feature's `audience`/role is tracked separately as T64.
+
+## Telegram `/start CODE` linking: dual-code design + dependency-free split (T50)
+
+The bot accepts two distinct codes through the same `/start <payload>` deep link,
+resolved with a defined precedence (per-user link code first, then invite code):
+
+- an **invite code** (T41/T42) onboards a *new* joiner — it grants asociație
+  membership, but the joining app user is created/linked server-side by the live
+  join RPC (T58), so the offline `TelegramLink` it produces carries a null
+  `userId` (the role + apartment the invite grants ride along for that step);
+- a **per-user link code**, minted by an *already-registered* resident, binds
+  their Telegram chat to their existing account so they receive notifications
+  there. This resolves to a concrete `userId` and is the fully-offline-testable
+  path.
+
+The local/mock `telegramLinkStore.linkByPayload` therefore records + consumes the
+**link-code path** but, for the invite path, returns the validated outcome
+without recording anything offline (there is no app user to attach a
+`telegram_users` row to until provisioning, and `telegram_users` has no
+`asociatie_id` column — the asociație linkage is via the user's membership).
+Persisting the invite-via-Telegram association is part of the live activation
+(T58). The pure `resolveTelegramStart` resolver covers both branches and is what
+the unit tests exercise.
+
+The parsing + reply layer (`telegramStart`, in `src/shared/lib/`) is kept
+deliberately **dependency-free** — it imports only the pure `inviteCode` helper,
+no `@/` aliases and no Zustand/React — because the Netlify webhook is bundled by
+esbuild (`node_bundler = "esbuild"`) and historically imports only relative paths
+with no alias resolution. The resolver + link-code lifecycle, which reuse
+`inviteLogic` and the domain types via `@/` aliases, live separately in
+`src/features/telegram/telegramLinkLogic.ts` (app + tests only) and are never
+imported by the function, so the bundle stays alias-free. The bot's replies are
+Romanian only: it is a backend surface, not a localized UI, matching the existing
+webhook copy (the in-app surfaces remain fully bilingual). The in-app "Link
+Telegram" resident UI that mints a link code + deep link is queued as T68.
