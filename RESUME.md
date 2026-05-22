@@ -20,8 +20,25 @@ accurate for architecture/data/feature specs.
 
 ## 0. Current status (updated 2026-05-22)
 
-- **Overall completion: 64 / 65 features built end-to-end (≈98%).**
-- **Completed this turn (1): F10 AGA digitală** — the formal General Assembly
+- **Overall completion: 65 / 65 original features built end-to-end (100%). 🎉
+  `BUILD_COMPLETE` written at the repo root.** The two extra Category 9 features
+  (F66 Profil complet, F67 Acasă personalizabil) remain ⬜ planned — they sit
+  beyond the original 65 and are not yet specced into the schema.
+- **Completed this turn (1): F35 Informații apartament** — a read-only
+  per-apartament aggregation with no table of its own, folded over the existing
+  meters/tickets/polls stores. The page shows the apartment card (owner, location,
+  suprafață utilă, cotă-parte indiviză as a Romanian percent, persoane), each
+  meter with its latest index and full reading history (newest-first), the
+  resident's tickets (matched by apartment or reporter, de-duplicated, newest
+  first) with an open/resolved summary and status badges, and per-poll vote
+  summaries (the chosen option label, or a "votează acum" link) with a cast/total
+  count; the payments card shows a finance-module-disabled empty state. Wired
+  end-to-end: `apartmentLogic` (meters/tickets/votes folding + cota-parte percent +
+  short-label + open-ticket classing + option-label, unit-tested) + `ApartmentInfoPage`
+  + registry toggle flipped + route `apartament-info` + `/apartament_meu` bot
+  command + RO/EN locales + demo current-user/apartment constants + one E2E
+  happy-path. No migration (computed view over existing tables).
+- **Completed previously: F10 AGA digitală** — the formal General Assembly
   (Legea 196/2018). A comitet convokes an assembly (datetime, location or online)
   and adds agenda items; the lifecycle runs convocată → în desfășurare →
   încheiată via an advance-status button. A live **quorum tracker** shows
@@ -89,8 +106,7 @@ accurate for architecture/data/feature specs.
   assistant; `83119ed` F21 + polish).
 - **Pipeline:** `npm run lint`, `npm run typecheck`, `npm test` (69 files / 329
   unit tests), and `npm run build` all pass.
-- **Remaining (1):** F35 (Apartament info — a read-only aggregation over
-  apartments/readings/tickets/votes, no new table).
+- **Remaining (0 of the original 65):** none — all F01–F65 are ✅.
 - **Planned for the future (2, not yet specced into schema):** F66 Profil complet
   (rich full-page profile editor — photo + structured standard fields + user-added
   typed custom fields via a `+ Adaugă câmp` button) and F67 Acasă personalizabil
