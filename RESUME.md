@@ -18,7 +18,29 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-22, T04 RLS & tenant-isolation security audit)
+## 0. Current status (updated 2026-05-22, T28 profile/membership hydration + MVP-spine rebalance)
+
+- **MVP milestone reframed: "One real asociație works end-to-end."** `BACKLOG.md`
+  gained a `## Current MVP milestone` section and an `## MVP spine` block at the top of
+  the task queue: the autonomous worker now drives one real, live vertical slice (admin
+  sign-up → create/access asociație → hydrate context → invite codes → resident join →
+  per-asociație feature flags → route gating → announcements → discussions → sesizări →
+  Telegram `/start CODE`) before adding more breadth. New spine tasks T41–T50 + reprioritised
+  T27/T28; the GDPR/security/legal queue (T06, T21, T22, …) is kept intact right below.
+  New MVP rules: no new feature modules until the spine is green; one complete slice over many
+  half-wired ones; blockers go above the work they block; every task notes its commands/verification;
+  demo stays useful but critical paths need a live Supabase path.
+
+- **2026-05-22 — T28 (P0) profile + membership + active-asociație hydration.** New pure,
+  unit-tested `hydrationLogic` (`activeMemberships`, `sortByPrivilege`, `pickActiveAsociatieId`,
+  `roleFor`, `hasNoActiveAsociatie`, `ROLE_RANK`). `authStore` now loads the `users` profile +
+  active `memberships` (under RLS) on session and `SIGNED_IN`, exposes `currentAsociatieId`,
+  `activeRole()` and a member-checked `setActiveAsociatie`, and clears tenant state on sign-out.
+  Demo mode unchanged as the offline fallback. Pipeline green: lint, typecheck, 80 files / 456
+  tests, build. Surfaced T51 (migrate consumers to the new selectors) and T52 (hydration loading
+  flag). E2E core-flow smoke runs in CI (Playwright binaries can't download in this sandbox; T08).
+
+### Earlier this cycle (T04 RLS & tenant-isolation security audit)
 
 - **Original-vision coverage: ~58% delivered end-to-end.** The CLAUDE.md vision is a
   "secure, stable, well-polished, GDPR-compliant, multi-tenant SaaS with 2FA, a live

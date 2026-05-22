@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import type { Session } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import { env } from '@/shared/lib/env';
-import type { Membership, UserProfile } from '@/shared/types/domain';
+import type { Membership, NotificationPreferences, Role, UserProfile } from '@/shared/types/domain';
+import { pickActiveAsociatieId, roleFor, sortByPrivilege } from '@/features/auth/hydrationLogic';
 import { useSecurityStore } from './securityStore';
 
 /** Where Supabase sends the resident after they click the password-reset link. */
@@ -26,11 +27,19 @@ interface AuthState {
   session: Session | null;
   profile: UserProfile | null;
   memberships: Membership[];
+  /** The asociație whose data the app is currently scoped to (null = none yet). */
+  currentAsociatieId: string | null;
   loading: boolean;
   demo: boolean;
   /** Set while the resident is in a password-recovery session (from the email link). */
   recovery: boolean;
   init: () => Promise<void>;
+  /** Load profile + active memberships for the current session (live path). */
+  hydrate: () => Promise<void>;
+  /** The signed-in user's role in the active asociație, or null. */
+  activeRole: () => Role | null;
+  /** Switch the active asociație (must be one the user is a member of). */
+  setActiveAsociatie: (asociatieId: string) => void;
   signIn: (email: string, password: string) => Promise<SignInResult>;
   signUp: (email: string, password: string) => Promise<SignUpResult>;
   resendVerification: (email: string) => Promise<AuthResult>;
@@ -46,6 +55,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   session: null,
   profile: null,
   memberships: [],
+  currentAsociatieId: null,
   loading: true,
   demo: false,
   recovery: false,
@@ -57,13 +67,52 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
     const { data } = await supabase.auth.getSession();
     set({ session: data.session, loading: false });
+    if (data.session) await get().hydrate();
     supabase.auth.onAuthStateChange((event, session) => {
       set({ session });
       if (event === 'PASSWORD_RECOVERY') set({ recovery: true });
       // The library refreshes the access token silently before it expires; a
       // failed refresh ends in SIGNED_OUT, which clears the derived state below.
-      if (!session) set({ profile: null, memberships: [], recovery: false });
+      if (!session) {
+        set({ profile: null, memberships: [], currentAsociatieId: null, recovery: false });
+      } else if (event === 'SIGNED_IN') {
+        void get().hydrate();
+      }
     });
+  },
+
+  hydrate: async () => {
+    if (!isSupabaseConfigured) return;
+    const userId = get().session?.user?.id;
+    if (!userId) return;
+    // Both reads run under RLS: a user sees only their own profile row and only
+    // memberships scoped to them. The demo seed stays the offline fallback.
+    const [{ data: profileRow }, { data: membershipRows }] = await Promise.all([
+      supabase.from('users').select('*').eq('id', userId).maybeSingle(),
+      supabase.from('memberships').select('*').eq('user_id', userId).is('ended_at', null),
+    ]);
+    const memberships = sortByPrivilege((membershipRows ?? []) as Membership[]);
+    const currentAsociatieId = pickActiveAsociatieId(memberships, get().currentAsociatieId);
+    set({
+      profile: profileRow
+        ? {
+            ...(profileRow as UserProfile),
+            notification_preferences:
+              (profileRow as UserProfile).notification_preferences as NotificationPreferences,
+          }
+        : get().profile,
+      memberships,
+      currentAsociatieId,
+    });
+  },
+
+  activeRole: () => roleFor(get().memberships, get().currentAsociatieId),
+
+  setActiveAsociatie: (asociatieId) => {
+    const isMember = get().memberships.some(
+      (m) => m.asociatie_id === asociatieId && m.ended_at === null,
+    );
+    if (isMember) set({ currentAsociatieId: asociatieId });
   },
 
   signIn: async (email, password) => {
@@ -149,7 +198,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const email = get().session?.user?.email ?? null;
     if (isSupabaseConfigured) await supabase.auth.signOut();
     useSecurityStore.getState().log('logout', email);
-    set({ session: null, profile: null, memberships: [], demo: false, recovery: false });
+    set({
+      session: null,
+      profile: null,
+      memberships: [],
+      currentAsociatieId: null,
+      demo: false,
+      recovery: false,
+    });
   },
 
   signOutEverywhere: async () => {
@@ -158,7 +214,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // so a session on another device or a stolen token is invalidated too.
     if (isSupabaseConfigured) await supabase.auth.signOut({ scope: 'global' });
     useSecurityStore.getState().log('logoutEverywhere', email);
-    set({ session: null, profile: null, memberships: [], demo: false, recovery: false });
+    set({
+      session: null,
+      profile: null,
+      memberships: [],
+      currentAsociatieId: null,
+      demo: false,
+      recovery: false,
+    });
   },
 
   enterDemo: () => {

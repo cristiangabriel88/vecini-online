@@ -11,6 +11,36 @@ This is a **self-improving loop**: doing a task surfaces problems and ideas, whi
 
 ---
 
+## Current MVP milestone — "One real asociație works end-to-end"
+
+The next wave of work drives a single, real, usable SaaS loop rather than more breadth or more compliance surface. Until the loop below is green end-to-end against a live Supabase backend (not only demo mode), the **MVP spine** at the top of the task queue outranks everything except a direct production blocker (red pipeline, active security/data-loss hole).
+
+**Acceptance criteria (the loop):**
+1. A real admin can sign up / log in.
+2. Admin can create or access an asociație.
+3. After auth the app hydrates profile, memberships, role, and apartment/tenant context.
+4. Admin can generate invite codes / links.
+5. A resident can join with an invite code.
+6. Enabled modules load from Supabase per asociație.
+7. Disabled modules are hidden **and** blocked by direct URL.
+8. Admin can publish an announcement; a resident can read it.
+9. A resident can start / use a structured discussion (forum).
+10. A resident can submit a sesizare / reclamație.
+11. A resident can link Telegram, or at minimum `/start CODE` begins a real linking path.
+12. Core RLS / tenant isolation stays safe.
+13. lint / typecheck / unit / build pass; E2E has at least one green smoke path for the core flow.
+
+The existing GDPR / security / legal tasks (T06, T21, T22, T23, …) are **kept, not dropped** — they remain the "deployable for real residents at scale" blockers and sit right below the MVP spine. A live Supabase path is required for the spine; demo mode stays useful as the offline / E2E fallback.
+
+### MVP rules (in force until the loop above is green)
+- **Do not add new feature modules until the MVP spine works end-to-end.** Deepen the spine; don't widen the surface.
+- **Prefer one complete vertical slice over many half-wired features.**
+- **When a task uncovers a blocker, insert the blocker above the downstream work** it blocks (not at the bottom of the queue).
+- **Every task must finish with the commands it ran and the tests / verification noted** in its done-line.
+- **Demo mode stays useful, but every critical path needs a live Supabase path** — a feature that only works offline does not satisfy the milestone.
+
+---
+
 ## The `make progress` protocol
 
 Do these steps, in order, every time:
@@ -62,6 +92,51 @@ Keep the queue sorted with the highest priority on top. When two tasks share a p
 
 > Sorted by priority, highest on top. `make progress` takes the topmost `⬜` whose prerequisites are met. Mark `✅` when the Definition of Done is fully met.
 
+---
+
+## MVP spine (do these first — see "Current MVP milestone")
+
+> The ordered vertical slice that makes one real asociație work end-to-end. These outrank the GDPR/security/legal queue below except for a direct production blocker. Each is kept small; split any that grows.
+
+### ✅ T28 — [P0] Profile + membership + active-asociație hydration in authStore
+`init` sets the session but never loads `profile`/`memberships`, so role-gated UI (admin/comitet/cenzor) and tenant context have nothing to read in the live path. Fetch the signed-in user's profile (`users`) + active memberships (`ended_at is null`, under RLS) on session change, derive the active asociație + role, expose a `currentAsociatieId` and a `setActiveAsociatie` selector, and keep the demo seed as the fallback. Foundation of the whole spine. Prereq: T01. Unblocks T27 (member-less routing), role enforcement (T02/T03), and the live feature/content tasks.
+**Done:** new pure, unit-tested `hydrationLogic` (`activeMemberships`, `sortByPrivilege`, `pickActiveAsociatieId`, `roleFor`, `hasNoActiveAsociatie`; `ROLE_RANK` privilege ordering — 17 assertions in `tests/unit/hydrationLogic.test.ts`). `authStore` gained `currentAsociatieId`, a `hydrate()` that (live only, under RLS) loads the `users` profile row + active `memberships` for the session user, sorts them by privilege (so `memberships[0]` is the active/most-privileged role), and derives the active asociație honouring any prior selection; plus an `activeRole()` getter and a member-checked `setActiveAsociatie(id)`. `init` hydrates on an existing session and on `SIGNED_IN`; `SIGNED_OUT`/sign-out clear `currentAsociatieId` with the rest of the derived state. Demo mode stays the offline fallback (no backend reads). Existing `memberships[0]?.role` consumers now read the privilege-sorted active role, consistent with the new selectors. Commands run: `npm run lint`, `npm run typecheck`, `npm test` (80 files / 456 tests), `npm run build` — all green; E2E unchanged (Playwright browser binaries can't download in this sandbox, so the core-flow smoke runs in CI — tracked under T08). Surfaced follow-ups T51 (migrate role-gated UI + scoped reads to `activeRole()`/`currentAsociatieId`), T52 (a `hydrating` flag + loading UX so the live app doesn't flash empty before hydration completes).
+
+### ⬜ T27 — [P1] Route member-less authenticated users to join/create onboarding (live path)
+After a real sign-up + email verification, the user has a session but no membership and lands on an empty app. A gate must distinguish "no session" from "session but no asociație" and route the latter to create an asociație or join by invite code, wiring the existing `auth.noAsociatie`/`auth.createFirst` strings and the onboarding wizard into the live path. Prereq: T28.
+
+### ⬜ T45 — [P0] Harden owner-scoped RLS to also require membership in the target asociatie_id
+Owner-scoped (`apply_owner_rls`) policies gate on `user_id = auth.uid()` but do not also require the row's `asociatie_id` to be one the user is a member of. A user could in principle insert/own a row carrying another asociație's id. Tighten owner policies (and member-insert policies) so a row's `asociatie_id` must match an active membership of the actor, closing the cross-tenant write path. Additive migration + backend-free regression test that parses the helpers. Prereq awareness: T04 (RLS sweep), T34.
+
+### ⬜ T41 — [P1] Invite-code lifecycle: secure generation + validation + expiry (admin side)
+The `inviteCode` helper generates/validates a code format, but there is no live lifecycle. Add an `invite_codes`-backed admin flow: secure generation tied to an asociație (+ optional role/apartment), an expiry, single-use semantics, and an admin surface to issue/list/revoke codes. Demo keeps an in-memory store. RLS: only admins of the asociație manage its codes; validation readable by the join path. Prereq: T28. Split from T42 (resident consumption) to stay small.
+
+### ⬜ T42 — [P1] Resident join via invite code (one-time consumption + membership/apartment link)
+A logged-in (or newly-signed-up) resident enters/opens an invite code; the app validates it (format, existence, not expired, not consumed), then atomically consumes it once and creates the membership (and apartment link where the code carries one). Server routine / RPC under RLS so consumption cannot be replayed. Wire into the T27 onboarding gate. Prereq: T41, T27, T28.
+
+### ⬜ T43 — [P1] Load + save feature flags from `asociatie_features` per asociație (live)
+`featureStore` seeds from `DEMO_FEATURES` only; live mode never reads `asociatie_features`. On hydrate, load the active asociație's enabled features from Supabase (fallback to demo seed offline), and let an admin toggle persist back. The enabled set becomes the single source for nav + route gating (T44). Prereq: T28.
+
+### ⬜ T44 — [P1] Gate direct routes for disabled modules (not only nav links)
+Disabled modules are hidden from the nav but a direct URL still loads the page. Add a route-level guard that blocks any `/app/*` feature route whose flag is off for the active asociație, rendering a clear "module not enabled" state, so a disabled module cannot be reached by typing the URL. Prereq: T43.
+
+### ⬜ T47 — [P1] Anunțuri (F01) live-backed for the MVP
+Make announcements read/write Supabase (`announcements`) under RLS for the active asociație: admin publishes, residents read, with the demo store as the offline fallback. Keep the existing UI; add the live data path + read-path scoping by `asociatie_id`. Prereq: T28, T43.
+
+### ⬜ T48 — [P1] Discuții / forum (F02) live-backed for the MVP
+Make discussion threads + messages read/write Supabase (`discussion_threads` / `discussion_messages`) under RLS for the active asociație; a resident can start a thread and post. Demo store stays the offline fallback. Prereq: T28, T43.
+
+### ⬜ T49 — [P1] Sesizări / reclamații (F17) live-backed for the MVP
+Make tickets read/write Supabase (`tickets`) under RLS for the active asociație; a resident submits a sesizare and sees its status. Demo store stays the offline fallback. Prereq: T28, T43.
+
+### ⬜ T46 — [P1] Parent-child tenant-consistency guards/tests for child tables
+Child tables that reference a parent row (e.g. `discussion_messages`→`discussion_threads`, `aga_votes`→`agas`, `budget_proposals`→`budget_cycles`) must not let a child be attached to a parent in another asociație. Audit these relationships, add a check/policy (or trigger) enforcing `child.asociatie_id = parent.asociatie_id` where both carry it, and a backend-free regression test cataloguing the parent-child pairs. Prereq awareness: T04, T45.
+
+### ⬜ T50 — [P1] Telegram `/start CODE` account/invite linking (first Telegram milestone)
+Implement the `/start CODE` path in the webhook as the first real Telegram linking step: parse the deep-link payload, validate it against the invite-code lifecycle (T41/T42) or a per-user link code, and begin a real linking flow that associates the `telegram_users` row with the user/asociație. Keep secret + `initData` validation. Prereq: T41, T42; coordinate with T15 (full bot go-live).
+
+---
+
 ### ✅ T01 — [P0] Live Supabase auth wiring
 Flip authentication off demo onto real Supabase Auth: email + password sign-up/login, email verification, password reset. Keep the `isSupabaseConfigured` demo fallback intact so the app still runs and E2E stays offline-executable. Document required env vars. Foundation for all security work below.
 **Done:** pure `authLogic` (email/password validation, `canSubmit` per mode, `mapAuthError` → stable bilingual keys, unit-tested) + `authStore` extended with `signUp` (email-confirmation aware), `requestPasswordReset`, `updatePassword`, `resendVerification`, and a `PASSWORD_RECOVERY` → `recovery` flag in `init`. `LoginPage` is now a mode-switching form (sign in / sign up / forgot) with confirmation panels for "check your email" + reset-sent; new `ResetPasswordPage` at `/reset-parola` consumes the recovery session. All paths keep the demo fallback (no creds → `enterDemo`). RO/EN locales (incl. `auth.err.*`), `.auth-link` style, `.env.example` documents the Supabase Auth dashboard config (Confirm email ON, Site URL + `/reset-parola` redirect allow-list) and `VITE_APP_URL`. Unit test + one E2E happy-path (mode switching + demo entry). Pipeline green.
@@ -100,12 +175,6 @@ T34 existed because three tables shipped without RLS and nothing caught it. Add 
 
 ### ⬜ T38 — [P1] Anonymous-survey response privacy (within-tenant exposure)
 Found while fixing T34: `survey_responses` (F15) uses the standard `apply_standard_rls` "members read" policy, so any member of the asociație can read every individual response row — including `user_id` and `choice` — even though `surveys.anonymous` defaults to `true` and the feature advertises anonymous polling. This contradicts the stated guarantee and is a privacy gap (within-tenant, so less severe than the cross-tenant T34, but it leaks who answered what). Replace the blanket member-read with a least-privilege policy: a respondent reads only their own row; aggregate/tally results are served without per-row attribution (compute server-side or via a view that drops `user_id` for anonymous surveys); comitet retains only the access it genuinely needs. Audit `priority_rankings` and `votes` for the same "members can read each other's individual choices" pattern while here. Add a regression test. Prereq awareness: T04 (broader RLS sweep).
-
-### ⬜ T27 — [P1] Post-authentication association onboarding (live path)
-After a real (non-demo) sign-up + email verification, the user has a session but no membership, so they land on an empty app. Route a member-less authenticated user to create an asociație or join one by invite code, wiring the existing `auth.noAsociatie`/`auth.createFirst` strings and the onboarding wizard into the live auth path. `RequireAuth` (or a new gate) must distinguish "no session" from "session but no asociație". Prereq: T01.
-
-### ⬜ T28 — [P1] Profile & membership hydration in authStore
-`init` sets the session but never loads `profile`/`memberships` from the backend, so role-gated UI (admin/comitet/cenzor) has nothing to read in the live path. Fetch the signed-in user's profile + memberships (under RLS) on session change, expose a current-asociație selector, and keep the demo seed as the fallback. Prereq: T01. Unblocks role enforcement in T02/T03.
 
 ### ⬜ T29 — [P1] Live recovery-code login (server routine)
 2FA recovery codes are generated, hashed and stored (`mfa_recovery_codes`, T02) and fully work in demo mode, but in the live path a recovery code cannot client-side step a session up to AAL2 — Supabase grants AAL2 only via an MFA verify. Add a privileged server routine (Supabase Edge Function using the service-role/admin API) that verifies a submitted recovery code against the stored hash, consumes it single-use, and completes the second factor, then wire `verifyChallenge`'s live branch to it. Until then a privileged user who loses their authenticator is locked out in production. Prereq: T02, T28.
@@ -171,6 +240,12 @@ F10 currently downloads the legally-required proces-verbal as signature-ready Ro
 
 ### ⬜ T39 — [P2] CSP hardening: exact Supabase origin + violation reporting
 The T04 Content-Security-Policy uses a `https://*.supabase.co` / `wss://*.supabase.co` wildcard for `connect-src` because the project URL is environment-specific. Tighten it by templating the **exact** `VITE_SUPABASE_URL` origin into the deployed header at build/deploy time (Netlify build plugin or a generated `_headers` file) so only the real project is reachable, and add a `report-to`/`report-uri` directive plus a lightweight collector (Netlify function or Sentry, coordinate with T07) so CSP violations are observed rather than silent. Re-widen `connect-src` when Sentry (T07) or the email/Telegram channels (T14/T15) need new origins. Prereq awareness: T04 (done), T07.
+
+### ⬜ T51 — [P2] Migrate role-gated UI + scoped reads to `activeRole()` / `currentAsociatieId`
+T28 added `activeRole()` and `currentAsociatieId` but existing consumers (`AppLayout`, `SecurityPage`, `AssistantWidget`, `securityStore`) still read `memberships[0]?.role` / `memberships[0]?.asociatie_id` directly. They are consistent today because hydration sorts memberships by privilege, but a user who switches active asociație via `setActiveAsociatie` would not be reflected. Migrate these reads to the new selectors so role and tenant scope follow the chosen active asociație. Prereq: T28.
+
+### ⬜ T52 — [P2] Hydration loading state (avoid empty-app flash)
+T28's `hydrate()` runs after the session is set, so for a brief window the live app has a session but no profile/memberships and role-gated UI reads null. Add a `hydrating` flag (and use it in the T27 gate / role-gated surfaces) so the app shows a loading state instead of flashing an empty or wrong-role view before hydration completes. Prereq: T28, T27.
 
 ### ⬜ T17 — [P2] Accessibility audit (WCAG 2.1 AA)
 axe-core clean on every page, full keyboard navigation, correct focus management in modals/drawers, ARIA labelling, sufficient contrast in both light and warm-graphite dark themes.
