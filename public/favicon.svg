@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="tile" x1="2" y1="2" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5fa079"/>
+      <stop offset="1" stop-color="#2b5a44"/>
+    </linearGradient>
+    <radialGradient id="sheen" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse"
+      gradientTransform="translate(9 6) rotate(58) scale(26)">
+      <stop stop-color="#ffffff" stop-opacity="0.32"/>
+      <stop offset="0.6" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- gradient tile -->
+  <rect width="32" height="32" rx="7.5" fill="url(#tile)"/>
+  <rect width="32" height="32" rx="7.5" fill="url(#sheen)"/>
+
+  <!-- back house (a neighbour) -->
+  <path d="M16.3 25V14.4L21.3 10L26.3 14.4V25Z" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="20" y="15.8" width="2.1" height="2.1" rx="0.4" fill="#2c5a44" fill-opacity="0.6"/>
+
+  <!-- front house (home) -->
+  <path d="M5.7 25V14.4L11.2 9.4L16.7 14.4V25Z" fill="#ffffff"/>
+  <rect x="12.3" y="15.5" width="2.1" height="2.1" rx="0.4" fill="#2c5a44"/>
+  <rect x="8.7" y="19" width="2.9" height="6" rx="0.6" fill="#2c5a44"/>
+
+  <!-- soft inner edge highlight -->
+  <rect x="0.5" y="0.5" width="31" height="31" rx="7" stroke="#ffffff" stroke-opacity="0.14"/>
+</svg>

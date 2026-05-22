@@ -1,11 +1,12 @@
+import { useState } from 'react';
 import { Outlet, useLocation, useNavigate, NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Home, Megaphone, Zap, Menu, User, Bell, Moon, Sun, Settings, Search, ChevronDown, Info } from 'lucide-react';
+import { Home, Megaphone, Zap, Menu, User, Bell, Moon, Sun, Settings, Search, ChevronDown, Info, Phone, Siren, ArrowUpRight } from 'lucide-react';
 import { FEATURES, FEATURE_CATEGORIES, type FeatureCategory } from '@/shared/features/registry';
 import { useFeatureStore } from '@/shared/features/featureStore';
 import { useThemeStore } from '@/shared/store/themeStore';
 import { useAuthStore } from '@/shared/store/authStore';
-import { DEMO_ASOCIATIE } from '@/shared/demo/demoData';
+import { DEMO_ASOCIATIE, DEMO_EMERGENCY } from '@/shared/demo/demoData';
 import { Icon } from '@/shared/components/Icon';
 import { cn } from '@/shared/lib/cn';
 
@@ -40,11 +41,53 @@ function useActive() {
   };
 }
 
+const SIDEBAR_COLLAPSED_KEY = 'iv.sidebar.collapsed';
+
+function loadCollapsed(): Record<string, boolean> {
+  try {
+    const raw = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, boolean>) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveCollapsed(state: Record<string, boolean>) {
+  try {
+    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, JSON.stringify(state));
+  } catch {
+    /* storage unavailable — non-fatal */
+  }
+}
+
 function Sidebar() {
   const enabled = useEnabledFeatures();
   const navigate = useNavigate();
   const isActive = useActive();
   const categories = Object.keys(FEATURE_CATEGORIES) as FeatureCategory[];
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>(loadCollapsed);
+  const toggleGroup = (key: string) =>
+    setCollapsed((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      saveCollapsed(next);
+      return next;
+    });
+
+  const GroupHeader = ({ id, label }: { id: string; label: string }) => (
+    <button
+      type="button"
+      className="sidebar__label sidebar__toggle"
+      aria-expanded={!collapsed[id]}
+      onClick={() => toggleGroup(id)}
+    >
+      <span>{label}</span>
+      <ChevronDown
+        className="sidebar__chevron"
+        data-collapsed={collapsed[id] ? 'true' : 'false'}
+        size={13}
+      />
+    </button>
+  );
 
   const NavItem = ({
     label,
@@ -75,38 +118,47 @@ function Sidebar() {
       </div>
 
       {categories.map((cat) => {
-        const items = enabled.filter((f) => f.category === cat && f.path);
+        // F56 (emergency numbers) now lives in the footer, not the sidebar.
+        const items = enabled.filter((f) => f.category === cat && f.path && f.key !== 'F56');
         if (items.length === 0) return null;
         return (
           <div key={cat} className="sidebar__group">
-            <div className="sidebar__label">{FEATURE_CATEGORIES[cat]}</div>
-            {items.map((f) => (
-              <NavItem
-                key={f.key}
-                label={f.title}
-                active={isActive(f.path)}
-                onClick={() => navigate(`/app/${f.path}`)}
-                icon={<Icon name={f.icon} size={16} />}
-              />
-            ))}
+            <GroupHeader id={cat} label={FEATURE_CATEGORIES[cat]} />
+            <div className="sidebar__collapse" data-collapsed={collapsed[cat] ? 'true' : 'false'}>
+              <div className="sidebar__collapse-inner">
+                {items.map((f) => (
+                  <NavItem
+                    key={f.key}
+                    label={f.title}
+                    active={isActive(f.path)}
+                    onClick={() => navigate(`/app/${f.path}`)}
+                    icon={<Icon name={f.icon} size={16} />}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
         );
       })}
 
       <div className="sidebar__group">
-        <div className="sidebar__label">Administrare</div>
-        <NavItem
-          label="Funcționalități"
-          active={isActive('admin/functionalitati')}
-          onClick={() => navigate('/app/admin/functionalitati')}
-          icon={<Settings size={16} />}
-        />
-        <NavItem
-          label="Apartamente"
-          active={isActive('admin/apartamente')}
-          onClick={() => navigate('/app/admin/apartamente')}
-          icon={<Home size={16} />}
-        />
+        <GroupHeader id="admin" label="Administrare" />
+        <div className="sidebar__collapse" data-collapsed={collapsed['admin'] ? 'true' : 'false'}>
+          <div className="sidebar__collapse-inner">
+            <NavItem
+              label="Funcționalități"
+              active={isActive('admin/functionalitati')}
+              onClick={() => navigate('/app/admin/functionalitati')}
+              icon={<Settings size={16} />}
+            />
+            <NavItem
+              label="Apartamente"
+              active={isActive('admin/apartamente')}
+              onClick={() => navigate('/app/admin/apartamente')}
+              icon={<Home size={16} />}
+            />
+          </div>
+        </div>
       </div>
 
       <div style={{ flex: 1 }} />
@@ -277,15 +329,64 @@ function Topbar() {
   );
 }
 
+const APP_VERSION = '0.1.0';
+
+function Footer() {
+  const contacts = [...DEMO_EMERGENCY].sort((a, b) => a.sort_order - b.sort_order);
+  const tel = (phone: string) => `tel:${phone.replace(/\s/g, '')}`;
+
+  return (
+    <footer className="appfooter">
+      <div className="appfooter__inner">
+        <section>
+          <div className="appfooter__emhead">
+            <Siren size={14} />
+            <span className="iv-caps">Numere de urgență</span>
+          </div>
+          <div className="appfooter__emgrid">
+            {contacts.map((c) => (
+              <a key={c.id} className="emcall" href={tel(c.phone)}>
+                <span className="emcall__info">
+                  <span className="emcall__label">{c.label}</span>
+                  <span className="emcall__num">{c.phone}</span>
+                </span>
+                <Phone className="emcall__icon" size={14} />
+              </a>
+            ))}
+          </div>
+        </section>
+
+        <section className="appfooter__brand">
+          <div className="appfooter__word">
+            vecini<em>.online</em>
+          </div>
+          <p className="appfooter__tag">Platforma digitală a asociației tale de proprietari. La îndemână, mereu.</p>
+        </section>
+      </div>
+
+      <div className="appfooter__bar">
+        <span>© 2026 vecini.online</span>
+        <span className="appfooter__dot" />
+        <span className="iv-mono">v{APP_VERSION}</span>
+        <a className="appfooter__credit" href="https://cristiangabriel.dev" target="_blank" rel="noreferrer">
+          Creat de cristiangabriel.dev <ArrowUpRight size={12} />
+        </a>
+      </div>
+    </footer>
+  );
+}
+
 export function AppLayout() {
+  const { pathname } = useLocation();
   return (
     <div className="shell">
       <Topbar />
       <Sidebar />
       <main className="main">
-        <div className="main__inner">
+        <div className="main__inner" key={pathname}>
           <Outlet />
         </div>
+        <Footer />
       </main>
       <BottomNav />
     </div>

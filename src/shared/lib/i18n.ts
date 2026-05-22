@@ -16,7 +16,10 @@ void i18n
     supportedLngs: ['ro', 'en'],
     interpolation: { escapeValue: false },
     detection: {
-      order: ['localStorage', 'navigator'],
+      // Romanian by default: only honour an explicit in-app choice stored in
+      // localStorage. The browser language is intentionally ignored so the UI
+      // stays Romanian unless the user picks otherwise from the profile page.
+      order: ['localStorage'],
       caches: ['localStorage'],
     },
   });
