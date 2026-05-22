@@ -18,8 +18,24 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T70 fixed aga_votes RLS column mismatch)
+## 0. Current status (updated 2026-05-23, T71 apartment-ref tenant-consistency triggers)
 
+- **2026-05-23 — T71 (P2) Tenant-consistency for apartment refs from junction
+  tables without their own `asociatie_id`.** T46's composite-FK guard only
+  covered child tables carrying their own `asociatie_id`; parent-scoped junction
+  tables that reference `apartments` directly but have no tenant column
+  (`aga_votes`, `aga_attendees` ×2, `budget_votes`, `idea_votes` found while
+  auditing, `petition_signatures`) could still attach to a foreign-asociație
+  apartment. New migration `20260522000015_apartment_ref_tenant_consistency.sql`
+  adds a `security definer` `before insert or update` trigger
+  (`check_apartment_parent_tenant`, generic via `to_jsonb(NEW)`) that enforces
+  `apartment.asociatie_id = parent.asociatie_id`, applied to all 6 references via
+  an idempotent `add_apartment_tenant_trigger` helper. A composite FK was not
+  usable (no `asociatie_id` on the child); `apartment_residents` is excluded (the
+  apartment is its only tenant anchor). New backend-free guard
+  `tests/unit/apartmentRefTenantConsistency.test.ts` derives the qualifying set
+  from the schema and asserts the migration covers exactly it. Decision recorded
+  in `DECISIONS.md`. Pipeline green: lint, typecheck, 94 files / 589 tests, build.
 - **2026-05-23 — T70 (P1) Fix `aga_votes` RLS referencing a non-existent
   `asociatie_id` column.** `20260121000002_features.sql` called
   `apply_standard_rls('aga_votes')`, but `aga_votes` carries no `asociatie_id`

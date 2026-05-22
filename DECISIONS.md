@@ -460,3 +460,30 @@ Parent-scoped junction tables without one (`aga_votes`, `budget_votes`,
 `petition_signatures`, `aga_attendees`) have no tenant column to keep equal, so
 their `apartment_id` cross-tenant exposure is tracked separately (T71), and the
 latent `aga_votes` RLS-on-missing-column bug surfaced here is T70.
+
+## T71 — apartment-ref tenant consistency via a trigger (not a composite FK)
+
+The T46 composite FK only covers child tables that carry their **own**
+`asociatie_id`. The remaining gap is junction tables that have no tenant column
+of their own (their tenant is the parent's) yet reference `apartments` directly:
+`aga_votes.apartment_id`, `aga_attendees.apartment_id`/`proxy_for_apartment_id`,
+`budget_votes.apartment_id`, `idea_votes.apartment_id` (found while auditing —
+not named in T71's prose but the identical gap) and
+`petition_signatures.apartment_id`. The invariant is
+`apartment.asociatie_id = parent.asociatie_id` (the parent being
+`agas`/`budget_proposals`/`ideas`/`petitions`).
+
+A composite FK is **not available** here because the child has no `asociatie_id`
+column to put into the key, and adding a denormalised one would have to be kept
+in sync by a trigger anyway. So `20260522000015_apartment_ref_tenant_consistency.sql`
+enforces it with a `before insert or update` trigger
+(`check_apartment_parent_tenant`) that resolves the parent's and the apartment's
+`asociatie_id` and rejects a mismatch. It runs `security definer` with a fixed
+`search_path = public` (like `is_member`/`has_role`) so it is unaffected by RLS
+or a hostile session search_path, reads `NEW` via `to_jsonb` so one generic
+function serves every table, and treats a NULL apartment reference as allowed
+(matching the nullable columns). A generic
+`add_apartment_tenant_trigger(child, apt_col, parent, parent_fk_col)` helper
+applies it to the six references. `apartment_residents` is intentionally excluded:
+its only tenant anchor *is* the apartment, so there is no second parent to keep
+consistent with.
