@@ -18,6 +18,7 @@ import {
   type FeatureCategory,
 } from '@/shared/features/registry';
 import { useFeatureStore } from '@/shared/features/featureStore';
+import { useAuthStore } from '@/shared/store/authStore';
 
 const STEPS = ['profile', 'import', 'features', 'branding', 'invite'] as const;
 
@@ -25,6 +26,7 @@ export default function OnboardingWizard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const setAll = useFeatureStore((s) => s.setAll);
+  const createLocalAsociatie = useAuthStore((s) => s.createLocalAsociatie);
 
   const [step, setStep] = useState(0);
   const [profile, setProfile] = useState({ name: '', address: '', cui: '', regNumber: '' });
@@ -45,6 +47,10 @@ export default function OnboardingWizard() {
   };
 
   const finish = () => {
+    // Create the asociație locally (founder becomes its admin and it is selected
+    // as active), so the user clears the RequireAsociatie gate and lands in a
+    // real tenant context. Live persistence is a separate activation step (T55).
+    createLocalAsociatie(profile.name);
     setAll(selected);
     toast.success(t('onboarding.finishHint'));
     navigate('/app');

@@ -3,6 +3,7 @@ import { lazy, Suspense } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import { AppLayout } from './AppLayout';
 import { RequireAuth } from './RequireAuth';
+import { RequireAsociatie } from './RequireAsociatie';
 import { SkeletonList } from '@/shared/components/Skeleton';
 
 const LoginPage = lazy(() => import('@/features/auth/LoginPage'));
@@ -103,7 +104,9 @@ export const router = createBrowserRouter([
     path: '/app',
     element: (
       <RequireAuth>
-        <AppLayout />
+        <RequireAsociatie>
+          <AppLayout />
+        </RequireAsociatie>
       </RequireAuth>
     ),
     children: [

@@ -3,8 +3,10 @@ import type { Session } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import { env } from '@/shared/lib/env';
 import type { Membership, Role, UserProfile } from '@/shared/types/domain';
-import { mergeHydration, roleFor } from '@/features/auth/hydrationLogic';
+import { mergeHydration, roleFor, sortByPrivilege } from '@/features/auth/hydrationLogic';
 import { demoTenantContext } from '@/features/auth/demoTenant';
+import { buildFounderMembership, newLocalAsociatieId } from '@/features/onboarding/onboardingLogic';
+import { DEMO_CURRENT_USER_ID } from '@/shared/demo/demoData';
 import { useSecurityStore } from './securityStore';
 
 /** Where Supabase sends the resident after they click the password-reset link. */
@@ -30,6 +32,8 @@ interface AuthState {
   memberships: Membership[];
   /** The asociație whose data the app is currently scoped to (null = none yet). */
   currentAsociatieId: string | null;
+  /** Asociații created locally this session (offline path); name kept for display (T59). */
+  localAsociatii: { id: string; name: string }[];
   loading: boolean;
   /** True while profile/memberships are being fetched for the current session. */
   hydrating: boolean;
@@ -43,6 +47,12 @@ interface AuthState {
   activeRole: () => Role | null;
   /** Switch the active asociație (must be one the user is a member of). */
   setActiveAsociatie: (asociatieId: string) => void;
+  /**
+   * Create an asociație locally (offline path): the current user becomes its
+   * admin and it is selected as active. Returns the new asociație id. Live
+   * persistence is a separate activation step (T55).
+   */
+  createLocalAsociatie: (name: string) => string;
   signIn: (email: string, password: string) => Promise<SignInResult>;
   signUp: (email: string, password: string) => Promise<SignUpResult>;
   resendVerification: (email: string) => Promise<AuthResult>;
@@ -63,6 +73,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   profile: null,
   memberships: [],
   currentAsociatieId: null,
+  localAsociatii: [],
   loading: true,
   hydrating: false,
   demo: false,
@@ -87,6 +98,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           profile: null,
           memberships: [],
           currentAsociatieId: null,
+          localAsociatii: [],
           hydrating: false,
           recovery: false,
         });
@@ -138,6 +150,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       (m) => m.asociatie_id === asociatieId && m.ended_at === null,
     );
     if (isMember) set({ currentAsociatieId: asociatieId });
+  },
+
+  createLocalAsociatie: (name) => {
+    const userId = get().session?.user?.id ?? DEMO_CURRENT_USER_ID;
+    const asociatieId = newLocalAsociatieId();
+    const membership = buildFounderMembership(userId, asociatieId);
+    set({
+      memberships: sortByPrivilege([...get().memberships, membership]),
+      currentAsociatieId: asociatieId,
+      localAsociatii: [...get().localAsociatii, { id: asociatieId, name: name.trim() }],
+    });
+    return asociatieId;
   },
 
   signIn: async (email, password) => {
@@ -229,6 +253,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       profile: null,
       memberships: [],
       currentAsociatieId: null,
+      localAsociatii: [],
       hydrating: false,
       demo: false,
       recovery: false,
@@ -247,6 +272,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       profile: null,
       memberships: [],
       currentAsociatieId: null,
+      localAsociatii: [],
       hydrating: false,
       demo: false,
       recovery: false,
