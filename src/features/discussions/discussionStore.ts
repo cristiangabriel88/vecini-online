@@ -1,66 +1,64 @@
 import { create } from 'zustand';
 import type { DiscussionThread } from '@/shared/types/domain';
-import { DEMO_DISCUSSIONS } from '@/shared/demo/demoData';
-
-/** Demo identity of the signed-in resident (a vetted moderator for the demo). */
-export const DEMO_USER = { id: 'u-res', name: 'Popescu Andrei' };
+import { useAuthStore } from '@/shared/store/authStore';
+import {
+  type MessageAuthor,
+  type NewThreadInput,
+  type ThreadsByAsociatie,
+  addMessageIn,
+  addThreadIn,
+  deleteMessageIn,
+  newMessage,
+  newThread,
+  seedThreads,
+  threadsForAsociatie,
+  togglePinIn,
+} from './discussionLogic';
 
 interface DiscussionState {
-  threads: DiscussionThread[];
-  addThread: (title: string, topic: string) => void;
-  postMessage: (threadId: string, body: string) => void;
-  togglePin: (threadId: string) => void;
-  deleteMessage: (threadId: string, messageId: string) => void;
+  /** Discussion threads per asociație, keyed by asociație id. */
+  byAsociatie: ThreadsByAsociatie;
+  /** Open a thread in one asociație. */
+  addThread: (asociatieId: string, input: NewThreadInput) => void;
+  /** Post a message authored by `author` to a thread in one asociație. */
+  postMessage: (asociatieId: string, threadId: string, body: string, author: MessageAuthor) => void;
+  togglePin: (asociatieId: string, threadId: string) => void;
+  deleteMessage: (asociatieId: string, threadId: string, messageId: string) => void;
+  /** The threads for one asociație (stable reference). */
+  forAsociatie: (asociatieId: string | null) => DiscussionThread[];
 }
 
-export const useDiscussionStore = create<DiscussionState>((set) => ({
-  threads: [...DEMO_DISCUSSIONS],
-  addThread: (title, topic) =>
+/**
+ * Discuții / forum scoped per asociație (T48): the demo asociație is seeded so
+ * the offline app is populated, and a new thread or message lands only in the
+ * active asociație's list. The demo store is the offline source of truth; live
+ * read/write against `discussion_threads` + `discussion_messages` under RLS is
+ * T57.
+ */
+export const useDiscussionStore = create<DiscussionState>((set, get) => ({
+  byAsociatie: seedThreads(),
+  addThread: (asociatieId, input) =>
     set((s) => ({
-      threads: [
-        {
-          id: `dt-${Date.now()}`,
-          asociatie_id: 'demo-asoc',
-          topic: topic.trim() || '#general',
-          title: title.trim(),
-          pinned: false,
-          created_at: new Date().toISOString(),
-          messages: [],
-        },
-        ...s.threads,
-      ],
+      byAsociatie: addThreadIn(s.byAsociatie, asociatieId, newThread(input, asociatieId)),
     })),
-  postMessage: (threadId, body) =>
+  postMessage: (asociatieId, threadId, body, author) =>
     set((s) => ({
-      threads: s.threads.map((th) =>
-        th.id === threadId
-          ? {
-              ...th,
-              messages: [
-                ...th.messages,
-                {
-                  id: `dm-${Date.now()}`,
-                  thread_id: threadId,
-                  author_user_id: DEMO_USER.id,
-                  author_name: DEMO_USER.name,
-                  body: body.trim(),
-                  created_at: new Date().toISOString(),
-                },
-              ],
-            }
-          : th,
+      byAsociatie: addMessageIn(
+        s.byAsociatie,
+        asociatieId,
+        threadId,
+        newMessage(threadId, body, author),
       ),
     })),
-  togglePin: (threadId) =>
-    set((s) => ({
-      threads: s.threads.map((th) => (th.id === threadId ? { ...th, pinned: !th.pinned } : th)),
-    })),
-  deleteMessage: (threadId, messageId) =>
-    set((s) => ({
-      threads: s.threads.map((th) =>
-        th.id === threadId
-          ? { ...th, messages: th.messages.filter((m) => m.id !== messageId) }
-          : th,
-      ),
-    })),
+  togglePin: (asociatieId, threadId) =>
+    set((s) => ({ byAsociatie: togglePinIn(s.byAsociatie, asociatieId, threadId) })),
+  deleteMessage: (asociatieId, threadId, messageId) =>
+    set((s) => ({ byAsociatie: deleteMessageIn(s.byAsociatie, asociatieId, threadId, messageId) })),
+  forAsociatie: (asociatieId) => threadsForAsociatie(get().byAsociatie, asociatieId),
 }));
+
+/** Hook: the discussion threads for the currently active asociație. */
+export function useAsociatieThreads(): DiscussionThread[] {
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  return useDiscussionStore((s) => threadsForAsociatie(s.byAsociatie, asociatieId));
+}

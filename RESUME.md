@@ -18,7 +18,27 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T47 Anunțuri scoped per asociație)
+## 0. Current status (updated 2026-05-23, T48 Discuții scoped per asociație)
+
+- **2026-05-23 — T48 (P1) Discuții / forum (F02) scoped to the active asociație.**
+  Extended `discussionLogic` with the per-asociație model mirroring T47
+  (`ThreadsByAsociatie`; `seedThreads` → demo asociație gets `DEMO_DISCUSSIONS`;
+  `threadsForAsociatie` → stored list or a shared frozen empty default for a stable
+  selector reference; `newThread` builds an empty thread owned by the asociație
+  with a `#general` topic default; `newMessage` attributes a body to a
+  `MessageAuthor`; pure `addThreadIn` plus a private `mapThreads` backing pure
+  `addMessageIn`/`togglePinIn`/`deleteMessageIn` that no-op for an unknown asociație
+  — 8 new assertions). `discussionStore` is keyed by asociație (`byAsociatie`,
+  seeded for demo); `addThread`/`postMessage`/`togglePin`/`deleteMessage` take an
+  `asociatieId` (post takes an explicit author), and a new `useAsociatieThreads()`
+  hook resolves the active asociație's list via `authStore.currentAsociatieId`.
+  `DiscussionsPage` resolves the active asociație + author (`profile`/live, new
+  `DEMO_CURRENT_USER_NAME` offline) and guards every write on an active asociație;
+  the hardcoded `DEMO_USER` is gone. A11y: the icon-only reply send button gained
+  an `aria-label`. One E2E added (open a thread → reply → see the message).
+  Pipeline green: lint, typecheck, 87 files / 525 tests, build. Surfaced T66 (wire
+  the `canPost` rate limit into the post flow). Live `discussion_threads`/
+  `discussion_messages` read/write under RLS is T57.
 
 - **2026-05-23 — T47 (P1) Anunțuri (F01) scoped to the active asociație.** New
   pure, unit-tested `announcementsLogic` (`seedAnnouncements` → demo asociație

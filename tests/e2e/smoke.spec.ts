@@ -22,6 +22,20 @@ test('admin can publish an announcement', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Test anunț E2E' })).toBeVisible();
 });
 
+test('T48: resident can start a discussion thread and reply in it', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/discutii');
+  await page.getByRole('button', { name: /Subiect nou/i }).click();
+  await page.getByLabel('Titlu').fill('Subiect de test E2E');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  const thread = page.getByRole('button', { name: /Subiect de test E2E/i });
+  await expect(thread).toBeVisible();
+  await thread.click();
+  await page.getByLabel('Scrie un mesaj…').fill('Primul răspuns de test.');
+  await page.getByRole('button', { name: /Trimite mesajul/i }).click();
+  await expect(page.getByText('Primul răspuns de test.')).toBeVisible();
+});
+
 test('resident can cast a vote and see results', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/voturi');

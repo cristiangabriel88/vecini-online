@@ -112,6 +112,7 @@ export const DEMO_APARTMENTS: Apartment[] = [
 /** The resident the demo signs in as: Popescu Andrei, owner of Ap. 5 (`ap-2`),
  *  whose meters and tickets back the "Informații apartament" (F35) view. */
 export const DEMO_CURRENT_USER_ID = 'u-res';
+export const DEMO_CURRENT_USER_NAME = 'Popescu Andrei';
 export const DEMO_CURRENT_APARTMENT_ID = 'ap-2';
 
 export const DEMO_ANNOUNCEMENTS: Announcement[] = [

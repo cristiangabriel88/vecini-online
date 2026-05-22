@@ -1,4 +1,5 @@
-import type { DiscussionThread } from '@/shared/types/domain';
+import type { DiscussionMessage, DiscussionThread } from '@/shared/types/domain';
+import { DEMO_ASOCIATIE, DEMO_DISCUSSIONS } from '@/shared/demo/demoData';
 
 /** New users are rate-limited to this many messages per hour until vetted. */
 export const NEW_USER_HOURLY_LIMIT = 10;
@@ -35,4 +36,165 @@ export function sortThreads(threads: DiscussionThread[]): DiscussionThread[] {
 export function canPost(recentMessageCount: number, vetted: boolean): boolean {
   if (vetted) return true;
   return recentMessageCount < NEW_USER_HOURLY_LIMIT;
+}
+
+/**
+ * Discuții / forum (F02) scoped per asociație (T48).
+ *
+ * Pure model so the demo store stays the offline source of truth and the loop
+ * (a resident starts a thread, neighbours reply) works fully offline. Each
+ * asociație owns its own threads, keyed by asociație id, so a thread and the
+ * messages in it belong to the active tenant and never leak across asociații.
+ * With a real backend the threads are hydrated from / written back to
+ * `discussion_threads` + `discussion_messages` under RLS (live activation is
+ * T57); this module stays the single source of the shape and the per-asociație
+ * partitioning.
+ */
+
+/** All asociații's discussion threads, keyed by asociație id. */
+export type ThreadsByAsociatie = Record<string, DiscussionThread[]>;
+
+/**
+ * Stable empty list returned for an unknown or null asociație so React selectors
+ * keep a constant reference (a fresh `[]` per call would force needless
+ * re-renders). Never mutate it; the helpers always build a new array.
+ */
+const EMPTY_THREADS = Object.freeze([] as DiscussionThread[]) as DiscussionThread[];
+
+/**
+ * Seed used the first time the store initialises (before any persisted state):
+ * the demo asociație gets the seeded threads so the offline app is populated.
+ * Other asociații start empty until a resident opens a thread.
+ */
+export function seedThreads(): ThreadsByAsociatie {
+  return { [DEMO_ASOCIATIE.id]: [...DEMO_DISCUSSIONS] };
+}
+
+/**
+ * The threads for one asociație. Returns the stored list (a stable reference) or
+ * a shared frozen empty list when the asociație has none yet or none is active.
+ */
+export function threadsForAsociatie(
+  byAsociatie: ThreadsByAsociatie,
+  asociatieId: string | null,
+): DiscussionThread[] {
+  if (!asociatieId) return EMPTY_THREADS;
+  return byAsociatie[asociatieId] ?? EMPTY_THREADS;
+}
+
+/** The fields a resident supplies to open a thread; the rest is derived. */
+export interface NewThreadInput {
+  title: string;
+  topic: string;
+}
+
+/** Identity of the author posting a thread or a message. */
+export interface MessageAuthor {
+  id: string;
+  name: string;
+}
+
+/** Build an empty thread owned by `asociatieId`, defaulting a blank topic. */
+export function newThread(
+  input: NewThreadInput,
+  asociatieId: string,
+  now: Date = new Date(),
+): DiscussionThread {
+  return {
+    id: `dt-${now.getTime()}`,
+    asociatie_id: asociatieId,
+    topic: input.topic.trim() || '#general',
+    title: input.title.trim(),
+    pinned: false,
+    created_at: now.toISOString(),
+    messages: [],
+  };
+}
+
+/** Build a message authored by `author` in the given thread. */
+export function newMessage(
+  threadId: string,
+  body: string,
+  author: MessageAuthor,
+  now: Date = new Date(),
+): DiscussionMessage {
+  return {
+    id: `dm-${now.getTime()}`,
+    thread_id: threadId,
+    author_user_id: author.id,
+    author_name: author.name,
+    body: body.trim(),
+    created_at: now.toISOString(),
+  };
+}
+
+/**
+ * Prepend a thread to one asociație's list (newest first), returning a new
+ * `byAsociatie` map without mutating the input.
+ */
+export function addThreadIn(
+  byAsociatie: ThreadsByAsociatie,
+  asociatieId: string,
+  thread: DiscussionThread,
+): ThreadsByAsociatie {
+  return {
+    ...byAsociatie,
+    [asociatieId]: [thread, ...(byAsociatie[asociatieId] ?? [])],
+  };
+}
+
+/**
+ * Apply a pure transform to one asociație's thread list, leaving every other
+ * asociație untouched. A no-op (returns the same map) if the asociație has no
+ * list yet, so a stray mutation can never seed a phantom asociație.
+ */
+function mapThreads(
+  byAsociatie: ThreadsByAsociatie,
+  asociatieId: string,
+  fn: (threads: DiscussionThread[]) => DiscussionThread[],
+): ThreadsByAsociatie {
+  const list = byAsociatie[asociatieId];
+  if (!list) return byAsociatie;
+  return { ...byAsociatie, [asociatieId]: fn(list) };
+}
+
+/** Append a message to a thread within one asociație, purely. */
+export function addMessageIn(
+  byAsociatie: ThreadsByAsociatie,
+  asociatieId: string,
+  threadId: string,
+  message: DiscussionMessage,
+): ThreadsByAsociatie {
+  return mapThreads(byAsociatie, asociatieId, (threads) =>
+    threads.map((th) =>
+      th.id === threadId ? { ...th, messages: [...th.messages, message] } : th,
+    ),
+  );
+}
+
+/** Toggle a thread's pinned flag within one asociație, purely. */
+export function togglePinIn(
+  byAsociatie: ThreadsByAsociatie,
+  asociatieId: string,
+  threadId: string,
+): ThreadsByAsociatie {
+  return mapThreads(byAsociatie, asociatieId, (threads) =>
+    threads.map((th) => (th.id === threadId ? { ...th, pinned: !th.pinned } : th)),
+  );
+}
+
+/** Remove a message from a thread within one asociație, purely. */
+export function deleteMessageIn(
+  byAsociatie: ThreadsByAsociatie,
+  asociatieId: string,
+  threadId: string,
+  messageId: string,
+): ThreadsByAsociatie {
+  return mapThreads(byAsociatie, asociatieId, (threads) =>
+    threads.map((th) =>
+      th.id === threadId
+        ? { ...th, messages: th.messages.filter((m) => m.id !== messageId) }
+        : th,
+    ),
+  );
 }

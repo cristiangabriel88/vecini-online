@@ -1151,6 +1151,7 @@
     "unpin": "Unpin",
     "deleteMessage": "Delete message",
     "replyPlaceholder": "Write a message…",
+    "send": "Send message",
     "threadAdded": "Thread created.",
     "empty": "No discussion threads yet. Start the first with the button above."
   },

@@ -10,12 +10,21 @@ import { Input } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Modal } from '@/shared/components/Modal';
 import { formatDateTime } from '@/shared/lib/format';
-import { useDiscussionStore } from './discussionStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { DEMO_CURRENT_USER_ID, DEMO_CURRENT_USER_NAME } from '@/shared/demo/demoData';
+import { useAsociatieThreads, useDiscussionStore } from './discussionStore';
 import { isValidMessage, isValidThread, sortThreads } from './discussionLogic';
 
 export default function DiscussionsPage() {
   const { t } = useTranslation();
-  const { threads, addThread, postMessage, togglePin, deleteMessage } = useDiscussionStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const profile = useAuthStore((s) => s.profile);
+  const author = {
+    id: profile?.id ?? DEMO_CURRENT_USER_ID,
+    name: profile?.full_name ?? DEMO_CURRENT_USER_NAME,
+  };
+  const threads = useAsociatieThreads();
+  const { addThread, postMessage, togglePin, deleteMessage } = useDiscussionStore();
   const [openId, setOpenId] = useState<string | null>(null);
   const [reply, setReply] = useState('');
   const [newOpen, setNewOpen] = useState(false);
@@ -25,14 +34,14 @@ export default function DiscussionsPage() {
   const ordered = sortThreads(threads);
 
   const send = (threadId: string) => {
-    if (!isValidMessage(reply)) return;
-    postMessage(threadId, reply);
+    if (!asociatieId || !isValidMessage(reply)) return;
+    postMessage(asociatieId, threadId, reply, author);
     setReply('');
   };
 
   const submitThread = () => {
-    if (!isValidThread(title)) return;
-    addThread(title, topic);
+    if (!asociatieId || !isValidThread(title)) return;
+    addThread(asociatieId, { title, topic });
     toast.success(t('discussions.threadAdded'));
     setNewOpen(false);
     setTitle('');
@@ -74,7 +83,7 @@ export default function DiscussionsPage() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => togglePin(th.id)}
+                      onClick={() => asociatieId && togglePin(asociatieId, th.id)}
                       aria-label={th.pinned ? t('discussions.unpin') : t('discussions.pin')}
                     >
                       <Pin className="h-4 w-4" />
@@ -94,7 +103,7 @@ export default function DiscussionsPage() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => deleteMessage(th.id, m.id)}
+                          onClick={() => asociatieId && deleteMessage(asociatieId, th.id, m.id)}
                           aria-label={t('discussions.deleteMessage')}
                         >
                           <Trash2 className="h-4 w-4 text-danger" />
@@ -108,7 +117,11 @@ export default function DiscussionsPage() {
                         placeholder={t('discussions.replyPlaceholder')}
                         aria-label={t('discussions.replyPlaceholder')}
                       />
-                      <Button onClick={() => send(th.id)} disabled={!isValidMessage(reply)}>
+                      <Button
+                        onClick={() => send(th.id)}
+                        disabled={!asociatieId || !isValidMessage(reply)}
+                        aria-label={t('discussions.send')}
+                      >
                         <Send className="h-4 w-4" />
                       </Button>
                     </div>
@@ -129,7 +142,7 @@ export default function DiscussionsPage() {
             <Button variant="ghost" onClick={() => setNewOpen(false)}>
               {t('common.cancel')}
             </Button>
-            <Button onClick={submitThread} disabled={!isValidThread(title)}>
+            <Button onClick={submitThread} disabled={!asociatieId || !isValidThread(title)}>
               {t('common.save')}
             </Button>
           </>
