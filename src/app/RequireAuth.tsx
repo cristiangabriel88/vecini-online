@@ -8,8 +8,11 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   const session = useAuthStore((s) => s.session);
   const demo = useAuthStore((s) => s.demo);
   const loading = useAuthStore((s) => s.loading);
+  const hydrating = useAuthStore((s) => s.hydrating);
 
-  if (loading) {
+  // While the session exists but profile/memberships are still loading, hold on
+  // the loading state so role-gated UI never renders against empty tenant context.
+  if (loading || (session && hydrating)) {
     return (
       <div className="flex min-h-screen items-center justify-center text-muted">{t('common.loading')}</div>
     );

@@ -2,8 +2,8 @@ import { create } from 'zustand';
 import type { Session } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import { env } from '@/shared/lib/env';
-import type { Membership, NotificationPreferences, Role, UserProfile } from '@/shared/types/domain';
-import { pickActiveAsociatieId, roleFor, sortByPrivilege } from '@/features/auth/hydrationLogic';
+import type { Membership, Role, UserProfile } from '@/shared/types/domain';
+import { mergeHydration, roleFor } from '@/features/auth/hydrationLogic';
 import { useSecurityStore } from './securityStore';
 
 /** Where Supabase sends the resident after they click the password-reset link. */
@@ -30,6 +30,8 @@ interface AuthState {
   /** The asociație whose data the app is currently scoped to (null = none yet). */
   currentAsociatieId: string | null;
   loading: boolean;
+  /** True while profile/memberships are being fetched for the current session. */
+  hydrating: boolean;
   demo: boolean;
   /** Set while the resident is in a password-recovery session (from the email link). */
   recovery: boolean;
@@ -51,12 +53,17 @@ interface AuthState {
   enterDemo: () => void;
 }
 
+// Monotonic token so a slow hydrate cannot overwrite the result of a newer one
+// (e.g. fast user switch, or a sign-out that started after this read).
+let hydrateSeq = 0;
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   session: null,
   profile: null,
   memberships: [],
   currentAsociatieId: null,
   loading: true,
+  hydrating: false,
   demo: false,
   recovery: false,
 
@@ -74,7 +81,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // The library refreshes the access token silently before it expires; a
       // failed refresh ends in SIGNED_OUT, which clears the derived state below.
       if (!session) {
-        set({ profile: null, memberships: [], currentAsociatieId: null, recovery: false });
+        hydrateSeq++; // invalidate any in-flight hydrate for the old session
+        set({
+          profile: null,
+          memberships: [],
+          currentAsociatieId: null,
+          hydrating: false,
+          recovery: false,
+        });
       } else if (event === 'SIGNED_IN') {
         void get().hydrate();
       }
@@ -85,25 +99,35 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (!isSupabaseConfigured) return;
     const userId = get().session?.user?.id;
     if (!userId) return;
-    // Both reads run under RLS: a user sees only their own profile row and only
-    // memberships scoped to them. The demo seed stays the offline fallback.
-    const [{ data: profileRow }, { data: membershipRows }] = await Promise.all([
-      supabase.from('users').select('*').eq('id', userId).maybeSingle(),
-      supabase.from('memberships').select('*').eq('user_id', userId).is('ended_at', null),
-    ]);
-    const memberships = sortByPrivilege((membershipRows ?? []) as Membership[]);
-    const currentAsociatieId = pickActiveAsociatieId(memberships, get().currentAsociatieId);
-    set({
-      profile: profileRow
-        ? {
-            ...(profileRow as UserProfile),
-            notification_preferences:
-              (profileRow as UserProfile).notification_preferences as NotificationPreferences,
-          }
-        : get().profile,
-      memberships,
-      currentAsociatieId,
-    });
+    const seq = ++hydrateSeq;
+    set({ hydrating: true });
+    try {
+      // Both reads run under RLS: a user sees only their own profile row and only
+      // memberships scoped to them. The demo seed stays the offline fallback.
+      const [profileRes, membershipRes] = await Promise.all([
+        supabase.from('users').select('*').eq('id', userId).maybeSingle(),
+        supabase.from('memberships').select('*').eq('user_id', userId).is('ended_at', null),
+      ]);
+      // Drop stale results: a newer hydrate began, or the session changed/ended
+      // while these reads were in flight. The owning call applies the state.
+      if (seq !== hydrateSeq || get().session?.user?.id !== userId) return;
+      const prev = get();
+      set(
+        mergeHydration(
+          {
+            profile: prev.profile,
+            memberships: prev.memberships,
+            currentAsociatieId: prev.currentAsociatieId,
+          },
+          profileRes,
+          membershipRes,
+        ),
+      );
+    } finally {
+      // Only the latest in-flight hydrate owns the flag; a stale one must not
+      // flip it off while a newer read is still running.
+      if (seq === hydrateSeq) set({ hydrating: false });
+    }
   },
 
   activeRole: () => roleFor(get().memberships, get().currentAsociatieId),
@@ -198,11 +222,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const email = get().session?.user?.email ?? null;
     if (isSupabaseConfigured) await supabase.auth.signOut();
     useSecurityStore.getState().log('logout', email);
+    hydrateSeq++; // invalidate any in-flight hydrate for the old session
     set({
       session: null,
       profile: null,
       memberships: [],
       currentAsociatieId: null,
+      hydrating: false,
       demo: false,
       recovery: false,
     });
@@ -214,11 +240,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // so a session on another device or a stolen token is invalidated too.
     if (isSupabaseConfigured) await supabase.auth.signOut({ scope: 'global' });
     useSecurityStore.getState().log('logoutEverywhere', email);
+    hydrateSeq++; // invalidate any in-flight hydrate for the old session
     set({
       session: null,
       profile: null,
       memberships: [],
       currentAsociatieId: null,
+      hydrating: false,
       demo: false,
       recovery: false,
     });

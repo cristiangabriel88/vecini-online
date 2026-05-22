@@ -2,11 +2,31 @@ import { describe, expect, it } from 'vitest';
 import {
   activeMemberships,
   hasNoActiveAsociatie,
+  mergeHydration,
   pickActiveAsociatieId,
   roleFor,
   sortByPrivilege,
+  type HydrationState,
 } from '@/features/auth/hydrationLogic';
-import type { Membership, Role } from '@/shared/types/domain';
+import type { Membership, Role, UserProfile } from '@/shared/types/domain';
+
+function profile(over: Partial<UserProfile> = {}): UserProfile {
+  return {
+    id: 'u1',
+    email: 'ana@vecini.ro',
+    full_name: 'Ana Pop',
+    phone: null,
+    avatar_url: null,
+    locale: 'ro',
+    notification_preferences: {
+      channels: ['inapp'],
+      quiet_hours: { start: '22:00', end: '07:00' },
+    },
+    created_at: '2026-01-01T00:00:00Z',
+    updated_at: '2026-01-01T00:00:00Z',
+    ...over,
+  };
+}
 
 function membership(over: Partial<Membership>): Membership {
   return {
@@ -116,5 +136,76 @@ describe('hasNoActiveAsociatie', () => {
 
   it('is false with at least one active membership', () => {
     expect(hasNoActiveAsociatie([membership({})])).toBe(false);
+  });
+});
+
+describe('mergeHydration', () => {
+  const knownGood: HydrationState = {
+    profile: profile(),
+    memberships: [membership({ id: 'm1', asociatie_id: 'a1', role: 'admin' })],
+    currentAsociatieId: 'a1',
+  };
+
+  it('applies fresh profile + memberships on successful reads', () => {
+    const next = mergeHydration(
+      { profile: null, memberships: [], currentAsociatieId: null },
+      { data: profile({ full_name: 'Ion' }), error: null },
+      { data: [membership({ asociatie_id: 'a2', role: 'comitet' })], error: null },
+    );
+    expect(next.profile?.full_name).toBe('Ion');
+    expect(next.memberships).toHaveLength(1);
+    expect(next.currentAsociatieId).toBe('a2');
+  });
+
+  it('does NOT retain a stale profile when the read succeeds with no row', () => {
+    const next = mergeHydration(
+      knownGood,
+      { data: null, error: null },
+      { data: [membership({ asociatie_id: 'a1', role: 'admin' })], error: null },
+    );
+    expect(next.profile).toBeNull();
+  });
+
+  it('retains known-good profile when the profile read errors', () => {
+    const next = mergeHydration(
+      knownGood,
+      { data: null, error: { message: 'network' } },
+      { data: [membership({ asociatie_id: 'a1', role: 'admin' })], error: null },
+    );
+    expect(next.profile).toBe(knownGood.profile);
+  });
+
+  it('retains known-good memberships + active asociație when the membership read errors', () => {
+    const next = mergeHydration(
+      knownGood,
+      { data: profile(), error: null },
+      { data: null, error: { message: 'timeout' } },
+    );
+    expect(next.memberships).toBe(knownGood.memberships);
+    expect(next.currentAsociatieId).toBe('a1');
+  });
+
+  it('leaves state untouched when both reads error', () => {
+    const next = mergeHydration(
+      knownGood,
+      { data: null, error: { message: 'x' } },
+      { data: null, error: { message: 'y' } },
+    );
+    expect(next).toEqual(knownGood);
+  });
+
+  it('honours the prior active asociație when still a member after refresh', () => {
+    const next = mergeHydration(
+      knownGood,
+      { data: profile(), error: null },
+      {
+        data: [
+          membership({ asociatie_id: 'a3', role: 'presedinte' }),
+          membership({ asociatie_id: 'a1', role: 'admin' }),
+        ],
+        error: null,
+      },
+    );
+    expect(next.currentAsociatieId).toBe('a1');
   });
 });

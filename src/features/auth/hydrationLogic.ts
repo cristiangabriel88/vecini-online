@@ -1,4 +1,4 @@
-import type { Membership, Role } from '@/shared/types/domain';
+import type { Membership, NotificationPreferences, Role, UserProfile } from '@/shared/types/domain';
 
 /**
  * Pure helpers for turning a freshly-fetched set of memberships into the
@@ -67,4 +67,52 @@ export function roleFor(memberships: Membership[], asociatieId: string | null): 
 /** True when an authenticated user has no active membership in any asociație. */
 export function hasNoActiveAsociatie(memberships: Membership[]): boolean {
   return activeMemberships(memberships).length === 0;
+}
+
+/** The slice of auth state derived from the backend reads. */
+export interface HydrationState {
+  profile: UserProfile | null;
+  memberships: Membership[];
+  currentAsociatieId: string | null;
+}
+
+/** A Supabase-style `{ data, error }` envelope, narrowed to what we read. */
+interface QueryResult<T> {
+  data: T;
+  error: unknown;
+}
+
+function normalizeProfile(row: UserProfile): UserProfile {
+  return {
+    ...row,
+    notification_preferences: row.notification_preferences as NotificationPreferences,
+  };
+}
+
+/**
+ * Merge the profile + membership query results into the next derived state,
+ * starting from the previous state. Resilient by design:
+ * - on a query **error**, the corresponding known-good slice is retained (a
+ *   transient network/RLS hiccup must not blank out a signed-in user);
+ * - on a **successful** profile read that returns no row, the profile is set to
+ *   null (we do not keep a stale profile from a prior user/session);
+ * - a successful membership read recomputes the active asociație, honouring the
+ *   prior selection when it is still a member.
+ * Pure, so the resilience rules are unit-testable without a backend.
+ */
+export function mergeHydration(
+  prev: HydrationState,
+  profileRes: QueryResult<unknown>,
+  membershipRes: QueryResult<unknown>,
+): HydrationState {
+  const next: HydrationState = { ...prev };
+  if (!profileRes.error) {
+    next.profile = profileRes.data ? normalizeProfile(profileRes.data as UserProfile) : null;
+  }
+  if (!membershipRes.error) {
+    const memberships = sortByPrivilege(((membershipRes.data as Membership[] | null) ?? []));
+    next.memberships = memberships;
+    next.currentAsociatieId = pickActiveAsociatieId(memberships, prev.currentAsociatieId);
+  }
+  return next;
 }
