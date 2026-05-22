@@ -18,7 +18,24 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T43 per-asociație feature flags)
+## 0. Current status (updated 2026-05-23, T44 disabled-module route gating)
+
+- **2026-05-23 — T44 (P1) gate direct routes for disabled modules.** New pure,
+  unit-tested `featureRouteLogic` (`PATH_TO_FEATURE` from the registry,
+  `appRouteSegment` for the first segment under `/app`, `featureKeyForRoute`,
+  `isFeatureRouteBlocked(flags, pathname)` — 8 assertions). New `FeatureRouteGuard`
+  (`src/app/`) wraps the `/app` `<Outlet />` in `AppLayout`: a route mapping to a
+  disabled feature renders a bilingual "module not enabled" notice (`common.featureDisabled`,
+  lock icon, back-to-home link) instead of the page; non-feature routes and enabled
+  features pass through. A disabled module is now hidden from nav **and**
+  unreachable by URL. Since flags now gate URL access, the **demo asociație enables
+  every implemented module** (`DEMO_FEATURES` = all `implemented`, was the curated
+  `RECOMMENDED_FEATURES` 10) so demo stays fully explorable and the per-feature E2E
+  reach each page; a real new asociație keeps `RECOMMENDED_FEATURES` at onboarding.
+  Decision in `DECISIONS.md`. One E2E added (disable F01 → `/app/anunturi` shows the
+  notice). Pipeline green: lint, typecheck, 86 files / 511 tests, build. Surfaced
+  T64 (enforce feature `audience`/role in the guard + nav); T54 must disable a
+  module before asserting the URL block since demo now enables all.
 
 - **2026-05-23 — T43 (P1) per-asociație feature flags from a local store.** New
   pure, unit-tested `featureFlagsLogic` (`seedFlags` → demo asociație gets

@@ -40,6 +40,16 @@ test('disabling a feature removes it from navigation', async ({ page }) => {
   await expect(page.getByRole('navigation', { name: 'Navigare mobil' }).getByText('Anunțuri')).toHaveCount(0);
 });
 
+test('T44: a disabled module is blocked when reached by direct URL', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/admin/functionalitati');
+  // Disable F01 Anunțuri, then try to reach its page by typing the URL.
+  const row = page.locator('div', { hasText: 'Anunțuri oficiale' }).first();
+  await row.getByRole('switch').click();
+  await page.goto('/app/anunturi');
+  await expect(page.getByText(/nu este activată pentru asociația ta/i)).toBeVisible();
+});
+
 test('F58: resident can add a carpool profile', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/carpool');

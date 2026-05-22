@@ -339,3 +339,26 @@ the wizard into a create/join chooser, to keep the existing create flow and its
 E2E intact. A joiner does not learn the asociație's display name from a bare code,
 so no `localAsociatii` name entry is recorded on join; resolving the joined name
 (so the chrome stops showing the fallback) is queued as T62, folding into T59.
+
+## Disabled-module route gating + demo as full showcase (T44)
+
+A disabled module was hidden from the nav but its page was still mounted in the
+router, so a direct `/app/<path>` URL loaded it. T44 adds a single
+`FeatureRouteGuard` wrapping the `/app` `<Outlet />` rather than wrapping each of
+the ~70 feature routes individually: it resolves the active pathname to a feature
+key via the pure `featureRouteLogic.PATH_TO_FEATURE` map (built from the registry,
+so the path table is never duplicated) and, when that feature's flag is OFF for
+the active asociație, renders a bilingual "module not enabled" notice instead of
+the page. One guard, derived from the same per-asociație flag set that drives the
+nav (T43), keeps the nav and URL access in lockstep and cannot drift.
+
+Because the guard makes the feature flags authoritative for URL access, the demo
+asociație now enables **every implemented module** (`DEMO_FEATURES` = all
+`implemented` features, previously the curated `RECOMMENDED_FEATURES` 10). The
+demo is a showcase meant to be fully explorable offline, and the per-feature E2E
+happy paths reach each page by direct URL; gating those URLs while seeding only 10
+flags would have made ~38 of the feature pages unreachable in demo and broken
+their specs. A real, newly created asociație is unaffected: onboarding still seeds
+the curated `RECOMMENDED_FEATURES` starter set, and an admin enables more from the
+features admin page. The guard gates on the enabled flag only; enforcing each
+feature's `audience`/role is tracked separately as T64.

@@ -68,7 +68,7 @@ import type {
   EvacuationPlan,
   PetMarker,
 } from '@/shared/types/domain';
-import { RECOMMENDED_FEATURES } from '@/shared/features/registry';
+import { FEATURES } from '@/shared/features/registry';
 
 export const DEMO_ASOCIATIE: Asociatie = {
   id: 'demo-asoc',
@@ -88,8 +88,17 @@ export const DEMO_ASOCIATIE: Asociatie = {
   deleted_at: null,
 };
 
+/**
+ * The demo asociație is a full showcase: every implemented module is enabled so
+ * the offline app is completely explorable (and the per-feature E2E happy paths
+ * can reach each page). This is intentionally broader than the curated
+ * `RECOMMENDED_FEATURES` starter set a real new asociație gets at onboarding.
+ * With the T44 route guard now blocking disabled modules by URL, a feature must
+ * be enabled here to be reachable in demo, so the showcase set is the right
+ * default. See DECISIONS.md.
+ */
 export const DEMO_FEATURES: Record<string, boolean> = Object.fromEntries(
-  RECOMMENDED_FEATURES.map((k) => [k, true]),
+  FEATURES.filter((f) => f.implemented).map((f) => [f.key, true]),
 );
 
 export const DEMO_APARTMENTS: Apartment[] = [

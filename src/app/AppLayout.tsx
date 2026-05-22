@@ -14,6 +14,7 @@ import { Icon } from '@/shared/components/Icon';
 import { Atmosphere } from '@/shared/components/Atmosphere';
 import { UserMenu } from '@/shared/components/UserMenu';
 import { AssistantWidget } from '@/features/assistant/AssistantWidget';
+import { FeatureRouteGuard } from './FeatureRouteGuard';
 import { cn } from '@/shared/lib/cn';
 
 function initials(name: string) {
@@ -432,7 +433,9 @@ export function AppLayout() {
       <Sidebar />
       <main className="main">
         <div className="main__inner" key={pathname}>
-          <Outlet />
+          <FeatureRouteGuard>
+            <Outlet />
+          </FeatureRouteGuard>
         </div>
         <Footer />
       </main>
