@@ -487,3 +487,31 @@ function serves every table, and treats a NULL apartment reference as allowed
 applies it to the six references. `apartment_residents` is intentionally excluded:
 its only tenant anchor *is* the apartment, so there is no second parent to keep
 consistent with.
+
+## T69 — least-privilege owner grants on governance tables (vote/signature lock, not status)
+
+`apply_owner_rls` gives the author one blanket "owner manage" (`for all`) policy
+on their own row. Correct for purely personal rows (a pet, a bike, a listing),
+but too broad for governance/voting tables (`budget_proposals`, `ideas`,
+`petitions`): once other residents cast votes/signatures the row stops being the
+author's alone, yet the blanket grant still let them update or delete it (a delete
+even cascading the votes/signatures away). The cast votes/signatures are already
+immutable under RLS (T34); this closes the parent side.
+
+`20260522000016_governance_owner_least_privilege.sql` replaces the blanket grant
+on those three tables with operation-scoped owner policies via a new
+`apply_governance_owner_rls(tbl, owner_col, child_tbl, child_fk)` helper:
+`"owner insert"` (author may create their own row in an asociație they belong to),
+`"owner update unlocked"` and `"owner delete unlocked"` (author may edit/remove it
+only while NO child vote/signature row exists). Comitet/președinte/admin keep
+full moderation through the standard `"comitet write"` (`for all`) policy and
+every member keeps read via `"members read"` — those are left untouched.
+
+The lock condition is the **existence of a child vote/signature row**, not a
+per-table `status`: it is the uniform, meaningful "others have acted on it"
+signal across all three (`budget_proposals` carries no status column of its own),
+and the author, being a member of the asociație, can always see those child rows
+under T34's parent-scoped read policy, so the `not exists` lock evaluates
+reliably for them. The helper is additive and idempotent (drops `"owner manage"`
+and any prior run of the scoped policies before recreating). It only narrows the
+owner grant; no other policy changes.

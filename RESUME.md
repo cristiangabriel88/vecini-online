@@ -18,8 +18,28 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T71 apartment-ref tenant-consistency triggers)
+## 0. Current status (updated 2026-05-23, T69 least-privilege owner grants on governance tables)
 
+- **2026-05-23 — T69 (P2) Least-privilege owner grants on governance tables.**
+  `apply_owner_rls`'s `"owner manage"` is a blanket `for all` grant, fine for
+  personal rows but too broad for `budget_proposals`/`ideas`/`petitions`: once
+  residents cast votes/signatures the row is shared, yet the author could still
+  update or delete it (a delete cascading the votes/signatures away). New
+  migration `20260522000016_governance_owner_least_privilege.sql` adds an
+  `apply_governance_owner_rls(tbl, owner_col, child_tbl, child_fk)` helper that
+  replaces the blanket grant on those three tables with operation-scoped owner
+  policies — `"owner insert"`, plus `"owner update unlocked"` / `"owner delete
+  unlocked"` gated on a `not exists` lock against the vote/signature child — so
+  the author keeps control only while no one has acted; comitet keeps full
+  moderation via `"comitet write"` and members keep read via `"members read"`.
+  The lock keys on child-row existence (uniform across all three; the author, a
+  member, can see those rows under T34's read policy) rather than a status.
+  Backend-free guard `tests/unit/governanceOwnerLeastPrivilege.test.ts` asserts
+  the drop, the operation-scoped (never for-all) policies, the lock on both
+  update + delete, and exact application to the three tables. Decision recorded
+  in `DECISIONS.md`. Offline MVP-spine hardening is now complete (only the
+  T55–T58 live-activation follow-ups remain on the spine). Pipeline green: lint,
+  typecheck, 95 files / 595 tests, build.
 - **2026-05-23 — T71 (P2) Tenant-consistency for apartment refs from junction
   tables without their own `asociatie_id`.** T46's composite-FK guard only
   covered child tables carrying their own `asociatie_id`; parent-scoped junction
