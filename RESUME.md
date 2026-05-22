@@ -18,10 +18,43 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-22)
+## 0. Current status (updated 2026-05-22, audit/replenish pass)
+
+- **Original-vision coverage: ~58% delivered end-to-end.** The CLAUDE.md vision is a
+  "secure, stable, well-polished, GDPR-compliant, multi-tenant SaaS with 2FA, a live
+  Telegram bot, and robust handling of real building problems." Honest per-dimension
+  read: **feature set ~95%** (all 65 built end-to-end, but exercised only in demo mode —
+  not yet verified live against a provisioned backend); **auth/2FA ~70%** (T01/T02/T03
+  wired, server-side parity T32 and live recovery T29 pending); **tenant-isolation
+  security ~45%** (RLS broadly present via `apply_standard_rls`, but this pass found three
+  tables with no RLS at all — see T34 — and the full audit T04, CSP/HSTS, `npm audit` and
+  `SECURITY.md` are not done); **GDPR/privacy ~35%** (consent + legal surface T05 done;
+  data-subject rights T06, DPA/ROPA T21, breach procedure T22, minors enforcement T23 all
+  pending); **stability/resilience ~40%** (no global error boundary, no standardized
+  loading/empty/error states, E2E not yet run in CI — T07/T08); **Telegram bot ~30%**
+  (170-line webhook skeleton with secret + initData validation, not go-live — T15);
+  **premium feel ~70%** (polished in demo; a11y audit T17 and Lighthouse T18 pending);
+  **SaaS readiness ~25%** (no billing T19, no super-admin console T20, live onboarding T27
+  and profile hydration T28 pending). The features dominate the build effort and are done,
+  which pulls the number up; the "deployable for real residents" gates (security audit,
+  GDPR rights, live backend verification) pull it back down. Phase-2 task progress: **4 of
+  ~33 hardening tasks complete**, now plus a confirmed P0 security fix (T34) queued at top.
+
+- **2026-05-22 audit/replenish pass (no feature built).** Swept RLS coverage across all
+  122 tables: `apply_standard_rls`/`apply_owner_rls` cover 119, but **`budget_votes`,
+  `idea_votes` and `petition_signatures` have RLS never enabled and zero policies** — a
+  real cross-tenant exposure (who voted / who signed, visible to any authenticated user in
+  any asociație). Fed in **T34 [P0]** (additive migration: enable RLS + parent-scoped
+  policies on those three), **T35 [P1]** (a static, offline RLS-coverage guard test so the
+  class of bug cannot recur), **T37 [P2]** (server-rendered proces-verbal PDF for F10), and
+  sharpened **T04** (CSP + HSTS specifics, cross-reference to T34). Resolved two stale queue
+  entries that duplicated already-shipped features (**T10**/F35, **T13**/F10). i18n RO/EN
+  parity is clean (the only RO-only keys are correct `_few` Romanian plural forms). Pipeline
+  green throughout: lint, typecheck, 76 test files / 425 tests, build.
 
 - **Two phases. Phase 1 (features): 65 / 65 built end-to-end (100%, `BUILD_COMPLETE`).
-  Phase 2 (production + legal readiness, `BACKLOG.md`): 4 tasks done (T05, T01, T02, T03).**
+  Phase 2 (production + legal readiness, `BACKLOG.md`): 4 tasks done (T05, T01, T02, T03);
+  plus T10/T13 resolved as already-delivered features in the 2026-05-22 audit.**
   The app is feature-complete but not yet legally deployable for real residents:
   remaining go-live blockers are the RLS/tenant-isolation audit (T04), GDPR
   data-subject rights — export + erasure (T06), and the DPA + records of
