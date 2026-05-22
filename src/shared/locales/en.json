@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "IntreVecini",
+    "appName": "vecini.online",
     "tagline": "The digital platform for your homeowners' association",
     "save": "Save",
     "send": "Send",
@@ -383,7 +383,7 @@
   },
   "feedback": {
     "title": "Platform feedback",
-    "subtitle": "Tell us what works well and what we could improve about IntreVecini.",
+    "subtitle": "Tell us what works well and what we could improve about vecini.online.",
     "sentiment": "Type",
     "sentiment_idee": "Idea",
     "sentiment_problema": "Problem",

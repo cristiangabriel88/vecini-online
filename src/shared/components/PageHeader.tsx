@@ -8,12 +8,12 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, subtitle, action }: PageHeaderProps) {
   return (
-    <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
-      <div>
-        <h1 className="text-2xl font-semibold">{title}</h1>
-        {subtitle && <p className="mt-1 text-muted">{subtitle}</p>}
+    <div className="pageheader">
+      <div className="pageheader__main">
+        <h1 className="pageheader__title">{title}</h1>
+        {subtitle && <p className="pageheader__subtitle">{subtitle}</p>}
       </div>
-      {action && <div className="shrink-0">{action}</div>}
+      {action && <div className="pageheader__actions">{action}</div>}
     </div>
   );
 }

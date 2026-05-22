@@ -1,6 +1,6 @@
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate, NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Home, Megaphone, Zap, Menu, User, Bell, Moon, Sun, Settings } from 'lucide-react';
+import { Home, Megaphone, Zap, Menu, User, Bell, Moon, Sun, Settings, Search, ChevronDown, Info } from 'lucide-react';
 import { FEATURES, FEATURE_CATEGORIES, type FeatureCategory } from '@/shared/features/registry';
 import { useFeatureStore } from '@/shared/features/featureStore';
 import { useThemeStore } from '@/shared/store/themeStore';
@@ -9,75 +9,166 @@ import { DEMO_ASOCIATIE } from '@/shared/demo/demoData';
 import { Icon } from '@/shared/components/Icon';
 import { cn } from '@/shared/lib/cn';
 
+function initials(name: string) {
+  return name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join('');
+}
+
+function Avatar({ name, accent, lg }: { name: string; accent?: boolean; lg?: boolean }) {
+  return (
+    <span className={cn('avatar', accent && 'avatar--accent', lg && 'avatar--lg')} title={name}>
+      {initials(name) || '?'}
+    </span>
+  );
+}
+
 function useEnabledFeatures() {
   const flags = useFeatureStore((s) => s.flags);
   return FEATURES.filter((f) => flags[f.key]);
 }
 
+function useActive() {
+  const { pathname } = useLocation();
+  return (path?: string) => {
+    const full = path ? `/app/${path}` : '/app';
+    if (full === '/app') return pathname === '/app' || pathname === '/app/';
+    return pathname === full || pathname.startsWith(full + '/');
+  };
+}
+
 function Sidebar() {
   const enabled = useEnabledFeatures();
+  const navigate = useNavigate();
+  const isActive = useActive();
   const categories = Object.keys(FEATURE_CATEGORIES) as FeatureCategory[];
+
+  const NavItem = ({
+    label,
+    active,
+    onClick,
+    icon,
+  }: {
+    label: string;
+    active: boolean;
+    onClick: () => void;
+    icon: React.ReactNode;
+  }) => (
+    <button className="navitem" data-active={active} onClick={onClick}>
+      <span className="navitem__icon">{icon}</span>
+      <span className="navitem__label">{label}</span>
+    </button>
+  );
+
   return (
-    <nav aria-label="Navigare principală" className="space-y-5 p-4">
-      <NavLink
-        to="/app"
-        end
-        className={({ isActive }) =>
-          cn(
-            'flex items-center gap-3 rounded-lg px-3 py-2 font-medium',
-            isActive ? 'bg-primary/10 text-primary' : 'hover:bg-surface-2',
-          )
-        }
-      >
-        <Home className="h-5 w-5" /> Acasă
-      </NavLink>
+    <aside className="sidebar" aria-label="Navigație principală">
+      <div className="sidebar__group">
+        <NavItem
+          label="Acasă"
+          active={isActive()}
+          onClick={() => navigate('/app')}
+          icon={<Home size={16} />}
+        />
+      </div>
 
       {categories.map((cat) => {
         const items = enabled.filter((f) => f.category === cat && f.path);
         if (items.length === 0) return null;
         return (
-          <div key={cat}>
-            <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted">
-              {FEATURE_CATEGORIES[cat]}
-            </p>
+          <div key={cat} className="sidebar__group">
+            <div className="sidebar__label">{FEATURE_CATEGORIES[cat]}</div>
             {items.map((f) => (
-              <NavLink
+              <NavItem
                 key={f.key}
-                to={`/app/${f.path}`}
-                className={({ isActive }) =>
-                  cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2',
-                    isActive ? 'bg-primary/10 text-primary' : 'hover:bg-surface-2',
-                  )
-                }
-              >
-                <Icon name={f.icon} className="h-5 w-5" />
-                <span className="truncate">{f.title}</span>
-              </NavLink>
+                label={f.title}
+                active={isActive(f.path)}
+                onClick={() => navigate(`/app/${f.path}`)}
+                icon={<Icon name={f.icon} size={16} />}
+              />
             ))}
           </div>
         );
       })}
 
-      <div>
-        <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted">
-          Administrare
-        </p>
-        {[
-          { to: '/app/admin/functionalitati', label: 'Funcționalități', icon: Settings },
-          { to: '/app/admin/apartamente', label: 'Apartamente', icon: Home },
-        ].map((l) => (
-          <NavLink
-            key={l.to}
-            to={l.to}
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2',
-                isActive ? 'bg-primary/10 text-primary' : 'hover:bg-surface-2',
-              )
-            }
+      <div className="sidebar__group">
+        <div className="sidebar__label">Administrare</div>
+        <NavItem
+          label="Funcționalități"
+          active={isActive('admin/functionalitati')}
+          onClick={() => navigate('/app/admin/functionalitati')}
+          icon={<Settings size={16} />}
+        />
+        <NavItem
+          label="Apartamente"
+          active={isActive('admin/apartamente')}
+          onClick={() => navigate('/app/admin/apartamente')}
+          icon={<Home size={16} />}
+        />
+      </div>
+
+      <div style={{ flex: 1 }} />
+      <div
+        style={{
+          margin: 'var(--space-4) var(--space-2) var(--space-2)',
+          padding: 'var(--space-3)',
+          borderRadius: 'var(--radius)',
+          background: 'var(--bg-sunken)',
+          border: '1px solid var(--border-subtle)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: 6,
+              background: 'var(--primary-soft)',
+              color: 'var(--primary-soft-text)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            <l.icon className="h-5 w-5" /> {l.label}
+            <Info size={14} />
+          </div>
+          <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-primary)' }}>Ajutor și suport</div>
+        </div>
+        <div style={{ fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.45 }}>
+          Contactează administratorul sau citește ghidul rapid pentru primii pași.
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function BottomNav() {
+  const { t } = useTranslation();
+  const flags = useFeatureStore((s) => s.flags);
+  const isActive = useActive();
+  const items = [
+    { to: '/app', label: t('nav.home'), icon: Home, active: isActive() },
+    ...(flags['F01']
+      ? [{ to: '/app/anunturi', label: t('nav.announcements'), icon: Megaphone, active: isActive('anunturi') }]
+      : []),
+    { to: '/app/actiuni', label: t('nav.actions'), icon: Zap, active: isActive('actiuni') },
+    { to: '/app/mai-mult', label: t('nav.more'), icon: Menu, active: isActive('mai-mult') },
+    { to: '/app/profil', label: t('nav.profile'), icon: User, active: isActive('profil') },
+  ];
+  return (
+    <nav className="bottomnav" aria-label="Navigație">
+      <div className="bottomnav__inner">
+        {items.map((it) => (
+          <NavLink key={it.to} to={it.to} className="bottomnav__item" data-active={it.active}>
+            <span className="bottomnav__icon">
+              <it.icon size={22} strokeWidth={it.active ? 1.9 : 1.6} />
+            </span>
+            <span>{it.label}</span>
           </NavLink>
         ))}
       </div>
@@ -85,92 +176,117 @@ function Sidebar() {
   );
 }
 
-function BottomNav() {
-  const { t } = useTranslation();
-  const flags = useFeatureStore((s) => s.flags);
-  const items = [
-    { to: '/app', end: true, label: t('nav.home'), icon: Home },
-    ...(flags['F01']
-      ? [{ to: '/app/anunturi', end: false, label: t('nav.announcements'), icon: Megaphone }]
-      : []),
-    { to: '/app/actiuni', end: false, label: t('nav.actions'), icon: Zap },
-    { to: '/app/mai-mult', end: false, label: t('nav.more'), icon: Menu },
-    { to: '/app/profil', end: false, label: t('nav.profile'), icon: User },
-  ];
-  return (
-    <nav
-      aria-label="Navigare mobil"
-      className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border bg-surface lg:hidden"
-    >
-      {items.map((it) => (
-        <NavLink
-          key={it.to}
-          to={it.to}
-          end={it.end}
-          className={({ isActive }) =>
-            cn(
-              'flex flex-1 flex-col items-center gap-0.5 py-2 text-xs',
-              isActive ? 'text-primary' : 'text-muted',
-            )
-          }
-        >
-          <it.icon className="h-6 w-6" />
-          <span>{it.label}</span>
-        </NavLink>
-      ))}
-    </nav>
-  );
-}
-
-export function AppLayout() {
+function Topbar() {
   const { t } = useTranslation();
   const theme = useThemeStore((s) => s.theme);
   const toggleTheme = useThemeStore((s) => s.toggle);
   const demo = useAuthStore((s) => s.demo);
-  const { pathname } = useLocation();
-  void pathname;
+  const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-bg">
-      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-surface px-4">
-        <div className="flex min-w-0 items-center gap-3">
-          <span className="text-lg font-semibold text-primary">IntreVecini</span>
-          <span className="hidden truncate text-sm text-muted sm:inline">
-            · {DEMO_ASOCIATIE.name}
-          </span>
+    <header className="topbar">
+      <div className="topbar__brand">
+        <div className="topbar__logo" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+            <path
+              d="M3 13V6l5-3.5L13 6v7"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            />
+            <path
+              d="M6.5 13V9.5h3V13"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            />
+          </svg>
         </div>
-        <div className="flex items-center gap-1">
-          {demo && (
-            <span className="mr-2 hidden rounded-full bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning sm:inline">
-              {t('auth.demoMode')}
-            </span>
-          )}
-          <button
-            onClick={toggleTheme}
-            aria-label="Schimbă tema"
-            className="rounded-lg p-2 hover:bg-surface-2"
-          >
-            {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-          </button>
-          <NavLink
-            to="/app/notificari"
-            aria-label={t('nav.notifications')}
-            className="rounded-lg p-2 hover:bg-surface-2"
-          >
-            <Bell className="h-5 w-5" />
-          </NavLink>
+        <div className="topbar__wordmark">
+          vecini<em>.online</em>
         </div>
-      </header>
-
-      <div className="mx-auto flex max-w-6xl">
-        <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-64 shrink-0 overflow-y-auto border-r border-border bg-surface lg:block">
-          <Sidebar />
-        </aside>
-        <main className="min-w-0 flex-1 px-4 pb-24 pt-5 lg:pb-8">
-          <Outlet />
-        </main>
       </div>
 
+      <div className="topbar__sep" />
+
+      <button className="topbar__workspace" aria-haspopup="menu">
+        <Avatar name={DEMO_ASOCIATIE.name} accent />
+        <span className="topbar__workspace-label">
+          <span style={{ display: 'block', fontWeight: 500, color: 'var(--text-primary)', fontSize: 13, lineHeight: 1.2 }}>
+            {DEMO_ASOCIATIE.name}
+          </span>
+          <span style={{ display: 'block', fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.2, marginTop: 1 }}>
+            Asociație de proprietari
+          </span>
+        </span>
+        <ChevronDown size={14} style={{ color: 'var(--text-faint)', flexShrink: 0 }} />
+      </button>
+
+      <div className="topbar__search">
+        <div className="topsearch">
+          <Search size={15} />
+          <input placeholder="Caută anunțuri, sesizări, vecini…" />
+          <span style={{ display: 'inline-flex', gap: 3 }}>
+            <kbd className="kbd">⌘</kbd>
+            <kbd className="kbd">K</kbd>
+          </span>
+        </div>
+      </div>
+
+      <div className="topbar__actions">
+        {demo && (
+          <span className="topbar__demobanner" title="Date de demonstrație">
+            <span>{t('auth.demoMode')}</span>
+          </span>
+        )}
+        <button
+          className="iconbtn"
+          onClick={toggleTheme}
+          aria-label="Comută temă"
+        >
+          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
+        <button
+          className="iconbtn"
+          onClick={() => navigate('/app/notificari')}
+          aria-label={t('nav.notifications')}
+        >
+          <Bell size={18} />
+          <span className="iconbtn__dot" />
+        </button>
+        <button
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '4px 10px 4px 4px',
+            borderRadius: 'var(--radius)',
+            cursor: 'pointer',
+            marginLeft: 4,
+          }}
+          onClick={() => navigate('/app/profil')}
+          aria-label="Cont"
+        >
+          <Avatar name="Andrei Popescu" />
+          <ChevronDown size={13} style={{ color: 'var(--text-faint)' }} />
+        </button>
+      </div>
+    </header>
+  );
+}
+
+export function AppLayout() {
+  return (
+    <div className="shell">
+      <Topbar />
+      <Sidebar />
+      <main className="main">
+        <div className="main__inner">
+          <Outlet />
+        </div>
+      </main>
       <BottomNav />
     </div>
   );

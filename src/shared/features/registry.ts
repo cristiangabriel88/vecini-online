@@ -1,5 +1,5 @@
 /**
- * Central registry of every IntreVecini feature (F01–F65).
+ * Central registry of every vecini.online feature (F01–F65).
  * The admin can toggle each one per asociație; this registry is the single
  * source of truth for keys, titles, categories, and routing.
  */
@@ -124,7 +124,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'F62', title: 'Welcome kit for new residents', category: 'community', icon: 'Gift', audience: ['all'], path: 'welcome-kit', description: 'Mesaj de bun-venit pentru locatarii noi.', implemented: false },
   { key: 'F63', title: 'Aniversări (opt-in)', category: 'community', icon: 'Cake', audience: ['all'], path: 'aniversari', description: 'Felicitări de ziua de naștere (opt-in).', implemented: true },
   { key: 'F64', title: 'Activități copii și adolescenți', category: 'community', icon: 'ToyBrick', audience: ['all'], path: 'copii', description: 'Coordonarea activităților pentru copii.', implemented: false },
-  { key: 'F65', title: 'Feedback platformă', category: 'community', icon: 'MessageSquarePlus', audience: ['all'], path: 'feedback', description: 'Feedback despre platforma IntreVecini.', implemented: true },
+  { key: 'F65', title: 'Feedback platformă', category: 'community', icon: 'MessageSquarePlus', audience: ['all'], path: 'feedback', description: 'Feedback despre platforma vecini.online.', implemented: true },
 ];
 
 export const FEATURE_MAP: Record<string, FeatureDef> = Object.fromEntries(

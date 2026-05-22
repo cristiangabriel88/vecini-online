@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "IntreVecini",
+    "appName": "vecini.online",
     "tagline": "Platforma digitală a asociației tale de proprietari",
     "save": "Salvează",
     "send": "Trimite",
@@ -383,7 +383,7 @@
   },
   "feedback": {
     "title": "Feedback platformă",
-    "subtitle": "Spune-ne ce merge bine și ce am putea îmbunătăți la IntreVecini.",
+    "subtitle": "Spune-ne ce merge bine și ce am putea îmbunătăți la vecini.online.",
     "sentiment": "Tip",
     "sentiment_idee": "Idee",
     "sentiment_problema": "Problemă",

@@ -1,5 +1,3 @@
-import { cn } from '@/shared/lib/cn';
-
 interface SwitchProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
@@ -16,17 +14,9 @@ export function Switch({ checked, onChange, label, disabled }: SwitchProps) {
       aria-label={label}
       disabled={disabled}
       onClick={() => onChange(!checked)}
-      className={cn(
-        'relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors disabled:opacity-50',
-        checked ? 'bg-primary' : 'bg-border',
-      )}
-    >
-      <span
-        className={cn(
-          'inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform',
-          checked ? 'translate-x-6' : 'translate-x-1',
-        )}
-      />
-    </button>
+      className="switch"
+      data-checked={String(!!checked)}
+      style={disabled ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+    />
   );
 }

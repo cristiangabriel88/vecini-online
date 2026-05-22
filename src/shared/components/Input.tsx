@@ -1,4 +1,5 @@
 import { forwardRef, useId, type InputHTMLAttributes, type TextareaHTMLAttributes } from 'react';
+import { Info } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 
 interface FieldProps {
@@ -7,9 +8,6 @@ interface FieldProps {
   error?: string;
 }
 
-const baseField =
-  'w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-base text-text placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/30';
-
 export const Input = forwardRef<
   HTMLInputElement,
   InputHTMLAttributes<HTMLInputElement> & FieldProps
@@ -17,9 +15,9 @@ export const Input = forwardRef<
   const autoId = useId();
   const fieldId = id ?? autoId;
   return (
-    <div className="space-y-1">
+    <div className="field">
       {label && (
-        <label htmlFor={fieldId} className="block text-sm font-medium text-text">
+        <label htmlFor={fieldId} className="field__label">
           {label}
         </label>
       )}
@@ -28,13 +26,13 @@ export const Input = forwardRef<
         id={fieldId}
         aria-invalid={!!error}
         aria-describedby={error ? `${fieldId}-err` : undefined}
-        className={cn(baseField, error && 'border-danger', className)}
+        className={cn('input', className)}
         {...rest}
       />
-      {hint && !error && <p className="text-sm text-muted">{hint}</p>}
+      {hint && !error && <p className="field__hint">{hint}</p>}
       {error && (
-        <p id={`${fieldId}-err`} className="text-sm text-danger">
-          {error}
+        <p id={`${fieldId}-err`} className="field__error">
+          <Info size={12} /> {error}
         </p>
       )}
     </div>
@@ -48,9 +46,9 @@ export const Textarea = forwardRef<
   const autoId = useId();
   const fieldId = id ?? autoId;
   return (
-    <div className="space-y-1">
+    <div className="field">
       {label && (
-        <label htmlFor={fieldId} className="block text-sm font-medium text-text">
+        <label htmlFor={fieldId} className="field__label">
           {label}
         </label>
       )}
@@ -58,11 +56,15 @@ export const Textarea = forwardRef<
         ref={ref}
         id={fieldId}
         aria-invalid={!!error}
-        className={cn(baseField, 'min-h-[96px]', error && 'border-danger', className)}
+        className={cn('textarea', className)}
         {...rest}
       />
-      {hint && !error && <p className="text-sm text-muted">{hint}</p>}
-      {error && <p className="text-sm text-danger">{error}</p>}
+      {hint && !error && <p className="field__hint">{hint}</p>}
+      {error && (
+        <p className="field__error">
+          <Info size={12} /> {error}
+        </p>
+      )}
     </div>
   );
 });

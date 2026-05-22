@@ -36,7 +36,7 @@ export default function LoginPage() {
         <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white">
           <Building2 className="h-7 w-7" />
         </div>
-        <h1 className="text-2xl font-semibold text-primary">IntreVecini</h1>
+        <h1 className="text-2xl font-semibold text-primary">vecini.online</h1>
         <p className="text-muted">{t('common.tagline')}</p>
       </div>
 
