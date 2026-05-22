@@ -6,7 +6,14 @@ import type { Membership, Role, UserProfile } from '@/shared/types/domain';
 import { mergeHydration, roleFor, sortByPrivilege } from '@/features/auth/hydrationLogic';
 import { demoTenantContext } from '@/features/auth/demoTenant';
 import { buildFounderMembership, newLocalAsociatieId } from '@/features/onboarding/onboardingLogic';
+import {
+  type InviteStatus,
+  buildMembershipFromInvite,
+  findByCode,
+  validateInvite,
+} from '@/features/invites/inviteLogic';
 import { DEMO_CURRENT_USER_ID } from '@/shared/demo/demoData';
+import { useInviteStore } from './inviteStore';
 import { useSecurityStore } from './securityStore';
 
 /** Where Supabase sends the resident after they click the password-reset link. */
@@ -24,6 +31,13 @@ interface SignInResult extends AuthResult {
 interface SignUpResult extends AuthResult {
   /** True when the account was created but awaits email confirmation (no session). */
   needsVerification: boolean;
+}
+
+interface JoinResult {
+  /** Validation outcome of the entered code; `ok` means the join succeeded. */
+  status: InviteStatus;
+  /** The joined asociație when `status === 'ok'`, otherwise null. */
+  asociatieId: string | null;
 }
 
 interface AuthState {
@@ -53,6 +67,14 @@ interface AuthState {
    * persistence is a separate activation step (T55).
    */
   createLocalAsociatie: (name: string) => string;
+  /**
+   * Join an asociație by redeeming an invite code (offline path): validate it,
+   * consume it once (replay-safe), create the granted membership and select the
+   * asociație as active. Returns the validation status so the UI can report
+   * `expired`/`used`/`revoked`/`unknown` bilingually. Live consumption is a
+   * replay-safe RPC under RLS (T55).
+   */
+  joinByInvite: (code: string) => JoinResult;
   signIn: (email: string, password: string) => Promise<SignInResult>;
   signUp: (email: string, password: string) => Promise<SignUpResult>;
   resendVerification: (email: string) => Promise<AuthResult>;
@@ -162,6 +184,35 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       localAsociatii: [...get().localAsociatii, { id: asociatieId, name: name.trim() }],
     });
     return asociatieId;
+  },
+
+  joinByInvite: (code) => {
+    const userId = get().session?.user?.id ?? DEMO_CURRENT_USER_ID;
+    const invites = useInviteStore.getState();
+    // Peek first so an already-member retry does not waste a single-use code: a
+    // user who is already in the code's asociație just re-selects it.
+    const target = findByCode(invites.invites, code);
+    const status = validateInvite(target);
+    if (status !== 'ok' || !target) return { status, asociatieId: null };
+    const alreadyMember = get().memberships.some(
+      (m) => m.asociatie_id === target.asociatieId && m.ended_at === null,
+    );
+    if (alreadyMember) {
+      set({ currentAsociatieId: target.asociatieId });
+      return { status: 'ok', asociatieId: target.asociatieId };
+    }
+    // Consume atomically (the store re-validates inside the update, so a
+    // single-use code cannot be double-spent under a race), then link membership.
+    const consumed = invites.consume(code, userId);
+    if (consumed.status !== 'ok' || !consumed.invite) {
+      return { status: consumed.status, asociatieId: null };
+    }
+    const membership = buildMembershipFromInvite(userId, consumed.invite);
+    set({
+      memberships: sortByPrivilege([...get().memberships, membership]),
+      currentAsociatieId: consumed.invite.asociatieId,
+    });
+    return { status: 'ok', asociatieId: consumed.invite.asociatieId };
   },
 
   signIn: async (email, password) => {

@@ -306,3 +306,29 @@ cannot be double-spent under a race; it does not create the membership, which is
 T42's concern, keeping issue/redeem (T41) and join/membership (T42) cleanly
 split. `INVITABLE_ROLES` excludes `admin`/`super_admin` so an invite can never
 mint a founder/platform role.
+
+## Resident join via invite code (T42)
+
+`authStore.joinByInvite(code)` is the offline join: it peeks the code
+(`findByCode` + `validateInvite`) before consuming so an already-member retry
+just re-selects the asociație instead of burning a single-use code, then
+delegates the actual spend to the T41 `inviteStore.consume` (which re-validates
+inside the state update, so the consume is the one replay-safe gate). On success
+it builds the granted membership with the pure `buildMembershipFromInvite` and
+selects the asociație. The method returns the `InviteStatus` rather than throwing
+so the UI maps `expired`/`used`/`revoked`/`unknown` to precise bilingual copy.
+
+The invite's `apartmentId` is intentionally not written to any local store on
+join: the offline `Membership` model carries only role + asociație, and there is
+no writable local apartment-ownership store (the demo apartments are a static
+seed). The apartment link rides along on the invite to the live join RPC (T55),
+which writes the ownership association server-side under RLS. This keeps the
+offline join honest (no fake apartment write) while preserving the full model for
+the live path.
+
+The join entry point is a separate public page (`/onboarding/alatura`) reached
+from a link on the create-asociație wizard's first step, rather than restructuring
+the wizard into a create/join chooser, to keep the existing create flow and its
+E2E intact. A joiner does not learn the asociație's display name from a bare code,
+so no `localAsociatii` name entry is recorded on join; resolving the joined name
+(so the chrome stops showing the fallback) is queued as T62, folding into T59.

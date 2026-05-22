@@ -3,6 +3,7 @@ import {
   type InviteCode,
   EXPIRY_PRESETS_MS,
   INVITABLE_ROLES,
+  buildMembershipFromInvite,
   consumeInvite,
   createInvite,
   expiryFromPreset,
@@ -162,5 +163,27 @@ describe('INVITABLE_ROLES', () => {
     expect(INVITABLE_ROLES).not.toContain('admin');
     expect(INVITABLE_ROLES).not.toContain('super_admin');
     expect(INVITABLE_ROLES).toContain('proprietar');
+  });
+});
+
+describe('buildMembershipFromInvite', () => {
+  it('grants the joiner the code role in the code asociație, active and non-founder', () => {
+    const invite = make({ asociatieId: 'asoc-9', role: 'comitet', apartmentId: 'ap-2' });
+    const membership = buildMembershipFromInvite('u-joiner', invite, '2026-05-23T10:00:00.000Z');
+    expect(membership.user_id).toBe('u-joiner');
+    expect(membership.asociatie_id).toBe('asoc-9');
+    expect(membership.role).toBe('comitet');
+    expect(membership.ended_at).toBeNull();
+    expect(membership.joined_at).toBe('2026-05-23T10:00:00.000Z');
+    // The joiner is never the founder/platform admin (only invitable roles ship).
+    expect(membership.title).toBeNull();
+    expect(membership.role).not.toBe('admin');
+  });
+
+  it('mints a unique membership id per call', () => {
+    const invite = make();
+    const a = buildMembershipFromInvite('u', invite);
+    const b = buildMembershipFromInvite('u', invite);
+    expect(a.id).not.toBe(b.id);
   });
 });

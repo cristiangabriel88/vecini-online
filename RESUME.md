@@ -18,7 +18,24 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T41 invite-code lifecycle + admin surface)
+## 0. Current status (updated 2026-05-23, T42 resident join via invite code)
+
+- **2026-05-23 — T42 (P1) resident join via invite code.** New pure
+  `buildMembershipFromInvite(userId, invite)` in `inviteLogic` (joiner enters the
+  code's asociație with the granted role; the code's `apartmentId` rides along to
+  the live join RPC, the offline membership carries only role+asociație).
+  `authStore.joinByInvite(code)` peeks the code first (an already-member retry
+  re-selects without wasting a single-use code), consumes it via the replay-safe
+  `inviteStore.consume`, builds the membership and selects the asociație,
+  returning the `InviteStatus` so the UI reports `expired`/`used`/`revoked`/
+  `unknown`. New bilingual `JoinAsociatiePage` at `/onboarding/alatura` (reachable
+  from a link on the onboarding wizard's first step, reciprocal create link back),
+  `/alatura` bot help. Tests: +2 `buildMembershipFromInvite` assertions and a new
+  `joinByInvite.test.ts` (6 store-integration cases incl. replay-safety and
+  already-member no-waste); two E2E happy-paths (issue→redeem→/app; invalid code
+  rejected). Pipeline green: lint, typecheck, 84 files / 495 tests, build. Surfaced
+  T62 (record/resolve the joined asociație's display name, folds into T59). Live
+  replay-safe consume RPC under RLS is T55.
 
 - **2026-05-23 — T41 (P1) invite-code generation + admin surface.** New pure,
   unit-tested `inviteLogic` (`createInvite` reusing `generateInviteCode` with

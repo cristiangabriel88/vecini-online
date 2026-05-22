@@ -98,6 +98,7 @@ const FEATURE_COMMANDS: Record<string, string> = {
   '/apartament_meu': '🚪 Informații apartament — vezi datele apartamentului tău, istoricul indexurilor la contoare, sesizările trimise și voturile exprimate în secțiunea „Informații apartament”.',
   '/securitate': '🔐 Securitate cont — activează autentificarea în doi pași (2FA) cu o aplicație de autentificare, generează coduri de recuperare și gestionează-ți factorul al doilea în secțiunea „Securitate”. Obligatorie pentru rolurile de administrare.',
   '/invitatii': '🎟 Coduri de invitație — generează, listează și revocă codurile prin care vecinii se alătură asociației (rol, apartament și expirare opționale) în secțiunea „Coduri de invitație” (administrare).',
+  '/alatura': '🤝 Alătură-te unei asociații — ai primit un cod de invitație de la administrator? Deschide aplicația, alege „Alătură-te unei asociații existente” și introdu codul ca să intri în asociația ta.',
 };
 
 async function handleMessage(msg: TelegramMessage) {

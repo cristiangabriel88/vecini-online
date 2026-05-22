@@ -14,6 +14,7 @@ const TermsPage = lazy(() => import('@/features/legal/TermsPage'));
 const CookiePolicyPage = lazy(() => import('@/features/legal/CookiePolicyPage'));
 const PrivacySettingsPage = lazy(() => import('@/features/legal/PrivacySettingsPage'));
 const OnboardingWizard = lazy(() => import('@/features/onboarding/OnboardingWizard'));
+const JoinAsociatiePage = lazy(() => import('@/features/onboarding/JoinAsociatiePage'));
 const HomePage = lazy(() => import('@/features/home/HomePage'));
 const AnnouncementsPage = lazy(() => import('@/features/announcements/AnnouncementsPage'));
 const PollsPage = lazy(() => import('@/features/polls/PollsPage'));
@@ -101,6 +102,7 @@ export const router = createBrowserRouter([
   { path: '/termeni', element: <S><TermsPage /></S> },
   { path: '/cookies', element: <S><CookiePolicyPage /></S> },
   { path: '/onboarding', element: <S><OnboardingWizard /></S> },
+  { path: '/onboarding/alatura', element: <S><JoinAsociatiePage /></S> },
   {
     path: '/app',
     element: (

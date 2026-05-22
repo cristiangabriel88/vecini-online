@@ -1,4 +1,4 @@
-import type { Role } from '@/shared/types/domain';
+import type { Membership, Role } from '@/shared/types/domain';
 import { generateInviteCode, normalizeInviteCode } from '@/shared/lib/inviteCode';
 
 /**
@@ -140,4 +140,31 @@ export function consumeInvite(
 /** Return a copy of the code marked revoked. */
 export function revokeInvite(invite: InviteCode, now: number = Date.now()): InviteCode {
   return { ...invite, revokedAt: now };
+}
+
+/**
+ * Build the membership a joiner gets when they redeem an invite code: they enter
+ * the code's asociație with the role the code grants. Pure and side-effect-free
+ * so the join flow's effect on tenant state is unit-testable; the caller is
+ * responsible for consuming the code first (the replay-safe gate). The code's
+ * `apartmentId` rides along to the live join RPC (T55) where the apartment
+ * ownership link is written server-side; the offline membership model carries
+ * only the role and asociație. A granted founder/platform `admin` is never
+ * issuable (see `INVITABLE_ROLES`), so a joined membership is always a member
+ * role, never the founder.
+ */
+export function buildMembershipFromInvite(
+  userId: string,
+  invite: InviteCode,
+  now: string = new Date().toISOString(),
+): Membership {
+  return {
+    id: `mem-${crypto.randomUUID()}`,
+    user_id: userId,
+    asociatie_id: invite.asociatieId,
+    role: invite.role,
+    title: null,
+    joined_at: now,
+    ended_at: null,
+  };
 }

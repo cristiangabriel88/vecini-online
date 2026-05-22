@@ -268,7 +268,23 @@
     "primaryColor": "Primary color",
     "welcomeMessage": "Welcome message",
     "inviteEmails": "Committee member emails (one per line)",
-    "finishHint": "After finishing you can generate invite codes for residents."
+    "finishHint": "After finishing you can generate invite codes for residents.",
+    "haveCode": "Got an invite code?",
+    "joinLink": "Join an existing association"
+  },
+  "join": {
+    "title": "Join an association",
+    "subtitle": "Enter the invite code your administrator gave you to join your association.",
+    "codeLabel": "Invite code",
+    "codeHint": "The code is 8 characters. Dashes and capitalization do not matter.",
+    "submit": "Join",
+    "success": "You have joined the association. Welcome!",
+    "err_expired": "This code has expired. Ask your administrator for a new one.",
+    "err_used": "This code has already been used. Ask your administrator for a new one.",
+    "err_revoked": "This code has been revoked. Ask your administrator for a new one.",
+    "err_unknown": "Invalid code. Check it and try again.",
+    "createPrompt": "Are you the administrator?",
+    "createLink": "Create a new association"
   },
   "features": {
     "title": "Features",

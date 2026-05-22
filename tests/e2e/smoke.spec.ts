@@ -58,6 +58,28 @@ test('F63: resident can list their birthday', async ({ page }) => {
   await expect(page.getByText('Ziua ta este listată')).toBeVisible();
 });
 
+test('T42: resident joins an asociație with an issued invite code', async ({ page }) => {
+  await enterDemo(page);
+  // Admin issues an invite code from the invites surface.
+  await page.goto('/app/admin/invitatii');
+  await page.getByRole('button', { name: /Generează codul/i }).click();
+  const code = (await page.locator('code').first().innerText()).trim();
+  expect(code).toMatch(/^[A-Z2-9]{8}$/);
+  // Redeem it from the join screen.
+  await page.goto('/onboarding/alatura');
+  await page.getByLabel(/Cod de invitație/i).fill(code);
+  await page.getByRole('button', { name: /Alătură-mă/i }).click();
+  await expect(page).toHaveURL(/\/app$/);
+});
+
+test('T42: an invalid invite code is rejected with a clear message', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/onboarding/alatura');
+  await page.getByLabel(/Cod de invitație/i).fill('NOPE2345');
+  await page.getByRole('button', { name: /Alătură-mă/i }).click();
+  await expect(page.getByText(/Cod invalid/i)).toBeVisible();
+});
+
 test('F47: admin can add an energy reading', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/energie');

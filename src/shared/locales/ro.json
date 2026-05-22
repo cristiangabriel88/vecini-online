@@ -268,7 +268,23 @@
     "primaryColor": "Culoare principală",
     "welcomeMessage": "Mesaj de bun-venit",
     "inviteEmails": "Adresele de email ale membrilor comitetului (una pe linie)",
-    "finishHint": "După finalizare poți genera codurile de invitație pentru locatari."
+    "finishHint": "După finalizare poți genera codurile de invitație pentru locatari.",
+    "haveCode": "Ai primit un cod de invitație?",
+    "joinLink": "Alătură-te unei asociații existente"
+  },
+  "join": {
+    "title": "Alătură-te unei asociații",
+    "subtitle": "Introdu codul de invitație primit de la administrator ca să te alături asociației tale.",
+    "codeLabel": "Cod de invitație",
+    "codeHint": "Codul are 8 caractere. Liniuțele și majusculele nu contează.",
+    "submit": "Alătură-mă",
+    "success": "Te-ai alăturat asociației. Bine ai venit!",
+    "err_expired": "Codul a expirat. Cere administratorului unul nou.",
+    "err_used": "Codul a fost deja folosit. Cere administratorului unul nou.",
+    "err_revoked": "Codul a fost revocat. Cere administratorului unul nou.",
+    "err_unknown": "Cod invalid. Verifică-l și încearcă din nou.",
+    "createPrompt": "Tu administrezi asociația?",
+    "createLink": "Creează o asociație nouă"
   },
   "features": {
     "title": "Funcționalități",

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Check } from 'lucide-react';
@@ -84,6 +84,12 @@ export default function OnboardingWizard() {
               <Input label={t('onboarding.cui')} value={profile.cui} onChange={(e) => setProfile({ ...profile, cui: e.target.value })} />
               <Input label={t('onboarding.regNumber')} value={profile.regNumber} onChange={(e) => setProfile({ ...profile, regNumber: e.target.value })} />
             </div>
+            <p className="border-t border-border pt-4 text-sm text-muted">
+              {t('onboarding.haveCode')}{' '}
+              <Link to="/onboarding/alatura" className="auth-link">
+                {t('onboarding.joinLink')}
+              </Link>
+            </p>
           </div>
         )}
 
