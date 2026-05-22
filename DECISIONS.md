@@ -258,3 +258,25 @@ password" message is matched before the weak-password rule because both contain
 the substring "should be". Password validation here enforces only a minimum
 length (8) by design; the full strength policy and known-breach rejection belong
 to T03, and role-gated profile/membership loading to T28.
+
+## RLS & tenant-isolation security audit (T04)
+
+The full RLS sweep found no uncovered or over-permissive table beyond the three
+already fixed in T34, so T04 added no migration; the audit conclusion plus two
+backend-free regression guards (`rlsTenantIsolation.test.ts`,
+`securityHeaders.test.ts`) are the deliverable. The guards parse the migration
+SQL and `netlify.toml` rather than hitting a database, so they run in CI today
+without a provisioned Postgres; live cross-tenant checks against real Postgres
+stay in T08 and the table-by-table coverage guard in T35 (kept separate from
+T04's isolation-invariant test to avoid overlap).
+
+The Content-Security-Policy keeps `script-src 'self'` (no `unsafe-inline` for
+scripts) because the production `index.html` carries only an external module
+script; `style-src` does allow `'unsafe-inline'` because the motion layer sets
+element style attributes, and removing that would break animations. `connect-src`
+uses a `https://*.supabase.co` / `wss://*.supabase.co` wildcard rather than the
+exact project origin because the Supabase URL is environment-specific and the
+header is static in `netlify.toml`; tightening it to the exact origin at
+build/deploy time plus CSP violation reporting is queued as T39. HSTS uses a
+two-year `max-age` with `includeSubDomains; preload` to be submission-ready for
+the preload list. `npm audit` reported 0 vulnerabilities, so nothing to resolve.

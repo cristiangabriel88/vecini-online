@@ -18,7 +18,7 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-22, T34 vote/signature RLS fix)
+## 0. Current status (updated 2026-05-22, T04 RLS & tenant-isolation security audit)
 
 - **Original-vision coverage: ~58% delivered end-to-end.** The CLAUDE.md vision is a
   "secure, stable, well-polished, GDPR-compliant, multi-tenant SaaS with 2FA, a live
@@ -26,9 +26,10 @@ accurate for architecture/data/feature specs.
   read: **feature set ~95%** (all 65 built end-to-end, but exercised only in demo mode —
   not yet verified live against a provisioned backend); **auth/2FA ~70%** (T01/T02/T03
   wired, server-side parity T32 and live recovery T29 pending); **tenant-isolation
-  security ~50%** (RLS broadly present via `apply_standard_rls`, and the three tables that
-  had no RLS at all are now fixed and regression-guarded — see T34 — but the full audit T04,
-  CSP/HSTS, `npm audit` and `SECURITY.md` are not done); **GDPR/privacy ~35%** (consent + legal surface T05 done;
+  security ~75%** (T04 done: all 122 tables RLS-covered and `asociatie_id`-scoped, CSP + HSTS +
+  cross-origin headers shipped, `npm audit` clean, `SECURITY.md` authored, isolation invariants
+  regression-guarded — remaining is live cross-tenant verification T08 and the static coverage
+  guard T35); **GDPR/privacy ~35%** (consent + legal surface T05 done;
   data-subject rights T06, DPA/ROPA T21, breach procedure T22, minors enforcement T23 all
   pending); **stability/resilience ~40%** (no global error boundary, no standardized
   loading/empty/error states, E2E not yet run in CI — T07/T08); **Telegram bot ~30%**
@@ -36,9 +37,9 @@ accurate for architecture/data/feature specs.
   **premium feel ~70%** (polished in demo; a11y audit T17 and Lighthouse T18 pending);
   **SaaS readiness ~25%** (no billing T19, no super-admin console T20, live onboarding T27
   and profile hydration T28 pending). The features dominate the build effort and are done,
-  which pulls the number up; the "deployable for real residents" gates (security audit,
-  GDPR rights, live backend verification) pull it back down. Phase-2 task progress: **5 of
-  ~33 hardening tasks complete** (T05, T01, T02, T03, T34).
+  which pulls the number up; the "deployable for real residents" gates (GDPR rights, live
+  backend verification) pull it back down. Phase-2 task progress: **6 of ~33 hardening
+  tasks complete** (T05, T01, T02, T03, T34, T04).
 
 - **2026-05-22 audit/replenish pass (no feature built).** Swept RLS coverage across all
   122 tables: `apply_standard_rls`/`apply_owner_rls` cover 119, but **`budget_votes`,
@@ -62,13 +63,29 @@ accurate for architecture/data/feature specs.
   any of the three loses RLS, parent-scoping, or gains a mutation policy. The general
   table-by-table coverage guard remains T35. Pipeline green: 77 test files / 434 tests.
 
+- **2026-05-22 — T04 (P0) RLS & tenant-isolation security audit closed.** Swept all 122
+  `public` tables across the migration suite: every one has RLS enabled and is
+  `asociatie_id`-scoped (directly, via `is_member`/`has_role` + the `apply_standard_rls`/
+  `apply_owner_rls`/`apply_member_insert_rls` helpers, or through a parent row); no table is
+  uncovered post-T34, no policy uses `using (true)`, and the membership helpers are `security
+  definer` with a fixed `search_path`. Hardened `netlify.toml` with `Strict-Transport-Security`
+  (2y/includeSubDomains/preload), a strict `Content-Security-Policy` (`default-src 'self'`,
+  `script-src 'self'`, `object-src`/`frame-ancestors 'none'`, `connect-src` limited to self +
+  the Supabase project, `upgrade-insecure-requests`), `Cross-Origin-Opener-Policy`/
+  `Cross-Origin-Resource-Policy: same-origin`, and a tightened `Permissions-Policy`; verified
+  the production `index.html` has no inline script/style so the CSP holds. `npm audit` clean
+  (0 vulnerabilities). Authored `SECURITY.md` (threat model, controls, reporting, tracked
+  gaps). Two backend-free regression guards added: `rlsTenantIsolation.test.ts` and
+  `securityHeaders.test.ts`. Surfaced T39 (CSP tightening + violation reporting). Pipeline
+  green: 79 test files / 444 tests.
+
 - **Two phases. Phase 1 (features): 65 / 65 built end-to-end (100%, `BUILD_COMPLETE`).
-  Phase 2 (production + legal readiness, `BACKLOG.md`): 5 tasks done (T05, T01, T02, T03, T34);
+  Phase 2 (production + legal readiness, `BACKLOG.md`): 6 tasks done (T05, T01, T02, T03, T34, T04);
   plus T10/T13 resolved as already-delivered features in the 2026-05-22 audit.**
   The app is feature-complete but not yet legally deployable for real residents:
-  remaining go-live blockers are the RLS/tenant-isolation audit (T04), GDPR
-  data-subject rights — export + erasure (T06), and the DPA + records of
-  processing / breach procedure (T21/T22). T01 (live Supabase auth), T02
+  remaining go-live blockers are GDPR data-subject rights — export + erasure
+  (T06), and the DPA + records of processing / breach procedure (T21/T22). The
+  RLS/tenant-isolation audit (T04) is now done. T01 (live Supabase auth), T02
   (2FA/MFA) and T03 (auth & session hardening) are now wired; their follow-ups
   T27 (post-auth association onboarding), T28 (profile/membership hydration), T29
   (live recovery-code login), T30 (live MFA enforcement E2E), T31 (MFA challenge
