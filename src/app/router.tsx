@@ -72,6 +72,7 @@ const WelcomeKitPage = lazy(() => import('@/features/welcomekit/WelcomeKitPage')
 const KidsPage = lazy(() => import('@/features/kids/KidsPage'));
 const ProjectsPage = lazy(() => import('@/features/projects/ProjectsPage'));
 const PhotoJournalPage = lazy(() => import('@/features/photojournal/PhotoJournalPage'));
+const RecurringPage = lazy(() => import('@/features/recurring/RecurringPage'));
 const SafetyCodePage = lazy(() => import('@/features/safety/SafetyCodePage'));
 const EvacuationPage = lazy(() => import('@/features/evacuation/EvacuationPage'));
 const NotImplementedPage = lazy(() => import('@/features/home/NotImplementedPage'));
@@ -109,6 +110,7 @@ export const router = createBrowserRouter([
       { path: 'garantii', element: <S><WarrantiesPage /></S> },
       { path: 'istoric-reparatii', element: <S><RepairsPage /></S> },
       { path: 'contoare', element: <S><MetersPage /></S> },
+      { path: 'sesizari-recurente', element: <S><RecurringPage /></S> },
       { path: 'vecini', element: <S><DirectoryPage /></S> },
       { path: 'multumiri', element: <S><ThankYousPage /></S> },
       { path: 'glosar', element: <S><GlossaryPage /></S> },

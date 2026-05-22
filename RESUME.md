@@ -15,19 +15,23 @@ accurate for architecture/data/feature specs.
 
 ## 0. Current status (updated 2026-05-22)
 
-- **Overall completion: 62 / 65 features built end-to-end (≈95%).**
-- **Completed this turn (2):** F49 Cod de siguranță + F50 Plan de evacuare —
-  the safety pair. F49: a private, owner-only profile — a scam-defeating
-  passphrase + free-text instructions, plus a name-sorted list of trusted
-  contacts (relationship + tap-to-call, add/remove); a privacy banner stresses
-  it's encrypted and never shared. F50: an evacuation plan per scara (text route
-  + safety-fixture list with per-kind icons, sorted by stairwell) plus pet
-  markers — residents flag animals in their apartment with a building-wide count
-  so firefighters know where to look (set/clear own); no binary floor-plan ships.
-  Both wired end-to-end (logic + Zustand demo store + page + registry toggle +
-  routes `cod-siguranta`/`evacuare` + `/cod_siguranta` & `/evacuare` bot commands
-  + RO/EN locales + demo data + unit tests + one E2E each). Added `Droplet` and
-  `FireExtinguisher` to the shared `Icon` registry for F50 fixtures.
+- **Overall completion: 63 / 65 features built end-to-end (≈97%).**
+- **Completed this turn (1):** F21 Sesizări recurente — a comitet/admin view
+  computed entirely over `tickets` (no table of its own). The detector groups
+  recent tickets by category+location (accent/case-insensitive), surfaces any
+  group that repeats ≥3 times within a 90-day window, takes the max severity,
+  and suggests a course of action (severity≥high or ≥4 occurrences → structural
+  fix; otherwise routine maintenance). The page shows an attention banner with
+  the active-pattern count, per-pattern cards (count badge, severity, first/last
+  date range, colour-coded recommendation), and a mark-known/reactivate toggle
+  that floats acknowledged patterns faded to the bottom. Wired end-to-end (logic
+  module + small acknowledgement Zustand store + page + registry toggle + route
+  `sesizari-recurente` + `/sesizari_recurente` bot command + RO/EN locales with
+  plural forms + recurring demo tickets + 11 unit tests + one E2E). Seeded
+  `DEMO_TICKETS` with a recurring lift breakdown (structural) and a recurring
+  stairwell light fault (maintenance) so the demo shows live patterns.
+- **Previously (F49+F50):** Cod de siguranță + Plan de evacuare — the safety
+  pair (`safety` + `evacuation` slices).
 - **Previously (F41+F42):** Urmărire proiecte + Jurnal foto lucrări — `projects`
   + `photojournal` slices sharing the `projects` domain.
 - **Previously (F64):** Activități copii și adolescenți — `kids` slice
@@ -37,11 +41,18 @@ accurate for architecture/data/feature specs.
 - **Previously (F04):** Mesagerie privată cu administratorul — `adminchat` slice
   (private resident↔admin channel, chat timeline, SLA hint, resolve/reopen).
 - **Previously (F27):** Rezervare sală comună / terasă — `venue` slice on the
-  F25/F26 booking pattern. Note: F04, F27, F62, F64, F41/F42 and this turn's
-  F49/F50 slices are still uncommitted in the working tree.
-- **Pipeline:** `npm run lint`, `npm run typecheck`, `npm test` (62 files / 272
+  F25/F26 booking pattern. Note: F04, F27, F62, F64, F41/F42, F49/F50 and this
+  turn's F21 slice (plus the user-menu/accent-tint polish pass) are still
+  uncommitted in the working tree.
+- **Pipeline:** `npm run lint`, `npm run typecheck`, `npm test` (63 files / 283
   unit tests), and `npm run build` all pass.
-- **Remaining (3):** F10, F21, F35.
+- **Remaining (2):** F10, F35.
+- **Planned for the future (2, not yet specced into schema):** F66 Profil complet
+  (rich full-page profile editor — photo + structured standard fields + user-added
+  typed custom fields via a `+ Adaugă câmp` button) and F67 Acasă personalizabil
+  (pencil-icon edit mode on the home screen to show/hide, reorder and size the
+  feature cards each resident wants). These are new Category 9 entries in
+  `FEATURES.md`, marked ⬜ planned.
 - **Source of truth:** the **FEATURES.md** tracking table (legend: ✅ UI done ·
   🟦 schema-only) is authoritative for per-feature status — sections 2–3 below are
   historical and undercount what's shipped. Trust the table.
@@ -136,10 +147,11 @@ Notable clusters still to build:
      generation weight; implement it alone in its own session.
    - *(Done: F41 Project tracker + F42 Project photo journal — `projects` +
      `photojournal` slices. F49 Cod de siguranță + F50 Plan de evacuare —
-     `safety` + `evacuation` slices.)*
-5. **Fill the computed views** (F21 recurring-ticket detection over `tickets`;
-   F35 apartament info over apartments/readings/tickets/votes) — these are
-   read-only aggregations, no new tables.
+     `safety` + `evacuation` slices. F21 Sesizări recurente — `recurring`
+     slice, computed over `tickets`.)*
+5. **Fill the last computed view** (F35 apartament info over
+   apartments/readings/tickets/votes) — a read-only aggregation, no new table.
+   *(Done: F21 recurring-ticket detection over `tickets`.)*
 
 ---
 *Generated 2026-05-21 from `DECISIONS.md` and `FEATURES.md`.*

@@ -1,6 +1,6 @@
 # Features — BlocHub
 
-Every feature below has a unique key (F01-F65). The admin can toggle each one on or off during onboarding and at any time afterwards. When Claude Code completes a feature, mark it with ✅ next to the title and a one-line note about the implementation.
+Every feature below has a unique key (F01-F67). The admin can toggle each one on or off during onboarding and at any time afterwards. When Claude Code completes a feature, mark it with ✅ next to the title and a one-line note about the implementation.
 
 Each feature follows this structure:
 - **Key:** F##
@@ -500,9 +500,31 @@ Each feature follows this structure:
 
 ---
 
+## Category 9 — Personalization & Profile (F66-F67)
+
+> Planned for a future session — not yet specced into the database schema. These
+> are personalization features that sit on top of the existing 65, so they touch
+> identity and the home shell rather than introducing new domain data.
+
+### F66 — Profil complet (complete profile editor)
+- **Audience:** every resident (own profile); admin can view/edit any profile in their asociație
+- **Description:** A rich, full-page profile editor — not the minimal current profile screen. The resident sets a **profile photo** (pick from gallery / take photo / crop to a circle, with a generated initials avatar as fallback) and fills a structured set of **standard fields**: full name, display name, phone, email, apartament (linked to the apartments registry), scara, etaj, număr mașină / plăcuță (car plate, feeding F28 Parcare), adresă completă, contact de urgență (name + phone + relationship), date of birth (feeding F63 Aniversări opt-in), preferred language (RO/EN), and notification preferences summary. Beyond the standard set, the resident can add **arbitrary extra fields** by pressing a `+ Adaugă câmp` button: they give the field an explicit label and pick its **type** from a typed catalog — `text scurt`, `text lung`, `număr`, `telefon`, `email`, `dată`, `bifă (da/nu)`, `selecție dintr-o listă`, `link`, `adresă`. Each custom field can be marked **private** (only owner + admin) or **vizibil vecinilor** (surfaces in F36 Locator directory subject to its consent rules). Fields are reorderable (drag), editable, and deletable. The whole thing validates per-type, autosaves drafts, and shows completeness (`profil 80% complet`) to nudge filling it in.
+- **Acceptance:** Photo upload with crop + fallback avatar. All standard fields present with per-type validation (plate format, phone, email, date). `+ Adaugă câmp` flow: name the field, choose its type from the catalog, set visibility, save — it persists and renders with the correct input control. Custom fields reorder/edit/delete. Plate auto-syncs to F28; birthday respects F63 opt-in; visible fields respect F36 consent. Admin can open any resident's profile read/write; resident sees only their own. Completeness indicator and autosave work. Fully bilingual (RO/EN).
+- **Telegram:** `/profil` shows the resident's profile summary and a deep link into the Mini App editor; inline quick-edit for phone and plate.
+- **Data:** extend `profiles` with the standard columns; `profile_custom_fields` (owner_id, label, field_type, value, visibility, sort_order) for the dynamic fields; profile photo in the `storage` bucket. RLS: owner read/write own; admin read/write within asociație; visible-flagged fields exposed to F36 per its consent table.
+
+### F67 — Acasă personalizabil (customizable home screen)
+- **Audience:** every resident (own home layout)
+- **Description:** The home screen becomes **editable per resident**. A **pencil icon** in the top corner of the home flips it into edit mode, where the resident chooses which **cards** (feature widgets) they see and in what order — show only the functions that interest them. In edit mode each available card can be toggled on/off, reordered (drag), and where a card supports it, sized (e.g., compact vs. expanded) — so someone who only cares about Anunțuri, Sesizări and Plăți pins those to the top and hides the rest. The catalog of available cards is the set of features the **admin has enabled** for the asociație (a resident can never surface a disabled feature), each exposing a small home-widget (latest announcement, my open tickets, next event, active polls, etc.). A `Resetează la implicit` restores the admin's default layout. The layout persists per resident across devices; tapping the pencil again (or `Gata`) exits edit mode.
+- **Acceptance:** Pencil icon toggles edit mode. In edit mode: per-card show/hide, drag-reorder, optional size, live preview. Card catalog is exactly the asociație's enabled features (disabling a feature removes its card and any pinned instance). Layout persists per resident and syncs across sessions/devices. `Resetează la implicit` restores defaults. Smooth, eased enter/exit of edit mode in keeping with the premium-feel mandate. Fully bilingual (RO/EN).
+- **Telegram:** N/A (home personalization is a Mini App / web surface; the bot keeps its command-driven model).
+- **Data:** `home_layouts` (resident_id, asociatie_id, ordered list of {card_key, visible, size}) with owner-only RLS; falls back to an asociație default layout when none is set.
+
+---
+
 ## Implementation tracking
 
-Status legend: ✅ implemented UI end-to-end · 🟦 schema + RLS + registered/toggleable, UI not yet built in this session.
+Status legend: ✅ implemented UI end-to-end · 🟦 schema + RLS + registered/toggleable, UI not yet built in this session · ⬜ planned for a future session, not yet specced into the schema.
 
 Every feature has its database table(s) with RLS in `supabase/migrations/` and is
 toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
@@ -529,7 +551,7 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F18 | Istoric reparații | ✅ | Searchable repair log with system filter, cost/contractor, and warranty-expiry badges (active/expiring/expired); search + warranty logic unit-tested; `/istoric_reparatii` bot command. Table `repair_records` + RLS. |
 | F19 | Calendar service-uri programate | ✅ | Scheduled-maintenance list (revizie/ISCIR/deratizare) sorted soonest-first with overdue/due-soon/scheduled badges, add and mark-done (rolls next due forward); status/validation/sort/count logic unit-tested; `/mentenanta` bot command. Table `scheduled_maintenance` + RLS. |
 | F20 | Citire contoare | ✅ | Monthly index submission per meter with ≥-previous validation and anomaly flagging on large jumps; validation + anomaly logic unit-tested; `/contor` bot command. Tables `meters`, `meter_readings` + RLS. |
-| F21 | Sesizări recurente | 🟦 | Computed over `tickets`. |
+| F21 | Sesizări recurente | ✅ | Auto-detects patterns over `tickets`: groups recent tickets by category+location (accent/case-insensitive), flags any group repeating ≥3× within a 90-day window, picks max severity, and suggests structural-fix vs. routine-maintenance (severity≥high or ≥4 occurrences → structural). Comitet can mark a pattern "cunoscut" (floats faded to the bottom) or reactivate it; an attention banner counts active patterns. Location label/grouping, severity, suggestion, window, threshold, sort and date-range logic unit-tested; `/sesizari_recurente` bot command. Computed — no table (reads `tickets`). |
 | F22 | Solicitare oferte (RFP) | ✅ | Post an RFP, add contractor quotes (cheapest auto-highlighted), and choose a winner which closes the RFP and marks the selected quote; open RFPs float above decided ones; validation/cheapest/quote-sort/RFP-sort logic unit-tested; `/oferte` bot command. Tables `rfps`, `rfp_quotes`, `contractor_recommendations` + owner RLS on recommendations. |
 | F23 | Vecin de gardă | ✅ | Weekend duty rotation: an "on duty now" banner (covering Sat 00:00–Mon 00:00), upcoming weekends soonest-first with covered/free badges, self sign-up with an optional note and release; sort/coverage/current-duty/next-duty/mine logic unit-tested; `/garda` bot command. Tables `duty_volunteers`, `duty_schedule` + owner RLS on volunteers. |
 | F24 | Listă obiecte împrumutabile | ✅ | Registry of borrowable items with add, category, search and available/borrowed toggle; validation + search/filter logic unit-tested; `/imprumut` bot command. Tables `lending_items/records` + owner RLS. |
@@ -574,3 +596,5 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F63 | Aniversări (opt-in) | ✅ | Opt-in birthday consent (day/month only, save/edit/leave) with a "today" section and a soonest-first upcoming list (29-Feb-safe validation, next-occurrence day math); validation + days-until + today/upcoming split logic unit-tested; `/aniversari` bot command. Table `birthdays_consent` + owner RLS. |
 | F64 | Activități copii și adolescenți | ✅ | Privacy-preserving kids registry (per-bucket counts, never names) with a building-wide aggregate ("3 copii 4-6 ani"), the resident's own editable registrations, plus coordinated activities: propose an activity (title/date/time/location/target age/note), upcoming soonest-first with past faded below, join/leave with a going-count; registration-validity/aggregate/total/my-ranges/event-validity/upcoming-split/going-count logic unit-tested; `/copii_evenimente` bot command. Tables `kids_age_ranges`, `kids_events` + RLS. |
 | F65 | Feedback platformă | ✅ | Submit feedback about the platform with sentiment (idee/problemă/laudă) and optional anonymous flag; recent-feedback list newest-first; validation + sort logic unit-tested; `/feedback` bot command. Table `platform_feedback` + authenticated-insert RLS. |
+| F66 | Profil complet | ⬜ | Planned. Rich full-page profile editor: profile photo (crop + initials fallback), structured standard fields (name, phone, email, apartament/scara/etaj, car plate→F28, address, emergency contact, DOB→F63, language), plus user-added custom fields via `+ Adaugă câmp` (explicit label + typed catalog: text/number/phone/email/date/bool/select/link/address) with per-field private vs. visible-to-neighbours (→F36). Extend `profiles` + new `profile_custom_fields` + storage photo. |
+| F67 | Acasă personalizabil | ⬜ | Planned. Pencil icon on home flips into edit mode: per-resident show/hide, drag-reorder and optional sizing of feature cards, drawn only from the asociație's admin-enabled features; reset-to-default; persists per resident across devices. New `home_layouts` table (owner RLS) with an asociație default fallback. |

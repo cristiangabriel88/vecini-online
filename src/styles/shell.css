@@ -12,9 +12,11 @@
   z-index: 1;
 }
 
-/* ── Atmosphere: drifting sage blobs + grain, the brand placeholder
+/* ── Atmosphere: drifting warm beige/brown blobs + grain, the brand
    ambience rendered behind the entire experience. Pointer-inert and
-   GPU-cheap; sits at z-index 0 with everything else above it. ─────── */
+   GPU-cheap; sits at z-index 0 with everything else above it. Colour
+   and intensity come from the --atmos-* tokens, so it's a barely-there
+   toasted-sand wash in light and a deeper warm-brown haze in dark. ── */
 .atmos {
   position: fixed;
   inset: 0;
@@ -26,7 +28,6 @@
   position: absolute;
   border-radius: 50%;
   filter: blur(90px);
-  opacity: 0.5;
   animation: atmos-drift 26s var(--ease) infinite alternate;
 }
 .atmos__blob--1 {
@@ -34,15 +35,16 @@
   height: 58vw;
   top: -22vw;
   left: -16vw;
-  background: radial-gradient(circle, var(--accent-200), transparent 70%);
+  background: radial-gradient(circle, var(--atmos-1), transparent 70%);
+  opacity: var(--atmos-op-1);
 }
 .atmos__blob--2 {
   width: 48vw;
   height: 48vw;
   bottom: -18vw;
   right: -12vw;
-  background: radial-gradient(circle, var(--accent-300), transparent 70%);
-  opacity: 0.32;
+  background: radial-gradient(circle, var(--atmos-2), transparent 70%);
+  opacity: var(--atmos-op-2);
   animation-duration: 34s;
   animation-delay: -9s;
 }
@@ -51,8 +53,8 @@
   height: 30vw;
   top: 42%;
   left: 58%;
-  background: radial-gradient(circle, oklch(90% 0.05 92), transparent 70%);
-  opacity: 0.28;
+  background: radial-gradient(circle, var(--atmos-3), transparent 70%);
+  opacity: var(--atmos-op-3);
   animation-duration: 30s;
   animation-delay: -15s;
 }
@@ -60,18 +62,14 @@
   content: "";
   position: absolute;
   inset: 0;
-  opacity: 0.4;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.3 0 0 0 0 0.42 0 0 0 0 0.24 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: var(--atmos-grain);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.42 0 0 0 0 0.32 0 0 0 0 0.18 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 @keyframes atmos-drift {
   0%   { transform: translate(0, 0) scale(1); }
   50%  { transform: translate(40px, -30px) scale(1.08); }
   100% { transform: translate(-30px, 40px) scale(0.95); }
 }
-[data-theme="dark"] .atmos__blob { opacity: 0.22; }
-[data-theme="dark"] .atmos__blob--2 { opacity: 0.16; }
-[data-theme="dark"] .atmos__blob--3 { opacity: 0.12; }
-[data-theme="dark"] .atmos::after { opacity: 0.5; }
 @media (prefers-reduced-motion: reduce) {
   .atmos__blob { animation: none; }
 }
@@ -643,3 +641,397 @@
     padding-bottom: calc(64px + var(--space-6));
   }
 }
+
+/* ============================================================
+   User menu — the top-right account dropdown
+   ------------------------------------------------------------
+   Opens with a slow, silky spring (transform-origin top-right);
+   rows stagger in behind it. Closing reverses cleanly. The whole
+   panel stays mounted so both directions animate, never snap.
+   ============================================================ */
+.usermenu {
+  position: relative;
+  margin-left: 4px;
+}
+
+/* ── Trigger ─────────────────────────────────────────────── */
+.usermenu__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px 4px 4px;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 220ms var(--ease-out), border-color 220ms var(--ease-out),
+    box-shadow 220ms var(--ease-out);
+}
+.usermenu__trigger:hover {
+  background: var(--bg-sunken);
+  border-color: var(--border-subtle);
+}
+.usermenu__trigger[aria-expanded="true"] {
+  background: var(--bg-surface);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.usermenu__trigger .avatar {
+  transition: transform 320ms var(--ease-spring);
+}
+.usermenu__trigger[aria-expanded="true"] .avatar {
+  transform: scale(1.04);
+}
+.usermenu__caret {
+  color: var(--text-faint);
+  transition: transform 420ms var(--ease-spring), color 220ms var(--ease-out);
+}
+.usermenu__trigger[aria-expanded="true"] .usermenu__caret {
+  transform: rotate(180deg);
+  color: var(--text-muted);
+}
+
+/* ── Panel ───────────────────────────────────────────────── */
+.usermenu__panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 312px;
+  transform-origin: top right;
+  background: oklch(from var(--bg-surface) l c h / 0.86);
+  backdrop-filter: blur(24px) saturate(1.7);
+  -webkit-backdrop-filter: blur(24px) saturate(1.7);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg), 0 0 0 1px oklch(from var(--bg-canvas) l c h / 0.4);
+  padding: var(--space-2);
+  z-index: 60;
+
+  /* closed resting state */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px) scale(0.95);
+  pointer-events: none;
+  /* slow + silky on the way out; visibility flips only after the motion */
+  transition: opacity 320ms var(--ease), transform 360ms var(--ease),
+    visibility 0s linear 360ms;
+}
+.usermenu[data-open="true"] .usermenu__panel {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+  /* deliberately unhurried on the way in */
+  transition: opacity 420ms var(--ease-out), transform 480ms var(--ease-out),
+    visibility 0s linear 0s;
+}
+
+/* a faint accent hairline kisses the top edge of the card */
+.usermenu__panel::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 18px;
+  right: 18px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, oklch(from var(--primary) l c h / 0.5), transparent);
+}
+
+/* ── Identity header ─────────────────────────────────────── */
+.usermenu__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3) var(--space-3);
+  margin-bottom: var(--space-1);
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--primary-soft) 0%, transparent 90%);
+}
+.usermenu__head .avatar {
+  box-shadow: var(--shadow-sm), inset 0 1px 0 0 oklch(100% 0 0 / 0.25);
+}
+.usermenu__id {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.usermenu__greet {
+  font-size: 10px;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--primary);
+}
+.usermenu__name {
+  font-family: var(--font-serif);
+  font-size: var(--text-md);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.usermenu__role {
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Sections + dividers ─────────────────────────────────── */
+.usermenu__section {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: var(--space-1) 0;
+}
+.usermenu__divider {
+  height: 1px;
+  margin: var(--space-1) var(--space-2);
+  background: var(--border-subtle);
+}
+.usermenu__caps {
+  font-size: 10px;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--text-faint);
+  padding: var(--space-2) var(--space-3) 4px;
+}
+
+/* ── Rows ────────────────────────────────────────────────── */
+.usermenu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: 9px var(--space-2) 9px var(--space-2);
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-align: left;
+  color: var(--text-secondary);
+  transition: background 200ms var(--ease-out), color 200ms var(--ease-out),
+    padding-left 240ms var(--ease-out);
+
+  /* staggered reveal — driven by --i set inline */
+  opacity: 0;
+  transform: translateY(6px);
+}
+.usermenu[data-open="true"] .usermenu__item {
+  opacity: 1;
+  transform: translateY(0);
+  transition: background 200ms var(--ease-out), color 200ms var(--ease-out),
+    padding-left 240ms var(--ease-out),
+    opacity 360ms var(--ease-out) calc(90ms + var(--i, 0) * 32ms),
+    transform 420ms var(--ease-out) calc(90ms + var(--i, 0) * 32ms);
+}
+.usermenu__item:hover {
+  background: var(--bg-sunken);
+  color: var(--text-primary);
+  padding-left: calc(var(--space-2) + 3px);
+}
+.usermenu__ico {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-sunken);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+  transition: background 200ms var(--ease-out), color 200ms var(--ease-out),
+    transform 280ms var(--ease-spring), border-color 200ms var(--ease-out);
+}
+.usermenu__item:hover .usermenu__ico {
+  background: var(--primary-soft);
+  color: var(--primary-soft-text);
+  border-color: transparent;
+  transform: scale(1.06) rotate(-3deg);
+}
+.usermenu__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.usermenu__label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.usermenu__desc {
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.usermenu__chev {
+  flex-shrink: 0;
+  color: var(--text-faint);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 200ms var(--ease-out), transform 240ms var(--ease-spring);
+}
+.usermenu__item:hover .usermenu__chev {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* danger row (sign out) */
+.usermenu__item--danger .usermenu__label { color: var(--danger-text); }
+.usermenu__item--danger .usermenu__ico { color: var(--danger-text); }
+.usermenu__item--danger:hover { background: var(--danger-soft); }
+.usermenu__item--danger:hover .usermenu__ico {
+  background: var(--danger-soft);
+  color: var(--danger-text);
+}
+
+/* ── Accent tint picker (color circles) ──────────────────── */
+.usermenu__tintrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-2) 4px;
+}
+.usermenu__tintrow > .usermenu__caps { padding: 0; flex: 1; }
+.tintdots {
+  display: inline-flex;
+  gap: 9px;
+  padding: 2px;
+}
+.tintdot {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border: none;
+  padding: 0;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  background: var(--swatch);
+  /* a hairline keeps light swatches legible on the panel + a faint lift */
+  box-shadow: inset 0 0 0 1px oklch(0% 0 0 / 0.14), var(--shadow-xs);
+  transition: transform 300ms var(--ease-spring), box-shadow 240ms var(--ease-out);
+}
+.tintdot::before {
+  /* expanding focus/hover halo in the swatch's own colour */
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  background: var(--swatch);
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 240ms var(--ease-out), transform 320ms var(--ease-spring);
+  z-index: -1;
+}
+.tintdot:hover { transform: scale(1.14); }
+.tintdot:hover::before { opacity: 0.22; transform: scale(1); }
+.tintdot:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 1px oklch(0% 0 0 / 0.14), 0 0 0 2px var(--bg-surface), 0 0 0 4px var(--swatch);
+}
+.tintdot[data-active="true"] {
+  /* a clean offset ring in the chosen colour marks the selection */
+  box-shadow: inset 0 0 0 1px oklch(0% 0 0 / 0.14), 0 0 0 2px var(--bg-surface), 0 0 0 4px var(--swatch);
+}
+.tintdot__check {
+  color: oklch(100% 0 0 / 0.96);
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 200ms var(--ease-out), transform 320ms var(--ease-spring);
+  filter: drop-shadow(0 1px 1px oklch(0% 0 0 / 0.35));
+}
+.tintdot[data-active="true"] .tintdot__check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .usermenu__panel,
+  .usermenu[data-open="true"] .usermenu__panel,
+  .usermenu__item,
+  .usermenu[data-open="true"] .usermenu__item {
+    transition-duration: 1ms;
+  }
+}
+
+/* ── Lists inside the info modals ────────────────────────── */
+.usermodal__lead {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: var(--text-md);
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-4);
+  line-height: var(--leading-snug);
+}
+.usermodal__tips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.usermodal__tips li {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+}
+.usermodal__num {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-full);
+  background: var(--primary-soft);
+  color: var(--primary-soft-text);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+.usermodal__contact {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  transition: transform 240ms var(--ease-spring), border-color 200ms var(--ease-out),
+    box-shadow 200ms var(--ease-out);
+  margin-bottom: var(--space-2);
+}
+.usermodal__contact:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
+}
+.usermodal__contact .usermenu__ico { background: var(--primary-soft); color: var(--primary-soft-text); border-color: transparent; }
+.usermodal__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-3);
+  margin-top: var(--space-2);
+  border-top: 1px solid var(--border-subtle);
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+}
+.usermodal__ver { font-family: var(--font-mono); }

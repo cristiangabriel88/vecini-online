@@ -162,6 +162,66 @@ export const DEMO_TICKETS: Ticket[] = [
     resolved_at: null, verified_at: null, resolution_notes: null, rating: null,
     created_at: '2026-05-21T08:15:00Z', updated_at: '2026-05-21T08:15:00Z',
   },
+  // F21 — a recurring lift breakdown (same kind + place, four times in the
+  // window, high severity) that should surface as a structural-fix pattern.
+  {
+    id: 't-3', asociatie_id: 'demo-asoc', reporter_user_id: 'u-res2', apartment_id: 'ap-9',
+    title: 'Liftul s-a blocat din nou', description: 'Liftul s-a oprit între etaje și a trebuit chemată firma de intervenție.',
+    category: 'lift', severity: 'high', location_scara: 'A', location_etaj: null, location_description: 'Lift, scara A',
+    status: 'rezolvat', assigned_to_user_id: 'u-admin', sla_due_at: '2026-03-01T08:00:00Z',
+    resolved_at: '2026-02-28T16:00:00Z', verified_at: null, resolution_notes: null, rating: null,
+    created_at: '2026-02-28T07:30:00Z', updated_at: '2026-02-28T16:00:00Z',
+  },
+  {
+    id: 't-4', asociatie_id: 'demo-asoc', reporter_user_id: 'u-res3', apartment_id: 'ap-17',
+    title: 'Lift oprit la parter', description: 'Ușile liftului nu se mai închideau, a rămas blocat la parter.',
+    category: 'lift', severity: 'medium', location_scara: 'A', location_etaj: null, location_description: 'Lift, scara A',
+    status: 'rezolvat', assigned_to_user_id: 'u-admin', sla_due_at: '2026-03-25T08:00:00Z',
+    resolved_at: '2026-03-23T11:00:00Z', verified_at: null, resolution_notes: null, rating: null,
+    created_at: '2026-03-22T18:40:00Z', updated_at: '2026-03-23T11:00:00Z',
+  },
+  {
+    id: 't-5', asociatie_id: 'demo-asoc', reporter_user_id: 'u-res', apartment_id: 'ap-5',
+    title: 'Iar s-a stricat liftul', description: 'Liftul face un zgomot puternic și se oprește brusc între etaje.',
+    category: 'lift', severity: 'high', location_scara: 'A', location_etaj: null, location_description: 'Lift, scara A',
+    status: 'rezolvat', assigned_to_user_id: 'u-admin', sla_due_at: '2026-04-16T08:00:00Z',
+    resolved_at: '2026-04-16T09:00:00Z', verified_at: null, resolution_notes: null, rating: null,
+    created_at: '2026-04-15T12:10:00Z', updated_at: '2026-04-16T09:00:00Z',
+  },
+  {
+    id: 't-6', asociatie_id: 'demo-asoc', reporter_user_id: 'u-res2', apartment_id: 'ap-9',
+    title: 'Lift blocat din nou', description: 'A treia oprire în această primăvară. Firma a venit iar.',
+    category: 'lift', severity: 'high', location_scara: 'A', location_etaj: null, location_description: 'Lift, scara A',
+    status: 'in_lucru', assigned_to_user_id: 'u-admin', sla_due_at: '2026-05-13T08:00:00Z',
+    resolved_at: null, verified_at: null, resolution_notes: null, rating: null,
+    created_at: '2026-05-12T08:05:00Z', updated_at: '2026-05-12T09:00:00Z',
+  },
+  // F21 — a recurring but low-severity light fault on scara B's stairwell:
+  // three times in the window, points at routine maintenance rather than works.
+  {
+    id: 't-7', asociatie_id: 'demo-asoc', reporter_user_id: 'u-res3', apartment_id: 'ap-17',
+    title: 'Bec ars pe casa scării', description: 'Becul de pe palierul de la etajul 2 nu mai merge.',
+    category: 'iluminat', severity: 'low', location_scara: 'B', location_etaj: null, location_description: 'Casa scării, scara B',
+    status: 'rezolvat', assigned_to_user_id: 'u-admin', sla_due_at: '2026-03-17T08:00:00Z',
+    resolved_at: '2026-03-12T10:00:00Z', verified_at: null, resolution_notes: null, rating: null,
+    created_at: '2026-03-10T19:00:00Z', updated_at: '2026-03-12T10:00:00Z',
+  },
+  {
+    id: 't-8', asociatie_id: 'demo-asoc', reporter_user_id: 'u-res', apartment_id: 'ap-5',
+    title: 'S-a ars iar becul pe scară', description: 'Tot palierul de la etajul 2 e pe întuneric seara.',
+    category: 'iluminat', severity: 'low', location_scara: 'B', location_etaj: null, location_description: 'Casa scării, scara B',
+    status: 'rezolvat', assigned_to_user_id: 'u-admin', sla_due_at: '2026-04-15T08:00:00Z',
+    resolved_at: '2026-04-10T10:00:00Z', verified_at: null, resolution_notes: null, rating: null,
+    created_at: '2026-04-08T20:30:00Z', updated_at: '2026-04-10T10:00:00Z',
+  },
+  {
+    id: 't-9', asociatie_id: 'demo-asoc', reporter_user_id: 'u-res2', apartment_id: 'ap-9',
+    title: 'Bec ars din nou pe scara B', description: 'Se ard becurile foarte des aici, poate e o problemă la dulie.',
+    category: 'iluminat', severity: 'low', location_scara: 'B', location_etaj: null, location_description: 'Casa scării, scara B',
+    status: 'primit', assigned_to_user_id: null, sla_due_at: '2026-05-16T08:00:00Z',
+    resolved_at: null, verified_at: null, resolution_notes: null, rating: null,
+    created_at: '2026-05-09T21:15:00Z', updated_at: '2026-05-09T21:15:00Z',
+  },
 ];
 
 export const DEMO_EVENTS: BuildingEvent[] = [

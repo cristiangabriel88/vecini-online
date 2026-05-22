@@ -123,6 +123,19 @@
   /* Focus ring */
   --ring: oklch(50% var(--accent-chroma) var(--accent-hue) / 0.35);
 
+  /* ── Atmosphere — warm beige/brown ambient wash ───────────
+     A toasted-sand glow that drifts behind everything, decoupled
+     from the sage brand accent. Barely perceptible over the cream
+     canvas in light; it deepens to a real warm-brown haze in dark. */
+  --atmos-hue: 66;
+  --atmos-1: oklch(76% 0.058 var(--atmos-hue));
+  --atmos-2: oklch(67% 0.072 calc(var(--atmos-hue) - 9));
+  --atmos-3: oklch(87% 0.042 calc(var(--atmos-hue) + 16));
+  --atmos-op-1: 0.20;
+  --atmos-op-2: 0.13;
+  --atmos-op-3: 0.11;
+  --atmos-grain: 0.3;
+
   /* Shadows — warm-tinted, low spread for premium feel */
   --shadow-xs: 0 1px 1px 0 oklch(28% 0.03 145 / 0.04);
   --shadow-sm: 0 1px 2px 0 oklch(28% 0.03 145 / 0.05),
@@ -169,6 +182,15 @@
   --primary-soft:   var(--accent-100);
   --primary-soft-text: var(--accent-600);
 
+  /* Atmosphere — deeper, warmer brown haze with more presence on dark */
+  --atmos-1: oklch(49% 0.082 var(--atmos-hue));
+  --atmos-2: oklch(41% 0.07 calc(var(--atmos-hue) - 9));
+  --atmos-3: oklch(56% 0.06 calc(var(--atmos-hue) + 16));
+  --atmos-op-1: 0.34;
+  --atmos-op-2: 0.26;
+  --atmos-op-3: 0.2;
+  --atmos-grain: 0.5;
+
   --success-500: oklch(72% 0.13 150);
   --success-soft: oklch(28% 0.06 150);
   --success-text: oklch(78% 0.11 150);
@@ -201,6 +223,7 @@
 /* ── Palette swaps via data-palette ────────────────────── */
 [data-palette="sage"]       { --accent-hue: 140; --accent-chroma: 0.082; }
 [data-palette="terracotta"] { --accent-hue: 38;  --accent-chroma: 0.12; }
+[data-palette="ocean"]      { --accent-hue: 224; --accent-chroma: 0.11; }
 [data-palette="indigo"]     { --accent-hue: 262; --accent-chroma: 0.13; }
 [data-palette="plum"]       { --accent-hue: 340; --accent-chroma: 0.095; }
 

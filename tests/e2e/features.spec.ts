@@ -55,6 +55,15 @@ test('F20 — resident submits a meter reading', async ({ page }) => {
   await expect(page.getByText(/Ultimul index: 320/)).toBeVisible();
 });
 
+test('F21 — committee reviews and acknowledges a recurring issue', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/sesizari-recurente');
+  // The repeated lift breakdown on scara A surfaces as a recurring pattern.
+  await expect(page.getByRole('heading', { name: /Lift, scara A/i })).toBeVisible();
+  await page.getByRole('button', { name: /Marchează drept cunoscut/i }).first().click();
+  await expect(page.getByText('Cunoscut').first()).toBeVisible();
+});
+
 test('F36 — resident searches the opt-in neighbour directory', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/vecini');

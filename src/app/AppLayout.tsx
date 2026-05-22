@@ -9,6 +9,7 @@ import { useAuthStore } from '@/shared/store/authStore';
 import { DEMO_ASOCIATIE, DEMO_EMERGENCY } from '@/shared/demo/demoData';
 import { Icon } from '@/shared/components/Icon';
 import { Atmosphere } from '@/shared/components/Atmosphere';
+import { UserMenu } from '@/shared/components/UserMenu';
 import { cn } from '@/shared/lib/cn';
 
 function initials(name: string) {
@@ -321,22 +322,7 @@ function Topbar() {
           <Bell size={18} />
           <span className="iconbtn__dot" />
         </button>
-        <button
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '4px 10px 4px 4px',
-            borderRadius: 'var(--radius)',
-            cursor: 'pointer',
-            marginLeft: 4,
-          }}
-          onClick={() => navigate('/app/profil')}
-          aria-label={t('chrome.account')}
-        >
-          <Avatar name="Andrei Popescu" />
-          <ChevronDown size={13} style={{ color: 'var(--text-faint)' }} />
-        </button>
+        <UserMenu />
       </div>
     </header>
   );

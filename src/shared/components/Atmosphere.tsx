@@ -1,6 +1,7 @@
 /**
- * Atmosphere: the drifting sage blobs and grain overlay that give every
- * screen the warm, organic ambience of the brand placeholder. Purely
+ * Atmosphere: the drifting warm beige/brown blobs and grain overlay that
+ * give every screen a soft, organic ambience. Tinted via the --atmos-*
+ * tokens, so it stays barely-there in light and deepens in dark. Purely
  * decorative: fixed, pointer-inert, and rendered behind all content.
  */
 export function Atmosphere() {
