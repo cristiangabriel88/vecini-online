@@ -18,7 +18,27 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T45 owner-scoped RLS requires active membership)
+## 0. Current status (updated 2026-05-23, T46 parent-child tenant-consistency composite FKs)
+
+- **2026-05-23 — T46 (P1) Parent-child tenant-consistency guards for child
+  tables.** Additive, idempotent migration `20260522000014_tenant_consistency_fk.sql`
+  adds an `add_tenant_fk(child, fk_col, parent)` helper and applies it to all 43
+  parent-child references where both child and parent carry a direct
+  `asociatie_id`. It enforces `child.asociatie_id = parent.asociatie_id`
+  declaratively via a composite FK (parent `unique (id, asociatie_id)`; child FK
+  on `(fk_col, asociatie_id) -> parent (id, asociatie_id)`), so a child can only
+  attach to a parent in the same asociație. MATCH SIMPLE leaves NULL fk_cols
+  unenforced; default `on delete no action` preserves the existing single-column
+  FK delete behaviour. Chosen over a trigger (declarative, planner-enforced,
+  unbypassable, no `security definer`) — recorded in `DECISIONS.md`. Backend-free
+  guard `tests/unit/tenantConsistency.test.ts` (8 assertions) derives every
+  qualifying pair from the schema and asserts the migration covers exactly that
+  set, so a future tenant-scoped child can't be added without a guard. Pipeline
+  green: lint, typecheck, 92 files / 577 tests, build. Surfaced T70 (`aga_votes`
+  gets `apply_standard_rls` but has no `asociatie_id` column — the generated
+  policy references a missing column and would fail to apply live) and T71
+  (junction tables without their own `asociatie_id` can still reference a
+  foreign-asociație apartment).
 
 - **2026-05-23 — T45 (P0) Harden owner-scoped RLS to also require membership in
   the target asociatie_id.** Additive, idempotent migration

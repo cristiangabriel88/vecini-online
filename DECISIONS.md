@@ -397,3 +397,29 @@ imported by the function, so the bundle stays alias-free. The bot's replies are
 Romanian only: it is a backend surface, not a localized UI, matching the existing
 webhook copy (the in-app surfaces remain fully bilingual). The in-app "Link
 Telegram" resident UI that mints a link code + deep link is queued as T68.
+
+## T46 — parent-child tenant consistency via composite FK (not a trigger)
+
+Where a child row references a parent row and **both** carry a direct
+`asociatie_id`, nothing previously stopped the child from pointing at a parent in
+another asociație: RLS only checks `is_member(child.asociatie_id)`. The fix
+(`20260522000014_tenant_consistency_fk.sql`) enforces `child.asociatie_id =
+parent.asociatie_id` declaratively with a **composite foreign key** — the parent
+gets a `unique (id, asociatie_id)` target and the child gets an FK on
+`(fk_col, asociatie_id) -> parent (id, asociatie_id)`. A generic
+`add_tenant_fk(child, fk_col, parent)` helper applies it to all 43 such pairs.
+
+Chosen over a per-row `before insert/update` trigger because a composite FK is
+declarative, enforced by the planner, cannot be bypassed (including by a future
+`security definer` routine), and needs no function of our own to audit. The FK
+uses MATCH SIMPLE (the default), so a NULL `fk_col` is not enforced — matching
+the existing nullable references (e.g. `tickets.apartment_id`). It keeps the
+default `on delete no action` so it never converts a restricting parent FK into a
+cascading one: where the original single-column FK cascades, the child is removed
+first and this check then passes; where it restricts, the restriction stands.
+
+Scope: only child tables that carry their **own** `asociatie_id` are covered.
+Parent-scoped junction tables without one (`aga_votes`, `budget_votes`,
+`petition_signatures`, `aga_attendees`) have no tenant column to keep equal, so
+their `apartment_id` cross-tenant exposure is tracked separately (T71), and the
+latent `aga_votes` RLS-on-missing-column bug surfaced here is T70.
