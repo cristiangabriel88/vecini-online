@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -10,6 +11,7 @@ interface ModalProps {
 }
 
 export function Modal({ open, onClose, title, children, footer }: ModalProps) {
+  const { t } = useTranslation();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -41,7 +43,7 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
       >
         <div className="modal__header">
           <h2 className="modal__title">{title}</h2>
-          <button className="iconbtn" onClick={onClose} aria-label="Închide" style={{ width: 32, height: 32 }}>
+          <button className="iconbtn" onClick={onClose} aria-label={t('common.close')} style={{ width: 32, height: 32 }}>
             <X size={16} />
           </button>
         </div>

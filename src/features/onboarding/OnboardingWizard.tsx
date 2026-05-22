@@ -13,6 +13,8 @@ import {
   FEATURE_CATEGORIES,
   FEATURES,
   RECOMMENDED_FEATURES,
+  categoryLabel,
+  featureTitle,
   type FeatureCategory,
 } from '@/shared/features/registry';
 import { useFeatureStore } from '@/shared/features/featureStore';
@@ -104,17 +106,17 @@ export default function OnboardingWizard() {
             {(Object.keys(FEATURE_CATEGORIES) as FeatureCategory[]).map((cat) => (
               <div key={cat}>
                 <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">
-                  {FEATURE_CATEGORIES[cat]}
+                  {categoryLabel(t, cat)}
                 </p>
                 <div className="divide-y divide-border rounded-lg border border-border">
                   {FEATURES.filter((f) => f.category === cat).map((f) => (
                     <label key={f.key} className="flex cursor-pointer items-center gap-3 p-2.5">
                       <Switch
-                        label={f.title}
+                        label={featureTitle(t, f)}
                         checked={Boolean(selected[f.key])}
                         onChange={(v) => setSelected((s) => ({ ...s, [f.key]: v }))}
                       />
-                      <span className="flex-1 text-sm">{f.title}</span>
+                      <span className="flex-1 text-sm">{featureTitle(t, f)}</span>
                       {RECOMMENDED_FEATURES.includes(f.key) && (
                         <Badge tone="success">{t('onboarding.recommended')}</Badge>
                       )}

@@ -27,7 +27,7 @@ export default function ProfilePage() {
 
         <Card>
           <Select
-            label={t('nav.settings')}
+            label={t('chrome.language')}
             defaultValue={i18n.language.startsWith('en') ? 'en' : 'ro'}
             onChange={(e) => void i18n.changeLanguage(e.target.value)}
           >
@@ -35,7 +35,7 @@ export default function ProfilePage() {
             <option value="en">English</option>
           </Select>
           <p className="mt-2 flex items-center gap-1 text-sm text-muted">
-            <Globe className="h-4 w-4" /> Limba interfeței
+            <Globe className="h-4 w-4" /> {t('chrome.language')}
           </p>
         </Card>
 

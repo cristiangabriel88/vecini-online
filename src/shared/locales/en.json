@@ -79,7 +79,8 @@
     "subtitle": "Enable or disable association features. Disabled ones disappear for residents.",
     "enabled": "Enabled",
     "disabled": "Disabled",
-    "audience": "Audience"
+    "audience": "Audience",
+    "preview": "preview"
   },
   "announcements": {
     "title": "Announcements",
@@ -113,7 +114,13 @@
     "quorum": "Quorum: {{percent}}%",
     "empty": "No active polls. The committee will announce proposals here.",
     "closed": "Poll closed",
-    "weighted": "Weighted by ownership share"
+    "weighted": "Weighted by ownership share",
+    "votesCount": "{{count}} votes",
+    "quorumMet": "quorum met",
+    "quorumNotMet": "quorum not met"
+  },
+  "notifications": {
+    "empty": "You have no new notifications. You'll be notified about announcements, polls, and issues."
   },
   "tickets": {
     "title": "Issues",
@@ -1087,5 +1094,298 @@
     "markerSaved": "Marker saved.",
     "speciesLabel": "Pets (short)",
     "speciesHint": "e.g. 1 cat, 2 dogs"
+  },
+  "catalog": {
+    "categories": {
+      "communication": "Communication",
+      "governance": "Governance & voting",
+      "maintenance": "Maintenance & issues",
+      "spaces": "Shared spaces & resources",
+      "information": "Information & records",
+      "projects": "Projects & major works",
+      "safety": "Safety & compliance",
+      "community": "Community life"
+    },
+    "features": {
+      "F01": {
+        "title": "Official announcements",
+        "description": "Official announcements with read receipts and targeted delivery."
+      },
+      "F02": {
+        "title": "Moderated discussion channel",
+        "description": "Discussion channel between residents, moderated by the committee."
+      },
+      "F03": {
+        "title": "Building alert (emergency)",
+        "description": "Emergency broadcast that overrides quiet hours."
+      },
+      "F04": {
+        "title": "Private messages to the administrator",
+        "description": "Private channel between a resident and the administrator."
+      },
+      "F05": {
+        "title": "Anonymous message to the committee",
+        "description": "Message to the committee with hidden identity."
+      },
+      "F06": {
+        "title": "Neighbor notices (board)",
+        "description": "Unofficial notices between neighbors, expiring after 14 days."
+      },
+      "F07": {
+        "title": "Frequently asked questions (FAQ)",
+        "description": "Searchable FAQ maintained by the administrator."
+      },
+      "F08": {
+        "title": "Events calendar",
+        "description": "Events calendar with RSVP and reminders."
+      },
+      "F09": {
+        "title": "Quick vote on proposals",
+        "description": "Quick votes on proposals, with configurable quorum and majority."
+      },
+      "F10": {
+        "title": "Digital general assembly",
+        "description": "Digital General Assembly compliant with Law 196/2018."
+      },
+      "F11": {
+        "title": "Meeting minutes (archive)",
+        "description": "Searchable archive of signed meeting minutes."
+      },
+      "F12": {
+        "title": "Participatory budget",
+        "description": "Discretionary fund voted by residents."
+      },
+      "F13": {
+        "title": "Prioritize major projects",
+        "description": "Drag-and-drop ranking of major projects."
+      },
+      "F14": {
+        "title": "Idea box",
+        "description": "Open suggestions with voting, promoted quarterly."
+      },
+      "F15": {
+        "title": "Opinion polls",
+        "description": "Non-binding polls, anonymous by default."
+      },
+      "F16": {
+        "title": "Internal petitions",
+        "description": "Petitions with signature gathering and a submission threshold."
+      },
+      "F17": {
+        "title": "Issues with photos",
+        "description": "Report problems with photos and track their status."
+      },
+      "F18": {
+        "title": "Repair history",
+        "description": "Searchable log of all major repairs."
+      },
+      "F19": {
+        "title": "Scheduled service calendar",
+        "description": "Scheduled maintenance with automatic reminders."
+      },
+      "F20": {
+        "title": "Meter readings",
+        "description": "Monthly index submission with a photo."
+      },
+      "F21": {
+        "title": "Recurring issues",
+        "description": "Automatic detection of repeated problems."
+      },
+      "F22": {
+        "title": "Request for proposals (RFP)",
+        "description": "Request and compare bids from contractors."
+      },
+      "F23": {
+        "title": "Neighbor on duty",
+        "description": "Weekend on-duty volunteer, by rotation."
+      },
+      "F24": {
+        "title": "Lendable items list",
+        "description": "Tools and items that neighbors lend."
+      },
+      "F25": {
+        "title": "Laundry booking",
+        "description": "Book slots for the shared laundry room."
+      },
+      "F26": {
+        "title": "Elevator booking for moving",
+        "description": "Book the elevator for moves."
+      },
+      "F27": {
+        "title": "Common room / terrace booking",
+        "description": "Book the common room or terrace."
+      },
+      "F28": {
+        "title": "Parking",
+        "description": "Parking spot registry with anonymous messaging."
+      },
+      "F29": {
+        "title": "Bike room",
+        "description": "Registry of bikes in the shared room."
+      },
+      "F30": {
+        "title": "Storage / annexes",
+        "description": "Registry of storage units and annexes."
+      },
+      "F31": {
+        "title": "Plants / green spaces",
+        "description": "Volunteer schedule for green spaces."
+      },
+      "F32": {
+        "title": "Courier access (temporary code)",
+        "description": "Temporary intercom codes for couriers."
+      },
+      "F33": {
+        "title": "Document archive",
+        "description": "Searchable repository of official documents."
+      },
+      "F34": {
+        "title": "Suppliers / contracts",
+        "description": "Supplier catalog with contract expiry alerts."
+      },
+      "F35": {
+        "title": "Apartment information",
+        "description": "Information page for each apartment."
+      },
+      "F36": {
+        "title": "Neighbor directory",
+        "description": "Directory of resident contacts (opt-in)."
+      },
+      "F37": {
+        "title": "Pets",
+        "description": "Registry of pets (opt-in)."
+      },
+      "F38": {
+        "title": "Wall of thanks",
+        "description": "Public wall of thanks between neighbors."
+      },
+      "F39": {
+        "title": "Building wiki",
+        "description": "Collaborative wiki with local knowledge."
+      },
+      "F40": {
+        "title": "Glossary of terms",
+        "description": "Definitions for terms from invoices and the general assembly."
+      },
+      "F41": {
+        "title": "Project tracking",
+        "description": "Track major works: phases, budget, photos."
+      },
+      "F42": {
+        "title": "Works photo journal",
+        "description": "Photo journal of ongoing works."
+      },
+      "F43": {
+        "title": "Contractor library",
+        "description": "Library of vetted contractors, with ratings."
+      },
+      "F44": {
+        "title": "Crowdfunding for small projects",
+        "description": "Voluntary contributions to small projects."
+      },
+      "F45": {
+        "title": "Multi-year maintenance plan",
+        "description": "A 5-10 year works plan."
+      },
+      "F46": {
+        "title": "Repair fund recommendations",
+        "description": "Calculator for the repair fund rate."
+      },
+      "F47": {
+        "title": "Energy efficiency",
+        "description": "Track the building's energy consumption."
+      },
+      "F48": {
+        "title": "Equipment warranties",
+        "description": "Track warranties of installed equipment."
+      },
+      "F49": {
+        "title": "Doorkeeper / trusted-neighbor codes",
+        "description": "Lists of trusted neighbors, stored encrypted."
+      },
+      "F50": {
+        "title": "Evacuation plan",
+        "description": "Evacuation plans with markers for pets."
+      },
+      "F51": {
+        "title": "Fire-safety checks (PSI)",
+        "description": "Track mandatory fire-safety (PSI) checks."
+      },
+      "F52": {
+        "title": "Building insurance",
+        "description": "Track the building's insurance policy."
+      },
+      "F53": {
+        "title": "Key register",
+        "description": "Who holds the keys to common areas."
+      },
+      "F54": {
+        "title": "Visitors / suspicious strangers",
+        "description": "Quick logging of suspicious visitors."
+      },
+      "F55": {
+        "title": "Alarm system (status)",
+        "description": "Status of the alarm / detection system."
+      },
+      "F56": {
+        "title": "Localized emergency numbers",
+        "description": "Emergency numbers customized for the building."
+      },
+      "F57": {
+        "title": "Internal marketplace",
+        "description": "Sell/donate items between neighbors."
+      },
+      "F58": {
+        "title": "Carpooling",
+        "description": "Shared rides between neighbors (opt-in)."
+      },
+      "F59": {
+        "title": "Babysitting / pet-sitting",
+        "description": "Babysitting and pet-sitting board."
+      },
+      "F60": {
+        "title": "Service exchange",
+        "description": "Exchange of services and skills between neighbors."
+      },
+      "F61": {
+        "title": "Group buying",
+        "description": "Coordinate group purchases."
+      },
+      "F62": {
+        "title": "Welcome kit",
+        "description": "Welcome message for new residents."
+      },
+      "F63": {
+        "title": "Birthdays (opt-in)",
+        "description": "Birthday greetings (opt-in)."
+      },
+      "F64": {
+        "title": "Kids & teens activities",
+        "description": "Coordinate activities for children."
+      },
+      "F65": {
+        "title": "Platform feedback",
+        "description": "Feedback about the vecini.online platform."
+      }
+    }
+  },
+  "chrome": {
+    "home": "Home",
+    "admin": "Administration",
+    "features": "Features",
+    "apartments": "Apartments",
+    "primaryNav": "Primary navigation",
+    "bottomNav": "Navigation",
+    "helpTitle": "Help & support",
+    "helpBody": "Contact the administrator or read the quick guide for your first steps.",
+    "ownersAssociation": "Owners' association",
+    "searchPlaceholder": "Search announcements, issues, neighbors…",
+    "demoData": "Demo data",
+    "toggleTheme": "Toggle theme",
+    "account": "Account",
+    "emergencyNumbers": "Emergency numbers",
+    "footerTagline": "The digital platform for your owners' association. Always at hand.",
+    "createdBy": "Created by cristiangabriel.dev",
+    "language": "Interface language"
   }
 }

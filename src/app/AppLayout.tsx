@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Outlet, useLocation, useNavigate, NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Home, Megaphone, Zap, Menu, User, Bell, Moon, Sun, Settings, Search, ChevronDown, Info, Phone, Siren, ArrowUpRight } from 'lucide-react';
-import { FEATURES, FEATURE_CATEGORIES, type FeatureCategory } from '@/shared/features/registry';
+import { Home, Megaphone, Zap, Menu, User, Bell, Moon, Sun, Settings, Search, ChevronDown, Info, Phone, Siren, ArrowUpRight, Globe } from 'lucide-react';
+import { FEATURES, FEATURE_CATEGORIES, categoryLabel, featureTitle, type FeatureCategory } from '@/shared/features/registry';
 import { useFeatureStore } from '@/shared/features/featureStore';
 import { useThemeStore } from '@/shared/store/themeStore';
 import { useAuthStore } from '@/shared/store/authStore';
@@ -62,6 +62,7 @@ function saveCollapsed(state: Record<string, boolean>) {
 }
 
 function Sidebar() {
+  const { t } = useTranslation();
   const enabled = useEnabledFeatures();
   const navigate = useNavigate();
   const isActive = useActive();
@@ -108,10 +109,10 @@ function Sidebar() {
   );
 
   return (
-    <aside className="sidebar" aria-label="Navigație principală">
+    <aside className="sidebar" aria-label={t('chrome.primaryNav')}>
       <div className="sidebar__group">
         <NavItem
-          label="Acasă"
+          label={t('chrome.home')}
           active={isActive()}
           onClick={() => navigate('/app')}
           icon={<Home size={16} />}
@@ -124,13 +125,13 @@ function Sidebar() {
         if (items.length === 0) return null;
         return (
           <div key={cat} className="sidebar__group">
-            <GroupHeader id={cat} label={FEATURE_CATEGORIES[cat]} />
+            <GroupHeader id={cat} label={categoryLabel(t, cat)} />
             <div className="sidebar__collapse" data-collapsed={collapsed[cat] ? 'true' : 'false'}>
               <div className="sidebar__collapse-inner">
                 {items.map((f) => (
                   <NavItem
                     key={f.key}
-                    label={f.title}
+                    label={featureTitle(t, f)}
                     active={isActive(f.path)}
                     onClick={() => navigate(`/app/${f.path}`)}
                     icon={<Icon name={f.icon} size={16} />}
@@ -143,17 +144,17 @@ function Sidebar() {
       })}
 
       <div className="sidebar__group">
-        <GroupHeader id="admin" label="Administrare" />
+        <GroupHeader id="admin" label={t('chrome.admin')} />
         <div className="sidebar__collapse" data-collapsed={collapsed['admin'] ? 'true' : 'false'}>
           <div className="sidebar__collapse-inner">
             <NavItem
-              label="Funcționalități"
+              label={t('chrome.features')}
               active={isActive('admin/functionalitati')}
               onClick={() => navigate('/app/admin/functionalitati')}
               icon={<Settings size={16} />}
             />
             <NavItem
-              label="Apartamente"
+              label={t('chrome.apartments')}
               active={isActive('admin/apartamente')}
               onClick={() => navigate('/app/admin/apartamente')}
               icon={<Home size={16} />}
@@ -190,10 +191,10 @@ function Sidebar() {
           >
             <Info size={14} />
           </div>
-          <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-primary)' }}>Ajutor și suport</div>
+          <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-primary)' }}>{t('chrome.helpTitle')}</div>
         </div>
         <div style={{ fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.45 }}>
-          Contactează administratorul sau citește ghidul rapid pentru primii pași.
+          {t('chrome.helpBody')}
         </div>
       </div>
     </aside>
@@ -214,7 +215,7 @@ function BottomNav() {
     { to: '/app/profil', label: t('nav.profile'), icon: User, active: isActive('profil') },
   ];
   return (
-    <nav className="bottomnav" aria-label="Navigație">
+    <nav className="bottomnav" aria-label={t('chrome.bottomNav')}>
       <div className="bottomnav__inner">
         {items.map((it) => (
           <NavLink key={it.to} to={it.to} className="bottomnav__item" data-active={it.active}>
@@ -230,11 +231,13 @@ function BottomNav() {
 }
 
 function Topbar() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useThemeStore((s) => s.theme);
   const toggleTheme = useThemeStore((s) => s.toggle);
   const demo = useAuthStore((s) => s.demo);
   const navigate = useNavigate();
+  const lang = i18n.language.startsWith('en') ? 'en' : 'ro';
+  const toggleLang = () => void i18n.changeLanguage(lang === 'en' ? 'ro' : 'en');
 
   return (
     <header className="topbar">
@@ -271,7 +274,7 @@ function Topbar() {
             {DEMO_ASOCIATIE.name}
           </span>
           <span style={{ display: 'block', fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.2, marginTop: 1 }}>
-            Asociație de proprietari
+            {t('chrome.ownersAssociation')}
           </span>
         </span>
         <ChevronDown size={14} style={{ color: 'var(--text-faint)', flexShrink: 0 }} />
@@ -280,7 +283,7 @@ function Topbar() {
       <div className="topbar__search">
         <div className="topsearch">
           <Search size={15} />
-          <input placeholder="Caută anunțuri, sesizări, vecini…" />
+          <input placeholder={t('chrome.searchPlaceholder')} />
           <span style={{ display: 'inline-flex', gap: 3 }}>
             <kbd className="kbd">⌘</kbd>
             <kbd className="kbd">K</kbd>
@@ -290,14 +293,23 @@ function Topbar() {
 
       <div className="topbar__actions">
         {demo && (
-          <span className="topbar__demobanner" title="Date de demonstrație">
+          <span className="topbar__demobanner" title={t('chrome.demoData')}>
             <span>{t('auth.demoMode')}</span>
           </span>
         )}
         <button
           className="iconbtn"
+          onClick={toggleLang}
+          aria-label={t('chrome.language')}
+          title={t('chrome.language')}
+        >
+          <Globe size={18} />
+          <span style={{ fontSize: 11, fontWeight: 600, marginLeft: 3, textTransform: 'uppercase' }}>{lang}</span>
+        </button>
+        <button
+          className="iconbtn"
           onClick={toggleTheme}
-          aria-label="Comută temă"
+          aria-label={t('chrome.toggleTheme')}
         >
           {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
         </button>
@@ -320,7 +332,7 @@ function Topbar() {
             marginLeft: 4,
           }}
           onClick={() => navigate('/app/profil')}
-          aria-label="Cont"
+          aria-label={t('chrome.account')}
         >
           <Avatar name="Andrei Popescu" />
           <ChevronDown size={13} style={{ color: 'var(--text-faint)' }} />
@@ -333,6 +345,7 @@ function Topbar() {
 const APP_VERSION = '0.1.0';
 
 function Footer() {
+  const { t } = useTranslation();
   const contacts = [...DEMO_EMERGENCY].sort((a, b) => a.sort_order - b.sort_order);
   const tel = (phone: string) => `tel:${phone.replace(/\s/g, '')}`;
 
@@ -342,7 +355,7 @@ function Footer() {
         <section>
           <div className="appfooter__emhead">
             <Siren size={14} />
-            <span className="iv-caps">Numere de urgență</span>
+            <span className="iv-caps">{t('chrome.emergencyNumbers')}</span>
           </div>
           <div className="appfooter__emgrid">
             {contacts.map((c) => (
@@ -361,7 +374,7 @@ function Footer() {
           <div className="appfooter__word">
             vecini<em>.online</em>
           </div>
-          <p className="appfooter__tag">Platforma digitală a asociației tale de proprietari. La îndemână, mereu.</p>
+          <p className="appfooter__tag">{t('chrome.footerTagline')}</p>
         </section>
       </div>
 
@@ -370,7 +383,7 @@ function Footer() {
         <span className="appfooter__dot" />
         <span className="iv-mono">v{APP_VERSION}</span>
         <a className="appfooter__credit" href="https://cristiangabriel.dev" target="_blank" rel="noreferrer">
-          Creat de cristiangabriel.dev <ArrowUpRight size={12} />
+          {t('chrome.createdBy')} <ArrowUpRight size={12} />
         </a>
       </div>
     </footer>

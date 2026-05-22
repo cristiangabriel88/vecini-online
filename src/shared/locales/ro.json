@@ -79,7 +79,8 @@
     "subtitle": "Activează sau dezactivează funcționalitățile asociației. Cele dezactivate dispar pentru locatari.",
     "enabled": "Activată",
     "disabled": "Dezactivată",
-    "audience": "Public"
+    "audience": "Public",
+    "preview": "previzualizare"
   },
   "announcements": {
     "title": "Anunțuri",
@@ -113,7 +114,13 @@
     "quorum": "Cvorum: {{percent}}%",
     "empty": "Nu există voturi active. Comitetul va anunța aici următoarele propuneri.",
     "closed": "Vot încheiat",
-    "weighted": "Vot ponderat după cota-parte"
+    "weighted": "Vot ponderat după cota-parte",
+    "votesCount": "{{count}} voturi",
+    "quorumMet": "cvorum întrunit",
+    "quorumNotMet": "cvorum neîntrunit"
+  },
+  "notifications": {
+    "empty": "Nu ai notificări noi. Vei primi notificări pentru anunțuri, voturi și sesizări."
   },
   "tickets": {
     "title": "Sesizări",
@@ -1087,5 +1094,298 @@
     "markerSaved": "Marcaj salvat.",
     "speciesLabel": "Animale (pe scurt)",
     "speciesHint": "ex: 1 pisică, 2 câini"
+  },
+  "catalog": {
+    "categories": {
+      "communication": "Comunicare",
+      "governance": "Guvernanță și vot",
+      "maintenance": "Mentenanță și sesizări",
+      "spaces": "Spații și resurse comune",
+      "information": "Informații și evidențe",
+      "projects": "Proiecte și lucrări mari",
+      "safety": "Siguranță și conformitate",
+      "community": "Viața comunității"
+    },
+    "features": {
+      "F01": {
+        "title": "Anunțuri oficiale",
+        "description": "Anunțuri oficiale cu confirmare de citire și difuzare țintită."
+      },
+      "F02": {
+        "title": "Canal de discuții moderat",
+        "description": "Canal de discuții între locatari, moderat de comitet."
+      },
+      "F03": {
+        "title": "Alertă de bloc (urgență)",
+        "description": "Difuzare de urgență care ignoră orele de liniște."
+      },
+      "F04": {
+        "title": "Mesagerie privată cu administratorul",
+        "description": "Canal privat între locatar și administrator."
+      },
+      "F05": {
+        "title": "Mesaj anonim către comitet",
+        "description": "Mesaj către comitet cu identitate ascunsă."
+      },
+      "F06": {
+        "title": "Anunțuri vecini (locator)",
+        "description": "Anunțuri neoficiale între vecini, cu expirare la 14 zile."
+      },
+      "F07": {
+        "title": "Întrebări frecvente (FAQ)",
+        "description": "Întrebări frecvente, căutabile, întreținute de administrator."
+      },
+      "F08": {
+        "title": "Calendar de evenimente",
+        "description": "Calendar de evenimente cu RSVP și memento-uri."
+      },
+      "F09": {
+        "title": "Vot rapid pe propuneri",
+        "description": "Voturi rapide pe propuneri, cu cvorum și majoritate configurabile."
+      },
+      "F10": {
+        "title": "AGA digitală",
+        "description": "Adunare Generală digitală conformă cu Legea 196/2018."
+      },
+      "F11": {
+        "title": "Procese verbale (arhivă)",
+        "description": "Arhivă căutabilă de procese verbale semnate."
+      },
+      "F12": {
+        "title": "Buget participativ",
+        "description": "Fond discreționar votat de locatari."
+      },
+      "F13": {
+        "title": "Prioritizare proiecte mari",
+        "description": "Clasare prin tragere-și-plasare a proiectelor mari."
+      },
+      "F14": {
+        "title": "Cutie de idei",
+        "description": "Sugestii deschise cu vot, promovate trimestrial."
+      },
+      "F15": {
+        "title": "Sondaje de opinie",
+        "description": "Sondaje neobligatorii, anonime implicit."
+      },
+      "F16": {
+        "title": "Petiții interne",
+        "description": "Petiții cu strângere de semnături și prag de înaintare."
+      },
+      "F17": {
+        "title": "Sesizări cu foto",
+        "description": "Raportarea problemelor cu fotografii și urmărirea statusului."
+      },
+      "F18": {
+        "title": "Istoric reparații",
+        "description": "Jurnal căutabil al tuturor reparațiilor majore."
+      },
+      "F19": {
+        "title": "Calendar service-uri programate",
+        "description": "Mentenanță programată cu memento-uri automate."
+      },
+      "F20": {
+        "title": "Citire contoare",
+        "description": "Trimiterea lunară a indexurilor cu fotografie."
+      },
+      "F21": {
+        "title": "Sesizări recurente",
+        "description": "Detectarea automată a problemelor repetate."
+      },
+      "F22": {
+        "title": "Solicitare oferte (RFP)",
+        "description": "Solicitarea și compararea ofertelor de la contractori."
+      },
+      "F23": {
+        "title": "Vecin de gardă",
+        "description": "Voluntar de gardă în weekend, prin rotație."
+      },
+      "F24": {
+        "title": "Listă obiecte împrumutabile",
+        "description": "Unelte și obiecte pe care vecinii le împrumută."
+      },
+      "F25": {
+        "title": "Rezervare spălătorie",
+        "description": "Rezervarea sloturilor pentru spălătoria comună."
+      },
+      "F26": {
+        "title": "Rezervare lift pentru mutare",
+        "description": "Rezervarea liftului pentru mutări."
+      },
+      "F27": {
+        "title": "Rezervare sală comună / terasă",
+        "description": "Rezervarea sălii comune sau a terasei."
+      },
+      "F28": {
+        "title": "Parcare",
+        "description": "Registru locuri de parcare cu mesagerie anonimă."
+      },
+      "F29": {
+        "title": "Bicicletăria",
+        "description": "Registru al bicicletelor din camera comună."
+      },
+      "F30": {
+        "title": "Boxa / dependinți",
+        "description": "Registru al boxelor și dependințelor."
+      },
+      "F31": {
+        "title": "Plante / spații verzi",
+        "description": "Program de voluntariat pentru spațiile verzi."
+      },
+      "F32": {
+        "title": "Acces curierat (cod temporar)",
+        "description": "Coduri temporare de interfon pentru curieri."
+      },
+      "F33": {
+        "title": "Document arhivă",
+        "description": "Repertoriu de documente oficiale, căutabil."
+      },
+      "F34": {
+        "title": "Furnizori / contracte",
+        "description": "Catalog de furnizori cu alerte de expirare a contractelor."
+      },
+      "F35": {
+        "title": "Informații apartament",
+        "description": "Pagina informativă a fiecărui apartament."
+      },
+      "F36": {
+        "title": "Agendă vecini",
+        "description": "Agendă de contacte ale locatarilor (opt-in)."
+      },
+      "F37": {
+        "title": "Animale de companie",
+        "description": "Registru de animale de companie (opt-in)."
+      },
+      "F38": {
+        "title": "Carte de aur (mulțumiri)",
+        "description": "Perete public de mulțumiri între vecini."
+      },
+      "F39": {
+        "title": "Wiki bloc",
+        "description": "Wiki colaborativ cu cunoștințe locale."
+      },
+      "F40": {
+        "title": "Glosar de termeni",
+        "description": "Definiții pentru termenii din facturi și AGA."
+      },
+      "F41": {
+        "title": "Urmărire proiecte",
+        "description": "Urmărirea lucrărilor majore: faze, buget, fotografii."
+      },
+      "F42": {
+        "title": "Jurnal foto lucrări",
+        "description": "Jurnal foto al lucrărilor în desfășurare."
+      },
+      "F43": {
+        "title": "Bibliotecă de contractori",
+        "description": "Bibliotecă de contractori verificați, cu rating."
+      },
+      "F44": {
+        "title": "Finanțare colectivă proiecte mici",
+        "description": "Contribuții voluntare la proiecte mici."
+      },
+      "F45": {
+        "title": "Plan multianual de mentenanță",
+        "description": "Plan de lucrări pe 5-10 ani."
+      },
+      "F46": {
+        "title": "Recomandări fond de reparații",
+        "description": "Calculator pentru rata fondului de reparații."
+      },
+      "F47": {
+        "title": "Eficiență energetică",
+        "description": "Urmărirea consumului energetic al blocului."
+      },
+      "F48": {
+        "title": "Garanții echipamente",
+        "description": "Urmărirea garanțiilor echipamentelor instalate."
+      },
+      "F49": {
+        "title": "Cod portari / vecini de încredere",
+        "description": "Liste de vecini de încredere, stocate criptat."
+      },
+      "F50": {
+        "title": "Plan de evacuare",
+        "description": "Planuri de evacuare cu marcaje pentru animale."
+      },
+      "F51": {
+        "title": "Verificări PSI",
+        "description": "Urmărirea verificărilor PSI obligatorii."
+      },
+      "F52": {
+        "title": "Asigurare bloc",
+        "description": "Urmărirea poliței de asigurare a blocului."
+      },
+      "F53": {
+        "title": "Registru de chei",
+        "description": "Cine deține cheile spațiilor comune."
+      },
+      "F54": {
+        "title": "Vizitatori / străini observați",
+        "description": "Jurnalizarea rapidă a vizitatorilor suspecți."
+      },
+      "F55": {
+        "title": "Sistem alarmă (status)",
+        "description": "Status al sistemului de alarmă / detecție."
+      },
+      "F56": {
+        "title": "Numere de urgență localizate",
+        "description": "Numere de urgență personalizate pentru bloc."
+      },
+      "F57": {
+        "title": "Piață internă",
+        "description": "Vânzare/donare de obiecte între vecini."
+      },
+      "F58": {
+        "title": "Drumuri partajate",
+        "description": "Drumuri partajate între vecini (opt-in)."
+      },
+      "F59": {
+        "title": "Bonă și îngrijire animale",
+        "description": "Bord de bone și îngrijire animale."
+      },
+      "F60": {
+        "title": "Schimb de servicii",
+        "description": "Schimb de servicii și abilități între vecini."
+      },
+      "F61": {
+        "title": "Grupuri de cumpărături comune",
+        "description": "Coordonarea cumpărăturilor în grup."
+      },
+      "F62": {
+        "title": "Kit de bun-venit",
+        "description": "Mesaj de bun-venit pentru locatarii noi."
+      },
+      "F63": {
+        "title": "Aniversări (opt-in)",
+        "description": "Felicitări de ziua de naștere (opt-in)."
+      },
+      "F64": {
+        "title": "Activități copii și adolescenți",
+        "description": "Coordonarea activităților pentru copii."
+      },
+      "F65": {
+        "title": "Feedback platformă",
+        "description": "Feedback despre platforma vecini.online."
+      }
+    }
+  },
+  "chrome": {
+    "home": "Acasă",
+    "admin": "Administrare",
+    "features": "Funcționalități",
+    "apartments": "Apartamente",
+    "primaryNav": "Navigație principală",
+    "bottomNav": "Navigație",
+    "helpTitle": "Ajutor și suport",
+    "helpBody": "Contactează administratorul sau citește ghidul rapid pentru primii pași.",
+    "ownersAssociation": "Asociație de proprietari",
+    "searchPlaceholder": "Caută anunțuri, sesizări, vecini…",
+    "demoData": "Date de demonstrație",
+    "toggleTheme": "Comută temă",
+    "account": "Cont",
+    "emergencyNumbers": "Numere de urgență",
+    "footerTagline": "Platforma digitală a asociației tale de proprietari. La îndemână, mereu.",
+    "createdBy": "Creat de cristiangabriel.dev",
+    "language": "Limba interfeței"
   }
 }

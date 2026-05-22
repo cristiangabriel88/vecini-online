@@ -10,7 +10,7 @@ export default function NotificationsPage() {
       <PageHeader title={t('nav.notifications')} />
       <EmptyState
         icon={<Bell className="h-10 w-10" />}
-        body="Nu ai notificări noi. Vei primi notificări pentru anunțuri, voturi și sesizări."
+        body={t('notifications.empty')}
       />
     </div>
   );

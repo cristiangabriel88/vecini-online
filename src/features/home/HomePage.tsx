@@ -5,7 +5,7 @@ import { Badge } from '@/shared/components/Badge';
 import { Icon } from '@/shared/components/Icon';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { useFeatureStore } from '@/shared/features/featureStore';
-import { FEATURES } from '@/shared/features/registry';
+import { FEATURES, featureTitle } from '@/shared/features/registry';
 import { DEMO_ASOCIATIE } from '@/shared/demo/demoData';
 import { useAnnouncementsStore } from '@/features/announcements/announcementsStore';
 import { polls } from '@/features/polls/pollsStore';
@@ -26,7 +26,7 @@ export default function HomePage() {
           <Link key={f.key} to={`/app/${f.path}`}>
             <Card className="flex h-full flex-col items-center justify-center gap-2 py-5 text-center transition-colors hover:bg-surface-2">
               <Icon name={f.icon} className="h-7 w-7 text-primary" />
-              <span className="text-sm font-medium">{f.title}</span>
+              <span className="text-sm font-medium">{featureTitle(t, f)}</span>
             </Card>
           </Link>
         ))}

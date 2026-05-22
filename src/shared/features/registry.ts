@@ -2,7 +2,14 @@
  * Central registry of every vecini.online feature (F01–F65).
  * The admin can toggle each one per asociație; this registry is the single
  * source of truth for keys, titles, categories, and routing.
+ *
+ * The Romanian `title`/`description` here and FEATURE_CATEGORIES below are the
+ * canonical fallback. User-facing labels in the UI must be rendered through the
+ * i18n helpers (featureTitle / featureDescription / categoryLabel) so they
+ * switch language with the rest of the app. Translations live under the
+ * `catalog` namespace in the locale files (ro.json / en.json).
  */
+import type { TFunction } from 'i18next';
 
 export type FeatureKey = `F${string}`;
 
@@ -137,6 +144,21 @@ export function getFeature(key: string): FeatureDef | undefined {
 
 export function featuresByCategory(category: FeatureCategory): FeatureDef[] {
   return FEATURES.filter((f) => f.category === category);
+}
+
+/** Localised category label, falling back to the canonical Romanian. */
+export function categoryLabel(t: TFunction, category: FeatureCategory): string {
+  return t(`catalog.categories.${category}`, FEATURE_CATEGORIES[category]);
+}
+
+/** Localised feature title, falling back to the registry's Romanian title. */
+export function featureTitle(t: TFunction, feature: FeatureDef): string {
+  return t(`catalog.features.${feature.key}.title`, feature.title);
+}
+
+/** Localised feature description, falling back to the registry's Romanian one. */
+export function featureDescription(t: TFunction, feature: FeatureDef): string {
+  return t(`catalog.features.${feature.key}.description`, feature.description);
 }
 
 /** Recommended starter set per DEPLOYMENT.md. */

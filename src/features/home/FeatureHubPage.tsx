@@ -7,6 +7,9 @@ import { Icon } from '@/shared/components/Icon';
 import {
   FEATURE_CATEGORIES,
   FEATURES,
+  categoryLabel,
+  featureTitle,
+  featureDescription,
   type FeatureCategory,
 } from '@/shared/features/registry';
 import { useFeatureStore } from '@/shared/features/featureStore';
@@ -36,15 +39,15 @@ export function FeatureHubPage({ actions = false }: { actions?: boolean }) {
             if (items.length === 0) return null;
             return (
               <section key={cat}>
-                <h2 className="mb-2 text-lg font-semibold">{FEATURE_CATEGORIES[cat]}</h2>
+                <h2 className="mb-2 text-lg font-semibold">{categoryLabel(t, cat)}</h2>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {items.map((f) => (
                     <Link key={f.key} to={`/app/${f.path}`}>
                       <Card className="flex items-center gap-3 transition-colors hover:bg-surface-2">
                         <Icon name={f.icon} className="h-6 w-6 text-primary" />
                         <div className="min-w-0">
-                          <p className="font-medium">{f.title}</p>
-                          <p className="truncate text-sm text-muted">{f.description}</p>
+                          <p className="font-medium">{featureTitle(t, f)}</p>
+                          <p className="truncate text-sm text-muted">{featureDescription(t, f)}</p>
                         </div>
                       </Card>
                     </Link>

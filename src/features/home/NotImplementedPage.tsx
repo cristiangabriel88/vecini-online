@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Construction } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { EmptyState } from '@/shared/components/EmptyState';
-import { FEATURES } from '@/shared/features/registry';
+import { FEATURES, featureTitle } from '@/shared/features/registry';
 
 /** Shown for features that are registered and toggleable but whose full page
  *  is not part of this build. The feature still appears in admin toggles and
@@ -16,10 +16,10 @@ export default function NotImplementedPage() {
 
   return (
     <div>
-      <PageHeader title={feature?.title ?? 'Funcționalitate'} />
+      <PageHeader title={feature ? featureTitle(t, feature) : t('chrome.features')} />
       <EmptyState
         icon={<Construction className="h-10 w-10" />}
-        title={feature ? `${feature.key} · ${feature.title}` : undefined}
+        title={feature ? `${feature.key} · ${featureTitle(t, feature)}` : undefined}
         body={t('common.notImplemented')}
       />
     </div>

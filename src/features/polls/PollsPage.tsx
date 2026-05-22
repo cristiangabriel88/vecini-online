@@ -95,8 +95,8 @@ export default function PollsPage() {
 
               {myVote && (
                 <p className="mt-3 text-sm text-muted">
-                  {t('polls.results')}: {result.total} voturi ·{' '}
-                  {result.quorumMet ? 'cvorum întrunit' : 'cvorum neîntrunit'}
+                  {t('polls.results')}: {t('polls.votesCount', { count: result.total })} ·{' '}
+                  {result.quorumMet ? t('polls.quorumMet') : t('polls.quorumNotMet')}
                 </p>
               )}
             </Card>
