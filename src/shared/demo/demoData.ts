@@ -100,6 +100,11 @@ export const DEMO_APARTMENTS: Apartment[] = [
   { id: 'ap-5', asociatie_id: 'demo-asoc', scara: 'A', etaj: 4, numar_apartament: '17', suprafata_utila: 63.8, cota_parte_indiviza: 0.048, numar_persoane: 2, proprietar_principal_name: 'Stan Gabriela', is_active: true, notes: null, created_at: '', updated_at: '' },
 ];
 
+/** The resident the demo signs in as: Popescu Andrei, owner of Ap. 5 (`ap-2`),
+ *  whose meters and tickets back the "Informații apartament" (F35) view. */
+export const DEMO_CURRENT_USER_ID = 'u-res';
+export const DEMO_CURRENT_APARTMENT_ID = 'ap-2';
+
 export const DEMO_ANNOUNCEMENTS: Announcement[] = [
   {
     id: 'an-1', asociatie_id: 'demo-asoc', author_user_id: 'u-admin',

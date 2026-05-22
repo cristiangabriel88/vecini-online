@@ -64,6 +64,17 @@ test('F21 — committee reviews and acknowledges a recurring issue', async ({ pa
   await expect(page.getByText('Cunoscut').first()).toBeVisible();
 });
 
+test('F35 — resident sees their apartment info aggregation', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/apartament-info');
+  // Apartment summary header.
+  await expect(page.getByRole('heading', { name: 'Ap. 5' })).toBeVisible();
+  // Meter readings aggregated from the meters store.
+  await expect(page.getByText(/Ultimul index/).first()).toBeVisible();
+  // Tickets submitted by this resident are listed.
+  await expect(page.getByText(/în lucru · .* rezolvate/)).toBeVisible();
+});
+
 test('F36 — resident searches the opt-in neighbour directory', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/vecini');

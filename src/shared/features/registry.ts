@@ -95,7 +95,7 @@ export const FEATURES: FeatureDef[] = [
   // Category 5 — Information & Records
   { key: 'F33', title: 'Document arhivă', category: 'information', icon: 'FileText', audience: ['all'], path: 'documente', description: 'Repertoriu de documente oficiale, căutabil.', implemented: true },
   { key: 'F34', title: 'Furnizori / contracte', category: 'information', icon: 'Building2', audience: ['comitet', 'admin'], path: 'furnizori', description: 'Catalog de furnizori cu alerte de expirare a contractelor.', implemented: true },
-  { key: 'F35', title: 'Informații apartament', category: 'information', icon: 'DoorOpen', audience: ['proprietar'], path: 'apartament-info', description: 'Pagina informativă a fiecărui apartament.', implemented: false },
+  { key: 'F35', title: 'Informații apartament', category: 'information', icon: 'DoorOpen', audience: ['proprietar'], path: 'apartament-info', description: 'Pagina informativă a fiecărui apartament.', implemented: true },
   { key: 'F36', title: 'Agendă vecini', category: 'information', icon: 'Contact', audience: ['all'], path: 'vecini', description: 'Agendă de contacte ale locatarilor (opt-in).', implemented: true },
   { key: 'F37', title: 'Animale de companie', category: 'information', icon: 'PawPrint', audience: ['all'], path: 'animale', description: 'Registru de animale de companie (opt-in).', implemented: true },
   { key: 'F38', title: 'Carte de aur (mulțumiri)', category: 'information', icon: 'Heart', audience: ['all'], path: 'multumiri', description: 'Perete public de mulțumiri între vecini.', implemented: true },

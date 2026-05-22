@@ -95,6 +95,7 @@ const FEATURE_COMMANDS: Record<string, string> = {
   '/jurnal_foto': '📸 Jurnal foto lucrări — urmărește lucrările în desfășurare printr-un jurnal foto cronologic, pe proiecte și faze, în secțiunea „Jurnal foto lucrări”.',
   '/cod_siguranta': '🔒 Cod de siguranță — stabilește o parolă împotriva escrocheriilor telefonice și o listă privată de persoane de încredere, vizibilă doar ție, în secțiunea „Cod de siguranță”.',
   '/evacuare': '🗺 Plan de evacuare — vezi traseul de evacuare, unde sunt stingătoarele, hidranții și ieșirile, și marchează prezența animalelor pentru pompieri, în secțiunea „Plan de evacuare”.',
+  '/apartament_meu': '🚪 Informații apartament — vezi datele apartamentului tău, istoricul indexurilor la contoare, sesizările trimise și voturile exprimate în secțiunea „Informații apartament”.',
 };
 
 async function handleMessage(msg: TelegramMessage) {

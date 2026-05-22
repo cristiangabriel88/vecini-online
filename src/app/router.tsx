@@ -76,6 +76,7 @@ const PhotoJournalPage = lazy(() => import('@/features/photojournal/PhotoJournal
 const RecurringPage = lazy(() => import('@/features/recurring/RecurringPage'));
 const SafetyCodePage = lazy(() => import('@/features/safety/SafetyCodePage'));
 const EvacuationPage = lazy(() => import('@/features/evacuation/EvacuationPage'));
+const ApartmentInfoPage = lazy(() => import('@/features/apartment/ApartmentInfoPage'));
 const NotImplementedPage = lazy(() => import('@/features/home/NotImplementedPage'));
 const FeatureHubPage = lazy(() =>
   import('@/features/home/FeatureHubPage').then((m) => ({ default: m.FeatureHubPage })),
@@ -161,6 +162,7 @@ export const router = createBrowserRouter([
       { path: 'jurnal-foto', element: <S><PhotoJournalPage /></S> },
       { path: 'cod-siguranta', element: <S><SafetyCodePage /></S> },
       { path: 'evacuare', element: <S><EvacuationPage /></S> },
+      { path: 'apartament-info', element: <S><ApartmentInfoPage /></S> },
       { path: 'actiuni', element: <S><FeatureHubPage actions /></S> },
       { path: 'mai-mult', element: <S><FeatureHubPage /></S> },
       { path: 'profil', element: <S><ProfilePage /></S> },
