@@ -16,7 +16,7 @@ Do these steps, in order, every time:
 1. **Pick the task.** Read this file. The current task is the **first one in `## Task queue` not marked `✅`**. If the verification pipeline is currently red, fixing it *is* the task (do that first).
 2. **Re-establish state.** Read `RESUME.md` (status), `FEATURES.md` (feature truth table), and the relevant code before writing. Match existing conventions exactly.
 3. **Implement it fully.** No TODOs, no placeholders, no commented-out code. Follow the established per-feature pattern: logic module → Zustand demo store seeded from `src/shared/demo/demoData.ts` → feature page → flip `registry.ts` toggle to `implemented` → add route → `/command` bot help → RO/EN locales → unit test → one E2E happy-path. UI must be **fully bilingual (RO + EN)** and meet the **premium-feel** bar.
-4. **Verify — all must be green.** `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`. Fix until clean. **Never weaken or delete a test to make it pass** — if a test reveals a real bug, fix the code.
+4. **Verify — all must be green.** `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`. Fix until clean. **Never weaken or delete a test to make it pass** — if a test reveals a real bug, fix the code. (The overnight script independently re-runs this whole pipeline after each commit and halts the loop on red, so a broken commit can never be built upon.)
 5. **Update the docs.**
    - Mark the task `✅` in this file with a one-line note.
    - `FEATURES.md` table → flip the feature to `✅` with an implementation note (when the task is a feature).

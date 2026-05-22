@@ -27,6 +27,20 @@ LOG="$LOG_DIR/overnight-$STAMP.log"
 
 log() { echo "$*" | tee -a "$LOG"; }
 
+# Independent post-commit tripwire: re-run the full pipeline after each task so a
+# broken commit halts the loop instead of stacking more work on top of it.
+test_pipeline() {
+  local step
+  for step in lint typecheck test build; do
+    log "  gate: npm run $step"
+    if ! npm run "$step" 2>&1 | tee -a "$LOG"; then
+      log "  gate FAILED at: npm run $step"
+      return 1
+    fi
+  done
+  return 0
+}
+
 log "=== Overnight run started $STAMP ==="
 log "Repo:     $REPO_ROOT"
 log "MaxTasks: $MAX_TASKS"
@@ -49,7 +63,15 @@ for ((i=1; i<=MAX_TASKS; i++)); do
 
   completed=$((completed+1))
   log ""
-  log "Pass $i done. New commit: ${after:0:7}  $(git log -1 --pretty=%s)"
+  log "Pass $i committed: ${after:0:7}  $(git log -1 --pretty=%s)"
+
+  log "Re-verifying committed state..."
+  if ! test_pipeline; then
+    log ""
+    log "Pipeline RED on commit ${after:0:7}. Halting so the failure is not compounded. Inspect the log, fix, then re-run."
+    break
+  fi
+  log "Pipeline green. Commit ${after:0:7} verified."
   log ""
 done
 

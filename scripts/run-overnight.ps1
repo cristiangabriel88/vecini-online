@@ -61,6 +61,22 @@ function Write-Both([string]$msg) {
     Add-Content -Path $Log -Value $msg -Encoding utf8
 }
 
+# Independent post-commit tripwire: re-run the full pipeline after each task so a
+# broken commit halts the loop instead of stacking more work on top of it. The
+# protocol already requires Claude to verify before committing; this is the
+# belt-and-suspenders check that makes the guarantee real for unattended runs.
+function Test-Pipeline {
+    foreach ($step in @("lint", "typecheck", "test", "build")) {
+        Write-Both "  gate: npm run $step"
+        & npm run $step 2>&1 | Tee-Object -FilePath $Log -Append
+        if ($LASTEXITCODE -ne 0) {
+            Write-Both "  gate FAILED at: npm run $step (exit $LASTEXITCODE)"
+            return $false
+        }
+    }
+    return $true
+}
+
 Write-Both "=== Overnight run started $stamp ==="
 Write-Both "Repo:     $RepoRoot"
 Write-Both "MaxTasks: $MaxTasks"
@@ -87,7 +103,15 @@ for ($i = 1; $i -le $MaxTasks; $i++) {
     $completed++
     $subject = (git log -1 --pretty=%s).Trim()
     Write-Both ""
-    Write-Both "Pass $i done. New commit: $($after.Substring(0,7))  $subject"
+    Write-Both "Pass $i committed: $($after.Substring(0,7))  $subject"
+
+    Write-Both "Re-verifying committed state..."
+    if (-not (Test-Pipeline)) {
+        Write-Both ""
+        Write-Both "Pipeline RED on commit $($after.Substring(0,7)). Halting so the failure is not compounded. Inspect the log, fix, then re-run."
+        break
+    }
+    Write-Both "Pipeline green. Commit $($after.Substring(0,7)) verified."
     Write-Both ""
 }
 
