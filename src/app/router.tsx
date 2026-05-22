@@ -6,6 +6,10 @@ import { RequireAuth } from './RequireAuth';
 import { SkeletonList } from '@/shared/components/Skeleton';
 
 const LoginPage = lazy(() => import('@/features/auth/LoginPage'));
+const PrivacyPolicyPage = lazy(() => import('@/features/legal/PrivacyPolicyPage'));
+const TermsPage = lazy(() => import('@/features/legal/TermsPage'));
+const CookiePolicyPage = lazy(() => import('@/features/legal/CookiePolicyPage'));
+const PrivacySettingsPage = lazy(() => import('@/features/legal/PrivacySettingsPage'));
 const OnboardingWizard = lazy(() => import('@/features/onboarding/OnboardingWizard'));
 const HomePage = lazy(() => import('@/features/home/HomePage'));
 const AnnouncementsPage = lazy(() => import('@/features/announcements/AnnouncementsPage'));
@@ -88,6 +92,9 @@ function S({ children }: { children: React.ReactNode }) {
 
 export const router = createBrowserRouter([
   { path: '/', element: <S><LoginPage /></S> },
+  { path: '/confidentialitate', element: <S><PrivacyPolicyPage /></S> },
+  { path: '/termeni', element: <S><TermsPage /></S> },
+  { path: '/cookies', element: <S><CookiePolicyPage /></S> },
   { path: '/onboarding', element: <S><OnboardingWizard /></S> },
   {
     path: '/app',
@@ -167,6 +174,7 @@ export const router = createBrowserRouter([
       { path: 'mai-mult', element: <S><FeatureHubPage /></S> },
       { path: 'profil', element: <S><ProfilePage /></S> },
       { path: 'notificari', element: <S><NotificationsPage /></S> },
+      { path: 'confidentialitate', element: <S><PrivacySettingsPage /></S> },
       { path: 'admin/functionalitati', element: <S><FeaturesAdminPage /></S> },
       { path: 'admin/apartamente', element: <S><ApartmentsPage /></S> },
       { path: '*', element: <S><NotImplementedPage /></S> },

@@ -1547,6 +1547,38 @@
       }
     }
   },
+  "legal": {
+    "back": "Back to app"
+  },
+  "consent": {
+    "title": "Privacy and cookies",
+    "body": "We use strictly necessary cookies to run the app and, only with your consent, optional ones for preferences, analytics and marketing.",
+    "privacyLink": "Privacy Policy",
+    "cookieLink": "Cookie Policy",
+    "termsLink": "Terms and Conditions",
+    "acceptAll": "Accept all",
+    "rejectNonEssential": "Essential only",
+    "customize": "Customize",
+    "save": "Save choices",
+    "saved": "Privacy preferences saved",
+    "required": "Required",
+    "necessary": "Strictly necessary",
+    "necessaryDesc": "Authentication, security and basic preferences. These cannot be turned off.",
+    "preferences": "Preferences",
+    "preferencesDesc": "Remember optional choices such as your home layout and routine community notifications.",
+    "analytics": "Analytics",
+    "analyticsDesc": "Help us understand, in aggregate, how the app is used. Never to identify you.",
+    "marketing": "Marketing",
+    "marketingDesc": "Optional platform news and tips.",
+    "settingsTitle": "Privacy",
+    "settingsSubtitle": "Manage your consent and review the legal documents.",
+    "choicesTitle": "Your choices",
+    "documentsTitle": "Legal documents",
+    "historyTitle": "Consent history",
+    "historyEmpty": "You have not recorded any choice yet.",
+    "withdraw": "Withdraw consent",
+    "withdrawn": "Consent withdrawn"
+  },
   "chrome": {
     "home": "Home",
     "admin": "Administration",

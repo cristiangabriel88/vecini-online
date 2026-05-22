@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { useThemeStore } from '@/shared/store/themeStore';
 import { useTintStore } from '@/shared/store/tintStore';
+import { ConsentBanner } from '@/features/legal/ConsentBanner';
 import '@/shared/lib/i18n';
 
 const queryClient = new QueryClient({
@@ -22,6 +23,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       {children}
+      <ConsentBanner />
       <Toaster
         position="top-center"
         toastOptions={{

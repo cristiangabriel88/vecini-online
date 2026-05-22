@@ -369,6 +369,16 @@ function Footer() {
         <span>© 2026 vecini.online</span>
         <span className="appfooter__dot" />
         <span className="iv-mono">v{APP_VERSION}</span>
+        <span className="appfooter__dot" />
+        <NavLink className="appfooter__legal" to="/app/confidentialitate">
+          {t('consent.privacyLink')}
+        </NavLink>
+        <a className="appfooter__legal" href="/termeni">
+          {t('consent.termsLink')}
+        </a>
+        <a className="appfooter__legal" href="/cookies">
+          {t('consent.cookieLink')}
+        </a>
         <a className="appfooter__credit" href="https://cristiangabriel.dev" target="_blank" rel="noreferrer">
           {t('chrome.createdBy')} <ArrowUpRight size={12} />
         </a>

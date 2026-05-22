@@ -603,6 +603,27 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 
 ## Platform helpers (cross-cutting, not feature-flagged)
 
+### Legal & privacy (GDPR consent surface) ✅
+- **Audience:** everyone (public + authenticated)
+- **Description:** The GDPR / ePrivacy compliance surface (BACKLOG T05). A global
+  consent banner appears until the resident decides — Accept all / Doar esențiale
+  / Personalizează (per-category switches for preferences, analytics, marketing;
+  strictly-necessary is mandatory). Public, bilingual policy pages at
+  `/confidentialitate`, `/termeni` and `/cookies` cover the data controller vs.
+  processor split (asociația is operator, vecini.online is persoană împuternicită
+  per art. 28), lawful bases (Legea 196/2018 + GDPR), data-subject rights, the
+  ANSPDCP complaint route, and consumer info (ANPC + SOL/ODR). An in-app
+  `/app/confidentialitate` page lets a resident review/change consent and see
+  their decision history (who-consented-what-when-version). The `mayNotify`
+  fan-out gate makes non-essential notifications honour the consent categories
+  while essential alerts always send.
+- **Files:** `src/features/legal/{consentLogic,legalContent}.ts`,
+  `{ConsentBanner,LegalDocPage,PrivacyPolicyPage,TermsPage,CookiePolicyPage,PrivacySettingsPage}.tsx`,
+  `src/shared/store/consentStore.ts`, `src/shared/notify/consentGate.ts`,
+  `src/styles/legal.css`; `consent`/`legal` locale keys (RO/EN); additive
+  `consent_records` migration. Unit-tested (choices, version re-prompt, the
+  `mayNotify` gate); one E2E happy-path. See DECISIONS.md for lawful bases.
+
 ### Help assistant ✅
 - **Audience:** all residents (role-filtered)
 - **Description:** A floating corner chat widget (FAB → panel) that answers "what is X / how do I X / where is X" about the app **and surfaces concrete facts** like "numărul de telefon al președintelui". **Local + rule-based, no LLM, no network:** a grounded matcher normalizes the query (diacritic-insensitive, with prefix matching so Romanian inflections like *președintelui* match *președinte*), scores it against a curated knowledge base derived from the feature registry plus a few how-to/concept entries, and returns only pre-written answers — so it can neither hallucinate nor leak. Data lookups draw from **user-visible** sources only: emergency contacts (F56, public — administrator + committee president phones) and the **opt-in resident directory** (F36) passed through the same `visibleEntry` consent mask, so a number an owner did not choose to share never becomes an answer. **No admin access** is enforced by filtering every entry to the viewer's role (demo/unknown → resident, never privileged) and only using enabled features; it is info-only and never performs actions. Bilingual RO/EN.

@@ -20,11 +20,32 @@ accurate for architecture/data/feature specs.
 
 ## 0. Current status (updated 2026-05-22)
 
-- **Overall completion: 65 / 65 original features built end-to-end (100%). 🎉
-  `BUILD_COMPLETE` written at the repo root.** The two extra Category 9 features
-  (F66 Profil complet, F67 Acasă personalizabil) remain ⬜ planned — they sit
-  beyond the original 65 and are not yet specced into the schema.
-- **Completed this turn (1): F35 Informații apartament** — a read-only
+- **Two phases. Phase 1 (features): 65 / 65 built end-to-end (100%, `BUILD_COMPLETE`).
+  Phase 2 (production + legal readiness, `BACKLOG.md` T01–T26): just begun — 1
+  task done (T05).** The app is feature-complete but not yet legally deployable
+  for real residents: the remaining blockers to go-live are live Supabase auth
+  (T01), 2FA (T02), session hardening (T03), the RLS/tenant-isolation audit (T04),
+  GDPR data-subject rights — export + erasure (T06), and the DPA + records of
+  processing / breach procedure (T21/T22). Honest "ready to run legally"
+  estimate: feature surface ~100%, production/legal hardening ~1 of 26 tasks.
+- **The autonomous loop now drives Phase 2.** `run-overnight.ps1` runs the
+  `make progress` one-task protocol off `BACKLOG.md` (not the finished
+  FEATURES.md build) and writes `APP_COMPLETE` only when the whole queue is
+  cleared with a green pipeline. Trigger continuously with the script, or one
+  task at a time by typing `make progress`.
+- **Completed this turn (1): T05 GDPR consent & legal surface.** Global
+  `ConsentBanner` (Accept all / Doar esențiale / Personalizează with per-category
+  switches), public bilingual `/confidentialitate`, `/termeni`, `/cookies` pages
+  (`legalContent.ts`: controller-vs-processor split, lawful bases under Legea
+  196/2018 + GDPR, ANSPDCP and ANPC/SOL routes), in-app `/app/confidentialitate`
+  consent management with decision history, `consentLogic` + `consentGate`
+  (`mayNotify` fan-out gate) unit-tested (16 tests), persisted `consentStore`,
+  additive `consent_records` migration (owner RLS + admin read), legal links in
+  the app footer + login, lawful-basis notes in `DECISIONS.md`, one E2E
+  happy-path. New tasks fed into the queue: T21 DPA + records of processing, T22
+  breach procedure, T23 minors' consent guardrails, T24 consumer-rights surface,
+  T25 accessibility statement, T26 consent-gate enforcement in the fan-out.
+- **Previously: F35 Informații apartament** — a read-only
   per-apartament aggregation with no table of its own, folded over the existing
   meters/tickets/polls stores. The page shows the apartment card (owner, location,
   suprafață utilă, cotă-parte indiviză as a Romanian percent, persoane), each
@@ -104,7 +125,7 @@ accurate for architecture/data/feature specs.
   F25/F26 booking pattern. Note: the working tree is clean — F21, the help
   assistant, and all earlier slices are committed (latest: `bfabf0e` help
   assistant; `83119ed` F21 + polish).
-- **Pipeline:** `npm run lint`, `npm run typecheck`, `npm test` (69 files / 329
+- **Pipeline:** `npm run lint`, `npm run typecheck`, `npm test` (71 files / 354
   unit tests), and `npm run build` all pass.
 - **Remaining (0 of the original 65):** none — all F01–F65 are ✅.
 - **Planned for the future (2, not yet specced into schema):** F66 Profil complet

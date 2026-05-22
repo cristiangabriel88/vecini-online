@@ -74,11 +74,18 @@ Password strength policy + known-breach rejection, login rate limiting with temp
 ### ⬜ T04 — [P0] RLS & tenant-isolation security audit
 Review and repair **every** RLS policy for strict `asociatie_id` isolation and least privilege. Add automated cross-tenant isolation tests. Add CSP + security headers in `netlify.toml`. Run `npm audit` and resolve. Write/refresh `SECURITY.md` (threat model, reporting, controls).
 
-### ⬜ T05 — [P0] GDPR consent & legal surface
+### ✅ T05 — [P0] GDPR consent & legal surface
 Cookie/consent banner with granular categories, Privacy Policy and Terms pages (RO/EN), a consent-records table (who consented to what, when, version), and granular notification consent honored by the fan-out service. Lawful-basis notes per data category in `DECISIONS.md`.
+**Done:** global `ConsentBanner` (Accept all / Doar esențiale / Personalizează with per-category switches), public `/confidentialitate`, `/termeni`, `/cookies` pages (bilingual, GDPR + Legea 190/2018 + ANSPDCP + ANPC/SOL content via `legalContent.ts`), in-app `/app/confidentialitate` consent-management page with decision history, `consentLogic` + `consentGate` (the `mayNotify` fan-out gate) unit-tested, persisted `consentStore`, additive `consent_records` migration (owner RLS + admin read), legal links in app footer + login, lawful-basis notes in `DECISIONS.md`. Reordered ahead of T01–T04 because it is the only fully-testable P0 with no provisioned-backend prerequisite. Pipeline green; one E2E happy-path added.
 
 ### ⬜ T06 — [P0] GDPR data-subject rights
 Per-user data export (machine-readable JSON + CSV of all their personal data), account deletion / right-to-erasure with proper anonymization of records that must be retained (e.g. votes, financial), and a documented data-retention policy with a cleanup routine. Admin tooling to action requests with an audit trail. Prereq: T05.
+
+### ⬜ T21 — [P0] DPA + records of processing (art. 28 & 30 GDPR)
+The asociație is the data controller and vecini.online is the processor. Ship a Data Processing Agreement template surface and a per-asociație "Registru al activităților de prelucrare" (record of processing activities, art. 30): which feature processes which data category, lawful basis, retention, recipients — generated from the feature/data model and viewable/exportable by the admin. Surfaced from the privacy settings. Builds on T05's lawful-basis notes.
+
+### ⬜ T22 — [P0] Personal-data breach procedure (art. 33/34)
+Documented breach-notification procedure and an admin tool to record a breach, classify risk, and produce the 72-hour notification to ANSPDCP plus, where required, the notice to affected residents. Append-only breach log tied to the audit stream (T09). No PII in logs beyond what the record needs.
 
 ### ⬜ T07 — [P1] Resilience & error handling
 Global error boundary, standardized loading/empty/error states across all pages, request retry/backoff, and a client-side error-reporting hook (Sentry-ready, no PII). Friendly bilingual error copy.
@@ -110,6 +117,18 @@ Complete every command/callback handler in `TELEGRAM_BOT.md`, validate Mini App 
 ### ⬜ T16 — [P1] Realtime updates
 Live updates via Supabase Realtime under RLS for announcements, tickets, votes, and chat surfaces, with optimistic UI and graceful reconnection. Falls back cleanly in demo mode.
 
+### ⬜ T23 — [P1] Minors' consent guardrails (Legea 190/2018)
+Codify and enforce that no feature collects identifying data about children. Keep F64 strictly aggregate (age-range counts, never names), add a documented rule + a test that the kids store never stores a child's identity, and require parental/representative handling for any future minor-facing data. Privacy-policy "Minori" section already states the position; this makes it enforced, not just declared.
+
+### ⬜ T24 — [P1] Consumer-rights surface (ANPC / SOL)
+For the SaaS billing relationship with consumer residents, surface the mandatory consumer-protection information: ANPC contact, the EU ODR/SOL platform link, withdrawal/refund terms, and clear pre-contractual info. Wire into the Terms page and the future billing surface (T19). Prereq awareness: T19.
+
+### ⬜ T26 — [P1] Consent-gate enforcement in the fan-out
+When the live notification channels land (T14 email, T15 Telegram), make every non-essential dispatch path call `mayNotify` (the T05 gate) and add tests proving a resident who refused a category receives nothing of that kind while essential alerts (F03) always go through. Prereq: T14, T15.
+
+### ⬜ T25 — [P2] Accessibility statement (Declarație de accesibilitate)
+Public accessibility-statement page describing the conformance target (WCAG 2.1 AA / EN 301 549), known limitations, and a feedback/contact route, linked from the legal footer. Lands alongside the accessibility audit. Prereq: T17.
+
 ### ⬜ T17 — [P2] Accessibility audit (WCAG 2.1 AA)
 axe-core clean on every page, full keyboard navigation, correct focus management in modals/drawers, ARIA labelling, sufficient contrast in both light and warm-graphite dark themes.
 
@@ -128,4 +147,4 @@ Platform-owner console: manage asociații, the global feature catalog, support i
 
 > Move tasks here (or leave them `✅` above) as they finish, with the commit hash.
 
-_(none yet — the queue above is the seed)_
+- **T05 — GDPR consent & legal surface** ✅ (kept in place above with its done-note). Consent banner + privacy/terms/cookie pages + consent management + `consent_records` migration + notification consent gate. First production-readiness task completed; reordered ahead of T01–T04 as the only fully-testable P0 with no backend prerequisite.

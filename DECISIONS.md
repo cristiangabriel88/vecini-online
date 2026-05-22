@@ -2,6 +2,46 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## T05 GDPR consent & legal surface — scope, ordering, lawful bases
+
+The first production-readiness task (BACKLOG.md). Three decisions:
+
+- **Reordered ahead of T01–T04.** T01–T04 (live Supabase auth, 2FA, session
+  hardening, RLS audit) can only be meaningfully verified against a provisioned
+  Supabase backend, which this environment does not have — their only testable
+  surface here is the demo fallback. T05 is pure front end + a demo-backed store,
+  so it is fully exercisable now (lint/typecheck/test/build + an E2E happy-path)
+  and is the most direct step toward a legally deployable Romanian app. It has no
+  backend prerequisite, so taking it first respects "highest-priority task whose
+  prerequisites are met". T01–T04 remain the next P0s for when creds exist.
+- **Legal copy lives in a typed content module (`legalContent.ts`), not in the
+  i18n JSON.** Privacy/Terms/Cookies are long, paragraph-structured documents
+  edited as a block; a bilingual TS module (`privacyPolicy(lang)` etc.) is
+  clearer and less error-prone than hand-maintained arrays inside the translation
+  files. It is still fully bilingual — it switches on `i18n.language` — and the
+  UI chrome around it (banner, buttons, settings labels) stays in the i18n JSON.
+  The text is informational template content for a Romanian asociație de
+  proprietari and should be reviewed by the association before going live.
+- **Notification consent reuses the cookie-consent categories.** The fan-out gate
+  `mayNotify(record, kind)` maps `essential` -> always (contract / legal
+  obligation / legitimate or vital interest, never blocked), `community` -> the
+  `preferences` category, `marketing` -> the `marketing` category. So one consent
+  record governs both non-essential storage and non-essential messaging. The live
+  channels (T14/T15) must call this gate — tracked as T26.
+
+**Lawful basis per data category** (art. 6 GDPR), recorded for accountability:
+- Identity, contact, apartment/scara/etaj, building-life data (meters, tickets,
+  votes, attendance, bookings, documents, messages): **art. 6(1)(b)** performance
+  of the association relationship and **art. 6(1)(c)** the association's legal
+  obligations under Legea 196/2018.
+- Security alerts (F03), audit logging: **art. 6(1)(f)** legitimate interest in a
+  safe, well-run building (and vital interest for emergencies).
+- Resident directory (F36), birthdays (F63), car plate, custom profile fields,
+  non-essential cookies/analytics/marketing, optional notifications: **art.
+  6(1)(a)** consent — opt-in, withdrawable, logged in `consent_records`.
+- Children's data (F64): aggregate-only age ranges, never identifying a child;
+  no consent of a minor is relied upon (tracked as T23).
+
 ## F10 AGA digitală — scope of "legally-valid PV" and quorum/vote modeling
 
 The spec asks for a Legea 196/2018-compliant General Assembly that "generates a

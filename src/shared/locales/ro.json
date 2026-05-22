@@ -1549,6 +1549,38 @@
       }
     }
   },
+  "legal": {
+    "back": "Înapoi la aplicație"
+  },
+  "consent": {
+    "title": "Confidențialitate și module cookie",
+    "body": "Folosim module strict necesare pentru funcționarea aplicației și, doar cu acordul tău, module opționale pentru preferințe, statistici și marketing.",
+    "privacyLink": "Politica de confidențialitate",
+    "cookieLink": "Politica cookie",
+    "termsLink": "Termeni și condiții",
+    "acceptAll": "Acceptă tot",
+    "rejectNonEssential": "Doar esențiale",
+    "customize": "Personalizează",
+    "save": "Salvează alegerile",
+    "saved": "Preferințele de confidențialitate au fost salvate",
+    "required": "Necesar",
+    "necessary": "Strict necesare",
+    "necessaryDesc": "Autentificare, securitate și preferințe de bază. Nu pot fi dezactivate.",
+    "preferences": "Preferințe",
+    "preferencesDesc": "Rețin alegeri opționale, precum aranjarea ecranului principal și notificările comunitare.",
+    "analytics": "Statistici",
+    "analyticsDesc": "Ne ajută să înțelegem, agregat, cum este folosită aplicația. Niciodată pentru a te identifica.",
+    "marketing": "Marketing",
+    "marketingDesc": "Noutăți și sfaturi opționale despre platformă.",
+    "settingsTitle": "Confidențialitate",
+    "settingsSubtitle": "Gestionează consimțământul și consultă documentele legale.",
+    "choicesTitle": "Alegerile tale",
+    "documentsTitle": "Documente legale",
+    "historyTitle": "Istoricul consimțământului",
+    "historyEmpty": "Nu ai înregistrat încă nicio alegere.",
+    "withdraw": "Retrage consimțământul",
+    "withdrawn": "Consimțământul a fost retras"
+  },
   "chrome": {
     "home": "Acasă",
     "admin": "Administrare",

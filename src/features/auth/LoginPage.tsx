@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Building2 } from 'lucide-react';
@@ -95,6 +95,14 @@ export default function LoginPage() {
           </Button>
         )}
       </Card>
+
+      <nav className="login-legal" aria-label={t('consent.documentsTitle')}>
+        <Link to="/confidentialitate">{t('consent.privacyLink')}</Link>
+        <span aria-hidden="true">·</span>
+        <Link to="/termeni">{t('consent.termsLink')}</Link>
+        <span aria-hidden="true">·</span>
+        <Link to="/cookies">{t('consent.cookieLink')}</Link>
+      </nav>
     </div>
   );
 }
