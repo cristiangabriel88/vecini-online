@@ -439,6 +439,69 @@ test('F50: resident can mark pets for the evacuation plan', async ({ page }) => 
   await expect(page.getByText(/2 pisici E2E/)).toBeVisible();
 });
 
+test('T54: the full MVP loop works end-to-end in demo mode', async ({ page }) => {
+  // 1. Demo entry lands on the home feed (no backend required).
+  await enterDemo(page);
+
+  // 2. There is an active asociație + role: the home header shows the active
+  //    asociație's name as its subtitle (demo entry seeds currentAsociatieId).
+  await expect(page.getByRole('heading', { name: 'Acasă' })).toBeVisible();
+  await expect(page.getByText('Asociația de Proprietari Bloc 12, Scara A')).toBeVisible();
+
+  // 3. Create/join: an admin issues an invite code, a user redeems it and lands
+  //    back in an active tenant context.
+  await page.goto('/app/admin/invitatii');
+  await page.getByRole('button', { name: /Generează codul/i }).click();
+  const code = (await page.locator('code').first().innerText()).trim();
+  expect(code).toMatch(/^[A-Z2-9]{8}$/);
+  await page.goto('/onboarding/alatura');
+  await page.getByLabel(/Cod de invitație/i).fill(code);
+  await page.getByRole('button', { name: /Alătură-mă/i }).click();
+  await expect(page).toHaveURL(/\/app$/);
+
+  // 4. An enabled module loads.
+  await page.goto('/app/anunturi');
+  await expect(page.getByRole('heading', { name: /Anunțuri/i }).first()).toBeVisible();
+
+  // 5. Admin publishes an announcement; a resident can read it.
+  await page.getByRole('button', { name: /Anunț nou/i }).click();
+  await page.getByLabel('Titlu').fill('Anunț pentru bucla MVP');
+  await page.getByLabel('Conținut').fill('Conținut de test pentru bucla completă.');
+  await page.getByRole('button', { name: /Publică/i }).click();
+  await expect(page.getByRole('heading', { name: 'Anunț pentru bucla MVP' })).toBeVisible();
+  // Read it from the home feed's recent-announcements widget.
+  await page.goto('/app');
+  await expect(page.getByText('Anunț pentru bucla MVP').first()).toBeVisible();
+
+  // 6. A resident starts a structured discussion and posts in it.
+  await page.goto('/app/discutii');
+  await page.getByRole('button', { name: /Subiect nou/i }).click();
+  await page.getByLabel('Titlu').fill('Subiect pentru bucla MVP');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  const thread = page.getByRole('button', { name: /Subiect pentru bucla MVP/i });
+  await expect(thread).toBeVisible();
+  await thread.click();
+  await page.getByLabel('Scrie un mesaj…').fill('Mesaj de test în bucla MVP.');
+  await page.getByRole('button', { name: /Trimite mesajul/i }).click();
+  await expect(page.getByText('Mesaj de test în bucla MVP.')).toBeVisible();
+
+  // 7. A resident submits a sesizare and sees it listed.
+  await page.goto('/app/sesizari');
+  await page.getByRole('button', { name: /Sesizare nouă/i }).click();
+  await page.getByLabel('Titlu').fill('Sesizare pentru bucla MVP');
+  await page.getByLabel('Descriere').fill('Descriere de test pentru bucla MVP.');
+  await page.getByRole('button', { name: /Creează/i }).click();
+  await expect(page.getByRole('heading', { name: 'Sesizare pentru bucla MVP' })).toBeVisible();
+
+  // 8. A disabled module is hidden AND blocked by direct URL. Demo enables every
+  //    module (T44), so disable F01 Anunțuri first, then type its URL.
+  await page.goto('/app/admin/functionalitati');
+  const row = page.locator('div', { hasText: 'Anunțuri oficiale' }).first();
+  await row.getByRole('switch').click();
+  await page.goto('/app/anunturi');
+  await expect(page.getByText(/nu este activată pentru asociația ta/i)).toBeVisible();
+});
+
 test('home page has no critical accessibility violations', async ({ page }) => {
   await enterDemo(page);
   const results = await new AxeBuilder({ page })

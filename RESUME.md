@@ -18,7 +18,24 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T50 Telegram `/start CODE` mock/linking path)
+## 0. Current status (updated 2026-05-23, T54 one green E2E smoke for the MVP loop)
+
+- **2026-05-23 — T54 (P1) One green E2E smoke for the MVP loop (demo mode).**
+  New single cohesive spec `T54: the full MVP loop works end-to-end in demo mode`
+  in `tests/e2e/smoke.spec.ts` walks the whole spine in one run, reusing the
+  proven per-slice selectors: demo entry → active asociație + role (home subtitle
+  shows the active asociație name) → create/join (admin issues an invite at
+  `/app/admin/invitatii`, redeemed at `/onboarding/alatura`, lands back on `/app`)
+  → an enabled module loads → publish + read an announcement (page + home widget)
+  → start a discussion and reply → submit a sesizare → finally toggle F01 off and
+  assert the direct `/app/anunturi` URL shows the "not enabled" notice (the
+  disabled-module step runs last since demo enables every module, T44). Runs in
+  demo mode with no backend; Playwright browser binaries can't download in this
+  sandbox so it executes in CI (tracked with T08) but is authored to run locally
+  unchanged. Pipeline green: lint, typecheck, 90 files / 563 tests, build. The
+  **MVP spine is now complete and green end-to-end offline**; remaining spine
+  items are the offline hardening tasks T45/T46, with live-activation follow-ups
+  T55–T58 below them.
 
 - **2026-05-23 — T50 (P1) Telegram mock/linking path with `/start CODE`.** New
   dependency-free `telegramStart` (`src/shared/lib/`, imports only the pure
