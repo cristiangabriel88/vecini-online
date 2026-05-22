@@ -62,9 +62,9 @@ accurate for architecture/data/feature specs.
 - **Previously (F04):** Mesagerie privată cu administratorul — `adminchat` slice
   (private resident↔admin channel, chat timeline, SLA hint, resolve/reopen).
 - **Previously (F27):** Rezervare sală comună / terasă — `venue` slice on the
-  F25/F26 booking pattern. Note: F04, F27, F62, F64, F41/F42, F49/F50, the F21
-  slice and this turn's help assistant (plus the user-menu/accent-tint polish
-  pass) are still uncommitted in the working tree.
+  F25/F26 booking pattern. Note: the working tree is clean — F21, the help
+  assistant, and all earlier slices are committed (latest: `bfabf0e` help
+  assistant; `83119ed` F21 + polish).
 - **Pipeline:** `npm run lint`, `npm run typecheck`, `npm test` (68 files / 314
   unit tests), and `npm run build` all pass.
 - **Remaining (2):** F10, F35.
