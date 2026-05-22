@@ -18,7 +18,25 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T46 parent-child tenant-consistency composite FKs)
+## 0. Current status (updated 2026-05-23, T70 fixed aga_votes RLS column mismatch)
+
+- **2026-05-23 — T70 (P1) Fix `aga_votes` RLS referencing a non-existent
+  `asociatie_id` column.** `20260121000002_features.sql` called
+  `apply_standard_rls('aga_votes')`, but `aga_votes` carries no `asociatie_id`
+  (it is scoped through its parent `agas`), so the generated
+  `using (is_member(asociatie_id))` policy referenced a missing column and would
+  abort the whole migration on a real Postgres — a live-deploy blocker demo mode
+  hid. Replaced the macro call with parent-scoped policies through `agas`
+  (`"members read votes"` select + `"comitet write votes"` for all), matching the
+  sibling `aga_agenda_items`/`aga_attendees` and the batch-5 `"self cast aga
+  vote"` insert policy. Edited the source migration rather than adding a
+  follow-up, because an aborting migration cannot be repaired by a later one and
+  no Supabase project has ever been provisioned (decision recorded in
+  `DECISIONS.md`). New backend-free guard `tests/unit/rlsHelperColumns.test.ts`
+  parses every `create table` and every RLS-macro call across the suite and
+  asserts each target declares the columns its generated policy references;
+  `aga_votes` was the only offender. Pipeline green: lint, typecheck, 93 files /
+  581 tests, build.
 
 - **2026-05-23 — T46 (P1) Parent-child tenant-consistency guards for child
   tables.** Additive, idempotent migration `20260522000014_tenant_consistency_fk.sql`

@@ -2,6 +2,43 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## Fixing the `aga_votes` RLS column mismatch by editing the source migration (T70)
+
+`20260121000002_features.sql` called `apply_standard_rls('aga_votes')`, but
+`aga_votes` carries no `asociatie_id` column (it is tenant-scoped through its
+parent `agas`, like `aga_agenda_items`/`aga_attendees`). The macro generates
+`create policy ... using (is_member(asociatie_id))`, and Postgres validates the
+policy expression's column references at `CREATE POLICY` time, so on a real
+database that statement raises `column "asociatie_id" does not exist` and aborts
+the entire migration. Demo mode never runs the SQL, which is why it went
+unnoticed.
+
+- **Parent-scoped policies, not a new column.** Two correct fixes existed: add an
+  `asociatie_id` column to `aga_votes` (and keep the macro), or replace the macro
+  call with parent-resolved policies through `agas`. Chosen the latter because it
+  matches the sibling AGA child tables exactly (`aga_agenda_items`,
+  `aga_attendees`), needs no denormalised column kept in sync with the parent via
+  a trigger, and keeps `aga_votes` consistent with the batch-5 `"self cast aga
+  vote"` insert policy that already resolves the tenant through `agas`. The
+  replacement adds `"members read votes"` (select, parent `is_member`) and
+  `"comitet write votes"` (`for all`, parent `has_role`).
+- **Edited the source migration rather than adding a follow-up migration.** The
+  project convention is additive, idempotent migrations that never edit history,
+  but that convention assumes the prior migration applied. Here the prior
+  migration *aborts* on the bad `create policy`, so no later migration would ever
+  run — an additive fix is impossible. Because no Supabase project has ever been
+  provisioned (the app runs demo-only), there is no applied migration history to
+  diverge from, so correcting the source line is safe and is the only fix that
+  makes the suite applicable at all. Recorded here because it is a deliberate,
+  one-off exception to the additive-migrations rule.
+- **Regression guard against the whole bug class.** `tests/unit/rlsHelperColumns.test.ts`
+  parses every `create table` and every `apply_standard_rls` /
+  `apply_member_insert_rls` / `(re)apply_owner_rls` call across the suite and
+  asserts each call's target table actually declares the columns the generated
+  policy references (`asociatie_id` for the standard/insert macros, plus the owner
+  column). The audit confirmed `aga_votes` was the only offender; the test now
+  fails the suite if any future helper call references a missing column.
+
 ## Auth & session hardening (T03)
 
 Five hardening surfaces, all kept demo-runnable and unit-tested:

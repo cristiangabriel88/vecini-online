@@ -232,7 +232,6 @@ create table pv_documents (
 );
 create index on pv_documents using gin (search);
 select apply_standard_rls('agas');
-select apply_standard_rls('aga_votes');
 select apply_standard_rls('pv_documents');
 do $$ begin
   perform 1;
@@ -248,6 +247,18 @@ alter table aga_attendees enable row level security;
 create policy "members read attendees" on aga_attendees for select using (
   exists (select 1 from agas a where a.id = aga_id and is_member(a.asociatie_id)));
 create policy "comitet write attendees" on aga_attendees for all using (
+  exists (select 1 from agas a where a.id = aga_id and has_role(a.asociatie_id, array['admin','presedinte','comitet']))
+) with check (
+  exists (select 1 from agas a where a.id = aga_id and has_role(a.asociatie_id, array['admin','presedinte','comitet'])));
+-- aga_votes is scoped through its parent aga (it carries no asociatie_id), so it
+-- gets parent-resolved policies like the other AGA child tables instead of
+-- apply_standard_rls (which would reference a non-existent asociatie_id column
+-- and abort the migration). Members read the tally; comitet manages; a member
+-- casts their own vote via the "self cast aga vote" insert policy in batch 5.
+alter table aga_votes enable row level security;
+create policy "members read votes" on aga_votes for select using (
+  exists (select 1 from agas a where a.id = aga_id and is_member(a.asociatie_id)));
+create policy "comitet write votes" on aga_votes for all using (
   exists (select 1 from agas a where a.id = aga_id and has_role(a.asociatie_id, array['admin','presedinte','comitet']))
 ) with check (
   exists (select 1 from agas a where a.id = aga_id and has_role(a.asociatie_id, array['admin','presedinte','comitet'])));
