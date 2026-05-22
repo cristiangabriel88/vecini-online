@@ -7,7 +7,73 @@
   grid-template-columns: 248px 1fr;
   grid-template-rows: 56px 1fr;
   height: 100%;
-  background: var(--bg-canvas);
+  background: transparent;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Atmosphere: drifting sage blobs + grain, the brand placeholder
+   ambience rendered behind the entire experience. Pointer-inert and
+   GPU-cheap; sits at z-index 0 with everything else above it. ─────── */
+.atmos {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.atmos__blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.5;
+  animation: atmos-drift 26s var(--ease) infinite alternate;
+}
+.atmos__blob--1 {
+  width: 58vw;
+  height: 58vw;
+  top: -22vw;
+  left: -16vw;
+  background: radial-gradient(circle, var(--accent-200), transparent 70%);
+}
+.atmos__blob--2 {
+  width: 48vw;
+  height: 48vw;
+  bottom: -18vw;
+  right: -12vw;
+  background: radial-gradient(circle, var(--accent-300), transparent 70%);
+  opacity: 0.32;
+  animation-duration: 34s;
+  animation-delay: -9s;
+}
+.atmos__blob--3 {
+  width: 30vw;
+  height: 30vw;
+  top: 42%;
+  left: 58%;
+  background: radial-gradient(circle, oklch(90% 0.05 92), transparent 70%);
+  opacity: 0.28;
+  animation-duration: 30s;
+  animation-delay: -15s;
+}
+.atmos::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.4;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.3 0 0 0 0 0.42 0 0 0 0 0.24 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+@keyframes atmos-drift {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(40px, -30px) scale(1.08); }
+  100% { transform: translate(-30px, 40px) scale(0.95); }
+}
+[data-theme="dark"] .atmos__blob { opacity: 0.22; }
+[data-theme="dark"] .atmos__blob--2 { opacity: 0.16; }
+[data-theme="dark"] .atmos__blob--3 { opacity: 0.12; }
+[data-theme="dark"] .atmos::after { opacity: 0.5; }
+@media (prefers-reduced-motion: reduce) {
+  .atmos__blob { animation: none; }
 }
 
 /* ── Topbar ────────────────────────────────────────────── */
@@ -183,7 +249,9 @@
   grid-column: 1;
   padding: var(--space-4) var(--space-3);
   border-right: 1px solid var(--border-subtle);
-  background: var(--bg-canvas);
+  background: oklch(from var(--bg-canvas) l c h / 0.55);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
   overflow-y: auto;
   /* Reserve the scrollbar gutter permanently so the rail never reflows
      when the scrollbar shows/hides as sections collapse. */
@@ -331,7 +399,7 @@
   grid-column: 2;
   grid-row: 2;
   overflow-y: auto;
-  background: var(--bg-canvas);
+  background: transparent;
   scroll-behavior: smooth;
 }
 .main__inner {

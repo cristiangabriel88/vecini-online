@@ -8,6 +8,7 @@ import { useThemeStore } from '@/shared/store/themeStore';
 import { useAuthStore } from '@/shared/store/authStore';
 import { DEMO_ASOCIATIE, DEMO_EMERGENCY } from '@/shared/demo/demoData';
 import { Icon } from '@/shared/components/Icon';
+import { Atmosphere } from '@/shared/components/Atmosphere';
 import { cn } from '@/shared/lib/cn';
 
 function initials(name: string) {
@@ -380,6 +381,7 @@ export function AppLayout() {
   const { pathname } = useLocation();
   return (
     <div className="shell">
+      <Atmosphere />
       <Topbar />
       <Sidebar />
       <main className="main">

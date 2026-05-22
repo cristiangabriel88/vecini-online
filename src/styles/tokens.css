@@ -4,12 +4,14 @@
    changing values here, never in components.
    ============================================================ */
 
-@import url("https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Outfit:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap");
 
 :root {
   /* ── Type ─────────────────────────────────────────────── */
-  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
+  /* Outfit: refined geometric body. Fraunces: characterful, optical
+     serif used for display and accents, mirroring the brand placeholder. */
+  --font-sans: "Outfit", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Fraunces", ui-serif, Georgia, "Times New Roman", serif;
   --font-mono: "Geist Mono", ui-monospace, "JetBrains Mono", monospace;
 
   /* Type scale (modular, 1.2 minor third on body, tighter on display) */
@@ -62,29 +64,31 @@
   --radius-2xl: 22px;
   --radius-full: 999px;
 
-  /* ── Light theme (warm paper) ─────────────────────────── */
-  /* base canvas — never pure white; subtle warm cream */
-  --bg-canvas:      oklch(98.5% 0.005 80);
-  --bg-surface:     oklch(100% 0 0);
-  --bg-elevated:    oklch(100% 0 0);
-  --bg-sunken:      oklch(96.5% 0.006 80);
-  --bg-muted:       oklch(94% 0.008 80);
-  --bg-inverse:     oklch(15% 0.01 60);
+  /* ── Light theme (warm sage paper) ────────────────────── */
+  /* base canvas: never pure white; the warm cream of the brand
+     placeholder (#f7f5ef), with a faint green tint that carries
+     through into ink, borders and elevated surfaces. */
+  --bg-canvas:      oklch(97% 0.01 96);
+  --bg-surface:     oklch(99.3% 0.005 96);
+  --bg-elevated:    oklch(100% 0.003 96);
+  --bg-sunken:      oklch(95% 0.014 96);
+  --bg-muted:       oklch(92.5% 0.017 100);
+  --bg-inverse:     oklch(28% 0.03 145);
 
-  --text-primary:   oklch(20% 0.01 60);
-  --text-secondary: oklch(38% 0.012 60);
-  --text-muted:     oklch(54% 0.012 60);
-  --text-faint:     oklch(68% 0.01 60);
-  --text-inverse:   oklch(98% 0.005 80);
-  --text-on-accent: oklch(99% 0.003 80);
+  --text-primary:   oklch(30% 0.033 142);
+  --text-secondary: oklch(43% 0.036 140);
+  --text-muted:     oklch(51% 0.038 138);
+  --text-faint:     oklch(64% 0.03 138);
+  --text-inverse:   oklch(97% 0.01 96);
+  --text-on-accent: oklch(99% 0.006 96);
 
-  --border:         oklch(92% 0.008 80);
-  --border-strong:  oklch(86% 0.01 75);
-  --border-subtle:  oklch(95% 0.006 80);
+  --border:         oklch(89% 0.02 134);
+  --border-strong:  oklch(82% 0.028 134);
+  --border-subtle:  oklch(92.5% 0.015 130);
 
   /* Accent (default = Sage). Tweaks override --hue/--chroma. */
-  --accent-hue: 150;
-  --accent-chroma: 0.075;
+  --accent-hue: 140;
+  --accent-chroma: 0.082;
   --accent-50:  oklch(97% calc(var(--accent-chroma) * 0.25) var(--accent-hue));
   --accent-100: oklch(93% calc(var(--accent-chroma) * 0.4) var(--accent-hue));
   --accent-200: oklch(86% calc(var(--accent-chroma) * 0.7) var(--accent-hue));
@@ -120,36 +124,36 @@
   --ring: oklch(50% var(--accent-chroma) var(--accent-hue) / 0.35);
 
   /* Shadows — warm-tinted, low spread for premium feel */
-  --shadow-xs: 0 1px 1px 0 oklch(20% 0.01 60 / 0.04);
-  --shadow-sm: 0 1px 2px 0 oklch(20% 0.01 60 / 0.05),
-               0 2px 6px -2px oklch(20% 0.01 60 / 0.06);
-  --shadow:    0 2px 4px -1px oklch(20% 0.01 60 / 0.05),
-               0 8px 20px -4px oklch(20% 0.01 60 / 0.08);
-  --shadow-md: 0 4px 8px -2px oklch(20% 0.01 60 / 0.06),
-               0 14px 32px -6px oklch(20% 0.01 60 / 0.12);
-  --shadow-lg: 0 8px 16px -4px oklch(20% 0.01 60 / 0.07),
-               0 28px 56px -12px oklch(20% 0.01 60 / 0.18);
-  --shadow-inset: inset 0 0 0 1px oklch(20% 0.01 60 / 0.04);
+  --shadow-xs: 0 1px 1px 0 oklch(28% 0.03 145 / 0.04);
+  --shadow-sm: 0 1px 2px 0 oklch(28% 0.03 145 / 0.05),
+               0 2px 6px -2px oklch(28% 0.03 145 / 0.06);
+  --shadow:    0 2px 4px -1px oklch(28% 0.03 145 / 0.05),
+               0 8px 20px -4px oklch(28% 0.03 145 / 0.08);
+  --shadow-md: 0 4px 8px -2px oklch(28% 0.03 145 / 0.06),
+               0 14px 32px -6px oklch(28% 0.03 145 / 0.12);
+  --shadow-lg: 0 8px 16px -4px oklch(28% 0.03 145 / 0.07),
+               0 28px 56px -12px oklch(28% 0.03 145 / 0.18);
+  --shadow-inset: inset 0 0 0 1px oklch(28% 0.03 145 / 0.04);
 }
 
 /* ── Dark theme — warm graphite, intentional not inverted ──── */
 [data-theme="dark"] {
-  --bg-canvas:      oklch(23% 0.009 60);
-  --bg-surface:     oklch(26.5% 0.01 60);
-  --bg-elevated:    oklch(30% 0.011 60);
-  --bg-sunken:      oklch(20% 0.008 60);
-  --bg-muted:       oklch(32% 0.011 60);
-  --bg-inverse:     oklch(96% 0.005 80);
+  --bg-canvas:      oklch(23% 0.012 145);
+  --bg-surface:     oklch(26.5% 0.013 145);
+  --bg-elevated:    oklch(30% 0.014 145);
+  --bg-sunken:      oklch(20% 0.011 145);
+  --bg-muted:       oklch(32% 0.014 145);
+  --bg-inverse:     oklch(96% 0.01 96);
 
-  --text-primary:   oklch(96% 0.005 80);
-  --text-secondary: oklch(80% 0.008 70);
-  --text-muted:     oklch(67% 0.01 65);
-  --text-faint:     oklch(53% 0.01 65);
-  --text-inverse:   oklch(20% 0.01 60);
+  --text-primary:   oklch(95% 0.008 100);
+  --text-secondary: oklch(80% 0.012 120);
+  --text-muted:     oklch(67% 0.014 130);
+  --text-faint:     oklch(53% 0.014 135);
+  --text-inverse:   oklch(22% 0.012 145);
 
-  --border:         oklch(35% 0.011 60);
-  --border-strong:  oklch(44% 0.013 60);
-  --border-subtle:  oklch(29% 0.01 60);
+  --border:         oklch(35% 0.014 140);
+  --border-strong:  oklch(44% 0.016 140);
+  --border-subtle:  oklch(29% 0.012 140);
 
   /* Brighter accent on dark for contrast */
   --accent-50:  oklch(22% calc(var(--accent-chroma) * 0.4) var(--accent-hue));
@@ -195,7 +199,7 @@
 }
 
 /* ── Palette swaps via data-palette ────────────────────── */
-[data-palette="sage"]       { --accent-hue: 150; --accent-chroma: 0.075; }
+[data-palette="sage"]       { --accent-hue: 140; --accent-chroma: 0.082; }
 [data-palette="terracotta"] { --accent-hue: 38;  --accent-chroma: 0.12; }
 [data-palette="indigo"]     { --accent-hue: 262; --accent-chroma: 0.13; }
 [data-palette="plum"]       { --accent-hue: 340; --accent-chroma: 0.095; }
@@ -219,15 +223,24 @@ body {
   font-size: var(--text-base);
   line-height: var(--leading-normal);
   letter-spacing: -0.006em; /* subtle Apple-like tightening */
-  font-feature-settings: "ss01", "cv01", "cv11";
   font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
-/* Headings inherit a crisper optical rhythm */
+/* Headings inherit a crisper optical rhythm; Fraunces sizes its
+   optical axis to the rendered size automatically. */
 h1, h2, h3, h4 { font-optical-sizing: auto; }
+
+/* Serif display helper: Fraunces with a soft optical weight. Used for
+   page titles, the wordmark and editorial accents. */
+.iv-display {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  letter-spacing: -0.012em;
+}
+.iv-display--italic { font-style: italic; font-weight: 400; }
 
 /* Reset some defaults */
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }

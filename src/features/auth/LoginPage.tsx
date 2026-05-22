@@ -6,6 +6,7 @@ import { Building2 } from 'lucide-react';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
 import { Card } from '@/shared/components/Card';
+import { Atmosphere } from '@/shared/components/Atmosphere';
 import { useAuthStore } from '@/shared/store/authStore';
 import { isSupabaseConfigured } from '@/shared/lib/supabase';
 
@@ -31,13 +32,25 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-bg px-4">
-      <div className="mb-6 flex flex-col items-center text-center">
-        <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white">
+    <div className="relative z-[1] flex min-h-screen flex-col items-center justify-center px-4">
+      <Atmosphere />
+      <div className="mb-7 flex flex-col items-center text-center">
+        <div
+          className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl text-white"
+          style={{
+            background: 'linear-gradient(135deg, var(--primary) 0%, var(--accent-700) 100%)',
+            boxShadow: 'var(--shadow-md), inset 0 1px 0 0 oklch(100% 0 0 / 0.2)',
+          }}
+        >
           <Building2 className="h-7 w-7" />
         </div>
-        <h1 className="text-2xl font-semibold text-primary">vecini.online</h1>
-        <p className="text-muted">{t('common.tagline')}</p>
+        <h1 className="text-4xl text-text" style={{ fontFamily: 'var(--font-serif)', fontWeight: 500, letterSpacing: '-0.02em' }}>
+          vecini
+          <em style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--primary)' }}>.online</em>
+        </h1>
+        <p className="mt-1 text-muted" style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic' }}>
+          {t('common.tagline')}
+        </p>
       </div>
 
       <Card className="w-full max-w-sm">
