@@ -18,7 +18,27 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T54 one green E2E smoke for the MVP loop)
+## 0. Current status (updated 2026-05-23, T45 owner-scoped RLS requires active membership)
+
+- **2026-05-23 — T45 (P0) Harden owner-scoped RLS to also require membership in
+  the target asociatie_id.** Additive, idempotent migration
+  `20260522000013_owner_rls_membership.sql` redefines `apply_owner_rls` so the
+  generated `"owner manage"` (`for all`) policy now requires
+  `%I = auth.uid() and is_member(asociatie_id)` in **both** `using` and
+  `with check` (was owner-column only), closing the write-path gap where an owner
+  could insert/keep a row stamped with another asociație's id. A new idempotent
+  `reapply_owner_rls(tbl, owner_col)` helper drops + recreates the policy through
+  the tightened generator, re-applied to all **25** owner-scoped tables in the
+  schema. Every such table carries a direct `asociatie_id` (each also gets
+  `apply_standard_rls`, except `pledges` which declares it explicitly).
+  `apply_member_insert_rls` already required `is_member` — left unchanged.
+  Backend-free regression guard `tests/unit/ownerRlsMembership.test.ts` (6
+  assertions, incl. a catalogue check that the re-applied set is exactly the set
+  of `apply_owner_rls` calls across the suite, so a future owner-scoped table
+  can't be added without tightening). Pipeline green: lint, typecheck, 91 files /
+  569 tests, build. Surfaced T69 (the `for all` owner policy still lets an author
+  delete published governance rows — scope owner-delete least-privilege). Live
+  cross-tenant write test folds into T08.
 
 - **2026-05-23 — T54 (P1) One green E2E smoke for the MVP loop (demo mode).**
   New single cohesive spec `T54: the full MVP loop works end-to-end in demo mode`
