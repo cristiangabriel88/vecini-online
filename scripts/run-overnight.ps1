@@ -131,10 +131,17 @@ function Write-Both([string]$msg) {
     Add-Content -Path $Log -Value $msg -Encoding utf8
 }
 
-# How many open tasks remain in the queue. An open task is a "### ⬜" heading.
+# How many open tasks remain in the queue. An open task heading is "### " followed
+# by U+2B1C (the white-square marker). The marker is built from its codepoint, not
+# written as a literal, on purpose: Windows PowerShell 5.1 reads a BOM-less .ps1 as
+# ANSI, which would corrupt a literal non-ASCII character in the match and silently
+# return 0. Building it with [char] is robust to the script's own file encoding, and
+# Get-Content -Encoding UTF8 decodes BACKLOG.md correctly regardless.
 function Get-OpenTaskCount {
     try {
-        return @(Select-String -Path $Backlog -Pattern '^### ⬜' -Encoding utf8).Count
+        $square = [char]0x2B1C
+        $lines  = Get-Content -LiteralPath $Backlog -Encoding UTF8
+        return @($lines | Where-Object { $_ -match '^### ' -and $_.Contains($square) }).Count
     } catch {
         # If the count can't be read, assume work remains so we never wrongly
         # short-circuit into replenish-forever.
