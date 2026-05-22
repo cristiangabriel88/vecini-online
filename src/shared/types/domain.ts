@@ -842,3 +842,17 @@ export interface LaundryBooking {
   user_id: string;
   user_name: string;
 }
+
+/** Elevator/move booking — 3-hour windows (`bookable_resources` + `bookings`). */
+export interface MovingBooking {
+  id: string;
+  asociatie_id: string;
+  /** Reserved day (YYYY-MM-DD). */
+  date: string;
+  /** Slot label, e.g. "08:00–11:00". */
+  slot: string;
+  /** Destination floor for the move. */
+  floor: string;
+  user_id: string;
+  user_name: string;
+}

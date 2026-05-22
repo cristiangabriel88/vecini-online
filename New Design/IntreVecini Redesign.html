@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ro" data-theme="light" data-palette="sage" data-density="default">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>IntreVecini — Redesign 2026</title>
+
+  <link rel="stylesheet" href="src/tokens.css" />
+  <link rel="stylesheet" href="src/primitives.css" />
+  <link rel="stylesheet" href="src/shell.css" />
+
+  <style>
+    html, body, #root { width: 100%; height: 100%; }
+    body { overflow: hidden; }
+    /* Spinner keyframes (used by Button loading state) */
+    @keyframes iv-spin { to { transform: rotate(360deg); } }
+  </style>
+
+  <template id="__bundler_thumbnail">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+      <rect width="100" height="100" fill="#FBFAF7"/>
+      <g transform="translate(50 50)">
+        <rect x="-22" y="-22" width="44" height="44" rx="10" fill="#5E8A6E"/>
+        <path d="M-12 8 V-2 L0 -12 L12 -2 V8" stroke="#FBFAF7" stroke-width="3" stroke-linejoin="round" fill="none"/>
+        <path d="M-5 8 V0 H5 V8" stroke="#FBFAF7" stroke-width="3" stroke-linejoin="round" fill="none"/>
+      </g>
+    </svg>
+  </template>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" src="src/tweaks-panel.jsx"></script>
+  <script type="text/babel" src="src/icons.jsx"></script>
+  <script type="text/babel" src="src/primitives.jsx"></script>
+  <script type="text/babel" src="src/shell.jsx"></script>
+  <script type="text/babel" src="src/pages.jsx"></script>
+  <script type="text/babel" src="src/app.jsx"></script>
+</body>
+</html>
