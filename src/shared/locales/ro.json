@@ -367,7 +367,7 @@
     "empty": "Nicio raportare. Folosește butonul de mai sus dacă observi ceva suspect."
   },
   "marketplace": {
-    "title": "Marketplace intern",
+    "title": "Piață internă",
     "subtitle": "Vinde sau donează obiecte vecinilor înainte de OLX. Anunțurile expiră automat după 14 zile.",
     "new": "Anunț nou",
     "titleLabel": "Titlu",
@@ -447,7 +447,7 @@
     "empty": "Nicio boxă înregistrată. Adaugă prima cu butonul de mai sus."
   },
   "carpool": {
-    "title": "Carpooling",
+    "title": "Drumuri partajate",
     "subtitle": "Găsește vecini cu trasee similare pentru a împărți drumul. Profil opt-in.",
     "addProfile": "Adaugă profilul meu",
     "editProfile": "Editează profilul meu",
@@ -459,8 +459,8 @@
     "scheduleHint": "ex: L–V, plecare 08:00, retur 17:30",
     "searchPlaceholder": "Caută după destinație, program sau nume…",
     "saved": "Profil salvat. Vecinii cu trasee similare te pot găsi.",
-    "left": "Ai renunțat la profilul de carpooling.",
-    "empty": "Niciun profil de carpooling. Adaugă-l pe al tău cu butonul de mai sus."
+    "left": "Ai renunțat la profilul de drumuri partajate.",
+    "empty": "Niciun profil de drumuri partajate. Adaugă-l pe al tău cu butonul de mai sus."
   },
   "birthdays": {
     "title": "Aniversări",
@@ -517,14 +517,14 @@
     "empty": "Niciun cod generat. Apasă „Generează cod” când aștepți un curier."
   },
   "sitters": {
-    "title": "Babysitting / pet-sitting",
+    "title": "Bonă și îngrijire animale",
     "subtitle": "Vecini de încredere care oferă supraveghere pentru copii sau animale. Profil opt-in.",
     "addProfile": "Adaugă profilul meu",
     "editProfile": "Editează profilul meu",
     "leave": "Renunță",
     "kind": "Tip",
-    "kind_babysitting": "Babysitting",
-    "kind_petsitting": "Pet-sitting",
+    "kind_babysitting": "Bonă",
+    "kind_petsitting": "Îngrijire animale",
     "availability": "Disponibilitate",
     "availabilityHint": "ex: seri în weekend, flexibil…",
     "rate": "Tarif",
@@ -618,7 +618,7 @@
     "empty": "Nicio petiție. Pornește prima cu butonul de mai sus."
   },
   "crowdfund": {
-    "title": "Crowdfunding",
+    "title": "Finanțare colectivă",
     "subtitle": "Contribuții voluntare la proiecte mici (loc de joacă, decorațiuni). Promisiunea nu e plată — doar un angajament.",
     "new": "Proiect nou",
     "titleLabel": "Titlu",
@@ -797,13 +797,13 @@
   },
   "contractors": {
     "title": "Contractori",
-    "subtitle": "Bibliotecă de contractori verificați din lucrările anterioare, cu specialitate, nivel de preț și rating.",
+    "subtitle": "Bibliotecă de contractori verificați din lucrările anterioare, cu specialitate, nivel de preț și evaluare.",
     "new": "Adaugă contractor",
     "searchPlaceholder": "Caută după nume sau specialitate…",
     "onlyAvailable": "Doar disponibili",
     "available": "Disponibil",
     "busy": "Indisponibil",
-    "noRating": "Fără rating",
+    "noRating": "Fără evaluare",
     "name": "Nume",
     "specialty": "Specialitate",
     "priceTier": "Nivel de preț",
@@ -813,7 +813,7 @@
     "tier_ridicat": "Preț ridicat",
     "lastUsed": "ultima dată {{date}}",
     "rate": "Evaluează",
-    "ratingLabel": "Rating",
+    "ratingLabel": "Evaluare",
     "stars": "{{count}} stele",
     "markBusy": "Marchează indisponibil",
     "markAvailable": "Marchează disponibil",

@@ -99,7 +99,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'F41', title: 'Urmărire proiecte', category: 'projects', icon: 'KanbanSquare', audience: ['all'], path: 'proiecte', description: 'Urmărirea lucrărilor majore: faze, buget, fotografii.', implemented: true },
   { key: 'F42', title: 'Jurnal foto lucrări', category: 'projects', icon: 'Images', audience: ['all'], path: 'jurnal-foto', description: 'Jurnal foto al lucrărilor în desfășurare.', implemented: true },
   { key: 'F43', title: 'Bibliotecă de contractori', category: 'projects', icon: 'HardHat', audience: ['comitet', 'admin'], path: 'contractori', description: 'Bibliotecă de contractori verificați, cu rating.', implemented: true },
-  { key: 'F44', title: 'Crowdfunding proiecte mici', category: 'projects', icon: 'HandCoins', audience: ['all'], path: 'crowdfund', description: 'Contribuții voluntare la proiecte mici.', implemented: true },
+  { key: 'F44', title: 'Finanțare colectivă proiecte mici', category: 'projects', icon: 'HandCoins', audience: ['all'], path: 'crowdfund', description: 'Contribuții voluntare la proiecte mici.', implemented: true },
   { key: 'F45', title: 'Plan multianual de mentenanță', category: 'projects', icon: 'CalendarRange', audience: ['all'], path: 'plan-multianual', description: 'Plan de lucrări pe 5-10 ani.', implemented: true },
   { key: 'F46', title: 'Recomandări fond de reparații', category: 'projects', icon: 'Calculator', audience: ['all'], path: 'fond-reparatii', description: 'Calculator pentru rata fondului de reparații.', implemented: true },
   { key: 'F47', title: 'Eficiență energetică', category: 'projects', icon: 'Zap', audience: ['all'], path: 'energie', description: 'Urmărirea consumului energetic al blocului.', implemented: true },
@@ -116,9 +116,9 @@ export const FEATURES: FeatureDef[] = [
   { key: 'F56', title: 'Numere de urgență localizate', category: 'safety', icon: 'PhoneCall', audience: ['all'], path: 'urgenta', description: 'Numere de urgență personalizate pentru bloc.', implemented: true },
 
   // Category 8 — Community Life
-  { key: 'F57', title: 'Marketplace intern', category: 'community', icon: 'ShoppingBag', audience: ['all'], path: 'marketplace', description: 'Vânzare/donare de obiecte între vecini.', implemented: true },
-  { key: 'F58', title: 'Carpooling', category: 'community', icon: 'CarFront', audience: ['all'], path: 'carpool', description: 'Drumuri partajate între vecini (opt-in).', implemented: true },
-  { key: 'F59', title: 'Babysitting / pet-sitting', category: 'community', icon: 'Baby', audience: ['all'], path: 'babysitting', description: 'Bord de babysitting și pet-sitting.', implemented: true },
+  { key: 'F57', title: 'Piață internă', category: 'community', icon: 'ShoppingBag', audience: ['all'], path: 'marketplace', description: 'Vânzare/donare de obiecte între vecini.', implemented: true },
+  { key: 'F58', title: 'Drumuri partajate', category: 'community', icon: 'CarFront', audience: ['all'], path: 'carpool', description: 'Drumuri partajate între vecini (opt-in).', implemented: true },
+  { key: 'F59', title: 'Bonă și îngrijire animale', category: 'community', icon: 'Baby', audience: ['all'], path: 'babysitting', description: 'Bord de bone și îngrijire animale.', implemented: true },
   { key: 'F60', title: 'Schimb de servicii', category: 'community', icon: 'Repeat2', audience: ['all'], path: 'barter', description: 'Schimb de servicii și abilități între vecini.', implemented: true },
   { key: 'F61', title: 'Grupuri de cumpărături comune', category: 'community', icon: 'ShoppingCart', audience: ['all'], path: 'cumparaturi', description: 'Coordonarea cumpărăturilor în grup.', implemented: true },
   { key: 'F62', title: 'Kit de bun-venit', category: 'community', icon: 'Gift', audience: ['all'], path: 'welcome-kit', description: 'Mesaj de bun-venit pentru locatarii noi.', implemented: true },
