@@ -8,9 +8,25 @@ accurate for architecture/data/feature specs.
 
 > Scope note: the spec defines **65 features (F01–F65)**. This codebase is a
 > production-shaped *foundation*: buildable, type-safe, lint-clean, unit-tested,
-> with a representative slice of features built end-to-end and the rest
-> registered, toggleable, and backed by schema so the platform is complete in
-> shape. Full delivery is a multi-month program.
+> with features being built end-to-end batch by batch and the rest registered,
+> toggleable, and backed by schema so the platform is complete in shape.
+
+---
+
+## 0. Current status (updated 2026-05-22)
+
+- **Overall completion: 41 / 65 features built end-to-end (≈63%).**
+- **Completed this turn (8):** F19 Calendar service-uri programate, F28 Parcare,
+  F16 Petiții interne, F44 Crowdfunding, F46 Recomandări fond de reparații
+  (calculator), F51 Verificări PSI, F52 Asigurare bloc, F53 Registru de chei.
+  Each ships logic + Zustand demo store + page + admin toggle + bot command +
+  unit tests + one E2E happy-path; batch-3 owner-RLS migration added for pledges.
+- **Pipeline:** `npm run lint`, `npm run typecheck`, `npm test` (150 unit tests),
+  and `npm run build` all pass.
+- **Remaining (24):** F02, F04, F05, F10, F11, F12, F13, F21, F22, F23, F25, F26,
+  F27, F31, F35, F39, F41, F42, F43, F49, F50, F55, F62, F64.
+- **Blockers:** none. Playwright browser binaries still can't be downloaded in
+  the build sandbox, so E2E specs are written/wired but executed only locally/CI.
 
 ---
 
