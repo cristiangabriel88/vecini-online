@@ -15,6 +15,10 @@ export const supabase: SupabaseClient = createClient(
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
+      // PKCE is the more secure browser flow: the authorization code is bound to
+      // a one-time verifier this client holds, so an intercepted code (e.g. from
+      // an email link) cannot be exchanged for a session elsewhere (T03).
+      flowType: 'pkce',
     },
   },
 );

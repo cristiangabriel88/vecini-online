@@ -89,6 +89,25 @@ test('T01: reset-password link without a recovery session is guided back', async
   await expect(page.getByRole('heading', { name: /Setează o parolă nouă/i })).toBeVisible();
 });
 
+test('T03: sign-up shows live password strength and rejects a breached password', async ({ page }) => {
+  await page.goto('/');
+  await dismissConsent(page);
+
+  await page.getByRole('button', { name: 'Creează cont', exact: true }).click();
+  await expect(page.getByLabel(/Confirmă parola/i)).toBeVisible();
+
+  const password = page.getByLabel('Parolă', { exact: true });
+
+  // A breached/common password is called out and the submit stays disabled.
+  await password.fill('password123');
+  await expect(page.getByText(/parole compromise/i)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Creează cont', exact: true })).toBeDisabled();
+
+  // A strong, varied password reports its strength.
+  await password.fill('Munte-Albastru-91');
+  await expect(page.getByText(/Putere:\s*puternică/i)).toBeVisible();
+});
+
 test('T02: resident can enable 2FA and is then challenged at the next sign-in', async ({ page }) => {
   await enterDemo(page);
 

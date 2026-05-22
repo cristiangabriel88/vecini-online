@@ -21,16 +21,36 @@ accurate for architecture/data/feature specs.
 ## 0. Current status (updated 2026-05-22)
 
 - **Two phases. Phase 1 (features): 65 / 65 built end-to-end (100%, `BUILD_COMPLETE`).
-  Phase 2 (production + legal readiness, `BACKLOG.md`): 3 tasks done (T05, T01, T02).**
+  Phase 2 (production + legal readiness, `BACKLOG.md`): 4 tasks done (T05, T01, T02, T03).**
   The app is feature-complete but not yet legally deployable for real residents:
-  remaining go-live blockers are session hardening (T03), the
-  RLS/tenant-isolation audit (T04), GDPR data-subject rights — export + erasure
-  (T06), and the DPA + records of processing / breach procedure (T21/T22). T01
-  (live Supabase auth) and T02 (2FA/MFA) are now wired; their follow-ups T27
-  (post-auth association onboarding), T28 (profile/membership hydration), T29
-  (live recovery-code login), T30 (live MFA enforcement E2E) and T31 (MFA
-  challenge throttling) are queued at P1. Honest "ready to run legally" estimate:
-  feature surface ~100%, production/legal hardening ~3 of 31 tasks.
+  remaining go-live blockers are the RLS/tenant-isolation audit (T04), GDPR
+  data-subject rights — export + erasure (T06), and the DPA + records of
+  processing / breach procedure (T21/T22). T01 (live Supabase auth), T02
+  (2FA/MFA) and T03 (auth & session hardening) are now wired; their follow-ups
+  T27 (post-auth association onboarding), T28 (profile/membership hydration), T29
+  (live recovery-code login), T30 (live MFA enforcement E2E), T31 (MFA challenge
+  throttling), T32 (server-side auth-policy parity) and T33 (server-backed login
+  lockout) are queued at P1/P2. Honest "ready to run legally" estimate: feature
+  surface ~100%, production/legal hardening ~4 of 33 tasks.
+- **Completed most recently (T03): auth & session hardening.** Three pure,
+  unit-tested modules: `passwordPolicy` (min-10 + bcrypt-72 cap + character
+  variety + offline breached/common-password blocklist + email-echo rejection +
+  strength score), `loginThrottle` (sliding-window failed-attempt counting with
+  escalating, capped temporary lockout per normalised email), and `authAudit`
+  (privacy-safe event model — `redactEmail` masks to `a***@domain`, and the event
+  shape cannot carry a password/token/code/full email). A persisted
+  `securityStore` wraps the throttle map + recent-activity log and mirrors each
+  event, best-effort, into the new append-only `auth_audit_events` table
+  (owner-read + admin-read RLS) when a backend is present. `authStore` gained
+  `signOutEverywhere` (`scope:'global'`), a throttle-gated `signIn` returning
+  `lockedMs`, and audit logging across sign-in/out, password change, reset
+  request and demo entry; the Supabase client uses the PKCE flow. `LoginPage`
+  shows a live strength meter + bilingual lockout toast; `SecurityPage` adds an
+  active-sessions / sign-out-everywhere card and a recent-activity list;
+  `mfaStore` logs enable/disable/recovery-regenerate. RO/EN
+  `auth.pwd.*`/`auth.sessions.*`/`auth.audit.*`/`auth.lockout`. 32 new unit tests
+  + one E2E. New tasks fed in: T32 server-side auth-policy parity, T33
+  server-backed login lockout.
 - **The autonomous loop now drives Phase 2.** `run-overnight.sh` runs the
   `make progress` one-task protocol off `BACKLOG.md` (not the finished
   FEATURES.md build). When the queue empties it does not stop: it runs an
@@ -163,7 +183,7 @@ accurate for architecture/data/feature specs.
   F25/F26 booking pattern. Note: the working tree is clean — F21, the help
   assistant, and all earlier slices are committed (latest: `bfabf0e` help
   assistant; `83119ed` F21 + polish).
-- **Pipeline:** `npm run lint`, `npm run typecheck`, `npm test` (73 files / 393
+- **Pipeline:** `npm run lint`, `npm run typecheck`, `npm test` (76 files / 425
   unit tests), and `npm run build` all pass.
 - **Remaining (0 of the original 65):** none — all F01–F65 are ✅.
 - **Planned for the future (2, not yet specced into schema):** F66 Profil complet

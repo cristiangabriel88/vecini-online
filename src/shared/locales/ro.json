@@ -116,7 +116,7 @@
     "email": "Email",
     "password": "Parolă",
     "confirmPassword": "Confirmă parola",
-    "passwordHint": "Minimum 8 caractere.",
+    "passwordHint": "Minimum 10 caractere, cu litere și cifre sau simboluri.",
     "login": "Intră în cont",
     "logout": "Deconectare",
     "signUp": "Creează cont",
@@ -145,15 +145,52 @@
     "createFirst": "Creează prima asociație",
     "invalidCredentials": "Email sau parolă incorecte.",
     "demoMode": "Mod demonstrativ — fără backend configurat. Datele afișate sunt exemple.",
+    "lockout": "Prea multe încercări eșuate. Contul este blocat temporar. Reîncearcă peste aproximativ {{minutes}} min.",
     "err": {
       "invalidCredentials": "Email sau parolă incorecte.",
       "emailNotConfirmed": "Confirmă-ți adresa de email înainte de a te autentifica.",
       "emailTaken": "Există deja un cont cu acest email.",
-      "weakPassword": "Parola trebuie să aibă minimum 8 caractere.",
+      "weakPassword": "Parola este prea slabă. Alege una mai puternică.",
       "passwordMismatch": "Parolele nu coincid.",
       "rateLimited": "Prea multe încercări. Încearcă din nou peste câteva minute.",
       "samePassword": "Noua parolă trebuie să fie diferită de cea veche.",
       "generic": "A apărut o eroare. Încearcă din nou."
+    },
+    "pwd": {
+      "strength": "Putere",
+      "weak": "slabă",
+      "fair": "acceptabilă",
+      "good": "bună",
+      "strong": "puternică",
+      "tooShort": "Parola trebuie să aibă minimum 10 caractere.",
+      "tooLong": "Parola este prea lungă (maximum 72 de caractere).",
+      "noVariety": "Combină litere cu cifre sau simboluri.",
+      "breached": "Această parolă apare în liste de parole compromise. Alege alta.",
+      "containsEmail": "Parola nu trebuie să conțină adresa ta de email."
+    },
+    "sessions": {
+      "title": "Sesiuni active",
+      "body": "Te poți deconecta de pe toate dispozitivele dintr-o dată. Util dacă ți-ai pierdut un dispozitiv sau bănuiești un acces neautorizat.",
+      "signOutAll": "Deconectează-mă de peste tot",
+      "confirmTitle": "Te deconectezi de pe toate dispozitivele?",
+      "confirmBody": "Toate sesiunile contului tău vor fi închise, inclusiv cea curentă. Va trebui să te autentifici din nou."
+    },
+    "audit": {
+      "title": "Activitate recentă de securitate",
+      "body": "Evenimentele de securitate ale contului tău. Nu conțin parole, coduri sau adrese complete de email.",
+      "empty": "Nu există activitate înregistrată încă.",
+      "event": {
+        "login": "Autentificare reușită",
+        "loginFailed": "Autentificare eșuată",
+        "loginLocked": "Cont blocat temporar după prea multe încercări",
+        "logout": "Deconectare",
+        "logoutEverywhere": "Deconectare de pe toate dispozitivele",
+        "passwordChanged": "Parolă schimbată",
+        "passwordResetRequested": "Cerere de resetare a parolei",
+        "mfaEnabled": "Autentificare în doi pași activată",
+        "mfaDisabled": "Autentificare în doi pași dezactivată",
+        "recoveryCodesRegenerated": "Coduri de recuperare regenerate"
+      }
     },
     "mfa": {
       "subtitle": "Adaugă un al doilea factor de autentificare pentru a-ți proteja contul.",

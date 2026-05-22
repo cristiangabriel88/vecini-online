@@ -2,6 +2,51 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## Auth & session hardening (T03)
+
+Five hardening surfaces, all kept demo-runnable and unit-tested:
+
+- **Breach rejection is offline, by design.** Rather than an online HaveIBeenPwned
+  lookup, `passwordPolicy` checks a curated, normalised blocklist of the most
+  commonly-breached / trivially-guessable passwords (plus Romanian and
+  product-specific guesses). This keeps the check deterministic, fully private
+  (the password never leaves the device), and exercisable in demo mode and E2E.
+  The online augmentation — Supabase Auth's leaked-password (HIBP k-anonymity)
+  protection, which also never sends the full password — is deferred to the
+  server side as T32 so the app stays offline-runnable. The policy applies only
+  when a password is *set* (sign-up / reset); sign-in keeps the looser
+  minimum-length gate so a resident whose password predates the policy can still
+  log in.
+- **The login lockout is client-side and escalating.** `loginThrottle` is pure
+  (sliding 15-minute window, 5-failure budget, lockout doubling from 60s up to a
+  30-minute cap, per normalised email). It is persisted in `localStorage` so a
+  reload cannot trivially reset a lock, and gates `signIn` before the network
+  call. It is explicitly a first line of defence layered on Supabase's
+  server-side rate limiting, not a replacement: a determined attacker can clear
+  local storage, which is why server-backed counters are queued as T33. The
+  lockout is applied only on the live path (demo sign-in has no password to
+  brute-force); the escalation logic is unit-tested directly.
+- **The audit stream is privacy-safe at the type level.** `authAudit.buildAuthEvent`
+  accepts only an event type and an optional email — there is no parameter
+  through which a password, token or code could be attached — and `redactEmail`
+  masks every address to `a***@domain`. So "no PII or secrets in logs" is
+  enforced by the shape, not just by discipline. The local log (capped at 50
+  entries) is the source for the in-app activity list so it works offline; with a
+  backend each event is also mirrored, best-effort, into `auth_audit_events`
+  (append-only: owner-read + admin-read, no update/delete grants, keeping the
+  ordering tamper-evident).
+- **Session handling: PKCE + global sign-out.** The Supabase client switches to
+  the PKCE flow so an intercepted authorization code (e.g. from an email link)
+  cannot be redeemed elsewhere; token refresh stays on Supabase's silent
+  auto-refresh with `SIGNED_OUT` clearing derived state. `signOutEverywhere`
+  uses `scope: 'global'` to revoke every session's refresh token, surfaced as an
+  "active sessions" control on the security page.
+- **Cross-store wiring via `getState()`.** `authStore` and `mfaStore` record audit
+  events and consult the throttle through `useSecurityStore.getState()` inside
+  their actions (never at module top level), and `securityStore` reads
+  `useAuthStore.getState()` only inside the live-mirror closure. The import cycle
+  is therefore resolved lazily at call time and never during module evaluation.
+
 ## 2FA / MFA — TOTP (T02)
 
 TOTP (RFC 6238) is the second factor, built on Supabase MFA for the live path.

@@ -116,7 +116,7 @@
     "email": "Email",
     "password": "Password",
     "confirmPassword": "Confirm password",
-    "passwordHint": "At least 8 characters.",
+    "passwordHint": "At least 10 characters, with letters and digits or symbols.",
     "login": "Sign in",
     "logout": "Sign out",
     "signUp": "Create account",
@@ -145,15 +145,52 @@
     "createFirst": "Create your first association",
     "invalidCredentials": "Incorrect email or password.",
     "demoMode": "Demo mode — no backend configured. Displayed data is sample data.",
+    "lockout": "Too many failed attempts. Your account is temporarily locked. Try again in about {{minutes}} min.",
     "err": {
       "invalidCredentials": "Incorrect email or password.",
       "emailNotConfirmed": "Confirm your email address before signing in.",
       "emailTaken": "An account with this email already exists.",
-      "weakPassword": "Password must be at least 8 characters.",
+      "weakPassword": "This password is too weak. Choose a stronger one.",
       "passwordMismatch": "Passwords do not match.",
       "rateLimited": "Too many attempts. Try again in a few minutes.",
       "samePassword": "The new password must differ from the old one.",
       "generic": "Something went wrong. Please try again."
+    },
+    "pwd": {
+      "strength": "Strength",
+      "weak": "weak",
+      "fair": "fair",
+      "good": "good",
+      "strong": "strong",
+      "tooShort": "Password must be at least 10 characters.",
+      "tooLong": "Password is too long (72 characters maximum).",
+      "noVariety": "Mix letters with digits or symbols.",
+      "breached": "This password appears in known breach lists. Choose another.",
+      "containsEmail": "Your password must not contain your email address."
+    },
+    "sessions": {
+      "title": "Active sessions",
+      "body": "You can sign out of every device at once. Useful if you lost a device or suspect unauthorised access.",
+      "signOutAll": "Sign me out everywhere",
+      "confirmTitle": "Sign out of all devices?",
+      "confirmBody": "Every session for your account will be closed, including this one. You will need to sign in again."
+    },
+    "audit": {
+      "title": "Recent security activity",
+      "body": "Security events for your account. They never contain passwords, codes, or full email addresses.",
+      "empty": "No activity recorded yet.",
+      "event": {
+        "login": "Successful sign-in",
+        "loginFailed": "Failed sign-in",
+        "loginLocked": "Account temporarily locked after too many attempts",
+        "logout": "Sign-out",
+        "logoutEverywhere": "Signed out of all devices",
+        "passwordChanged": "Password changed",
+        "passwordResetRequested": "Password reset requested",
+        "mfaEnabled": "Two-factor authentication enabled",
+        "mfaDisabled": "Two-factor authentication disabled",
+        "recoveryCodesRegenerated": "Recovery codes regenerated"
+      }
     },
     "mfa": {
       "subtitle": "Add a second authentication factor to protect your account.",

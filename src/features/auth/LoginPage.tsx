@@ -11,13 +11,43 @@ import { useAuthStore } from '@/shared/store/authStore';
 import { useMfaStore } from '@/shared/store/mfaStore';
 import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import { mfaErrorKey } from './mfaLogic';
-import {
-  type AuthMode,
-  canSubmit,
-  isValidEmail,
-  mapAuthError,
-  validatePassword,
-} from './authLogic';
+import { type AuthMode, canSubmit, isValidEmail, mapAuthError } from './authLogic';
+import { type PasswordAssessment, evaluatePassword } from './passwordPolicy';
+
+/** Round a remaining-lockout duration up to whole minutes for the message. */
+function lockoutMinutes(ms: number): number {
+  return Math.max(1, Math.ceil(ms / 60_000));
+}
+
+/** A compact strength meter + first-issue hint shown while choosing a password. */
+function PasswordStrength({ assessment }: { assessment: PasswordAssessment }) {
+  const { t } = useTranslation();
+  const tone =
+    assessment.strength === 'weak'
+      ? 'var(--danger)'
+      : assessment.strength === 'fair'
+        ? 'var(--warning)'
+        : 'var(--success, var(--primary))';
+  const issue = assessment.issues[0];
+  return (
+    <div className="space-y-1" aria-live="polite">
+      <div className="flex gap-1" aria-hidden="true">
+        {[0, 1, 2, 3].map((i) => (
+          <span
+            key={i}
+            className="h-1 flex-1 rounded-full transition-colors"
+            style={{ background: i < assessment.score ? tone : 'var(--bg-sunken)' }}
+          />
+        ))}
+      </div>
+      <p className="text-xs" style={{ color: issue ? 'var(--danger)' : 'var(--text-muted)' }}>
+        {issue
+          ? t(`auth.pwd.${issue}`)
+          : `${t('auth.pwd.strength')}: ${t(`auth.pwd.${assessment.strength}`)}`}
+      </p>
+    </div>
+  );
+}
 
 export default function LoginPage() {
   const { t } = useTranslation();
@@ -44,8 +74,11 @@ export default function LoginPage() {
   const [mfaCode, setMfaCode] = useState('');
 
   const values = { email, password, confirmPassword };
-  const passwordIssue = mode !== 'forgot' ? validatePassword(password) : null;
-  const showPasswordError = mode === 'signUp' && password.length > 0 && passwordIssue !== null;
+  // Sign-up surfaces the full strength/breach policy via a live meter; sign-in
+  // keeps the lighter minimum-length check.
+  const assessment = mode === 'signUp' && password.length > 0
+    ? evaluatePassword(password, email)
+    : null;
   const showMismatch =
     mode === 'signUp' && confirmPassword.length > 0 && password !== confirmPassword;
 
@@ -71,7 +104,11 @@ export default function LoginPage() {
           }
           return;
         }
-        const { error } = await signIn(email, password);
+        const { error, lockedMs } = await signIn(email, password);
+        if (lockedMs > 0) {
+          toast.error(t('auth.lockout', { minutes: lockoutMinutes(lockedMs) }));
+          return;
+        }
         if (error) {
           toast.error(t(`auth.err.${mapAuthError(error)}`));
           return;
@@ -243,10 +280,10 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   hint={mode === 'signUp' ? t('auth.passwordHint') : undefined}
-                  error={showPasswordError ? t('auth.err.weakPassword') : undefined}
                   required
                 />
               )}
+              {assessment && <PasswordStrength assessment={assessment} />}
               {mode === 'signUp' && (
                 <Input
                   label={t('auth.confirmPassword')}

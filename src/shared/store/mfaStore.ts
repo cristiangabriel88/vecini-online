@@ -13,6 +13,8 @@ import {
   type Aal,
 } from '@/features/auth/mfaLogic';
 
+import { useSecurityStore } from './securityStore';
+
 const ISSUER = 'vecini.online';
 
 interface OpResult {
@@ -151,6 +153,7 @@ export const useMfaStore = create<MfaState>()(
             draft: null,
             recoveryCodes: codes,
           });
+          useSecurityStore.getState().log('mfaEnabled');
           return { error: null };
         }
 
@@ -173,6 +176,7 @@ export const useMfaStore = create<MfaState>()(
           /* recovery storage is best-effort; enrolment itself succeeded */
         }
         set({ enrolled: true, draft: null, recoveryCodes: codes });
+        useSecurityStore.getState().log('mfaEnabled');
         return { error: null };
       },
 
@@ -187,6 +191,7 @@ export const useMfaStore = create<MfaState>()(
       disable: async () => {
         if (!isSupabaseConfigured) {
           set({ demoSecret: null, demoRecoveryHashes: [], enrolled: false, recoveryCodes: null });
+          useSecurityStore.getState().log('mfaDisabled');
           return { error: null };
         }
         const factorId = await verifiedTotpFactorId();
@@ -203,6 +208,7 @@ export const useMfaStore = create<MfaState>()(
           /* non-fatal */
         }
         set({ enrolled: false, recoveryCodes: null });
+        useSecurityStore.getState().log('mfaDisabled');
         return { error: null };
       },
 
@@ -212,6 +218,7 @@ export const useMfaStore = create<MfaState>()(
         const hashes = await hashRecoveryCodes(codes);
         if (!isSupabaseConfigured) {
           set({ demoRecoveryHashes: hashes, recoveryCodes: codes });
+          useSecurityStore.getState().log('recoveryCodesRegenerated');
           return { error: null };
         }
         try {
@@ -220,6 +227,7 @@ export const useMfaStore = create<MfaState>()(
           /* best-effort */
         }
         set({ recoveryCodes: codes });
+        useSecurityStore.getState().log('recoveryCodesRegenerated');
         return { error: null };
       },
 

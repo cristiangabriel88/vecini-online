@@ -6,12 +6,13 @@
  * stable bilingual i18n keys, and the small state machine that drives which form
  * the auth page shows. The store and pages build on top of it.
  *
- * Note on scope: T01 wires real Supabase email + password auth (sign-up, login,
- * email verification, password reset) while keeping the demo fallback intact.
- * Full password-strength policy and known-breach rejection are deliberately left
- * to T03 (auth & session hardening); here we enforce only a minimum length so a
- * trivially weak password is rejected before it ever reaches the network.
+ * Note on scope: T01 wired real Supabase email + password auth; T03 adds the
+ * full password-strength policy and known-breach rejection, which live in
+ * `passwordPolicy.ts` and are applied here when a password is *set* (sign-up).
+ * Sign-in keeps the looser minimum-length check so a resident whose password
+ * predates the policy can still authenticate.
  */
+import { evaluatePassword } from './passwordPolicy';
 
 /** Which form the auth page is presenting. */
 export type AuthMode = 'signIn' | 'signUp' | 'forgot';
@@ -47,8 +48,14 @@ export interface AuthFormValues {
 export function canSubmit(mode: AuthMode, values: AuthFormValues): boolean {
   if (!isValidEmail(values.email)) return false;
   if (mode === 'forgot') return true;
+  if (mode === 'signUp') {
+    // Setting a new password must satisfy the full strength/breach policy.
+    if (!evaluatePassword(values.password, values.email).ok) return false;
+    if (values.password !== values.confirmPassword) return false;
+    return true;
+  }
+  // Sign-in: only require a non-trivial length (existing accounts predate policy).
   if (validatePassword(values.password)) return false;
-  if (mode === 'signUp' && values.password !== values.confirmPassword) return false;
   return true;
 }
 
