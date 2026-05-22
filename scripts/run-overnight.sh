@@ -37,6 +37,7 @@
 #   --max-hours N      Wall-clock budget in hours (fractional ok). 0 = unbounded (default).
 #   --stuck-limit N    Consecutive non-build passes before stopping. Default 3.
 #   --wait-on-limit N  Seconds to wait before retrying on a usage/rate limit. Default 1800.
+#   --heartbeat N      Seconds between "still alive" heartbeat lines. 0 = off. Default 300.
 #   --prompt TEXT      The build trigger. Default "make progress".
 #
 # NOTE: passes --dangerously-skip-permissions so Claude can edit, run the pipeline,
@@ -49,6 +50,7 @@ MAX_TASKS=0
 MAX_HOURS=0
 STUCK_LIMIT=3
 WAIT_ON_LIMIT=1800
+HEARTBEAT=300
 PROMPT="make progress"
 
 # --- arg parsing --------------------------------------------------------------
@@ -58,8 +60,9 @@ while [[ $# -gt 0 ]]; do
         --max-hours)     MAX_HOURS="$2"; shift 2 ;;
         --stuck-limit)   STUCK_LIMIT="$2"; shift 2 ;;
         --wait-on-limit) WAIT_ON_LIMIT="$2"; shift 2 ;;
+        --heartbeat)     HEARTBEAT="$2"; shift 2 ;;
         --prompt)        PROMPT="$2"; shift 2 ;;
-        -h|--help)       sed -n '2,45p' "$0"; exit 0 ;;
+        -h|--help)       sed -n '2,46p' "$0"; exit 0 ;;
         *) echo "Unknown option: $1" >&2; exit 2 ;;
     esac
 done
@@ -111,6 +114,46 @@ LOG="$LOG_DIR/overnight-$STAMP.log"
 
 write_both() { printf '%s\n' "$1"; printf '%s\n' "$1" >> "$LOG"; }
 
+# --- liveness: stage banners + background heartbeat ---------------------------
+# The script announces what it is doing ("analyzing", "working", "testing", ...)
+# so you can see it is alive, and a background heartbeat reprints the current
+# stage every $HEARTBEAT seconds during the long quiet stretches while Claude
+# thinks. The current stage is published to a tiny file so the heartbeat (a
+# separate process) can read it; the file is written atomically via mv.
+STATUS_FILE="$LOG_DIR/.status"
+PASS_FILE="$LOG_DIR/.current-pass.log"
+HB_PID=""
+
+# set_stage <emoji-ish-tag> <message> : record + print the current stage.
+set_stage() {
+    {
+        echo "HB_PASS=${pass:-0}"
+        echo "HB_PHASE=\"${phase:-START}\""
+        echo "HB_STAGE=\"$1\""
+        echo "HB_SINCE=$(date +%s)"
+    } > "$STATUS_FILE.tmp" && mv -f "$STATUS_FILE.tmp" "$STATUS_FILE"
+    write_both ">> [$(date +%H:%M:%S)] $1"
+}
+
+heartbeat_loop() {
+    while true; do
+        sleep "$HEARTBEAT"
+        [[ -f "$STATUS_FILE" ]] || continue
+        (
+            # shellcheck disable=SC1090
+            source "$STATUS_FILE" 2>/dev/null || exit 0
+            secs=$(( $(date +%s) - ${HB_SINCE:-0} ))
+            write_both "   .. [alive @ $(date +%H:%M:%S)] pass ${HB_PASS} [${HB_PHASE}] :: ${HB_STAGE} :: ${secs}s in this step"
+        )
+    done
+}
+
+cleanup() {
+    [[ -n "$HB_PID" ]] && kill "$HB_PID" 2>/dev/null
+    rm -f "$STATUS_FILE" "$STATUS_FILE.tmp" "$PASS_FILE" 2>/dev/null
+}
+trap cleanup EXIT INT TERM
+
 # Open-task count. An open task heading is "### " followed by U+2B1C (white square).
 # The marker is built from its bytes via printf, not written as a literal, so the
 # script stays pure-ASCII and free of any source-encoding surprises.
@@ -126,7 +169,7 @@ get_open_task_count() {
 test_pipeline() {
     local step rc
     for step in lint typecheck test build; do
-        write_both "  gate: npm run $step"
+        set_stage "Testing: npm run $step"
         npm run "$step" 2>&1 | tee -a "$LOG"
         rc=${PIPESTATUS[0]}
         if [[ $rc -ne 0 ]]; then
@@ -143,7 +186,14 @@ PASS_OUTPUT=""
 invoke_pass() {
     local phase="$1" pass_prompt="$2" before after subject
     before="$(git rev-parse HEAD)"
-    PASS_OUTPUT="$(claude -p "$pass_prompt" --dangerously-skip-permissions --verbose 2>&1 | tee -a "$LOG")"
+    # Stream Claude's --verbose output live to the terminal AND the main log, and
+    # keep a per-pass copy so we can scan it afterwards for rate-limit/auth signals.
+    # (The old code captured with $(...) which hid all live output until the pass
+    # finished, making the run look frozen.)
+    : > "$PASS_FILE"
+    claude -p "$pass_prompt" --dangerously-skip-permissions --verbose 2>&1 \
+        | tee -a "$LOG" | tee "$PASS_FILE"
+    PASS_OUTPUT="$(cat "$PASS_FILE" 2>/dev/null || true)"
     after="$(git rev-parse HEAD)"
     if [[ "$before" != "$after" ]]; then
         PASS_COMMITTED=1
@@ -161,8 +211,15 @@ write_both "Repo:       $REPO_ROOT"
 if [[ "$MAX_TASKS" -le 0 ]]; then write_both "MaxTasks:   unbounded"; else write_both "MaxTasks:   $MAX_TASKS"; fi
 if (( $(awk "BEGIN{print ($MAX_HOURS>0)}") )); then write_both "MaxHours:   $MAX_HOURS"; else write_both "MaxHours:   unbounded"; fi
 write_both "StuckLimit: $STUCK_LIMIT consecutive non-build passes"
+if (( HEARTBEAT > 0 )); then write_both "Heartbeat:  every ${HEARTBEAT}s"; else write_both "Heartbeat:  off"; fi
 write_both "Build:      $PROMPT"
 write_both ""
+
+# Launch the background heartbeat so quiet stretches still show signs of life.
+if (( HEARTBEAT > 0 )); then
+    heartbeat_loop &
+    HB_PID=$!
+fi
 
 START_EPOCH="$(date +%s)"
 builds_completed=0   # build-phase tasks finished
@@ -193,17 +250,21 @@ while true; do
     if (( open > 0 )); then is_build=1; phase="BUILD"; else is_build=0; phase="REPLENISH"; fi
 
     write_both "--- Pass $pass  [$phase]  open tasks: $open  (HEAD ${head:0:7}) @ $(date +%H:%M:%S) ---"
-    if (( is_build == 0 )); then
+    if (( is_build == 1 )); then
+        set_stage "Analyzing: selecting the next task ($open open in the queue)"
+        pass_prompt="$PROMPT"
+        set_stage "Working: Claude is thinking and implementing the task (live output follows)"
+    else
         write_both "Backlog exhausted => measuring vision coverage and generating the next wave of work."
+        pass_prompt="$REPLENISH_PROMPT"
+        set_stage "Working: Claude is auditing the app and replenishing the backlog (live output follows)"
     fi
-
-    if (( is_build == 1 )); then pass_prompt="$PROMPT"; else pass_prompt="$REPLENISH_PROMPT"; fi
     invoke_pass "$phase" "$pass_prompt"
 
     # Usage/rate limit: don't burn a pass on it. Wait, then retry the same pass.
     if printf '%s' "$PASS_OUTPUT" | grep -qiE 'rate limit|usage limit|quota exceeded|too many requests|\b429\b'; then
         write_both ""
-        write_both "Usage/rate limit detected. Waiting ${WAIT_ON_LIMIT}s, then retrying this pass."
+        set_stage "Waiting: usage/rate limit hit, sleeping ${WAIT_ON_LIMIT}s before retrying this pass"
         pass=$(( pass - 1 ))
         sleep "$WAIT_ON_LIMIT"
         continue
@@ -221,9 +282,10 @@ while true; do
     # before counting it as a stall.
     if (( is_build == 1 )) && (( committed == 0 )); then
         write_both "Build pass produced no commit. Running a replenish pass to re-plan / unblock."
+        phase="REPLENISH"; is_build=0
+        set_stage "Re-planning: build stalled, Claude is re-planning and unblocking (live output follows)"
         invoke_pass "REPLENISH" "$REPLENISH_PROMPT"
         committed=$PASS_COMMITTED
-        phase="REPLENISH"; is_build=0
     fi
 
     if (( committed == 0 )); then
@@ -238,7 +300,7 @@ while true; do
     fi
 
     # A commit was made. Re-verify the committed state independently.
-    write_both "Re-verifying committed state..."
+    set_stage "Verifying: re-running lint / typecheck / test / build on the new commit"
     if ! test_pipeline; then
         halt="$(git rev-parse HEAD)"
         write_both ""
