@@ -21,13 +21,15 @@ accurate for architecture/data/feature specs.
 ## 0. Current status (updated 2026-05-22)
 
 - **Two phases. Phase 1 (features): 65 / 65 built end-to-end (100%, `BUILD_COMPLETE`).
-  Phase 2 (production + legal readiness, `BACKLOG.md` T01–T26): just begun — 1
-  task done (T05).** The app is feature-complete but not yet legally deployable
-  for real residents: the remaining blockers to go-live are live Supabase auth
-  (T01), 2FA (T02), session hardening (T03), the RLS/tenant-isolation audit (T04),
-  GDPR data-subject rights — export + erasure (T06), and the DPA + records of
-  processing / breach procedure (T21/T22). Honest "ready to run legally"
-  estimate: feature surface ~100%, production/legal hardening ~1 of 26 tasks.
+  Phase 2 (production + legal readiness, `BACKLOG.md`): 2 tasks done (T05, T01).**
+  The app is feature-complete but not yet legally deployable for real residents:
+  remaining go-live blockers are 2FA (T02), session hardening (T03), the
+  RLS/tenant-isolation audit (T04), GDPR data-subject rights — export + erasure
+  (T06), and the DPA + records of processing / breach procedure (T21/T22). T01
+  (live Supabase auth) is now wired; its follow-ups T27 (post-auth association
+  onboarding) and T28 (profile/membership hydration) are queued at P1. Honest
+  "ready to run legally" estimate: feature surface ~100%, production/legal
+  hardening ~2 of 28 tasks.
 - **The autonomous loop now drives Phase 2.** `run-overnight.sh` runs the
   `make progress` one-task protocol off `BACKLOG.md` (not the finished
   FEATURES.md build). When the queue empties it does not stop: it runs an
@@ -35,7 +37,21 @@ accurate for architecture/data/feature specs.
   tasks, so the loop keeps raising the quality bar until a genuine stall, a
   task/time budget, or an interrupt. Trigger continuously with the script, or one
   task at a time by typing `make progress`.
-- **Completed this turn (1): T05 GDPR consent & legal surface.** Global
+- **Completed most recently (T01): live Supabase auth wiring.** Real email +
+  password sign-up/login, email verification, and password reset on Supabase
+  Auth, with the `isSupabaseConfigured` demo fallback fully intact. Pure
+  `authLogic` (email/password validation, per-mode `canSubmit`, `mapAuthError`
+  → stable bilingual `auth.err.*` keys; unit-tested) + `authStore` extended with
+  `signUp` (email-confirmation aware), `requestPasswordReset`, `updatePassword`,
+  `resendVerification`, and a `PASSWORD_RECOVERY` → `recovery` flag in `init`.
+  `LoginPage` became a mode-switching form (sign in / sign up / forgot) with
+  "check your email" + reset-sent confirmation panels; new `ResetPasswordPage`
+  at `/reset-parola` consumes the recovery session. RO/EN locales, `.auth-link`
+  style, and `.env.example` documents the Supabase Auth dashboard config (Confirm
+  email ON, Site URL + `/reset-parola` redirect allow-list) and `VITE_APP_URL`.
+  One E2E happy-path (mode switching + demo entry). New tasks fed into the queue:
+  T27 post-auth association onboarding, T28 profile/membership hydration.
+- **Completed earlier (T05): GDPR consent & legal surface.** Global
   `ConsentBanner` (Accept all / Doar esențiale / Personalizează with per-category
   switches), public bilingual `/confidentialitate`, `/termeni`, `/cookies` pages
   (`legalContent.ts`: controller-vs-processor split, lawful bases under Legea

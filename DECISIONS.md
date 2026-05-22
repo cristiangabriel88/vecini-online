@@ -161,3 +161,20 @@ Playwright browser binaries could not be downloaded in the build sandbox
 (`cdn.playwright.dev` is outside the network allowlist). The E2E specs
 (`tests/e2e/`) and config are complete and run locally/in CI; they were not
 executed here. Unit tests (Vitest) run and pass.
+
+## Live Supabase auth wiring (T01)
+
+Email + password is the only first-party method wired (magic-link / OAuth are
+out of scope here); it maps cleanly onto Supabase Auth and keeps the demo path
+unchanged. Sign-up assumes "Confirm email" is ON in the Supabase dashboard, so a
+sign-up that returns no session is treated as "check your email" rather than an
+error. Password reset uses `resetPasswordForEmail` with a redirect to
+`<VITE_APP_URL>/reset-parola`; the resulting `PASSWORD_RECOVERY` event (via
+`detectSessionInUrl`) sets a `recovery` flag the reset page reads. Opaque
+Supabase error strings are mapped to a small set of stable keys in `authLogic`
+(`mapAuthError`) so the UI copy stays bilingual and never leaks raw backend
+text; unrecognised messages fall back to a generic key. The "same as old
+password" message is matched before the weak-password rule because both contain
+the substring "should be". Password validation here enforces only a minimum
+length (8) by design; the full strength policy and known-breach rejection belong
+to T03, and role-gated profile/membership loading to T28.

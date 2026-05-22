@@ -62,8 +62,9 @@ Keep the queue sorted with the highest priority on top. When two tasks share a p
 
 > Sorted by priority, highest on top. `make progress` takes the topmost `⬜` whose prerequisites are met. Mark `✅` when the Definition of Done is fully met.
 
-### ⬜ T01 — [P0] Live Supabase auth wiring
+### ✅ T01 — [P0] Live Supabase auth wiring
 Flip authentication off demo onto real Supabase Auth: email + password sign-up/login, email verification, password reset. Keep the `isSupabaseConfigured` demo fallback intact so the app still runs and E2E stays offline-executable. Document required env vars. Foundation for all security work below.
+**Done:** pure `authLogic` (email/password validation, `canSubmit` per mode, `mapAuthError` → stable bilingual keys, unit-tested) + `authStore` extended with `signUp` (email-confirmation aware), `requestPasswordReset`, `updatePassword`, `resendVerification`, and a `PASSWORD_RECOVERY` → `recovery` flag in `init`. `LoginPage` is now a mode-switching form (sign in / sign up / forgot) with confirmation panels for "check your email" + reset-sent; new `ResetPasswordPage` at `/reset-parola` consumes the recovery session. All paths keep the demo fallback (no creds → `enterDemo`). RO/EN locales (incl. `auth.err.*`), `.auth-link` style, `.env.example` documents the Supabase Auth dashboard config (Confirm email ON, Site URL + `/reset-parola` redirect allow-list) and `VITE_APP_URL`. Unit test + one E2E happy-path (mode switching + demo entry). Pipeline green.
 
 ### ⬜ T02 — [P0] 2FA / MFA (TOTP)
 Two-factor authentication: TOTP enrollment with QR code, verification step at login, single-use recovery codes, and a manage/disable flow. **Enforce** for privileged roles (admin, comitet, cenzor). Built on Supabase MFA. Bilingual flows, accessible, covered by unit + E2E tests. Prereq: T01.
@@ -86,6 +87,12 @@ The asociație is the data controller and vecini.online is the processor. Ship a
 
 ### ⬜ T22 — [P0] Personal-data breach procedure (art. 33/34)
 Documented breach-notification procedure and an admin tool to record a breach, classify risk, and produce the 72-hour notification to ANSPDCP plus, where required, the notice to affected residents. Append-only breach log tied to the audit stream (T09). No PII in logs beyond what the record needs.
+
+### ⬜ T27 — [P1] Post-authentication association onboarding (live path)
+After a real (non-demo) sign-up + email verification, the user has a session but no membership, so they land on an empty app. Route a member-less authenticated user to create an asociație or join one by invite code, wiring the existing `auth.noAsociatie`/`auth.createFirst` strings and the onboarding wizard into the live auth path. `RequireAuth` (or a new gate) must distinguish "no session" from "session but no asociație". Prereq: T01.
+
+### ⬜ T28 — [P1] Profile & membership hydration in authStore
+`init` sets the session but never loads `profile`/`memberships` from the backend, so role-gated UI (admin/comitet/cenzor) has nothing to read in the live path. Fetch the signed-in user's profile + memberships (under RLS) on session change, expose a current-asociație selector, and keep the demo seed as the fallback. Prereq: T01. Unblocks role enforcement in T02/T03.
 
 ### ⬜ T07 — [P1] Resilience & error handling
 Global error boundary, standardized loading/empty/error states across all pages, request retry/backoff, and a client-side error-reporting hook (Sentry-ready, no PII). Friendly bilingual error copy.
@@ -148,3 +155,4 @@ Platform-owner console: manage asociații, the global feature catalog, support i
 > Move tasks here (or leave them `✅` above) as they finish, with the commit hash.
 
 - **T05 — GDPR consent & legal surface** ✅ (kept in place above with its done-note). Consent banner + privacy/terms/cookie pages + consent management + `consent_records` migration + notification consent gate. First production-readiness task completed; reordered ahead of T01–T04 as the only fully-testable P0 with no backend prerequisite.
+- **T01 — Live Supabase auth wiring** ✅ (kept in place above with its done-note). Email + password sign-up/login, email verification, and password reset wired onto Supabase Auth with the demo fallback intact; `authLogic` + extended `authStore` + mode-switching `LoginPage` + `ResetPasswordPage`. Surfaced two follow-ups: T27 post-auth association onboarding and T28 profile/membership hydration.

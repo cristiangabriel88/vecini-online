@@ -334,3 +334,13 @@
   color: var(--text-primary);
   text-decoration: underline;
 }
+
+.auth-link {
+  color: var(--primary);
+  font-weight: 500;
+  transition: color var(--transition-fast, 150ms) ease;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}

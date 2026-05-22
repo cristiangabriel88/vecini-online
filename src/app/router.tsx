@@ -6,6 +6,7 @@ import { RequireAuth } from './RequireAuth';
 import { SkeletonList } from '@/shared/components/Skeleton';
 
 const LoginPage = lazy(() => import('@/features/auth/LoginPage'));
+const ResetPasswordPage = lazy(() => import('@/features/auth/ResetPasswordPage'));
 const PrivacyPolicyPage = lazy(() => import('@/features/legal/PrivacyPolicyPage'));
 const TermsPage = lazy(() => import('@/features/legal/TermsPage'));
 const CookiePolicyPage = lazy(() => import('@/features/legal/CookiePolicyPage'));
@@ -92,6 +93,7 @@ function S({ children }: { children: React.ReactNode }) {
 
 export const router = createBrowserRouter([
   { path: '/', element: <S><LoginPage /></S> },
+  { path: '/reset-parola', element: <S><ResetPasswordPage /></S> },
   { path: '/confidentialitate', element: <S><PrivacyPolicyPage /></S> },
   { path: '/termeni', element: <S><TermsPage /></S> },
   { path: '/cookies', element: <S><CookiePolicyPage /></S> },
