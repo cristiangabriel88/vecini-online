@@ -15,8 +15,8 @@ accurate for architecture/data/feature specs.
 
 > **Next work is driven by `BACKLOG.md`** (the ordered task queue) via the
 > autonomous `make progress` protocol in `CLAUDE.md`. Trigger it by typing
-> `make progress` (one task) or running `scripts/run-overnight.ps1` (continuous,
-> unattended). Section 4 below is historical context, not the live queue.
+> `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
+> unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
 ## 0. Current status (updated 2026-05-22)
 
@@ -28,10 +28,12 @@ accurate for architecture/data/feature specs.
   GDPR data-subject rights — export + erasure (T06), and the DPA + records of
   processing / breach procedure (T21/T22). Honest "ready to run legally"
   estimate: feature surface ~100%, production/legal hardening ~1 of 26 tasks.
-- **The autonomous loop now drives Phase 2.** `run-overnight.ps1` runs the
+- **The autonomous loop now drives Phase 2.** `run-overnight.sh` runs the
   `make progress` one-task protocol off `BACKLOG.md` (not the finished
-  FEATURES.md build) and writes `APP_COMPLETE` only when the whole queue is
-  cleared with a green pipeline. Trigger continuously with the script, or one
+  FEATURES.md build). When the queue empties it does not stop: it runs an
+  audit/replenish pass that measures vision coverage and writes the next wave of
+  tasks, so the loop keeps raising the quality bar until a genuine stall, a
+  task/time budget, or an interrupt. Trigger continuously with the script, or one
   task at a time by typing `make progress`.
 - **Completed this turn (1): T05 GDPR consent & legal surface.** Global
   `ConsentBanner` (Accept all / Doar esențiale / Personalizează with per-category

@@ -1,0 +1,4 @@
+# Shell scripts must keep LF line endings. With core.autocrlf=true on Windows,
+# a CRLF checkout turns the shebang into "#!/usr/bin/env bash\r", which Git Bash
+# rejects with "bad interpreter". Pin them to LF regardless of platform.
+*.sh text eol=lf

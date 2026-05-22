@@ -7,7 +7,7 @@ Multi-tenant SaaS for Romanian asociații de proprietari: React + Vite + TypeScr
 This project is built by a self-directed loop. **`BACKLOG.md` is the source of truth for what to do next.** There are two triggers, both running the *same one-task unit*:
 
 1. The user types **`make progress`** → complete exactly **one** task from `BACKLOG.md` (commit + push), then stop and report.
-2. The user runs **`scripts/run-overnight.ps1`** → that same unit runs repeatedly with no human input until there is nothing left to do.
+2. The user runs **`scripts/run-overnight.sh`** (Git Bash) → that same unit runs repeatedly with no human input; when the queue empties it switches to an audit/replenish pass that generates the next wave of tasks, so it keeps improving until a genuine stall, a budget, or an interrupt.
 
 It is a **self-improving loop**: solving a task surfaces problems and ideas, which become new priority-ranked tasks, which raise the quality bar. The queue is sorted by priority and is meant to grow.
 

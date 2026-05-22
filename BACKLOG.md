@@ -3,7 +3,7 @@
 This is the **single source of truth for what to build next**. Both triggers use it:
 
 - The user types **`make progress`** → the **top-priority** task is completed (commit + push), then stop and report.
-- The user runs **`scripts/run-overnight.ps1`** → the same one-task unit runs repeatedly, with no human input, until there is nothing left to do (no new commit) or the run is interrupted.
+- The user runs **`scripts/run-overnight.sh`** → the same one-task unit runs repeatedly, with no human input. While the queue has open tasks it builds them; when the queue empties it switches to an audit/replenish pass that measures progress against the original vision and writes the next wave of tasks, so work continues until a genuine stall, a task/time budget, a red pipeline, or an interrupt.
 
 The goal both paths drive toward: a **secure, stable, well-polished, GDPR-compliant, multi-tenant SaaS** for Romanian asociații de proprietari, with 2FA auth, a live Telegram bot, and robust handling of the real problems a residential building faces.
 
