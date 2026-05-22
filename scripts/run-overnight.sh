@@ -38,7 +38,24 @@
 #   --stuck-limit N    Consecutive non-build passes before stopping. Default 3.
 #   --wait-on-limit N  Seconds to wait before retrying on a usage/rate limit. Default 1800.
 #   --heartbeat N      Seconds between "still alive" heartbeat lines. 0 = off. Default 300.
+#   --model NAME       Pass --model to Claude (e.g. "sonnet", "haiku", "opus"). A
+#                      cheaper model spends fewer tokens per pass. Default: your
+#                      configured default model.
+#   --claude-arg ARG   Append one extra raw argument to every Claude invocation.
+#                      Repeatable. Use for cost controls, e.g.:
+#                        --claude-arg --max-budget-usd --claude-arg 2
+#                      (caps per-pass API spend), or --claude-arg --bare for the
+#                      biggest token saving -- but --bare needs ANTHROPIC_API_KEY,
+#                      it does NOT read your OAuth login, so only use it with a key.
 #   --prompt TEXT      The build trigger. Default "make progress".
+#
+# TOKEN EFFICIENCY: there is no /clear to add. Each pass is a separate `claude -p`
+# process, which already starts with a FRESH, empty context window -- strictly
+# better than /clear (an interactive-only command that would still reload CLAUDE.md
+# and memory). Spawning one process per task is the most token-efficient pattern;
+# context never accumulates across passes. --verbose is display-only and costs no
+# tokens, so it is kept for liveness. To spend less per pass, use --model and/or
+# --claude-arg --max-budget-usd as above.
 #
 # NOTE: passes --dangerously-skip-permissions so Claude can edit, run the pipeline,
 # commit, and push unattended. Only launch this when you intend autonomous progress.
@@ -51,7 +68,9 @@ MAX_HOURS=0
 STUCK_LIMIT=3
 WAIT_ON_LIMIT=1800
 HEARTBEAT=300
+MODEL=""
 PROMPT="make progress"
+EXTRA_CLAUDE_ARGS=()
 
 # --- arg parsing --------------------------------------------------------------
 while [[ $# -gt 0 ]]; do
@@ -61,11 +80,19 @@ while [[ $# -gt 0 ]]; do
         --stuck-limit)   STUCK_LIMIT="$2"; shift 2 ;;
         --wait-on-limit) WAIT_ON_LIMIT="$2"; shift 2 ;;
         --heartbeat)     HEARTBEAT="$2"; shift 2 ;;
+        --model)         MODEL="$2"; shift 2 ;;
+        --claude-arg)    EXTRA_CLAUDE_ARGS+=("$2"); shift 2 ;;
         --prompt)        PROMPT="$2"; shift 2 ;;
-        -h|--help)       sed -n '2,46p' "$0"; exit 0 ;;
+        -h|--help)       sed -n '2,62p' "$0"; exit 0 ;;
         *) echo "Unknown option: $1" >&2; exit 2 ;;
     esac
 done
+
+# Assemble the Claude flags once. Each pass is a fresh `claude -p` process (a full
+# context reset, so no /clear is needed); these flags only tune per-pass cost.
+CLAUDE_FLAGS=(--dangerously-skip-permissions --verbose)
+[[ -n "$MODEL" ]] && CLAUDE_FLAGS+=(--model "$MODEL")
+(( ${#EXTRA_CLAUDE_ARGS[@]} > 0 )) && CLAUDE_FLAGS+=("${EXTRA_CLAUDE_ARGS[@]}")
 
 # The audit/replenish trigger used when the backlog is empty or a build stalls.
 read -r -d '' REPLENISH_PROMPT <<'EOF' || true
@@ -191,7 +218,7 @@ invoke_pass() {
     # (The old code captured with $(...) which hid all live output until the pass
     # finished, making the run look frozen.)
     : > "$PASS_FILE"
-    claude -p "$pass_prompt" --dangerously-skip-permissions --verbose 2>&1 \
+    claude -p "$pass_prompt" "${CLAUDE_FLAGS[@]}" 2>&1 \
         | tee -a "$LOG" | tee "$PASS_FILE"
     PASS_OUTPUT="$(cat "$PASS_FILE" 2>/dev/null || true)"
     after="$(git rev-parse HEAD)"
@@ -212,6 +239,9 @@ if [[ "$MAX_TASKS" -le 0 ]]; then write_both "MaxTasks:   unbounded"; else write
 if (( $(awk "BEGIN{print ($MAX_HOURS>0)}") )); then write_both "MaxHours:   $MAX_HOURS"; else write_both "MaxHours:   unbounded"; fi
 write_both "StuckLimit: $STUCK_LIMIT consecutive non-build passes"
 if (( HEARTBEAT > 0 )); then write_both "Heartbeat:  every ${HEARTBEAT}s"; else write_both "Heartbeat:  off"; fi
+write_both "Model:      ${MODEL:-<your default>}"
+write_both "Context:    fresh per pass (no /clear needed; each pass is a clean claude -p)"
+if (( ${#EXTRA_CLAUDE_ARGS[@]} > 0 )); then write_both "ClaudeArgs: ${EXTRA_CLAUDE_ARGS[*]}"; fi
 write_both "Build:      $PROMPT"
 write_both ""
 
