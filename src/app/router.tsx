@@ -63,6 +63,7 @@ const ContractorsPage = lazy(() => import('@/features/contractors/ContractorsPag
 const AlarmPage = lazy(() => import('@/features/alarm/AlarmPage'));
 const DiscussionsPage = lazy(() => import('@/features/discussions/DiscussionsPage'));
 const BudgetPage = lazy(() => import('@/features/budget/BudgetPage'));
+const AgaPage = lazy(() => import('@/features/aga/AgaPage'));
 const PrioritiesPage = lazy(() => import('@/features/priorities/PrioritiesPage'));
 const LaundryPage = lazy(() => import('@/features/laundry/LaundryPage'));
 const MovingPage = lazy(() => import('@/features/moving/MovingPage'));
@@ -148,6 +149,7 @@ export const router = createBrowserRouter([
       { path: 'alarma', element: <S><AlarmPage /></S> },
       { path: 'discutii', element: <S><DiscussionsPage /></S> },
       { path: 'buget', element: <S><BudgetPage /></S> },
+      { path: 'aga', element: <S><AgaPage /></S> },
       { path: 'prioritati', element: <S><PrioritiesPage /></S> },
       { path: 'spalatorie', element: <S><LaundryPage /></S> },
       { path: 'lift-mutare', element: <S><MovingPage /></S> },

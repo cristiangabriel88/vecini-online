@@ -53,6 +53,7 @@ import type {
   Contractor,
   AlarmSystem,
   DiscussionThread,
+  AgaMeeting,
   BudgetCycle,
   PriorityProject,
   LaundryBooking,
@@ -625,6 +626,99 @@ export const DEMO_BUDGET_CYCLE: BudgetCycle = {
     { id: 'bp-4', cycle_id: 'bc-1', title: 'Suport pentru biciclete', cost: 2600, author_name: 'Popa Radu', votes: 4, voted: false },
   ],
 };
+
+// F10 — AGA digitală. Three assemblies across the lifecycle so the demo shows a
+// live vote, an upcoming convocator, and a concluded one with a proces-verbal.
+const agaTime = (days: number) => `${dayOffset(days)}T18:00:00`;
+export const DEMO_AGAS: AgaMeeting[] = [
+  {
+    id: 'aga-1',
+    asociatie_id: 'demo-asoc',
+    title: 'AGA ordinară 2026',
+    scheduled_at: agaTime(0),
+    location: 'Sala de ședințe, parter scara A',
+    scheduled_online: false,
+    required_quorum_percent: 50,
+    status: 'in_desfasurare',
+    total_apartments: 40,
+    represented_apartments: 23,
+    my_rsvp: 'prezent',
+    agenda: [
+      {
+        id: 'agi-1', aga_id: 'aga-1', sort_order: 1, majority_rule: 'simple',
+        title: 'Aprobarea bugetului de venituri și cheltuieli pe 2026',
+        description: 'Bugetul propus de administrator pentru anul în curs.',
+        votes: { pentru: 17, contra: 4, abtinere: 2 }, my_vote: null,
+      },
+      {
+        id: 'agi-2', aga_id: 'aga-1', sort_order: 2, majority_rule: 'absolute',
+        title: 'Majorarea fondului de reparații la 0,80 lei/m²/lună',
+        description: 'Necesită majoritatea proprietarilor (jumătate plus unu).',
+        votes: { pentru: 15, contra: 6, abtinere: 1 }, my_vote: null,
+      },
+      {
+        id: 'agi-3', aga_id: 'aga-1', sort_order: 3, majority_rule: 'qualified_2_3',
+        title: 'Contractarea unui credit pentru reabilitarea termică',
+        description: 'Lucrare majoră — necesită o majoritate calificată de două treimi.',
+        votes: { pentru: 11, contra: 8, abtinere: 2 }, my_vote: null,
+      },
+    ],
+  },
+  {
+    id: 'aga-2',
+    asociatie_id: 'demo-asoc',
+    title: 'AGA extraordinară — înlocuire lift',
+    scheduled_at: agaTime(18),
+    location: '',
+    scheduled_online: true,
+    required_quorum_percent: 50,
+    status: 'convocata',
+    total_apartments: 40,
+    represented_apartments: 0,
+    my_rsvp: null,
+    agenda: [
+      {
+        id: 'agi-4', aga_id: 'aga-2', sort_order: 1, majority_rule: 'qualified_2_3',
+        title: 'Aprobarea înlocuirii liftului din scara A',
+        description: 'Selectarea ofertei și aprobarea cheltuielii.',
+        votes: { pentru: 0, contra: 0, abtinere: 0 }, my_vote: null,
+      },
+      {
+        id: 'agi-5', aga_id: 'aga-2', sort_order: 2, majority_rule: 'simple',
+        title: 'Mandatarea comitetului pentru semnarea contractului',
+        description: 'Împuternicirea comitetului să semneze cu ofertantul câștigător.',
+        votes: { pentru: 0, contra: 0, abtinere: 0 }, my_vote: null,
+      },
+    ],
+  },
+  {
+    id: 'aga-3',
+    asociatie_id: 'demo-asoc',
+    title: 'AGA ordinară 2025',
+    scheduled_at: agaTime(-210),
+    location: 'Sala de ședințe, parter scara A',
+    scheduled_online: false,
+    required_quorum_percent: 50,
+    status: 'incheiata',
+    total_apartments: 40,
+    represented_apartments: 29,
+    my_rsvp: 'prezent',
+    agenda: [
+      {
+        id: 'agi-6', aga_id: 'aga-3', sort_order: 1, majority_rule: 'simple',
+        title: 'Aprobarea descărcării de gestiune pe 2024',
+        description: 'Pe baza raportului cenzorului.',
+        votes: { pentru: 25, contra: 3, abtinere: 1 }, my_vote: 'pentru',
+      },
+      {
+        id: 'agi-7', aga_id: 'aga-3', sort_order: 2, majority_rule: 'absolute',
+        title: 'Alegerea noului comitet executiv',
+        description: 'Pentru un mandat de doi ani.',
+        votes: { pentru: 22, contra: 5, abtinere: 2 }, my_vote: 'pentru',
+      },
+    ],
+  },
+];
 
 // F13 — Prioritizare proiecte mari.
 export const DEMO_PRIORITIES: PriorityProject[] = [

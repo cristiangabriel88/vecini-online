@@ -848,6 +848,52 @@ export interface BudgetCycle {
   proposals: BudgetProposal[];
 }
 
+/** F10 — digital General Assembly (AGA), per Legea 196/2018. Tables `agas`,
+ *  `aga_agenda_items`, `aga_attendees`, `aga_votes`. */
+export type AgaStatus = 'convocata' | 'in_desfasurare' | 'incheiata';
+export type AgaDecision = 'pentru' | 'contra' | 'abtinere';
+/** A resident's attendance choice for an AGA (null = not yet answered). */
+export type AgaRsvp = 'prezent' | 'absent' | 'procura' | null;
+
+export interface AgaVoteCounts {
+  pentru: number;
+  contra: number;
+  abtinere: number;
+}
+
+export interface AgaAgendaItem {
+  id: string;
+  aga_id: string;
+  sort_order: number;
+  title: string;
+  description: string;
+  /** Majority rule required to adopt this item (shared with the polls engine). */
+  majority_rule: MajorityRule;
+  /** Apartment votes already cast, excluding the current demo apartment. */
+  votes: AgaVoteCounts;
+  /** The current demo apartment's vote on this item, if cast. */
+  my_vote: AgaDecision | null;
+}
+
+export interface AgaMeeting {
+  id: string;
+  asociatie_id: string;
+  title: string;
+  /** ISO datetime of the assembly. */
+  scheduled_at: string;
+  location: string;
+  scheduled_online: boolean;
+  /** Quorum required for valid decisions, as a percent of all apartments. */
+  required_quorum_percent: number;
+  status: AgaStatus;
+  total_apartments: number;
+  /** Apartments represented (present or by proxy), excluding the current demo apartment. */
+  represented_apartments: number;
+  /** The current demo apartment's RSVP. */
+  my_rsvp: AgaRsvp;
+  agenda: AgaAgendaItem[];
+}
+
 /** F13 — major-project priority ranking (`project_priorities` +
  *  `priority_rankings`). `rank` is 1-based; lower means higher priority. */
 export interface PriorityProject {

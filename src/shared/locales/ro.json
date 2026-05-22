@@ -973,6 +973,60 @@
     "added": "Propunere adăugată.",
     "empty": "Nicio propunere încă. Adaugă prima cu butonul de mai sus."
   },
+  "aga": {
+    "title": "AGA digitală",
+    "subtitle": "Adunarea Generală a asociației, conform Legii 196/2018: convocator, ordine de zi, cvorum, prezență (sau procură) și vot pe fiecare punct.",
+    "new": "AGA nouă",
+    "empty": "Nicio adunare programată. Convoacă prima cu butonul de mai sus.",
+    "online": "Online",
+    "noLocation": "Locație nestabilită",
+    "quorum": "Reprezentate {{present}} din {{total}} apartamente ({{percent}}%)",
+    "quorumMet": "Cvorum întrunit",
+    "quorumNotMet": "Cvorum neîntrunit (necesar {{percent}}%)",
+    "attendance": "Prezența ta",
+    "agenda": "Ordinea de zi",
+    "agendaEmpty": "Niciun punct pe ordinea de zi încă.",
+    "addItem": "Adaugă punct pe ordinea de zi",
+    "openMeeting": "Deschide adunarea",
+    "closeMeeting": "Închide adunarea",
+    "downloadPv": "Descarcă proces-verbal",
+    "pvDownloaded": "Proces-verbal descărcat.",
+    "meetingAdded": "Adunare convocată.",
+    "itemAdded": "Punct adăugat pe ordinea de zi.",
+    "meetingTitle": "Titlul adunării",
+    "date": "Data și ora",
+    "location": "Locul",
+    "onlineMeeting": "Adunare online",
+    "itemTitle": "Titlul punctului",
+    "itemDesc": "Descriere (opțional)",
+    "majorityRule": "Majoritatea necesară",
+    "tally": "Pentru {{pentru}} · Contra {{contra}} · Abțineri {{abtinere}}",
+    "status": {
+      "convocata": "Convocată",
+      "in_desfasurare": "În desfășurare",
+      "incheiata": "Încheiată"
+    },
+    "rsvp": {
+      "prezent": "Prezent",
+      "procura": "Prin procură",
+      "absent": "Absent"
+    },
+    "rule": {
+      "simple": "Majoritate simplă (pentru > contra)",
+      "absolute": "Majoritate absolută (jumătate plus unu)",
+      "qualified_2_3": "Majoritate calificată (două treimi)"
+    },
+    "decision": {
+      "pentru": "Pentru",
+      "contra": "Contra",
+      "abtinere": "Abținere"
+    },
+    "outcome": {
+      "adoptat": "Adoptat",
+      "respins": "Respins",
+      "in_asteptare": "În așteptare"
+    }
+  },
   "priorities": {
     "title": "Prioritizare proiecte mari",
     "subtitle": "Ordonează proiectele majore după prioritate. Comitetul folosește clasamentul înainte de propunerea formală la AGA.",

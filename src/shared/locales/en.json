@@ -971,6 +971,60 @@
     "added": "Proposal added.",
     "empty": "No proposals yet. Add the first with the button above."
   },
+  "aga": {
+    "title": "Digital general assembly",
+    "subtitle": "The association's General Assembly per Law 196/2018: notice, agenda, quorum, attendance (or proxy) and a vote on each item.",
+    "new": "New assembly",
+    "empty": "No assembly scheduled. Convene the first with the button above.",
+    "online": "Online",
+    "noLocation": "Location not set",
+    "quorum": "{{present}} of {{total}} apartments represented ({{percent}}%)",
+    "quorumMet": "Quorum met",
+    "quorumNotMet": "Quorum not met (need {{percent}}%)",
+    "attendance": "Your attendance",
+    "agenda": "Agenda",
+    "agendaEmpty": "No agenda items yet.",
+    "addItem": "Add agenda item",
+    "openMeeting": "Open the assembly",
+    "closeMeeting": "Close the assembly",
+    "downloadPv": "Download minutes",
+    "pvDownloaded": "Minutes downloaded.",
+    "meetingAdded": "Assembly convened.",
+    "itemAdded": "Agenda item added.",
+    "meetingTitle": "Assembly title",
+    "date": "Date and time",
+    "location": "Location",
+    "onlineMeeting": "Online assembly",
+    "itemTitle": "Item title",
+    "itemDesc": "Description (optional)",
+    "majorityRule": "Majority required",
+    "tally": "For {{pentru}} · Against {{contra}} · Abstain {{abtinere}}",
+    "status": {
+      "convocata": "Convened",
+      "in_desfasurare": "In progress",
+      "incheiata": "Concluded"
+    },
+    "rsvp": {
+      "prezent": "Present",
+      "procura": "By proxy",
+      "absent": "Absent"
+    },
+    "rule": {
+      "simple": "Simple majority (for > against)",
+      "absolute": "Absolute majority (half plus one)",
+      "qualified_2_3": "Qualified majority (two thirds)"
+    },
+    "decision": {
+      "pentru": "For",
+      "contra": "Against",
+      "abtinere": "Abstain"
+    },
+    "outcome": {
+      "adoptat": "Adopted",
+      "respins": "Rejected",
+      "in_asteptare": "Pending"
+    }
+  },
   "priorities": {
     "title": "Major-project priorities",
     "subtitle": "Rank major projects by priority. The committee uses the ranking before the formal AGA proposal.",

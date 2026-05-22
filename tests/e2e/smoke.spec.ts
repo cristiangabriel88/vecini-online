@@ -269,6 +269,14 @@ test('F12: resident can vote on a budget proposal', async ({ page }) => {
   await expect(page.getByRole('button', { name: /Votat/i }).first()).toBeVisible();
 });
 
+test('F10: proprietar can vote on an AGA agenda item', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/aga');
+  await page.getByRole('button', { name: /AGA ordinară 2026/i }).click();
+  await page.getByRole('button', { name: 'Pentru', exact: true }).first().click();
+  await expect(page.getByText(/Pentru \d+ ·/).first()).toBeVisible();
+});
+
 test('F13: resident can reorder project priorities', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/prioritati');

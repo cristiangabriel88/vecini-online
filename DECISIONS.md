@@ -2,6 +2,34 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## F10 AGA digitală — scope of "legally-valid PV" and quorum/vote modeling
+
+The spec asks for a Legea 196/2018-compliant General Assembly that "generates a
+legally-valid proces-verbal as PDF". Two pragmatic decisions kept this shippable
+without new dependencies while preserving the real shape:
+
+- **Proces-verbal as downloadable plain text, not a rendered PDF.** Adding a
+  client PDF engine (pdfmake/jsPDF, ~hundreds of KB) for one document would blow
+  the bundle budget for little gain in demo mode. `generateProcesVerbal` builds a
+  structured, signature-ready Romanian minutes document (title, date, place,
+  represented apartments + quorum verdict, each agenda item with its vote tally
+  and adoptat/respins decision, and the Legea 196/2018 footer) and the page
+  downloads it as `proces-verbal-<id>.txt`. The PV text is **always Romanian**
+  regardless of UI language because it is a legal document. Swapping the Blob for
+  a server-side PDF render is a later, isolated change.
+- **Quorum and voting are modeled per-apartment with the current demo apartment
+  tracked separately.** Each meeting carries `represented_apartments` (everyone
+  else) and the current apartment's `my_rsvp`; `presentApartments` adds the
+  current apartment when it is `prezent` or `procura` (a proxy still represents an
+  apartment). Each agenda item carries `votes` (everyone else) and `my_vote`;
+  `itemTally` folds the current vote in. Outcomes require quorum, then apply the
+  item's `MajorityRule` (reused from the polls engine): `simple` (pentru >
+  contra), `absolute` (pentru > total/2), `qualified_2_3` (pentru ≥ ⅔ of votes
+  cast). RSVP and voting are independent in demo (we do not force presence before
+  a vote) to keep the flow one-tap; the backend `aga_votes` insert policy still
+  scopes voting to an `in_desfasurare` assembly within the asociație.
+
+
 ## Product name: IntreVecini vs. BlocHub
 
 The repository, environment, and master prompt name the product **IntreVecini**.
