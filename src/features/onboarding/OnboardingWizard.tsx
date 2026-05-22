@@ -50,8 +50,9 @@ export default function OnboardingWizard() {
     // Create the asociație locally (founder becomes its admin and it is selected
     // as active), so the user clears the RequireAsociatie gate and lands in a
     // real tenant context. Live persistence is a separate activation step (T55).
-    createLocalAsociatie(profile.name);
-    setAll(selected);
+    const asociatieId = createLocalAsociatie(profile.name);
+    // Scope the chosen feature set to the new asociație so its flags are its own.
+    setAll(asociatieId, selected);
     toast.success(t('onboarding.finishHint'));
     navigate('/app');
   };

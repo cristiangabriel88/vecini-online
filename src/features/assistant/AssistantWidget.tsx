@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { MessageCircle, X, Send, Sparkles, ArrowUpRight } from 'lucide-react';
 import { useAssistantStore } from '@/shared/store/assistantStore';
 import { useAuthStore } from '@/shared/store/authStore';
-import { useFeatureStore } from '@/shared/features/featureStore';
+import { useAsociatieFlags } from '@/shared/features/featureStore';
 import { KNOWLEDGE_BASE } from '@/features/assistant/knowledge';
 import { DATA_ENTRIES } from '@/features/assistant/dataSources';
 import { visibleEntries } from '@/features/assistant/visibility';
@@ -28,7 +28,7 @@ export function AssistantWidget() {
   const setTyping = useAssistantStore((s) => s.setTyping);
 
   const role = useAuthStore((s) => s.memberships[0]?.role ?? null);
-  const flags = useFeatureStore((s) => s.flags);
+  const flags = useAsociatieFlags();
 
   const [input, setInput] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);

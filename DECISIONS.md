@@ -199,8 +199,15 @@ not-configured check.
 - Server/async state: React Query (configured, used where a backend exists).
 - Demo/interactive data: small per-feature Zustand stores seeded from
   `src/shared/demo/demoData.ts` so create/vote/RSVP actions work offline.
-- Feature flags: a persisted Zustand store (`featureStore`) seeded from the
-  recommended set; with a backend this is hydrated from `asociatie_features`.
+- Feature flags: a persisted Zustand store (`featureStore`) keyed by asociație
+  (`byAsociatie: Record<asociatieId, flags>`), seeded with the recommended set for
+  the demo asociație (T43). The active asociație's set is resolved via the
+  `useAsociatieFlags()` hook from `authStore.currentAsociatieId`, so different
+  local asociații can enable different modules; pure resolution/mutation lives in
+  `featureFlagsLogic`. Persisted at `intrevecini.features` with a `version: 2`
+  migrate that carries a pre-T43 flat `flags` map onto the demo asociație. With a
+  backend an asociație's set is hydrated from / written back to `asociatie_features`
+  (live activation is T56).
 
 ## i18n structure
 

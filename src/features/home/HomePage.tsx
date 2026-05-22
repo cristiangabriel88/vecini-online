@@ -4,7 +4,7 @@ import { Card } from '@/shared/components/Card';
 import { Badge } from '@/shared/components/Badge';
 import { Icon } from '@/shared/components/Icon';
 import { PageHeader } from '@/shared/components/PageHeader';
-import { useFeatureStore } from '@/shared/features/featureStore';
+import { useAsociatieFlags } from '@/shared/features/featureStore';
 import { FEATURES, featureTitle } from '@/shared/features/registry';
 import { DEMO_ASOCIATIE } from '@/shared/demo/demoData';
 import { useAnnouncementsStore } from '@/features/announcements/announcementsStore';
@@ -13,7 +13,7 @@ import { formatDateTime } from '@/shared/lib/format';
 
 export default function HomePage() {
   const { t } = useTranslation();
-  const flags = useFeatureStore((s) => s.flags);
+  const flags = useAsociatieFlags();
   const announcements = useAnnouncementsStore((s) => s.items);
   const shortcuts = FEATURES.filter((f) => flags[f.key] && f.path).slice(0, 6);
 

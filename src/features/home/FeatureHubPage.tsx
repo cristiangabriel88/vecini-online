@@ -12,7 +12,7 @@ import {
   featureDescription,
   type FeatureCategory,
 } from '@/shared/features/registry';
-import { useFeatureStore } from '@/shared/features/featureStore';
+import { useAsociatieFlags } from '@/shared/features/featureStore';
 
 const ACTION_CATEGORIES: FeatureCategory[] = ['maintenance', 'governance', 'spaces'];
 
@@ -20,7 +20,7 @@ const ACTION_CATEGORIES: FeatureCategory[] = ['maintenance', 'governance', 'spac
  *  categories (Acțiuni tab); otherwise everything (Mai mult tab). */
 export function FeatureHubPage({ actions = false }: { actions?: boolean }) {
   const { t } = useTranslation();
-  const flags = useFeatureStore((s) => s.flags);
+  const flags = useAsociatieFlags();
   const categories = (Object.keys(FEATURE_CATEGORIES) as FeatureCategory[]).filter((c) =>
     actions ? ACTION_CATEGORIES.includes(c) : true,
   );

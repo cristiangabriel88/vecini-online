@@ -12,11 +12,13 @@ import {
   featureDescription,
   type FeatureCategory,
 } from '@/shared/features/registry';
-import { useFeatureStore } from '@/shared/features/featureStore';
+import { useAsociatieFlags, useFeatureStore } from '@/shared/features/featureStore';
+import { useAuthStore } from '@/shared/store/authStore';
 
 export default function FeaturesAdminPage() {
   const { t } = useTranslation();
-  const flags = useFeatureStore((s) => s.flags);
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const flags = useAsociatieFlags();
   const setFlag = useFeatureStore((s) => s.setFlag);
   const categories = Object.keys(FEATURE_CATEGORIES) as FeatureCategory[];
 
@@ -42,7 +44,8 @@ export default function FeaturesAdminPage() {
                   <Switch
                     label={`${featureTitle(t, f)}: ${flags[f.key] ? t('features.enabled') : t('features.disabled')}`}
                     checked={Boolean(flags[f.key])}
-                    onChange={(v) => setFlag(f.key, v)}
+                    disabled={!asociatieId}
+                    onChange={(v) => asociatieId && setFlag(asociatieId, f.key, v)}
                   />
                 </div>
               ))}

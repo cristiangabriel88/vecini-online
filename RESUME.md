@@ -18,7 +18,24 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T42 resident join via invite code)
+## 0. Current status (updated 2026-05-23, T43 per-asociație feature flags)
+
+- **2026-05-23 — T43 (P1) per-asociație feature flags from a local store.** New
+  pure, unit-tested `featureFlagsLogic` (`seedFlags` → demo asociație gets
+  `DEMO_FEATURES`; `flagsForAsociatie` returns the stored map or a shared frozen
+  empty default for a stable selector reference; `isFeatureEnabled`; pure
+  `setFlagIn`/`setAllIn`; `migrateFlatFlags` carrying the old flat shape onto the
+  demo asociație). `featureStore` is now keyed by asociație (`byAsociatie`),
+  persisted at `intrevecini.features` with `version: 2` + a migrate; `setFlag`/
+  `setAll` take an asociație id, and a new `useAsociatieFlags()` hook resolves the
+  active asociație's set from `authStore.currentAsociatieId` (no store cycle).
+  `useFeature`/`FeatureGate` and all nav/home/assistant/admin consumers now read
+  the active asociație's flags; `FeaturesAdminPage` toggles scope to the active
+  asociație; `OnboardingWizard.finish()` scopes its chosen set to the new asociație
+  id. Demo unchanged (demo entry → `currentAsociatieId='demo-asoc'`). Single source
+  for T44 route gating. Pipeline green: lint, typecheck, 85 files / 503 tests,
+  build. Surfaced T63 (show the active asociație + empty-state on
+  `FeaturesAdminPage`). Live `asociatie_features` read/write is T56.
 
 - **2026-05-23 — T42 (P1) resident join via invite code.** New pure
   `buildMembershipFromInvite(userId, invite)` in `inviteLogic` (joiner enters the

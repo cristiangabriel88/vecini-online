@@ -1,33 +1,63 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { DEMO_FEATURES } from '@/shared/demo/demoData';
+import { useAuthStore } from '@/shared/store/authStore';
+import {
+  type FeatureFlags,
+  type FlagsByAsociatie,
+  flagsForAsociatie,
+  migrateFlatFlags,
+  seedFlags,
+  setAllIn,
+  setFlagIn,
+} from './featureFlagsLogic';
 
 interface FeatureState {
-  /** map of feature_key -> enabled */
-  flags: Record<string, boolean>;
-  setFlag: (key: string, enabled: boolean) => void;
-  setAll: (flags: Record<string, boolean>) => void;
-  isEnabled: (key: string) => boolean;
+  /** Enabled feature set per asociație, keyed by asociație id. */
+  byAsociatie: FlagsByAsociatie;
+  /** Toggle a single feature for one asociație. */
+  setFlag: (asociatieId: string, key: string, enabled: boolean) => void;
+  /** Replace the whole flag set for one asociație (e.g. onboarding). */
+  setAll: (asociatieId: string, flags: FeatureFlags) => void;
+  /** The enabled set for one asociație (stable reference). */
+  flagsFor: (asociatieId: string | null) => FeatureFlags;
 }
 
 /**
- * Holds the current asociație's feature flags. Seeded from demo data and
- * persisted locally so admin toggles survive a refresh in demo mode. With a
- * real backend, `setAll` is populated from the `asociatie_features` table.
+ * Holds each asociație's feature flags, keyed by asociație id and persisted
+ * locally so admin toggles survive a refresh and different local asociații can
+ * enable different modules. Seeded from `DEMO_FEATURES` for the demo asociație.
+ * With a real backend, an asociație's set is hydrated from / written back to
+ * `asociatie_features` (live activation is T56). This per-asociație enabled set
+ * is the single source for the nav and for route gating (T44).
  */
 export const useFeatureStore = create<FeatureState>()(
   persist(
     (set, get) => ({
-      flags: { ...DEMO_FEATURES },
-      setFlag: (key, enabled) => set((s) => ({ flags: { ...s.flags, [key]: enabled } })),
-      setAll: (flags) => set({ flags }),
-      isEnabled: (key) => Boolean(get().flags[key]),
+      byAsociatie: seedFlags(),
+      setFlag: (asociatieId, key, enabled) =>
+        set((s) => ({ byAsociatie: setFlagIn(s.byAsociatie, asociatieId, key, enabled) })),
+      setAll: (asociatieId, flags) =>
+        set((s) => ({ byAsociatie: setAllIn(s.byAsociatie, asociatieId, flags) })),
+      flagsFor: (asociatieId) => flagsForAsociatie(get().byAsociatie, asociatieId),
     }),
-    { name: 'intrevecini.features' },
+    {
+      name: 'intrevecini.features',
+      version: 2,
+      // v1 stored a single flat `flags` map shared across asociații; carry it
+      // over to the demo asociație so an existing install keeps its toggles.
+      migrate: (persisted) => ({ byAsociatie: migrateFlatFlags(persisted) }),
+    },
   ),
 );
 
-/** Hook: is a given feature enabled for the current asociație? */
+/** Hook: the enabled flag set for the currently active asociație. */
+export function useAsociatieFlags(): FeatureFlags {
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  return useFeatureStore((s) => flagsForAsociatie(s.byAsociatie, asociatieId));
+}
+
+/** Hook: is a given feature enabled for the active asociație? */
 export function useFeature(key: string): boolean {
-  return useFeatureStore((s) => Boolean(s.flags[key]));
+  const flags = useAsociatieFlags();
+  return Boolean(flags[key]);
 }

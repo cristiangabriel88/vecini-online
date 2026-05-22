@@ -3,7 +3,7 @@ import { Outlet, useLocation, useNavigate, NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Home, Megaphone, Zap, Menu, User, Bell, Moon, Sun, Settings, Search, ChevronDown, Info, Phone, Siren, ArrowUpRight, Globe, KeyRound } from 'lucide-react';
 import { FEATURES, FEATURE_CATEGORIES, categoryLabel, featureTitle, type FeatureCategory } from '@/shared/features/registry';
-import { useFeatureStore } from '@/shared/features/featureStore';
+import { useAsociatieFlags } from '@/shared/features/featureStore';
 import { useThemeStore } from '@/shared/store/themeStore';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useMfaStore } from '@/shared/store/mfaStore';
@@ -34,7 +34,7 @@ function Avatar({ name, accent, lg }: { name: string; accent?: boolean; lg?: boo
 }
 
 function useEnabledFeatures() {
-  const flags = useFeatureStore((s) => s.flags);
+  const flags = useAsociatieFlags();
   return FEATURES.filter((f) => flags[f.key]);
 }
 
@@ -214,7 +214,7 @@ function Sidebar() {
 
 function BottomNav() {
   const { t } = useTranslation();
-  const flags = useFeatureStore((s) => s.flags);
+  const flags = useAsociatieFlags();
   const isActive = useActive();
   const items = [
     { to: '/app', label: t('nav.home'), icon: Home, active: isActive() },
