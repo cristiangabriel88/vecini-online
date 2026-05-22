@@ -2,6 +2,41 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## 2FA / MFA — TOTP (T02)
+
+TOTP (RFC 6238) is the second factor, built on Supabase MFA for the live path.
+The cryptography is implemented locally (`mfaLogic`) over Web Crypto so demo mode
+genuinely verifies codes from a standard authenticator app offline, keeping the
+flow faithful and E2E-executable without a backend; the live path delegates the
+actual challenge/verify to Supabase so the secret is never trusted client-side
+in production. The logic is unit-tested against the published RFC 4226/6238
+vectors, which is why those exact secrets/codes appear in the test.
+
+Enforced roles are super_admin, admin, președinte, comitet and cenzor (the spec
+named "admin, comitet, cenzor"; președinte and super_admin are added because they
+hold the same or greater privileged access, mirroring the assistant's role
+buckets). Enforcement is a redirect to `/app/securitate` and is applied only on
+the live (backed) path — demo mode has no real backend role (memberships are
+empty → resident), so demo stays fully inspectable and the existing E2E suite is
+unaffected. The unit tests cover the role rule directly; the live-path redirect
+is queued for an E2E harness in T30.
+
+QR rendering: the live path shows Supabase's returned QR via `<img src=data:...>`
+(an SVG loaded through `<img>` cannot execute scripts, so there is no
+HTML-injection surface and no dependency added); demo mode shows the base32 setup
+key for manual entry (every authenticator supports "enter a setup key"), since
+there is no backend to mint a QR and we deliberately avoid a QR-encoder
+dependency.
+
+Recovery codes are ten single-use codes, shown once at enrollment and stored only
+as SHA-256 hashes (`mfa_recovery_codes`, owner-only RLS — no admin read path, as
+they are credentials), consumed single-use. Recovery-code *login* works fully in
+demo mode; in the live path a recovery code cannot client-side elevate a session
+to AAL2 (Supabase grants AAL2 only via an MFA verify), so live recovery-code
+login is deferred to a privileged server routine (Edge Function) — queued as T29.
+Until then the live challenge accepts only an authenticator code and surfaces a
+clear bilingual message for recovery-code attempts.
+
 ## T05 GDPR consent & legal surface — scope, ordering, lawful bases
 
 The first production-readiness task (BACKLOG.md). Three decisions:

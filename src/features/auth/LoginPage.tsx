@@ -2,13 +2,15 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { Building2, MailCheck } from 'lucide-react';
+import { Building2, MailCheck, ShieldCheck } from 'lucide-react';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
 import { Card } from '@/shared/components/Card';
 import { Atmosphere } from '@/shared/components/Atmosphere';
 import { useAuthStore } from '@/shared/store/authStore';
+import { useMfaStore } from '@/shared/store/mfaStore';
 import { isSupabaseConfigured } from '@/shared/lib/supabase';
+import { mfaErrorKey } from './mfaLogic';
 import {
   type AuthMode,
   canSubmit,
@@ -25,6 +27,8 @@ export default function LoginPage() {
   const requestPasswordReset = useAuthStore((s) => s.requestPasswordReset);
   const resendVerification = useAuthStore((s) => s.resendVerification);
   const enterDemo = useAuthStore((s) => s.enterDemo);
+  const challengeRequired = useMfaStore((s) => s.challengeRequired);
+  const verifyChallenge = useMfaStore((s) => s.verifyChallenge);
 
   const [mode, setMode] = useState<AuthMode>('signIn');
   const [email, setEmail] = useState('');
@@ -34,6 +38,10 @@ export default function LoginPage() {
   // After sign-up or password-reset request we swap the form for a confirmation
   // panel rather than navigating, so the resident sees the next step clearly.
   const [sent, setSent] = useState<'verify' | 'reset' | null>(null);
+  // When a verified second factor exists, the password step is followed by a
+  // TOTP / recovery-code challenge before the session is allowed through.
+  const [pendingMfa, setPendingMfa] = useState<'demo' | 'live' | null>(null);
+  const [mfaCode, setMfaCode] = useState('');
 
   const values = { email, password, confirmPassword };
   const passwordIssue = mode !== 'forgot' ? validatePassword(password) : null;
@@ -54,12 +62,22 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (mode === 'signIn') {
+        if (!isSupabaseConfigured) {
+          // Demo: gate entry behind the demo TOTP factor if one was enrolled.
+          if (await challengeRequired()) setPendingMfa('demo');
+          else {
+            enterDemo();
+            navigate('/app');
+          }
+          return;
+        }
         const { error } = await signIn(email, password);
         if (error) {
           toast.error(t(`auth.err.${mapAuthError(error)}`));
           return;
         }
-        navigate('/app');
+        if (await challengeRequired()) setPendingMfa('live');
+        else navigate('/app');
       } else if (mode === 'signUp') {
         const { error, needsVerification } = await signUp(email, password);
         if (error) {
@@ -90,6 +108,39 @@ export default function LoginPage() {
     else toast.success(t('auth.verifyResent'));
   };
 
+  const submitChallenge = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mfaCode.trim()) return;
+    setLoading(true);
+    try {
+      const { error } = await verifyChallenge(mfaCode);
+      if (error) {
+        toast.error(t(`auth.mfa.err.${mfaErrorKey(error)}`));
+        return;
+      }
+      if (pendingMfa === 'demo') enterDemo();
+      setMfaCode('');
+      setPendingMfa(null);
+      navigate('/app');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const enterDemoFlow = async () => {
+    if (await challengeRequired()) setPendingMfa('demo');
+    else {
+      enterDemo();
+      navigate('/app');
+    }
+  };
+
+  const cancelChallenge = () => {
+    setPendingMfa(null);
+    setMfaCode('');
+    setPassword('');
+  };
+
   const titleKey =
     mode === 'signIn' ? 'auth.signInTitle' : mode === 'signUp' ? 'auth.signUpTitle' : 'auth.forgotTitle';
 
@@ -116,7 +167,33 @@ export default function LoginPage() {
       </div>
 
       <Card className="w-full max-w-sm">
-        {sent ? (
+        {pendingMfa ? (
+          <form onSubmit={submitChallenge} className="space-y-4">
+            <div className="flex flex-col items-center text-center">
+              <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <ShieldCheck className="h-6 w-6" />
+              </div>
+              <h2 className="text-lg font-semibold">{t('auth.mfa.challengeTitle')}</h2>
+              <p className="mt-1 text-sm text-muted">{t('auth.mfa.challengeBody')}</p>
+            </div>
+            <Input
+              label={t('auth.mfa.codeLabel')}
+              inputMode="text"
+              autoComplete="one-time-code"
+              autoFocus
+              value={mfaCode}
+              onChange={(e) => setMfaCode(e.target.value)}
+              hint={t('auth.mfa.challengeHint')}
+              required
+            />
+            <Button type="submit" className="w-full" loading={loading} disabled={!mfaCode.trim()}>
+              {t('auth.mfa.verify')}
+            </Button>
+            <button type="button" className="auth-link block w-full text-center" onClick={cancelChallenge}>
+              {t('auth.backToSignIn')}
+            </button>
+          </form>
+        ) : sent ? (
           <div className="space-y-3 text-center">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
               <MailCheck className="h-6 w-6" />
@@ -228,10 +305,7 @@ export default function LoginPage() {
               <Button
                 variant="secondary"
                 className="mt-3 w-full"
-                onClick={() => {
-                  enterDemo();
-                  navigate('/app');
-                }}
+                onClick={() => void enterDemoFlow()}
               >
                 {t('auth.enterDemo')}
               </Button>

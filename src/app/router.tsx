@@ -7,6 +7,7 @@ import { SkeletonList } from '@/shared/components/Skeleton';
 
 const LoginPage = lazy(() => import('@/features/auth/LoginPage'));
 const ResetPasswordPage = lazy(() => import('@/features/auth/ResetPasswordPage'));
+const SecurityPage = lazy(() => import('@/features/auth/SecurityPage'));
 const PrivacyPolicyPage = lazy(() => import('@/features/legal/PrivacyPolicyPage'));
 const TermsPage = lazy(() => import('@/features/legal/TermsPage'));
 const CookiePolicyPage = lazy(() => import('@/features/legal/CookiePolicyPage'));
@@ -175,6 +176,7 @@ export const router = createBrowserRouter([
       { path: 'actiuni', element: <S><FeatureHubPage actions /></S> },
       { path: 'mai-mult', element: <S><FeatureHubPage /></S> },
       { path: 'profil', element: <S><ProfilePage /></S> },
+      { path: 'securitate', element: <S><SecurityPage /></S> },
       { path: 'notificari', element: <S><NotificationsPage /></S> },
       { path: 'confidentialitate', element: <S><PrivacySettingsPage /></S> },
       { path: 'admin/functionalitati', element: <S><FeaturesAdminPage /></S> },

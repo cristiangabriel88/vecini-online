@@ -630,3 +630,24 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 - **Human-feel layer (still 100% non-generative → jailbreak-proof by construction):** handles small talk (greetings, thanks, "cine ești", "ce poți face") with varied canned replies; rotates phrasing of social/clarify/fallback lines by turn index; tolerates typos (bounded one-edit incl. transposition, e.g. *spalatorei* → laundry); asks "la care te referi?" when two topics tie instead of guessing; and shows a brief typing indicator before each reply (reduced-motion aware). Factual answers stay concise/unchanged. Any prompt-injection attempt simply has no model to manipulate — it falls through to the friendly fallback and can never surface a role-filtered-out entry.
 - **Files:** `src/features/assistant/{knowledge,match,visibility,engine,dataSources,smalltalk}.ts`, `AssistantWidget.tsx`, `src/shared/store/assistantStore.ts`, `src/styles/assistant.css`; mounted in `AppLayout`. `assistant.*` locale keys in ro/en (incl. `social`/`clarifyVariants`/`fallbackVariants`/`typing`). Unit-tested (match + typos + visibility + data lookups incl. consent-masking + small talk + engine social/clarify/no-leak).
 - **Phase 2 (planned):** broaden live data answers (open polls, my sesizare status, my bookings) and swap `dataSources.ts` from demo fixtures to Supabase queries under existing RLS.
+
+### Two-factor authentication (2FA / TOTP) ✅
+- **Audience:** every signed-in resident; mandatory for privileged roles (super_admin, admin, președinte, comitet, cenzor)
+- **Description:** Account-level second factor (BACKLOG T02). A resident enables
+  TOTP from `/app/securitate`: a QR (live, via Supabase MFA) or a manual setup
+  key (demo), confirmed by a 6-digit code, after which ten single-use recovery
+  codes are shown once (copy/download). At the next sign-in the password step is
+  followed by a TOTP / recovery-code challenge before the session is allowed
+  through. The crypto is real (RFC 6238 over Web Crypto), so demo mode genuinely
+  verifies codes from a standard authenticator app offline; the live path
+  delegates challenge/verify to Supabase MFA. Privileged roles are steered to the
+  security page until they enrol. Recovery codes are stored only as SHA-256
+  hashes and consumed single-use. Bilingual RO/EN, accessible.
+- **Files:** `src/features/auth/{mfaLogic,SecurityPage}.tsx/.ts` (+ login
+  challenge in `LoginPage.tsx`), `src/shared/store/mfaStore.ts`, enforcement in
+  `src/app/AppLayout.tsx`, route `/app/securitate`, `auth.mfa.*` locale keys
+  (RO/EN), `/securitate` bot command, additive `mfa_recovery_codes` migration
+  (hashed, owner-only RLS). Unit-tested against the RFC 4226/6238 vectors plus
+  recovery-code single-use and role enforcement; one E2E happy-path (enrol →
+  recovery codes → challenged at next sign-in). Live recovery-code login needs a
+  server routine (BACKLOG T29). See DECISIONS.md.

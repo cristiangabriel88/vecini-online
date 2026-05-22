@@ -96,6 +96,7 @@ const FEATURE_COMMANDS: Record<string, string> = {
   '/cod_siguranta': '🔒 Cod de siguranță — stabilește o parolă împotriva escrocheriilor telefonice și o listă privată de persoane de încredere, vizibilă doar ție, în secțiunea „Cod de siguranță”.',
   '/evacuare': '🗺 Plan de evacuare — vezi traseul de evacuare, unde sunt stingătoarele, hidranții și ieșirile, și marchează prezența animalelor pentru pompieri, în secțiunea „Plan de evacuare”.',
   '/apartament_meu': '🚪 Informații apartament — vezi datele apartamentului tău, istoricul indexurilor la contoare, sesizările trimise și voturile exprimate în secțiunea „Informații apartament”.',
+  '/securitate': '🔐 Securitate cont — activează autentificarea în doi pași (2FA) cu o aplicație de autentificare, generează coduri de recuperare și gestionează-ți factorul al doilea în secțiunea „Securitate”. Obligatorie pentru rolurile de administrare.',
 };
 
 async function handleMessage(msg: TelegramMessage) {

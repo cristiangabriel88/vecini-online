@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Settings,
   Bell,
+  ShieldCheck,
   Info,
   LifeBuoy,
   Mail,
@@ -155,6 +156,12 @@ export function UserMenu() {
               label={t('chrome.userMenu.notifications')}
               desc={t('chrome.userMenu.notificationsDesc')}
               onClick={() => go('/app/notificari')}
+            />
+            <Item
+              icon={<ShieldCheck size={17} />}
+              label={t('chrome.userMenu.security')}
+              desc={t('chrome.userMenu.securityDesc')}
+              onClick={() => go('/app/securitate')}
             />
           </div>
 

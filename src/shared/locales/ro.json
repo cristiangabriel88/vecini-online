@@ -154,6 +154,47 @@
       "rateLimited": "Prea multe încercări. Încearcă din nou peste câteva minute.",
       "samePassword": "Noua parolă trebuie să fie diferită de cea veche.",
       "generic": "A apărut o eroare. Încearcă din nou."
+    },
+    "mfa": {
+      "subtitle": "Adaugă un al doilea factor de autentificare pentru a-ți proteja contul.",
+      "intro": "Autentificarea în doi pași cere, pe lângă parolă, un cod dintr-o aplicație de autentificare la fiecare conectare.",
+      "statusOn": "Autentificare în doi pași activă",
+      "statusOff": "Autentificare în doi pași dezactivată",
+      "statusOnBody": "Contul tău este protejat cu un cod suplimentar la conectare.",
+      "requiredNotice": "Rolul tău administrează date și fonduri ale asociației, așa că autentificarea în doi pași este obligatorie. Activeaz-o pentru a continua.",
+      "enable": "Activează 2FA",
+      "enrollTitle": "Configurează autentificarea în doi pași",
+      "step1": "1. Scanează codul QR cu o aplicație de autentificare (Google Authenticator, Authy, 1Password).",
+      "step2": "2. Introdu codul de 6 cifre afișat de aplicație pentru a confirma.",
+      "manualHint": "Nu poți scana? Adaugă o intrare nouă manual în aplicația de autentificare folosind cheia de mai jos.",
+      "manualKey": "Cheie de configurare",
+      "qrAlt": "Cod QR pentru autentificare în doi pași",
+      "codeLabel": "Cod din aplicație",
+      "codeHint": "6 cifre din aplicația de autentificare.",
+      "verifyEnable": "Verifică și activează",
+      "verify": "Verifică",
+      "enabledToast": "Autentificarea în doi pași a fost activată.",
+      "disabledToast": "Autentificarea în doi pași a fost dezactivată.",
+      "disable": "Dezactivează 2FA",
+      "disableTitle": "Dezactivezi autentificarea în doi pași?",
+      "disableWarn": "Contul tău va fi protejat doar de parolă. Poți reactiva oricând.",
+      "disableWarnRequired": "Rolul tău necesită autentificare în doi pași. Dacă o dezactivezi, va trebui să o configurezi din nou înainte de a folosi aplicația.",
+      "regenerate": "Regenerează codurile de recuperare",
+      "recoveryTitle": "Coduri de recuperare",
+      "recoveryBody": "Păstrează aceste coduri într-un loc sigur. Fiecare cod poate fi folosit o singură dată pentru a te conecta dacă pierzi accesul la aplicația de autentificare.",
+      "copy": "Copiază",
+      "copied": "Codurile au fost copiate.",
+      "download": "Descarcă",
+      "savedCodes": "Am salvat codurile",
+      "challengeTitle": "Verificare în doi pași",
+      "challengeBody": "Introdu codul din aplicația de autentificare.",
+      "challengeHint": "Cod de 6 cifre sau un cod de recuperare.",
+      "err": {
+        "invalidCode": "Cod incorect. Încearcă din nou.",
+        "recoveryLiveUnavailable": "Conectarea cu un cod de recuperare nu este încă disponibilă online. Folosește aplicația de autentificare.",
+        "notEnrolled": "Autentificarea în doi pași nu este activată.",
+        "generic": "A apărut o eroare. Încearcă din nou."
+      }
     }
   },
   "nav": {
@@ -167,7 +208,8 @@
     "apartments": "Apartamente",
     "members": "Membri",
     "audit": "Jurnal audit",
-    "notifications": "Notificări"
+    "notifications": "Notificări",
+    "security": "Securitate"
   },
   "onboarding": {
     "title": "Configurarea asociației",
@@ -1643,6 +1685,8 @@
       "settingsDesc": "Date personale, asociație și preferințe",
       "notifications": "Notificări",
       "notificationsDesc": "Alerte, mesaje și anunțuri",
+      "security": "Securitate",
+      "securityDesc": "Autentificare în doi pași",
       "appearance": "Aspect",
       "language": "Limbă",
       "tint": "Accent",

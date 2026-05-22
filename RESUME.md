@@ -21,15 +21,16 @@ accurate for architecture/data/feature specs.
 ## 0. Current status (updated 2026-05-22)
 
 - **Two phases. Phase 1 (features): 65 / 65 built end-to-end (100%, `BUILD_COMPLETE`).
-  Phase 2 (production + legal readiness, `BACKLOG.md`): 2 tasks done (T05, T01).**
+  Phase 2 (production + legal readiness, `BACKLOG.md`): 3 tasks done (T05, T01, T02).**
   The app is feature-complete but not yet legally deployable for real residents:
-  remaining go-live blockers are 2FA (T02), session hardening (T03), the
+  remaining go-live blockers are session hardening (T03), the
   RLS/tenant-isolation audit (T04), GDPR data-subject rights — export + erasure
   (T06), and the DPA + records of processing / breach procedure (T21/T22). T01
-  (live Supabase auth) is now wired; its follow-ups T27 (post-auth association
-  onboarding) and T28 (profile/membership hydration) are queued at P1. Honest
-  "ready to run legally" estimate: feature surface ~100%, production/legal
-  hardening ~2 of 28 tasks.
+  (live Supabase auth) and T02 (2FA/MFA) are now wired; their follow-ups T27
+  (post-auth association onboarding), T28 (profile/membership hydration), T29
+  (live recovery-code login), T30 (live MFA enforcement E2E) and T31 (MFA
+  challenge throttling) are queued at P1. Honest "ready to run legally" estimate:
+  feature surface ~100%, production/legal hardening ~3 of 31 tasks.
 - **The autonomous loop now drives Phase 2.** `run-overnight.sh` runs the
   `make progress` one-task protocol off `BACKLOG.md` (not the finished
   FEATURES.md build). When the queue empties it does not stop: it runs an
@@ -37,7 +38,26 @@ accurate for architecture/data/feature specs.
   tasks, so the loop keeps raising the quality bar until a genuine stall, a
   task/time budget, or an interrupt. Trigger continuously with the script, or one
   task at a time by typing `make progress`.
-- **Completed most recently (T01): live Supabase auth wiring.** Real email +
+- **Completed most recently (T02): 2FA / MFA (TOTP).** Account-level second
+  factor built on Supabase MFA, with a fully-offline demo path. Pure `mfaLogic`
+  is a self-contained RFC 6238 / RFC 4226 implementation over Web Crypto (base32
+  codec, HOTP/TOTP, drift window) plus single-use recovery-code
+  generation/SHA-256 hashing/consumption, the `requiresMfa` role rule, the
+  `challengeNeeded` AAL state machine and `mfaErrorKey` — unit-tested against the
+  published RFC vectors. `mfaStore` orchestrates both paths (Supabase MFA
+  enroll/challenge/verify/unenroll live; real TOTP verification + working
+  recovery codes in demo, persisted). `SecurityPage` (`/app/securitate`) does
+  enroll (QR live / manual setup key demo) → 6-digit confirm → ten recovery codes
+  shown once (copy/download) → regenerate / disable. `LoginPage` gained a
+  post-password TOTP/recovery challenge; `AppLayout` steers privileged
+  un-enrolled users to the security page in the live path (demo stays unblocked).
+  Recovery codes are stored only as SHA-256 hashes (`mfa_recovery_codes`
+  migration, owner-only RLS), consumed single-use. RO/EN `auth.mfa.*` locales,
+  `/securitate` bot command, UserMenu link. Unit test + one E2E happy-path
+  (enrol → recovery codes → challenged at next sign-in). New tasks fed into the
+  queue: T29 live recovery-code login, T30 live enforcement E2E, T31 MFA
+  challenge throttling.
+- **Completed earlier (T01): live Supabase auth wiring.** Real email +
   password sign-up/login, email verification, and password reset on Supabase
   Auth, with the `isSupabaseConfigured` demo fallback fully intact. Pure
   `authLogic` (email/password validation, per-mode `canSubmit`, `mapAuthError`
@@ -143,7 +163,7 @@ accurate for architecture/data/feature specs.
   F25/F26 booking pattern. Note: the working tree is clean — F21, the help
   assistant, and all earlier slices are committed (latest: `bfabf0e` help
   assistant; `83119ed` F21 + polish).
-- **Pipeline:** `npm run lint`, `npm run typecheck`, `npm test` (71 files / 354
+- **Pipeline:** `npm run lint`, `npm run typecheck`, `npm test` (73 files / 393
   unit tests), and `npm run build` all pass.
 - **Remaining (0 of the original 65):** none — all F01–F65 are ✅.
 - **Planned for the future (2, not yet specced into schema):** F66 Profil complet
