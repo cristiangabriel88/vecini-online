@@ -13,31 +13,33 @@ This is a **self-improving loop**: doing a task surfaces problems and ideas, whi
 
 ## Current MVP milestone — "One real asociație works end-to-end"
 
-The next wave of work drives a single, real, usable SaaS loop rather than more breadth or more compliance surface. Until the loop below is green end-to-end against a live Supabase backend (not only demo mode), the **MVP spine** at the top of the task queue outranks everything except a direct production blocker (red pipeline, active security/data-loss hole).
+The next wave of work drives a single, real, usable SaaS loop rather than more breadth or more compliance surface. The whole loop must work **locally, in demo mode, with no backend provisioned** — that is the version overnight work builds and verifies. A live Supabase path is layered on as a separate, smaller activation step per slice. Until the loop below is green end-to-end **in demo/local mode**, the **MVP spine** at the top of the task queue outranks everything except a direct production blocker (red pipeline, active security/data-loss hole).
 
-**Acceptance criteria (the loop):**
-1. A real admin can sign up / log in.
-2. Admin can create or access an asociație.
-3. After auth the app hydrates profile, memberships, role, and apartment/tenant context.
-4. Admin can generate invite codes / links.
-5. A resident can join with an invite code.
-6. Enabled modules load from Supabase per asociație.
-7. Disabled modules are hidden **and** blocked by direct URL.
-8. Admin can publish an announcement; a resident can read it.
-9. A resident can start / use a structured discussion (forum).
-10. A resident can submit a sesizare / reclamație.
-11. A resident can link Telegram, or at minimum `/start CODE` begins a real linking path.
-12. Core RLS / tenant isolation stays safe.
-13. lint / typecheck / unit / build pass; E2E has at least one green smoke path for the core flow.
+**Acceptance criteria (the loop — demo/local first, live-ready):**
+1. An admin can sign up / log in (live Supabase Auth when configured; demo entry otherwise).
+2. Admin can create or select an asociație **locally if no backend is present**, live when configured.
+3. After auth the app hydrates profile, memberships, role, and apartment/tenant context (demo seed offline).
+4. Admin can generate invite codes / links (local store now; same logic persists to Supabase later).
+5. A resident can join with an invite code (local consumption now; RPC under RLS later).
+6. Enabled modules load **per asociație from a local store now, from `asociatie_features` when Supabase exists**.
+7. Disabled modules are hidden **and** blocked by direct URL (works offline).
+8. Admin can publish an announcement; a resident can read it (demo store now, Supabase later).
+9. A resident can start / use a structured discussion (forum) (demo store now, Supabase later).
+10. A resident can submit a sesizare / reclamație (demo store now, Supabase later).
+11. A resident can link Telegram via a mock/local linking path now; `/start CODE` wired against live env vars later.
+12. Core RLS / tenant isolation stays safe (schema + offline regression guards now; live cross-tenant test later).
+13. lint / typecheck / unit / build pass; E2E has at least one green smoke path for the core flow (demo mode).
 
-The existing GDPR / security / legal tasks (T06, T21, T22, T23, …) are **kept, not dropped** — they remain the "deployable for real residents at scale" blockers and sit right below the MVP spine. A live Supabase path is required for the spine; demo mode stays useful as the offline / E2E fallback.
+The existing GDPR / security / legal tasks (T06, T21, T22, T23, …) are **kept, not dropped** — they remain the "deployable for real residents at scale" blockers and sit right below the MVP spine.
 
 ### MVP rules (in force until the loop above is green)
+- **Overnight work must never require human setup.** Do not depend on a provisioned Supabase project, created databases, secrets, Telegram webhooks, or any manual configuration to make progress. If a task needs external setup, **split it**: (1) the local/demo/schema/test implementation that can be done now, kept as the spine task; (2) a separate `…L` live-activation follow-up (apply migration, set env vars, register webhook) that is documented but **not a blocker** and sits below the spine.
+- **Do not stop because Supabase/Telegram is not provisioned.** Build the useful local/demo fallback and document the live activation steps in the task done-note (and `DECISIONS.md` where architectural).
 - **Do not add new feature modules until the MVP spine works end-to-end.** Deepen the spine; don't widen the surface.
 - **Prefer one complete vertical slice over many half-wired features.**
 - **When a task uncovers a blocker, insert the blocker above the downstream work** it blocks (not at the bottom of the queue).
 - **Every task must finish with the commands it ran and the tests / verification noted** in its done-line.
-- **Demo mode stays useful, but every critical path needs a live Supabase path** — a feature that only works offline does not satisfy the milestone.
+- **Demo mode stays the default, fully-working experience**; a feature must work offline first, then be live-ready behind `isSupabaseConfigured`.
 
 ---
 
@@ -102,38 +104,62 @@ Keep the queue sorted with the highest priority on top. When two tasks share a p
 `init` sets the session but never loads `profile`/`memberships`, so role-gated UI (admin/comitet/cenzor) and tenant context have nothing to read in the live path. Fetch the signed-in user's profile (`users`) + active memberships (`ended_at is null`, under RLS) on session change, derive the active asociație + role, expose a `currentAsociatieId` and a `setActiveAsociatie` selector, and keep the demo seed as the fallback. Foundation of the whole spine. Prereq: T01. Unblocks T27 (member-less routing), role enforcement (T02/T03), and the live feature/content tasks.
 **Done:** new pure, unit-tested `hydrationLogic` (`activeMemberships`, `sortByPrivilege`, `pickActiveAsociatieId`, `roleFor`, `hasNoActiveAsociatie`; `ROLE_RANK` privilege ordering — 17 assertions in `tests/unit/hydrationLogic.test.ts`). `authStore` gained `currentAsociatieId`, a `hydrate()` that (live only, under RLS) loads the `users` profile row + active `memberships` for the session user, sorts them by privilege (so `memberships[0]` is the active/most-privileged role), and derives the active asociație honouring any prior selection; plus an `activeRole()` getter and a member-checked `setActiveAsociatie(id)`. `init` hydrates on an existing session and on `SIGNED_IN`; `SIGNED_OUT`/sign-out clear `currentAsociatieId` with the rest of the derived state. Demo mode stays the offline fallback (no backend reads). Existing `memberships[0]?.role` consumers now read the privilege-sorted active role, consistent with the new selectors. Commands run: `npm run lint`, `npm run typecheck`, `npm test` (80 files / 456 tests), `npm run build` — all green; E2E unchanged (Playwright browser binaries can't download in this sandbox, so the core-flow smoke runs in CI — tracked under T08). Surfaced follow-ups T51 (migrate role-gated UI + scoped reads to `activeRole()`/`currentAsociatieId`), T52 (a `hydrating` flag + loading UX so the live app doesn't flash empty before hydration completes).
 
-### ⬜ T27 — [P1] Route member-less authenticated users to join/create onboarding (live path)
-After a real sign-up + email verification, the user has a session but no membership and lands on an empty app. A gate must distinguish "no session" from "session but no asociație" and route the latter to create an asociație or join by invite code, wiring the existing `auth.noAsociatie`/`auth.createFirst` strings and the onboarding wizard into the live path. Prereq: T28.
+### ⬜ T53 — [P1] Seed local tenant context on demo entry (active asociație + role)
+`enterDemo` sets `demo:true` but leaves `memberships` empty and `currentAsociatieId` null, so demo mode has no real tenant context or role (everything falls back to "resident"). Seed the local tenant context on demo entry from `DEMO_ASOCIATIE`: set `currentAsociatieId` and a demo admin membership so the offline app has a genuine active asociație + role to scope by. Extract the default as a pure `demoTenantContext()` helper and unit-test it. Foundation for local create/select (T27), per-asociație feature flags (T43) and route gating (T44). No backend. Prereq: T28.
 
-### ⬜ T45 — [P0] Harden owner-scoped RLS to also require membership in the target asociatie_id
-Owner-scoped (`apply_owner_rls`) policies gate on `user_id = auth.uid()` but do not also require the row's `asociatie_id` to be one the user is a member of. A user could in principle insert/own a row carrying another asociație's id. Tighten owner policies (and member-insert policies) so a row's `asociatie_id` must match an active membership of the actor, closing the cross-tenant write path. Additive migration + backend-free regression test that parses the helpers. Prereq awareness: T04 (RLS sweep), T34.
+### ⬜ T27 — [P1] Member-less onboarding gate + local create/join (demo now, live-ready)
+A signed-in (or demo) user with no active asociație must be routed to onboarding to **create** an asociație or **join** by invite code, instead of landing on an empty app. Add a gate that distinguishes "no session" from "session/demo but no asociație" (using `hasNoActiveAsociatie` + the T52 `hydrating` flag), and a small create/join choice screen wired to the existing `auth.noAsociatie`/`auth.createFirst` strings. In demo/local mode, "create" adds a local asociație + admin membership and selects it (extends T53); the live path uses the real membership. Prereq: T53. Live activation of the create-asociație write is T55.
 
-### ⬜ T41 — [P1] Invite-code lifecycle: secure generation + validation + expiry (admin side)
-The `inviteCode` helper generates/validates a code format, but there is no live lifecycle. Add an `invite_codes`-backed admin flow: secure generation tied to an asociație (+ optional role/apartment), an expiry, single-use semantics, and an admin surface to issue/list/revoke codes. Demo keeps an in-memory store. RLS: only admins of the asociație manage its codes; validation readable by the join path. Prereq: T28. Split from T42 (resident consumption) to stay small.
+### ⬜ T41 — [P1] Invite-code generation + admin surface (local store now, live-ready)
+The `inviteCode` helper makes/validates a code format but there is no lifecycle. Add a persisted local invite store keyed by asociație: secure generation (reusing `generateInviteCode`) tied to the active asociație (+ optional role/apartment), an expiry, single-use flag, and an admin surface to issue / list / revoke codes. Pure lifecycle logic (create, `validateInvite` → ok/expired/used/unknown, `consume`) extracted + unit-tested. Works fully offline. Prereq: T53. Live persistence to an `invite_codes` table is T55.
 
-### ⬜ T42 — [P1] Resident join via invite code (one-time consumption + membership/apartment link)
-A logged-in (or newly-signed-up) resident enters/opens an invite code; the app validates it (format, existence, not expired, not consumed), then atomically consumes it once and creates the membership (and apartment link where the code carries one). Server routine / RPC under RLS so consumption cannot be replayed. Wire into the T27 onboarding gate. Prereq: T41, T27, T28.
+### ⬜ T42 — [P1] Resident join via invite code (local one-time consumption + membership link)
+A user enters an invite code; the app validates it (format, existence, not expired, not already used) then consumes it once and creates the membership (and apartment link where the code carries one), selecting the new asociație. In demo/local mode this mutates the T41 local store atomically (guarding double-consume); wire it into the T27 join screen. Pure consume/replay-guard logic unit-tested. Prereq: T41, T27. Live RPC under RLS (replay-safe server-side) is T55.
 
-### ⬜ T43 — [P1] Load + save feature flags from `asociatie_features` per asociație (live)
-`featureStore` seeds from `DEMO_FEATURES` only; live mode never reads `asociatie_features`. On hydrate, load the active asociație's enabled features from Supabase (fallback to demo seed offline), and let an admin toggle persist back. The enabled set becomes the single source for nav + route gating (T44). Prereq: T28.
+### ⬜ T43 — [P1] Per-asociație feature flags from a local store (live-ready)
+`featureStore` seeds from `DEMO_FEATURES` globally; flags are not per asociație. Make the enabled set keyed by `currentAsociatieId` in a persisted local store (seeded from `DEMO_FEATURES` for the demo asociație), so different local asociații can have different enabled modules and an admin toggle persists per asociație. This enabled set is the single source for nav + route gating (T44). Works offline. Prereq: T53. Reading/writing `asociatie_features` in Supabase is T56.
 
-### ⬜ T44 — [P1] Gate direct routes for disabled modules (not only nav links)
-Disabled modules are hidden from the nav but a direct URL still loads the page. Add a route-level guard that blocks any `/app/*` feature route whose flag is off for the active asociație, rendering a clear "module not enabled" state, so a disabled module cannot be reached by typing the URL. Prereq: T43.
+### ⬜ T44 — [P1] Gate direct routes for disabled modules (offline)
+Disabled modules are hidden from the nav but a direct URL still loads the page. Add a route-level guard that blocks any `/app/*` feature route whose flag is off for the active asociație (per T43), rendering a clear bilingual "module not enabled" state, so a disabled module cannot be reached by typing the URL. Pure mapping (route → feature key → enabled?) unit-tested. Works offline. Prereq: T43.
 
-### ⬜ T47 — [P1] Anunțuri (F01) live-backed for the MVP
-Make announcements read/write Supabase (`announcements`) under RLS for the active asociație: admin publishes, residents read, with the demo store as the offline fallback. Keep the existing UI; add the live data path + read-path scoping by `asociatie_id`. Prereq: T28, T43.
+### ⬜ T47 — [P1] Anunțuri (F01) vertical slice scoped to the active asociație (demo now, live-ready)
+Make the announcements store scope by `currentAsociatieId` so admin-published announcements and resident reads belong to the active asociație (demo store remains the offline source of truth). Keep the existing UI; ensure publish + read work in the local loop. Prereq: T53, T43. Wiring the store to read/write Supabase `announcements` under RLS is T57.
 
-### ⬜ T48 — [P1] Discuții / forum (F02) live-backed for the MVP
-Make discussion threads + messages read/write Supabase (`discussion_threads` / `discussion_messages`) under RLS for the active asociație; a resident can start a thread and post. Demo store stays the offline fallback. Prereq: T28, T43.
+### ⬜ T48 — [P1] Discuții / forum (F02) vertical slice scoped to the active asociație (demo now, live-ready)
+Scope discussion threads + messages by `currentAsociatieId`; a resident can start a thread and post in the local loop (demo store as source of truth). Prereq: T53, T43. Supabase `discussion_threads`/`discussion_messages` under RLS is T57.
 
-### ⬜ T49 — [P1] Sesizări / reclamații (F17) live-backed for the MVP
-Make tickets read/write Supabase (`tickets`) under RLS for the active asociație; a resident submits a sesizare and sees its status. Demo store stays the offline fallback. Prereq: T28, T43.
+### ⬜ T49 — [P1] Sesizări / reclamații (F17) vertical slice scoped to the active asociație (demo now, live-ready)
+Scope tickets by `currentAsociatieId`; a resident submits a sesizare and sees its status in the local loop (demo store as source of truth). Prereq: T53, T43. Supabase `tickets` under RLS is T57.
 
-### ⬜ T46 — [P1] Parent-child tenant-consistency guards/tests for child tables
-Child tables that reference a parent row (e.g. `discussion_messages`→`discussion_threads`, `aga_votes`→`agas`, `budget_proposals`→`budget_cycles`) must not let a child be attached to a parent in another asociație. Audit these relationships, add a check/policy (or trigger) enforcing `child.asociatie_id = parent.asociatie_id` where both carry it, and a backend-free regression test cataloguing the parent-child pairs. Prereq awareness: T04, T45.
+### ⬜ T50 — [P1] Telegram mock/linking path with `/start CODE` (local now, live-ready)
+Implement the `/start CODE` parsing + linking flow as pure, testable logic and a local/mock linking path: parse the deep-link payload, validate it against the invite-code lifecycle (T41/T42) or a per-user link code, and produce the link result (which `telegram_users`↔user/asociație association to make). Unit-test the parser + validation offline. Keep the existing secret + `initData` validation. Prereq: T41, T42. Deploying the webhook + setting env vars/registering the bot is T58 (coordinate with T15).
 
-### ⬜ T50 — [P1] Telegram `/start CODE` account/invite linking (first Telegram milestone)
-Implement the `/start CODE` path in the webhook as the first real Telegram linking step: parse the deep-link payload, validate it against the invite-code lifecycle (T41/T42) or a per-user link code, and begin a real linking flow that associates the `telegram_users` row with the user/asociație. Keep secret + `initData` validation. Prereq: T41, T42; coordinate with T15 (full bot go-live).
+### ⬜ T54 — [P1] One green E2E smoke for the MVP loop (demo mode)
+Add a single Playwright spec that walks the demo/local MVP loop end-to-end: demo entry → has active asociație + role → (create/join) → an enabled module loads → a disabled module is blocked by direct URL → publish + read an announcement → start a discussion → submit a sesizare. Must pass against demo mode with no backend. Note: Playwright browser binaries cannot be downloaded in this sandbox, so the spec is authored here and executed in CI (tracked with T08); keep it runnable locally. Prereq: T27, T42, T43, T44, T47, T48, T49.
+
+### ⬜ T45 — [P0] Harden owner-scoped RLS to also require membership in the target asociatie_id (offline)
+Owner-scoped (`apply_owner_rls`) policies gate on `user_id = auth.uid()` but do not also require the row's `asociatie_id` to be one the user is a member of, so a user could in principle insert/own a row carrying another asociație's id. Tighten owner + member-insert policies so a row's `asociatie_id` must match an active membership of the actor. Additive, idempotent migration + backend-free regression test that parses the helpers. Fully doable offline (no provisioning); not an active hole today (T04 confirmed full coverage) but closes a write-path gap. Prereq awareness: T04, T34.
+
+### ⬜ T46 — [P1] Parent-child tenant-consistency guards/tests for child tables (offline)
+Child tables that reference a parent row (e.g. `discussion_messages`→`discussion_threads`, `aga_votes`→`agas`, `budget_proposals`→`budget_cycles`) must not let a child attach to a parent in another asociație. Audit these relationships, add a check/policy (or trigger) enforcing `child.asociatie_id = parent.asociatie_id` where both carry it, and a backend-free regression test cataloguing the parent-child pairs. Doable offline. Prereq awareness: T04, T45.
+
+---
+
+## MVP live-activation follow-ups (documented, NOT blockers — do after the local loop is green)
+
+> Each requires external provisioning (a Supabase project, env vars, a deployed function, a registered bot) and so must never block overnight progress. They layer the live path onto a slice whose local/demo version already works.
+
+### ⬜ T55 — [P2] Live activation: asociație create + invite generation/consumption (Supabase)
+Persist T27's create-asociație, T41's invite generation and T42's join/consume against Supabase under RLS (the join/consume as a replay-safe RPC / Edge Function), behind `isSupabaseConfigured`. Requires a provisioned project. Document the apply steps. Prereq: T27, T41, T42.
+
+### ⬜ T56 — [P2] Live activation: per-asociație feature flags read/write (`asociatie_features`)
+Load the active asociație's flags from `asociatie_features` on hydrate and persist admin toggles back, behind `isSupabaseConfigured`, with the T43 local store as the offline fallback. Prereq: T43.
+
+### ⬜ T57 — [P2] Live activation: content slices read/write Supabase (Anunțuri / Discuții / Sesizări)
+Wire the T47/T48/T49 stores to read/write `announcements` / `discussion_threads`+`discussion_messages` / `tickets` under RLS, scoped by `asociatie_id`, behind `isSupabaseConfigured`, demo store as fallback. Prereq: T47, T48, T49.
+
+### ⬜ T58 — [P2] Live activation: Telegram webhook deploy + env (`/start CODE`)
+Deploy the Netlify webhook function, set `TELEGRAM_BOT_TOKEN`/secret, register the bot + Mini App, and exercise the T50 linking path live. Requires a bot token + deployment. Coordinate with / folds into T15. Prereq: T50.
 
 ---
 
