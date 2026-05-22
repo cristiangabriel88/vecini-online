@@ -15,16 +15,18 @@ accurate for architecture/data/feature specs.
 
 ## 0. Current status (updated 2026-05-22)
 
-- **Overall completion: 41 / 65 features built end-to-end (≈63%).**
-- **Completed this turn (8):** F19 Calendar service-uri programate, F28 Parcare,
-  F16 Petiții interne, F44 Crowdfunding, F46 Recomandări fond de reparații
-  (calculator), F51 Verificări PSI, F52 Asigurare bloc, F53 Registru de chei.
-  Each ships logic + Zustand demo store + page + admin toggle + bot command +
-  unit tests + one E2E happy-path; batch-3 owner-RLS migration added for pledges.
-- **Pipeline:** `npm run lint`, `npm run typecheck`, `npm test` (150 unit tests),
-  and `npm run build` all pass.
-- **Remaining (24):** F02, F04, F05, F10, F11, F12, F13, F21, F22, F23, F25, F26,
-  F27, F31, F35, F39, F41, F42, F43, F49, F50, F55, F62, F64.
+- **Overall completion: 54 / 65 features built end-to-end (≈83%).**
+- **Completed this turn (1):** F26 Rezervare lift pentru mutare — finished the
+  overnight's orphaned `movingLogic.ts` into a full feature (Zustand demo store +
+  `MovingPage` + registry toggle flipped to `implemented` + route `lift-mutare` +
+  `/lift` bot command + RO/EN locales + demo bookings + unit tests + one E2E
+  happy-path). Built on the F25 laundry booking pattern (shared `bookings` schema).
+- **Pipeline:** `npm run lint`, `npm run typecheck`, `npm test` (54 files / 217
+  unit tests), and `npm run build` all pass.
+- **Remaining (11):** F04, F10, F21, F27, F35, F41, F42, F49, F50, F62, F64.
+- **Source of truth:** the **FEATURES.md** tracking table (legend: ✅ UI done ·
+  🟦 schema-only) is authoritative for per-feature status — sections 2–3 below are
+  historical and undercount what's shipped. Trust the table.
 - **Blockers:** none. Playwright browser binaries still can't be downloaded in
   the build sandbox, so E2E specs are written/wired but executed only locally/CI.
 
@@ -108,15 +110,25 @@ Notable clusters still to build:
    live features read/write against real tables and RLS.
 3. **Wire the Telegram webhook** — deploy the Netlify function, register the bot
    webhook + Mini App, and verify `initData`/secret validation end-to-end.
-4. **Build out features by category**, reusing the established pattern (Zustand
-   demo store → React Query wiring → feature page → admin toggle). Suggested
-   priority — highest resident value / lowest complexity first:
-   - F06 Anunțuri vecini, F07 FAQ, F36 Locator directory (simple CRUD on existing schema)
-   - F20 Citire contoare and F18 Istoric reparații (extend the maintenance area already proven by F17)
-   - F25–F28 booking/parking (shared `bookings` schema already in place)
-   - F10 AGA digitală last within governance — it carries legal-compliance and PDF-generation weight.
-5. **Fill the computed helpers** (F46 fond de reparații calculator; F21 recurring-
-   ticket detection view) once the underlying data features have UI.
+4. **Build out the remaining 11 features**, reusing the established pattern
+   (logic module → Zustand demo store seeded from `demoData.ts` → feature page →
+   `registry.ts` toggle flipped to `implemented` → route → `/command` bot help →
+   RO/EN locales → unit test → one E2E happy-path). Suggested order — lowest
+   complexity / highest reuse first:
+   - **F27 Rezervare sală comună / terasă** — booking domain now proven twice
+     (F25 laundry, F26 lift); copy `MovingPage`, swap slots/fields. Easiest next.
+   - **F04 Mesagerie privată cu administratorul** — simple two-party thread on
+     `private_threads/messages`; mirror the F02/F05 messaging pattern.
+   - **F62 Welcome kit** and **F64 Activități copii** — template/event CRUD.
+   - **F41 Project tracker + F42 Project photo journal** — share the `projects`
+     domain; build them in one batch.
+   - **F49 Cod portari / vecini de încredere** and **F50 Plan de evacuare** —
+     safety pair (F49 holds an encrypted payload, owner-only RLS).
+   - **F10 AGA digitală last** — carries Legea 196/2018 compliance + PV PDF
+     generation weight; implement it alone in its own session.
+5. **Fill the computed views** (F21 recurring-ticket detection over `tickets`;
+   F35 apartament info over apartments/readings/tickets/votes) — these are
+   read-only aggregations, no new tables.
 
 ---
 *Generated 2026-05-21 from `DECISIONS.md` and `FEATURES.md`.*

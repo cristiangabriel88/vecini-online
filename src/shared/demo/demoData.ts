@@ -55,6 +55,7 @@ import type {
   BudgetCycle,
   PriorityProject,
   LaundryBooking,
+  MovingBooking,
 } from '@/shared/types/domain';
 import { RECOMMENDED_FEATURES } from '@/shared/features/registry';
 
@@ -547,4 +548,10 @@ export const DEMO_LAUNDRY_BOOKINGS: LaundryBooking[] = [
   { id: 'lb-1', asociatie_id: 'demo-asoc', resource: 'Mașină 1', date: dayOffset(0), slot: '10:00–12:00', user_id: 'u-res2', user_name: 'Georgescu Elena' },
   { id: 'lb-2', asociatie_id: 'demo-asoc', resource: 'Mașină 2', date: dayOffset(0), slot: '18:00–20:00', user_id: 'u-res', user_name: 'Popescu Andrei' },
   { id: 'lb-3', asociatie_id: 'demo-asoc', resource: 'Uscător', date: dayOffset(1), slot: '08:00–10:00', user_id: 'u-res3', user_name: 'Stan Gabriela' },
+];
+
+// F26 — Rezervare lift pentru mutare.
+export const DEMO_MOVING_BOOKINGS: MovingBooking[] = [
+  { id: 'mv-1', asociatie_id: 'demo-asoc', date: dayOffset(2), slot: '08:00–11:00', floor: '4', user_id: 'u-res2', user_name: 'Georgescu Elena' },
+  { id: 'mv-2', asociatie_id: 'demo-asoc', date: dayOffset(3), slot: '14:00–17:00', floor: '7', user_id: 'u-res', user_name: 'Popescu Andrei' },
 ];

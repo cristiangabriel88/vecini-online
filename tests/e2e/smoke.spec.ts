@@ -285,6 +285,16 @@ test('F25: resident can book a laundry slot', async ({ page }) => {
   await expect(page.getByText('12:00–14:00')).toBeVisible();
 });
 
+test('F26: resident can book the moving elevator', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/lift-mutare');
+  await page.getByRole('button', { name: /Rezervă liftul/i }).click();
+  await page.getByLabel('Interval orar').selectOption('11:00–14:00');
+  await page.getByLabel('Etajul destinație').fill('5');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  await expect(page.getByText('11:00–14:00')).toBeVisible();
+});
+
 test('home page has no critical accessibility violations', async ({ page }) => {
   await enterDemo(page);
   const results = await new AxeBuilder({ page })

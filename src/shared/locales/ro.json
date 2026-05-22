@@ -890,5 +890,19 @@
     "taken": "Acest slot este deja rezervat.",
     "booked": "Slot rezervat.",
     "empty": "Nicio rezervare. Rezervă primul slot cu butonul de mai sus."
+  },
+  "moving": {
+    "title": "Rezervare lift pentru mutare",
+    "subtitle": "Rezervă liftul pentru o mutare în ferestre de 3 ore. Vezi ce e ocupat și anulează-ți propriile rezervări.",
+    "book": "Rezervă liftul",
+    "date": "Ziua",
+    "slot": "Interval orar",
+    "floor": "Etajul destinație",
+    "floorLabel": "Etaj {{floor}}",
+    "mine": "Rezervarea mea",
+    "cancel": "Anulează",
+    "taken": "Liftul este deja rezervat în acest interval.",
+    "booked": "Lift rezervat.",
+    "empty": "Nicio rezervare. Rezervă liftul cu butonul de mai sus."
   }
 }

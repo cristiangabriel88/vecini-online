@@ -890,5 +890,19 @@
     "taken": "This slot is already booked.",
     "booked": "Slot booked.",
     "empty": "No bookings yet. Book the first slot with the button above."
+  },
+  "moving": {
+    "title": "Moving elevator booking",
+    "subtitle": "Book the elevator for a move in 3-hour windows. See what's taken and cancel your own bookings.",
+    "book": "Book elevator",
+    "date": "Day",
+    "slot": "Time slot",
+    "floor": "Destination floor",
+    "floorLabel": "Floor {{floor}}",
+    "mine": "My booking",
+    "cancel": "Cancel",
+    "taken": "The elevator is already booked for this slot.",
+    "booked": "Elevator booked.",
+    "empty": "No bookings yet. Book the elevator with the button above."
   }
 }

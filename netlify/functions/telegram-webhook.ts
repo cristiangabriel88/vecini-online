@@ -84,6 +84,7 @@ const FEATURE_COMMANDS: Record<string, string> = {
   '/buget_propune': '🐷 Buget participativ — propune o idee pentru fondul discreționar în secțiunea „Buget participativ”.',
   '/prioritati': '🔢 Prioritizare proiecte — ordonează proiectele mari (acoperiș, fațadă, lift) după prioritate în secțiunea „Prioritizare proiecte mari”.',
   '/spalatorie': '🧺 Spălătorie — vezi disponibilitatea și rezervă un slot la spălătoria comună în secțiunea „Rezervare spălătorie”.',
+  '/lift': '🛗 Lift mutare — rezervă liftul pentru o mutare în ferestre de 3 ore în secțiunea „Rezervare lift pentru mutare”.',
 };
 
 async function handleMessage(msg: TelegramMessage) {
