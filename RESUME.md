@@ -20,8 +20,25 @@ accurate for architecture/data/feature specs.
 
 ## 0. Current status (updated 2026-05-22)
 
-- **Overall completion: 63 / 65 features built end-to-end (≈97%).**
-- **Completed this turn (1):** Help assistant (cross-cutting, not a numbered
+- **Overall completion: 64 / 65 features built end-to-end (≈98%).**
+- **Completed this turn (1): F10 AGA digitală** — the formal General Assembly
+  (Legea 196/2018). A comitet convokes an assembly (datetime, location or online)
+  and adds agenda items; the lifecycle runs convocată → în desfășurare →
+  încheiată via an advance-status button. A live **quorum tracker** shows
+  represented apartments vs. the required percent, fed by each resident's **RSVP**
+  (prezent / procură / absent — a proxy still represents an apartment). While an
+  assembly is in progress, residents **vote per agenda item** (pentru / contra /
+  abținere) with live tally bars; each item carries a **majority rule** (simplă /
+  absolută / două treimi, reused from the polls engine) that, once quorum is met,
+  resolves the item to adoptat / respins / în-așteptare. A concluded assembly
+  offers a one-tap **proces-verbal** download (structured Romanian minutes as
+  plain text — see `DECISIONS.md` for why text not a rendered PDF). Wired
+  end-to-end: `agaLogic` (quorum/present/tally/percent/outcome/sort/lifecycle/PV,
+  14 unit tests) + `agaStore` + `AgaPage` + registry toggle flipped + route `aga`
+  + `/aga` bot command + RO/EN locales + three demo assemblies (live/upcoming/
+  concluded) + additive owner-RLS migration (batch5) for resident RSVP + vote +
+  one E2E happy-path (vote on a live item).
+- **Previously:** Help assistant (cross-cutting, not a numbered
   feature) — a floating corner chat widget that answers "what is X / how do I X /
   where is X" using a **local, rule-based grounded matcher (no LLM, no network)**.
   It returns only pre-written, role-filtered answers from a knowledge base derived
@@ -70,9 +87,10 @@ accurate for architecture/data/feature specs.
   F25/F26 booking pattern. Note: the working tree is clean — F21, the help
   assistant, and all earlier slices are committed (latest: `bfabf0e` help
   assistant; `83119ed` F21 + polish).
-- **Pipeline:** `npm run lint`, `npm run typecheck`, `npm test` (68 files / 314
+- **Pipeline:** `npm run lint`, `npm run typecheck`, `npm test` (69 files / 329
   unit tests), and `npm run build` all pass.
-- **Remaining (2):** F10, F35.
+- **Remaining (1):** F35 (Apartament info — a read-only aggregation over
+  apartments/readings/tickets/votes, no new table).
 - **Planned for the future (2, not yet specced into schema):** F66 Profil complet
   (rich full-page profile editor — photo + structured standard fields + user-added
   typed custom fields via a `+ Adaugă câmp` button) and F67 Acasă personalizabil
