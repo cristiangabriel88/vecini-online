@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Outlet, useLocation, useNavigate, NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Home, Megaphone, Zap, Menu, User, Bell, Moon, Sun, Settings, Search, ChevronDown, Info, Phone, Siren, ArrowUpRight, Globe, KeyRound, ShieldCheck, ClipboardList, ScrollText } from 'lucide-react';
@@ -6,15 +6,13 @@ import { FEATURES, FEATURE_CATEGORIES, categoryLabel, featureTitle, type Feature
 import { useAsociatieFlags } from '@/shared/features/featureStore';
 import { useThemeStore } from '@/shared/store/themeStore';
 import { useAuthStore } from '@/shared/store/authStore';
-import { useMfaStore } from '@/shared/store/mfaStore';
-import { isSupabaseConfigured } from '@/shared/lib/supabase';
-import { requiresMfa } from '@/features/auth/mfaLogic';
 import { DEMO_ASOCIATIE, DEMO_EMERGENCY } from '@/shared/demo/demoData';
 import { Icon } from '@/shared/components/Icon';
 import { Atmosphere } from '@/shared/components/Atmosphere';
 import { UserMenu } from '@/shared/components/UserMenu';
 import { AssistantWidget } from '@/features/assistant/AssistantWidget';
 import { FeatureRouteGuard } from './FeatureRouteGuard';
+import { useMfaEnforcement } from './useMfaEnforcement';
 import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
 import { cn } from '@/shared/lib/cn';
 
@@ -420,32 +418,6 @@ function Footer() {
       </div>
     </footer>
   );
-}
-
-/**
- * Enforce 2FA for privileged roles on the live (backed) path: a signed-in
- * admin/comitet/cenzor without a verified second factor is steered to the
- * security page until they enrol. Demo mode has no real backend role, so it is
- * never gated and stays fully inspectable offline.
- */
-function useMfaEnforcement() {
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
-  const role = useAuthStore((s) => s.memberships[0]?.role ?? null);
-  const loaded = useMfaStore((s) => s.loaded);
-  const enrolled = useMfaStore((s) => s.enrolled);
-  const load = useMfaStore((s) => s.load);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  useEffect(() => {
-    if (!isSupabaseConfigured || !loaded) return;
-    if (requiresMfa(role) && !enrolled && pathname !== '/app/securitate') {
-      navigate('/app/securitate', { replace: true });
-    }
-  }, [loaded, enrolled, role, pathname, navigate]);
 }
 
 export function AppLayout() {

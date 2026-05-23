@@ -230,6 +230,49 @@ export function anyRoleRequiresMfa(roles: Role[]): boolean {
   return roles.some(requiresMfa);
 }
 
+/** The in-app route a session is steered to when it still owes a second factor. */
+export const MFA_SECURITY_PATH = '/app/securitate';
+
+/** Inputs to the in-app 2FA enforcement decision (kept pure for testing). */
+export interface MfaEnforcementInput {
+  /** Whether a real Supabase backend is configured (demo mode is never gated). */
+  supabaseConfigured: boolean;
+  /** Whether the enrolment status has been resolved at least once. */
+  loaded: boolean;
+  /** The active role of the signed-in session. */
+  role: Role | null | undefined;
+  /** Whether a verified second factor is active for the account. */
+  enrolled: boolean;
+  /** The current in-app location. */
+  pathname: string;
+  /** Where to steer to; defaults to the security page. */
+  securityPath?: string;
+}
+
+/**
+ * The in-app 2FA enforcement decision (T02/T30). On the live (Supabase-backed)
+ * path a signed-in member in a 2FA-mandatory role who has not yet enrolled a
+ * second factor is steered to the security page and cannot reach any other
+ * in-app route until they enrol. The gate is deliberately inert when:
+ *
+ * - no backend is configured (demo mode has no real role, stays inspectable),
+ * - the enrolment status is not yet known (avoids steering on a flash of null),
+ * - the role is not privileged (a resident is never gated), or
+ * - a verified factor is already enrolled, or the session is already on the
+ *   security page (so enrolling there is reachable).
+ *
+ * Returns the path to redirect to, or null when the current location is allowed.
+ */
+export function mfaEnforcementRedirect(input: MfaEnforcementInput): string | null {
+  const securityPath = input.securityPath ?? MFA_SECURITY_PATH;
+  if (!input.supabaseConfigured) return null;
+  if (!input.loaded) return null;
+  if (!requiresMfa(input.role)) return null;
+  if (input.enrolled) return null;
+  if (input.pathname === securityPath) return null;
+  return securityPath;
+}
+
 /** Stable i18n keys (under `auth.mfa.err`) for the 2FA error states we surface. */
 export type MfaErrorKey =
   | 'invalidCode'

@@ -18,7 +18,26 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T77 membership-complete GDPR export)
+## 0. Current status (updated 2026-05-23, T30 MFA enforcement test harness)
+
+- **2026-05-23 — T30 (P1) MFA enforcement E2E for live privileged roles.** The
+  T02 in-app 2FA gate (`AppLayout` steers an un-enrolled privileged session to
+  `/app/securitate`) was untested end-to-end because demo mode has no backend
+  role. Extracted the decision into a pure, exported `mfaEnforcementRedirect`
+  (+ `MFA_SECURITY_PATH`, `MfaEnforcementInput`) in `mfaLogic` — inert for demo,
+  pre-load, non-privileged, already-enrolled, or already-on-page — and moved the
+  hook to its own module `src/app/useMfaEnforcement.ts` (so it is testable in
+  isolation); `AppLayout` now just imports it and shed its unused MFA imports.
+  New `tests/unit/mfaEnforcement.test.tsx` (12 assertions, the suite's first
+  `@testing-library/react` render test): a pure-decision matrix over every input
+  axis, plus a live routing harness that mocks `isSupabaseConfigured: true`,
+  seeds a privileged membership + enrolment status into the real stores, renders
+  the hook in a `MemoryRouter`, and asserts the actual redirect (privileged
+  un-enrolled → `/app/securitate`, cannot reach another route; resident/enrolled/
+  pre-load not steered). Pipeline green: lint, typecheck, 106 files / 735 tests,
+  build. Surfaced T102 (re-gate the shell on AAL2-satisfied, not only enrolment)
+  and a note on T51 (migrate the hook's role read to `activeRole()`). The full
+  browser-level live E2E folds into T08.
 
 - **2026-05-23 — T77 (P2) Aggregate the data-subject export across all the
   subject's asociății.** T73 broadened the art. 15 export to 26 sections, but
