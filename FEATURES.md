@@ -652,6 +652,36 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
   retention/request lifecycle, 13 tests); one E2E happy-path (file erasure →
   admin completes it).
 
+### GDPR personal-data breach procedure (art. 33/34) ✅
+- **Audience:** admin / president (data-controller roles)
+- **Description:** The GDPR breach-notification surface (BACKLOG T22). From
+  `/app/admin/incidente-date` (linked from the privacy settings page for
+  controller roles) the asociație — the data controller — records a personal-data
+  breach, **classifies its risk** from the data involved (sensitivity, scale,
+  identifiability, whether the risk is neutralised), and the app derives whether
+  notification is required: `low` (none), `risk` (notify the authority) or `high`
+  (notify the authority **and** the affected residents). It then generates the
+  **art. 33 notification to ANSPDCP** (nature, categories + approximate number of
+  subjects/records, contact point, likely consequences, measures) and, on a high
+  risk, the **art. 34 resident notice** in clear language, both as
+  signature/submission-ready bilingual plain text. The **72-hour deadline** is
+  computed from when the controller became aware and each record is flagged
+  on-time / due-soon / overdue. The **append-only** breach log (no delete policy)
+  is the accountability documentation required by art. 33(5); admins advance the
+  lifecycle (`detectat` → `evaluat` → `notificat` → `inchis`) and stamp the
+  authority/resident notification times. Works fully offline in demo mode; mirrors
+  to `data_breaches` when a backend is present. Bilingual RO/EN.
+- **Files:** `src/features/gdpr/{breachLogic.ts,breachContent.ts,BreachAdminPage.tsx}`,
+  `src/shared/store/breachStore.ts`, route `/app/admin/incidente-date`, sidebar
+  admin nav link + privacy-settings link, `breach.*` locale keys (RO/EN),
+  `/incidente` bot command, additive `data_breaches` migration (append/no-delete
+  RLS, controller-role manage), breach CSS in `src/styles/legal.css`,
+  `BREACH_PROCEDURE.md` policy doc. Unit-tested (risk classification, 72-hour
+  deadline, lifecycle, notification generators, queries, export — 29 tests); one
+  E2E happy-path (record a breach → see it logged with both notifications
+  available). Live in-app delivery of the resident notice via the fan-out is
+  BACKLOG T76.
+
 ### Help assistant ✅
 - **Audience:** all residents (role-filtered)
 - **Description:** A floating corner chat widget (FAB → panel) that answers "what is X / how do I X / where is X" about the app **and surfaces concrete facts** like "numărul de telefon al președintelui". **Local + rule-based, no LLM, no network:** a grounded matcher normalizes the query (diacritic-insensitive, with prefix matching so Romanian inflections like *președintelui* match *președinte*), scores it against a curated knowledge base derived from the feature registry plus a few how-to/concept entries, and returns only pre-written answers — so it can neither hallucinate nor leak. Data lookups draw from **user-visible** sources only: emergency contacts (F56, public — administrator + committee president phones) and the **opt-in resident directory** (F36) passed through the same `visibleEntry` consent mask, so a number an owner did not choose to share never becomes an answer. **No admin access** is enforced by filtering every entry to the viewer's role (demo/unknown → resident, never privileged) and only using enabled features; it is info-only and never performs actions. Bilingual RO/EN.

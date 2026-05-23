@@ -1751,7 +1751,8 @@
     "withdrawn": "Consent withdrawn",
     "dataRightsTitle": "Your data rights",
     "dataRightsLink": "My personal data (export, deletion)",
-    "processingLink": "Record of processing activities and DPA (administration)"
+    "processingLink": "Record of processing activities and DPA (administration)",
+    "breachLink": "Personal-data breaches (administration)"
   },
   "gdpr": {
     "rightsTitle": "My personal data",
@@ -1840,6 +1841,90 @@
     "notePlaceholder": "e.g. verified, no debts",
     "actionedBy": "by {{name}}"
   },
+  "breach": {
+    "title": "Personal-data breaches",
+    "subtitle": "Record personal-data breaches, assess the risk, and generate the notifications required by GDPR articles 33 and 34.",
+    "noAccessTitle": "Restricted access",
+    "noAccessBody": "Only the association's admin or president can manage personal-data breaches.",
+    "awaitingBanner": "{{count}} breach(es) awaiting the ANSPDCP notification within the 72-hour deadline.",
+    "procedureTitle": "Breach procedure",
+    "recordTitle": "Record a breach",
+    "logTitle": "Breach log",
+    "logEmpty": "No breaches recorded.",
+    "fldTitle": "Title",
+    "fldTitlePh": "e.g. unauthorised access to the contact list",
+    "fldDescription": "Description",
+    "fldDescriptionPh": "What happened, how the breach was discovered, and which data may be involved.",
+    "fldDiscovered": "Became aware on",
+    "fldAffected": "Approximate number of people affected",
+    "fldConsequences": "Likely consequences",
+    "fldConsequencesPh": "e.g. risk of spam or fraud using the contact data",
+    "fldMeasures": "Measures taken or proposed",
+    "fldMeasuresPh": "e.g. revoke access, reset passwords, inform affected people",
+    "natureLegend": "Type of breach",
+    "nature": {
+      "confidentiality": "Confidentiality",
+      "integrity": "Integrity",
+      "availability": "Availability"
+    },
+    "dataLegend": "Data categories involved",
+    "data": {
+      "identity": "Identity",
+      "contact": "Contact",
+      "apartment": "Apartment",
+      "financial": "Financial data",
+      "content": "Submitted content",
+      "credentials": "Credentials"
+    },
+    "factorsLegend": "Risk factors",
+    "factor": {
+      "sensitiveData": "Sensitive data",
+      "largeScale": "Large scale",
+      "identifiable": "Identifiable people",
+      "mitigated": "Risk neutralised"
+    },
+    "factorHint": {
+      "sensitiveData": "Financial, health or other special-category data.",
+      "largeScale": "A large number of people or records affected.",
+      "identifiable": "Affected people can be readily identified from the data.",
+      "mitigated": "The data was unintelligible (e.g. encrypted) or the risk was neutralised."
+    },
+    "suggestedRisk": "Suggested risk:",
+    "needNone": "Notification unlikely required.",
+    "needAuthority": "Requires notifying ANSPDCP within 72 hours.",
+    "needAuthorityAndSubjects": "Requires notifying ANSPDCP and informing residents.",
+    "risk": {
+      "low": "Low",
+      "risk": "At risk",
+      "high": "High"
+    },
+    "status": {
+      "detectat": "Detected",
+      "evaluat": "Assessed",
+      "notificat": "Notified",
+      "inchis": "Closed"
+    },
+    "advanceTo": {
+      "evaluat": "Mark assessed",
+      "notificat": "Mark notified",
+      "inchis": "Close breach"
+    },
+    "record": "Record the breach",
+    "recorded": "Breach recorded",
+    "downloaded": "Document downloaded",
+    "dlAuthority": "ANSPDCP notification (art. 33)",
+    "dlSubjects": "Resident notice (art. 34)",
+    "markAuthority": "ANSPDCP notified",
+    "markSubjects": "Residents informed",
+    "deadlineOverdue": "Deadline passed",
+    "deadlineDone": "Notified",
+    "deadlineIn": "{{hours}}h to deadline",
+    "discovered": "Discovered",
+    "affected": "{{count}} people affected",
+    "by": "by {{name}}",
+    "authorityNotifiedAt": "ANSPDCP notified at",
+    "subjectsNotifiedAt": "Residents informed at"
+  },
   "ropa": {
     "title": "Data processing (DPA and register)",
     "subtitle": "The data processing agreement and the record of processing activities (GDPR art. 28 and 30).",
@@ -1921,6 +2006,7 @@
     "invites": "Invite codes",
     "dataRequests": "Personal-data requests",
     "processing": "Data processing (DPA)",
+    "breaches": "Data breaches",
     "primaryNav": "Primary navigation",
     "bottomNav": "Navigation",
     "helpTitle": "Help & support",

@@ -18,8 +18,32 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T21 DPA + records of processing)
+## 0. Current status (updated 2026-05-23, T22 personal-data breach procedure)
 
+- **2026-05-23 — T22 (P0) Personal-data breach procedure (art. 33/34 GDPR).**
+  The asociație, as data controller, must notify ANSPDCP within 72 hours of
+  becoming aware of a breach (art. 33) and, on a high risk, inform the affected
+  residents (art. 34). New pure, unit-tested `breachLogic`: `classifyRisk` maps
+  the WP29/EDPB severity factors (sensitivity, scale, identifiability,
+  neutralisation) to `low`/`risk`/`high`; `requiresAuthorityNotification`/
+  `requiresSubjectNotification` derive the duty; the 72-hour `authorityDeadline`
+  + `deadlineState` (not_required/done/on_time/due_soon/overdue) + the forward
+  `detectat`→`evaluat`→`notificat`→`inchis` lifecycle; the `BreachRecord` model +
+  queries + CSV export (29 assertions). New `breachContent` generates the art. 33
+  ANSPDCP notification and the art. 34 resident notice as bilingual
+  submission-ready text, plus the procedure as structured content. New
+  append-only `breachStore` (mirrors to `data_breaches` when a backend exists).
+  New admin `BreachAdminPage` at `/app/admin/incidente-date` (admin/președinte,
+  sidebar `Siren` + privacy-settings link): awaiting-notification banner,
+  procedure card, a record form with a live suggested-risk badge, and the
+  append-only log with risk/status/deadline badges, per-record notification
+  downloads, mark-notified actions and the lifecycle advance. Additive migration
+  `20260522000019_data_breaches.sql` (controller-role manage, **no delete
+  policy** so the trail is tamper-evident per art. 33(5)). New
+  `BREACH_PROCEDURE.md`, bilingual `breach.*` RO/EN, `/incidente` bot help, breach
+  CSS, one E2E happy-path. Decision recorded in `DECISIONS.md`. Pipeline green:
+  lint, typecheck, 99 files / 651 tests, build. Surfaced T76 (live: dispatch the
+  resident notice via the fan-out + record breach events in the T09 audit stream).
 - **2026-05-23 — T21 (P0) DPA + records of processing (art. 28 & 30 GDPR).**
   The asociație is the data controller and vecini.online the processor. New pure,
   unit-tested `ropaLogic` generates the per-asociație **Record of Processing

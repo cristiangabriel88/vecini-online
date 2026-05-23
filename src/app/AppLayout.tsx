@@ -183,6 +183,12 @@ function Sidebar() {
               onClick={() => navigate('/app/admin/prelucrare-date')}
               icon={<ClipboardList size={16} />}
             />
+            <NavItem
+              label={t('chrome.breaches')}
+              active={isActive('admin/incidente-date')}
+              onClick={() => navigate('/app/admin/incidente-date')}
+              icon={<Siren size={16} />}
+            />
           </div>
         </div>
       </div>

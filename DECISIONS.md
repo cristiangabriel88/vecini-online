@@ -578,3 +578,37 @@ interpolated, the art. 28(3)(a-h) processor obligations), downloadable as text;
 it is explicitly to be reviewed before an asociație relies on it, consistent with
 how `legalContent.ts` treats the public policy prose. Persisting a point-in-time
 ROPA snapshot + a DPA adoption record under RLS is the live follow-up T75.
+
+## T22 — breach procedure: downloadable text notifications + append-only log
+
+The asociație is the **data controller**; on a personal-data breach it must
+notify the supervisory authority (ANSPDCP) within 72 hours of becoming aware
+(art. 33) and, on a high risk, inform the affected residents (art. 34). The
+breach surface (`/app/admin/incidente-date`, controller-role only) records a
+breach, classifies its risk, and **generates** the two notifications.
+
+Decisions:
+
+- **Risk drives the duty, not the admin's free choice.** `classifyRisk` maps the
+  WP29/EDPB severity factors (sensitivity, scale, identifiability, whether the
+  risk is neutralised, e.g. encryption per art. 34(3)(a)) to `low` / `risk` /
+  `high`, and the app derives whether the authority and/or the residents must be
+  notified. The admin may override the suggested level, but the default is
+  computed so the obligation is not under-stated by omission.
+- **Notifications are downloadable bilingual plain text**, not a rendered PDF or
+  an automated submission — the same bundle-budget choice as the AGA
+  proces-verbal (T13). The platform prepares the art. 33 notification and the
+  art. 34 notice; **submitting** to the ANSPDCP and **delivering** to residents
+  remain the controller's act. Live in-app delivery of the resident notice
+  through the notification fan-out (as an essential, consent-bypassing security
+  communication like F03) is the follow-up T76.
+- **The breach log is append-only.** `data_breaches` has insert/select/update
+  policies for the controller roles but **no delete policy** for anyone, so the
+  documentation art. 33(5) requires stays tamper-evident; the lifecycle only
+  advances forward and notification times are stamped once. The task names the
+  audit stream (T09), which is not yet built; the log stands on its own now and
+  T76 folds the breach lifecycle events into the unified audit stream when T09
+  lands.
+- **No breached data is stored** — only the breach description, its approximate
+  scope (categories as i18n keys, affected count) and the handling trail; the
+  reporter is recorded by display name only, mirroring the T06 DSR model.

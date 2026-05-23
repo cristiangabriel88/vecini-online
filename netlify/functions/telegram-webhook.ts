@@ -102,6 +102,7 @@ const FEATURE_COMMANDS: Record<string, string> = {
   '/alatura': '🤝 Alătură-te unei asociații — ai primit un cod de invitație de la administrator? Deschide aplicația, alege „Alătură-te unei asociații existente” și introdu codul ca să intri în asociația ta.',
   '/datele_mele': '🛡 Datele mele personale — descarcă o copie completă (JSON sau CSV) a datelor tale personale (drepturile de acces și portabilitate, GDPR art. 15 și 20) sau cere ștergerea contului (dreptul de a fi uitat, art. 17) din secțiunea „Datele mele personale”.',
   '/prelucrare': '📋 Prelucrarea datelor — administratorul găsește acordul de prelucrare a datelor (DPA, art. 28) și registrul activităților de prelucrare (art. 30), generat din funcțiile active și exportabil în JSON/CSV, în secțiunea „Prelucrarea datelor”.',
+  '/incidente': '🚨 Incidente de securitate a datelor — administratorul înregistrează o încălcare a securității datelor, evaluează riscul și generează notificarea de 72 de ore către ANSPDCP (art. 33) și, la risc ridicat, informarea către locatari (art. 34), în secțiunea „Incidente de securitate”.',
 };
 
 async function handleMessage(msg: TelegramMessage) {

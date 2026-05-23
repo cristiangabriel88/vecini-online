@@ -46,6 +46,20 @@ test('T49: resident can submit a sesizare and see it listed', async ({ page }) =
   await expect(page.getByRole('heading', { name: 'Sesizare de test E2E' })).toBeVisible();
 });
 
+test('T22: admin records a personal-data breach and sees it logged with notifications', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/admin/incidente-date');
+  await expect(page.getByRole('heading', { name: 'Incidente de securitate a datelor' })).toBeVisible();
+  await page.getByLabel('Titlu').fill('Acces neautorizat E2E');
+  await page.getByLabel('Descriere').fill('Lista de contacte a fost expusă în testul E2E.');
+  // High risk → article 34 resident notice becomes available.
+  await page.getByRole('switch', { name: 'Date sensibile' }).click();
+  await page.getByRole('button', { name: /Înregistrează incidentul/i }).click();
+  await expect(page.getByText('Acces neautorizat E2E')).toBeVisible();
+  await expect(page.getByRole('button', { name: /Notificare ANSPDCP/i })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Informare locatari/i })).toBeVisible();
+});
+
 test('resident can cast a vote and see results', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/voturi');

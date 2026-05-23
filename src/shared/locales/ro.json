@@ -1753,7 +1753,8 @@
     "withdrawn": "Consimțământul a fost retras",
     "dataRightsTitle": "Drepturile asupra datelor",
     "dataRightsLink": "Datele mele personale (export, ștergere)",
-    "processingLink": "Registrul activităților de prelucrare și acordul DPA (administrare)"
+    "processingLink": "Registrul activităților de prelucrare și acordul DPA (administrare)",
+    "breachLink": "Incidente de securitate a datelor (administrare)"
   },
   "gdpr": {
     "rightsTitle": "Datele mele personale",
@@ -1842,6 +1843,90 @@
     "notePlaceholder": "ex. verificat, fără datorii",
     "actionedBy": "de {{name}}"
   },
+  "breach": {
+    "title": "Incidente de securitate a datelor",
+    "subtitle": "Înregistrează încălcările securității datelor, evaluează riscul și generează notificările cerute de art. 33 și 34 GDPR.",
+    "noAccessTitle": "Acces restricționat",
+    "noAccessBody": "Doar administratorul sau președintele asociației pot gestiona incidentele de securitate a datelor.",
+    "awaitingBanner": "{{count}} incident(e) așteaptă notificarea ANSPDCP în termenul de 72 de ore.",
+    "procedureTitle": "Procedura în caz de incident",
+    "recordTitle": "Înregistrează un incident",
+    "logTitle": "Registrul incidentelor",
+    "logEmpty": "Nu există incidente înregistrate.",
+    "fldTitle": "Titlu",
+    "fldTitlePh": "ex. acces neautorizat la lista de contacte",
+    "fldDescription": "Descriere",
+    "fldDescriptionPh": "Ce s-a întâmplat, cum a fost descoperit incidentul și ce date pot fi implicate.",
+    "fldDiscovered": "Data luării la cunoștință",
+    "fldAffected": "Număr aproximativ de persoane afectate",
+    "fldConsequences": "Consecințe probabile",
+    "fldConsequencesPh": "ex. risc de spam sau de fraudă prin folosirea datelor de contact",
+    "fldMeasures": "Măsuri luate sau propuse",
+    "fldMeasuresPh": "ex. revocarea accesului, resetarea parolelor, informarea persoanelor afectate",
+    "natureLegend": "Tipul încălcării",
+    "nature": {
+      "confidentiality": "Confidențialitate",
+      "integrity": "Integritate",
+      "availability": "Disponibilitate"
+    },
+    "dataLegend": "Categorii de date implicate",
+    "data": {
+      "identity": "Identificare",
+      "contact": "Contact",
+      "apartment": "Apartament",
+      "financial": "Date financiare",
+      "content": "Conținut trimis",
+      "credentials": "Date de autentificare"
+    },
+    "factorsLegend": "Factori de risc",
+    "factor": {
+      "sensitiveData": "Date sensibile",
+      "largeScale": "Amploare mare",
+      "identifiable": "Persoane identificabile",
+      "mitigated": "Risc neutralizat"
+    },
+    "factorHint": {
+      "sensitiveData": "Date financiare, de sănătate sau din categorii speciale.",
+      "largeScale": "Un număr mare de persoane sau de înregistrări afectate.",
+      "identifiable": "Persoanele afectate pot fi identificate ușor din date.",
+      "mitigated": "Datele erau neinteligibile (ex. criptate) sau riscul a fost neutralizat."
+    },
+    "suggestedRisk": "Risc sugerat:",
+    "needNone": "Notificare improbabil necesară.",
+    "needAuthority": "Necesită notificarea ANSPDCP în 72 de ore.",
+    "needAuthorityAndSubjects": "Necesită notificarea ANSPDCP și informarea locatarilor.",
+    "risk": {
+      "low": "Scăzut",
+      "risk": "Cu risc",
+      "high": "Ridicat"
+    },
+    "status": {
+      "detectat": "Detectat",
+      "evaluat": "Evaluat",
+      "notificat": "Notificat",
+      "inchis": "Închis"
+    },
+    "advanceTo": {
+      "evaluat": "Marchează evaluat",
+      "notificat": "Marchează notificat",
+      "inchis": "Închide incidentul"
+    },
+    "record": "Înregistrează incidentul",
+    "recorded": "Incidentul a fost înregistrat",
+    "downloaded": "Documentul a fost descărcat",
+    "dlAuthority": "Notificare ANSPDCP (art. 33)",
+    "dlSubjects": "Informare locatari (art. 34)",
+    "markAuthority": "Am notificat ANSPDCP",
+    "markSubjects": "Am informat locatarii",
+    "deadlineOverdue": "Termen depășit",
+    "deadlineDone": "Notificat",
+    "deadlineIn": "{{hours}} h până la termen",
+    "discovered": "Descoperit",
+    "affected": "{{count}} persoane afectate",
+    "by": "de {{name}}",
+    "authorityNotifiedAt": "ANSPDCP notificat la",
+    "subjectsNotifiedAt": "Locatari informați la"
+  },
   "ropa": {
     "title": "Prelucrarea datelor (DPA și registru)",
     "subtitle": "Acordul de prelucrare a datelor și registrul activităților de prelucrare (art. 28 și 30 GDPR).",
@@ -1923,6 +2008,7 @@
     "invites": "Coduri de invitație",
     "dataRequests": "Cereri date personale",
     "processing": "Prelucrarea datelor (DPA)",
+    "breaches": "Incidente de securitate",
     "primaryNav": "Navigație principală",
     "bottomNav": "Navigație",
     "helpTitle": "Ajutor și suport",
