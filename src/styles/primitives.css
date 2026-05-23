@@ -318,6 +318,27 @@
   line-height: var(--leading-normal);
 }
 
+/* ── ErrorState (T07) ──────────────────────────────────── */
+.empty__icon--danger {
+  background: oklch(from var(--color-danger) l c h / 0.12);
+  color: var(--color-danger);
+}
+.error-state__ref {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.error-state__ref code {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.02em;
+}
+.error-state__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: center;
+  margin-top: var(--space-2);
+}
+
 /* ── Modal ─────────────────────────────────────────────── */
 .modal-overlay {
   position: fixed;

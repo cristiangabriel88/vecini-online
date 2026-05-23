@@ -105,6 +105,7 @@
     "errorTitle": "Something went wrong",
     "errorBody": "Try again or contact your administrator.",
     "errorRef": "Reference code",
+    "retry": "Try again",
     "notImplemented": "This feature is registered but its page is not available in this build.",
     "featureDisabled": "This feature is not enabled for your association."
   },

@@ -105,6 +105,7 @@
     "errorTitle": "A apărut o eroare",
     "errorBody": "Reîncearcă sau contactează administratorul.",
     "errorRef": "Cod de referință",
+    "retry": "Reîncearcă",
     "notImplemented": "Această funcționalitate este înregistrată, dar pagina nu este încă disponibilă în această versiune.",
     "featureDisabled": "Această funcționalitate nu este activată pentru asociația ta."
   },

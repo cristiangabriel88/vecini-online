@@ -4,6 +4,7 @@ import { RouterProvider } from 'react-router-dom';
 import { AppProviders } from '@/app/providers';
 import { router } from '@/app/router';
 import { useAuthStore } from '@/shared/store/authStore';
+import { installGlobalErrorHandlers } from '@/shared/lib/errorReporting';
 import '@/styles/globals.css';
 import '@/styles/tokens.css';
 import '@/styles/primitives.css';
@@ -11,6 +12,7 @@ import '@/styles/shell.css';
 import '@/styles/assistant.css';
 import '@/styles/legal.css';
 
+installGlobalErrorHandlers();
 void useAuthStore.getState().init();
 
 createRoot(document.getElementById('root')!).render(

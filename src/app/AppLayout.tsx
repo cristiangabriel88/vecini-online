@@ -15,6 +15,7 @@ import { Atmosphere } from '@/shared/components/Atmosphere';
 import { UserMenu } from '@/shared/components/UserMenu';
 import { AssistantWidget } from '@/features/assistant/AssistantWidget';
 import { FeatureRouteGuard } from './FeatureRouteGuard';
+import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
 import { cn } from '@/shared/lib/cn';
 
 function initials(name: string) {
@@ -451,9 +452,11 @@ export function AppLayout() {
       <Sidebar />
       <main className="main">
         <div className="main__inner" key={pathname}>
-          <FeatureRouteGuard>
-            <Outlet />
-          </FeatureRouteGuard>
+          <ErrorBoundary source="route" resetKeys={[pathname]}>
+            <FeatureRouteGuard>
+              <Outlet />
+            </FeatureRouteGuard>
+          </ErrorBoundary>
         </div>
         <Footer />
       </main>

@@ -18,7 +18,28 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T31 MFA challenge throttling)
+## 0. Current status (updated 2026-05-23, T07 resilience & error handling)
+
+- **2026-05-23 — T07 (P1) Resilience & error handling.** Added the missing
+  global resilience layer. A privacy-first, dependency-free error-reporting hook
+  (`src/shared/lib/errorReporting.ts`): `scrubMessage` strips emails, JWTs,
+  bearer tokens, secret params and long digit runs (UUIDs kept intact),
+  `buildReport` scrubs message + stack + extras, `makeRef` mints a quotable
+  `IV-XXXX-XXXX` support code, and a pluggable `setErrorSink` keeps it
+  **Sentry-ready** with no bundle dependency (no sink wired by default →
+  dev-console no-op in production until one is attached). `installGlobalErrorHandlers`
+  (in `main.tsx`) catches `window.onerror` + unhandled rejections. A class
+  `ErrorBoundary` reports through the hook and shows a friendly bilingual
+  recovery state (reference + retry/home), placed at the app shell and around
+  each route `Outlet` (keyed by pathname, so one page crash keeps the shell
+  usable). New `ErrorState` component joins `EmptyState`/`SkeletonList` as the
+  standardized state family. Request retry/backoff (`src/shared/lib/retry.ts`):
+  capped exponential `backoffDelay` + `isRetryableError` (5xx/network/408/429
+  retry, 4xx/abort fail fast) wired into the react-query `QueryClient` for
+  queries and mutations. Tests: `errorReporting.test.ts` (12) + `retry.test.ts`
+  (11). Pipeline green (104 files / 704 tests). Surfaced T82 (live error sink),
+  T83 (adopt the states across all pages + surface query errors), T84 (route
+  store-action failures through the hook).
 
 - **2026-05-23 — T31 (P1) MFA challenge attempt throttling.** The login-time
   TOTP/recovery challenge accepted unlimited attempts, so a stolen password plus

@@ -4,11 +4,24 @@ import { Toaster } from 'react-hot-toast';
 import { useThemeStore } from '@/shared/store/themeStore';
 import { useTintStore } from '@/shared/store/tintStore';
 import { ConsentBanner } from '@/features/legal/ConsentBanner';
+import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
+import { backoffDelay, shouldRetry } from '@/shared/lib/retry';
 import '@/shared/lib/i18n';
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { staleTime: 30_000, refetchOnWindowFocus: false, retry: 1 },
+    queries: {
+      staleTime: 30_000,
+      refetchOnWindowFocus: false,
+      // Transient failures (network, 5xx, 408/429) self-heal with exponential
+      // backoff; deterministic 4xx and aborted requests fail fast (T07).
+      retry: (failureCount, error) => shouldRetry(failureCount, error),
+      retryDelay: (attempt) => backoffDelay(attempt),
+    },
+    mutations: {
+      retry: (failureCount, error) => shouldRetry(failureCount, error, 2),
+      retryDelay: (attempt) => backoffDelay(attempt),
+    },
   },
 });
 
@@ -22,7 +35,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {children}
+      <ErrorBoundary source="app-shell">{children}</ErrorBoundary>
       <ConsentBanner />
       <Toaster
         position="top-center"
