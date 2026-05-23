@@ -5,8 +5,8 @@ import { generateInviteCode, normalizeInviteCode } from '@/shared/lib/inviteCode
  * One asociație invite code and its full lifecycle state. The shape mirrors the
  * `invite_codes` table (see `supabase/migrations/..._init_core.sql`) so the
  * offline store and the future live persistence (T55) stay aligned; timestamps
- * are kept as epoch ms here for cheap comparison and persistence. `role` and
- * `singleUse` are local-model extensions the live table gains in T55.
+ * are kept as epoch ms here for cheap comparison and persistence. The live
+ * table gained matching `role` + `single_use` columns in T60.
  */
 export interface InviteCode {
   id: string;

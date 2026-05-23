@@ -18,8 +18,23 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T69 least-privilege owner grants on governance tables)
+## 0. Current status (updated 2026-05-23, T60 invite_codes role + single_use schema parity)
 
+- **2026-05-23 — T60 (P2) `invite_codes` schema parity for the T41 local invite
+  model.** The offline invite model carries a granted `role` and a `singleUse`
+  flag, but the live `invite_codes` table modelled neither (single-use only
+  implicitly via `consumed_by_user_id`), so T55's live persistence could not
+  round-trip the full model. New additive, idempotent migration
+  `20260522000017_invite_codes_role_single_use.sql` adds `role text not null
+  default 'proprietar'` and `single_use boolean not null default true` (both via
+  `add column if not exists`), plus a dropped-then-re-added
+  `invite_codes_role_check` restricting `role` to exactly the invitable roles
+  (`proprietar`/`chirias`/`comitet`/`cenzor`/`presedinte`), so the DB itself
+  refuses a founder/platform `admin`/`super_admin` grant. RLS unchanged.
+  Backend-free guard `tests/unit/inviteCodesSchema.test.ts` (4 assertions) checks
+  both columns + defaults and that the constraint admits exactly `INVITABLE_ROLES`
+  (derived from the source constant, so app + schema can't drift). Pipeline green:
+  lint, typecheck, 96 files / 599 tests, build.
 - **2026-05-23 — T69 (P2) Least-privilege owner grants on governance tables.**
   `apply_owner_rls`'s `"owner manage"` is a blanket `for all` grant, fine for
   personal rows but too broad for `budget_proposals`/`ideas`/`petitions`: once
