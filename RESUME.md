@@ -18,7 +18,34 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-24, T24 consumer-rights surface)
+## 0. Current status (updated 2026-05-24, T91 platform superadmin foundation)
+
+- **2026-05-24 — T91 (P1) Platform superadmin identity + cross-asociatie RLS
+  foundation.** Established the platform tier the whole superadmin surface
+  (T92/T100/T93-T99) depends on, as an additive idempotent migration
+  (`20260524000002_platform_superadmin.sql`). New `platform_admins` table (PK
+  `user_id`, no `asociatie_id` — platform-wide, not tenant data), RLS-enabled
+  with a super-admin-only read policy and **no** client write policy (the roster
+  changes only through the T92 service-role function, which bypasses RLS, so it
+  can't be self-escalated from the browser). New `is_super_admin()` helper
+  mirrors `is_member`/`has_role` (`stable security definer set search_path =
+  public`, platform-wide, reads `platform_admins`). Cross-tenant access added as
+  **separate additive permissive SELECT policies** gated on `is_super_admin()` on
+  `asociatii`, `memberships`, `audit_log` — Postgres ORs permissive policies, so
+  a platform admin gains platform-wide read while no tenant member's scope
+  changes. The tier is **read-only client-side**: no cross-tenant
+  write/update/delete policy anywhere; `users` deliberately not granted
+  cross-tenant read (resident-PII least privilege). New backend-free guard
+  `tests/unit/platformSuperadmin.test.ts` (9 assertions: helper is
+  platform-wide/security-definer/fixed-search-path reading the roster;
+  `platform_admins` created + RLS-enabled + no `asociatie_id`; read-only roster
+  with no client write; each table's `for select` is_super_admin gate; **every**
+  is_super_admin policy is `for select` so the tier can't write; no
+  `using (true)`; original member policies intact). Verified against the RLS
+  guards (T35/T04/T70/T46/T71). Decision in `DECISIONS.md`. Pipeline green: lint,
+  typecheck, 113 files / 808 tests, build. Surfaced T111 (drop the stale
+  `super_admin` value from the per-asociație `memberships` role check). Unblocks
+  T92, T100 and the console T93-T99.
 
 - **2026-05-24 — T24 (P1) Consumer-rights surface (ANPC / SOL).** Surfaced the
   mandatory consumer-protection information for a distance SaaS contract with

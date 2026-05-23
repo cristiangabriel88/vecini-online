@@ -2,6 +2,38 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## Platform superadmin: a `platform_admins` table + `is_super_admin()`, read-only cross-tenant (T91)
+
+The `super_admin` tier is platform-wide, not a per-asociație role, so it gets its
+own marker table `platform_admins` (PK `user_id`, no `asociatie_id`) rather than a
+`memberships` row. Reasons: it is not tenant-scoped data, so keeping it out of
+`memberships` avoids polluting `is_member`/the tenant-consistency guards, and it
+makes "who operates the SaaS" a single deliberate roster instead of a role buried
+per asociație. The `memberships` role check still lists `super_admin` as a legacy
+enum value; tightening that out is the queued follow-up T111 (not done here to keep
+the migration additive).
+
+`is_super_admin()` mirrors `is_member`/`has_role` exactly — `security definer` +
+`set search_path = public`, `stable`, no arguments (platform-wide). The definer
+attribute is what lets it read `platform_admins` regardless of that table's RLS,
+the same pattern `is_member` relies on for `memberships`; that is also why the
+"super admin read platform admins" policy calling `is_super_admin()` does not
+recurse.
+
+The cross-tenant grants (`asociatii`, `memberships`, `audit_log`) are **separate
+additive permissive SELECT policies** gated on `is_super_admin()`, never a rewrite
+of the existing member policies. Postgres ORs permissive policies, so a platform
+admin gains platform-wide read while every tenant member's scope is unchanged. The
+platform tier is **read-only client-side**: there is no cross-tenant write/update/
+delete policy, and `platform_admins` itself carries no write policy — privileged
+writes (create asociație, provision first admin, grant the platform role) run
+through a service-role server function that re-verifies the caller (T92), and the
+service role bypasses RLS. So the roster cannot be self-escalated from the browser.
+`users` is deliberately NOT granted cross-tenant read here (resident PII least
+privilege); the console reads identities through the T92 server function or a later
+scoped task. The error-feed (T96) and usage (T97) tables get the same policy when
+they land.
+
 ## Consumer-rights as a dedicated legal page, not only inline Terms (T24)
 
 The mandatory consumer-protection information for a distance SaaS contract (ANPC,
