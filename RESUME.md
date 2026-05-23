@@ -18,7 +18,22 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T38 response-row privacy RLS)
+## 0. Current status (updated 2026-05-23, T31 MFA challenge throttling)
+
+- **2026-05-23 — T31 (P1) MFA challenge attempt throttling.** The login-time
+  TOTP/recovery challenge accepted unlimited attempts, so a stolen password plus
+  brute force over the 6-digit space was not rate-limited client-side. Reused the
+  T03 `loginThrottle` (sliding-window budget + escalating, capped lockout) on the
+  challenge via a persisted single `challengeThrottle` in `mfaStore`:
+  `verifyChallenge` pre-locks while a lockout is in force, clears on success, and
+  counts a failure only on a wrong-credential guess (`invalidCode`) — config
+  errors (`not-enrolled`/`recovery-live-unavailable`) never lock anyone out.
+  Returns `{ error, lockedMs }`; `LoginPage` shows a bilingual `auth.mfaLockout`
+  toast. Two privacy-safe audit events (`mfaChallengeFailed`/`mfaChallengeLocked`)
+  added + rendered on `SecurityPage`. Guard `mfaChallengeThrottle.test.ts` (5
+  assertions). Pipeline green (102 files / 681 tests). Surfaced T81 (server-side
+  challenge-limit parity). Live MFA security hardening for the spine continues;
+  remaining auth follow-ups T29/T30/T32/T33 need a provisioned backend.
 
 - **2026-05-23 — T38 (P1) Anonymous-survey / vote / ranking response privacy.**
   `survey_responses`, `votes` and `priority_rankings` shipped on the standard

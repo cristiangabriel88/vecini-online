@@ -146,6 +146,7 @@
     "invalidCredentials": "Incorrect email or password.",
     "demoMode": "Demo mode — no backend configured. Displayed data is sample data.",
     "lockout": "Too many failed attempts. Your account is temporarily locked. Try again in about {{minutes}} min.",
+    "mfaLockout": "Too many incorrect codes. Verification is temporarily locked. Try again in about {{minutes}} min.",
     "err": {
       "invalidCredentials": "Incorrect email or password.",
       "emailNotConfirmed": "Confirm your email address before signing in.",
@@ -189,7 +190,9 @@
         "passwordResetRequested": "Password reset requested",
         "mfaEnabled": "Two-factor authentication enabled",
         "mfaDisabled": "Two-factor authentication disabled",
-        "recoveryCodesRegenerated": "Recovery codes regenerated"
+        "recoveryCodesRegenerated": "Recovery codes regenerated",
+        "mfaChallengeFailed": "Failed two-step verification",
+        "mfaChallengeLocked": "Two-step verification temporarily locked after too many attempts"
       }
     },
     "mfa": {

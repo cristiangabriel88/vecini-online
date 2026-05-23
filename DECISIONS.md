@@ -694,3 +694,28 @@ Decisions:
   non-anonymous, votes/responses carry no mutation policy, the ranking policy is
   apartment-scoped (no `has_role`), and the aggregate functions are security
   definer with a fixed search_path and project no identity column.
+
+## T31 — MFA challenge attempt throttling (2026-05-23)
+
+- **Reuse the T03 `loginThrottle` module, no new primitive.** The MFA challenge
+  step is throttled with the same pure sliding-window + escalating-lockout logic
+  as login (`registerFailure`/`registerSuccess`/`remainingLockMs`), so the two
+  rate limiters behave identically and there is one place to tune the budget.
+- **A single per-device challenge channel, not keyed by account.** Login
+  throttles per normalised email; the challenge runs after the password step for
+  the one session being authenticated, and only one challenge is ever in flight
+  per browser, so `mfaStore` holds a single `challengeThrottle` rather than a
+  keyed map. Simpler, and it cannot be sidestepped by varying an identifier.
+- **Throttle only on a wrong-credential guess.** A failure counts toward the
+  lockout only when `mfaErrorKey(error) === 'invalidCode'` (the demo
+  `invalid-code` and the live Supabase "invalid..." message). Config/availability
+  errors (`not-enrolled`, `recovery-live-unavailable`, `challenge-failed`) are not
+  attacker probes and never lock anyone out, so a mis-setup or an online recovery
+  attempt is not penalised. The brute-force surface (the 6-digit TOTP space and
+  demo recovery guessing) is exactly what increments the budget.
+- **Persisted but client-side.** `challengeThrottle` is persisted so a reload
+  cannot reset a lockout; a localStorage wipe still can. Server-side parity is
+  T81 (alongside T29 live recovery and T33 server-backed login lockout).
+- **New audit events.** `mfaChallengeFailed`/`mfaChallengeLocked` join the
+  privacy-safe auth stream (no code/secret stored). The `auth_audit_events`
+  `event_type` is unconstrained text, so no migration was needed.

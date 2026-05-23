@@ -146,6 +146,7 @@
     "invalidCredentials": "Email sau parolă incorecte.",
     "demoMode": "Mod demonstrativ — fără backend configurat. Datele afișate sunt exemple.",
     "lockout": "Prea multe încercări eșuate. Contul este blocat temporar. Reîncearcă peste aproximativ {{minutes}} min.",
+    "mfaLockout": "Prea multe coduri incorecte. Verificarea este blocată temporar. Reîncearcă peste aproximativ {{minutes}} min.",
     "err": {
       "invalidCredentials": "Email sau parolă incorecte.",
       "emailNotConfirmed": "Confirmă-ți adresa de email înainte de a te autentifica.",
@@ -189,7 +190,9 @@
         "passwordResetRequested": "Cerere de resetare a parolei",
         "mfaEnabled": "Autentificare în doi pași activată",
         "mfaDisabled": "Autentificare în doi pași dezactivată",
-        "recoveryCodesRegenerated": "Coduri de recuperare regenerate"
+        "recoveryCodesRegenerated": "Coduri de recuperare regenerate",
+        "mfaChallengeFailed": "Verificare în doi pași eșuată",
+        "mfaChallengeLocked": "Verificarea în doi pași blocată temporar după prea multe încercări"
       }
     },
     "mfa": {

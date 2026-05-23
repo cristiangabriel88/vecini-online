@@ -22,7 +22,9 @@ export type AuthEventType =
   | 'passwordResetRequested'
   | 'mfaEnabled'
   | 'mfaDisabled'
-  | 'recoveryCodesRegenerated';
+  | 'recoveryCodesRegenerated'
+  | 'mfaChallengeFailed'
+  | 'mfaChallengeLocked';
 
 /** The full set, handy for exhaustive locale coverage and iteration. */
 export const AUTH_EVENT_TYPES: AuthEventType[] = [
@@ -36,6 +38,8 @@ export const AUTH_EVENT_TYPES: AuthEventType[] = [
   'mfaEnabled',
   'mfaDisabled',
   'recoveryCodesRegenerated',
+  'mfaChallengeFailed',
+  'mfaChallengeLocked',
 ];
 
 export interface AuthAuditEvent {

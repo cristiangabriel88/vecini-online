@@ -9,9 +9,17 @@ import {
   generateTotpSecret,
   hashRecoveryCodes,
   isValidTotpFormat,
+  mfaErrorKey,
   verifyTotp,
   type Aal,
 } from '@/features/auth/mfaLogic';
+import {
+  type ThrottleState,
+  emptyThrottle,
+  registerFailure as throttleFail,
+  registerSuccess as throttleOk,
+  remainingLockMs,
+} from '@/features/auth/loginThrottle';
 
 import { useSecurityStore } from './securityStore';
 
@@ -19,6 +27,12 @@ const ISSUER = 'vecini.online';
 
 interface OpResult {
   error: string | null;
+}
+
+/** Result of a login-time MFA challenge, carrying any remaining lockout. */
+interface ChallengeResult extends OpResult {
+  /** Remaining challenge lockout in ms (>0 once the attempt budget is spent). */
+  lockedMs: number;
 }
 
 /** The data shown while a user is part-way through enrolling a new TOTP factor. */
@@ -51,6 +65,14 @@ interface MfaState {
   demoSecret: string | null;
   demoRecoveryHashes: string[];
 
+  /**
+   * Failed-attempt throttle for the login-time challenge step (T31). Persisted
+   * so a temporary lockout survives a reload (a localStorage wipe still resets
+   * it client-side; the server-backed counterpart is T33). A single per-device
+   * channel is enough: only one challenge is ever in flight at a time.
+   */
+  challengeThrottle: ThrottleState;
+
   load: () => Promise<void>;
   beginEnroll: (account: string) => Promise<OpResult>;
   confirmEnroll: (code: string) => Promise<OpResult>;
@@ -61,7 +83,9 @@ interface MfaState {
   /** Whether the freshly signed-in session must still pass a TOTP challenge. */
   challengeRequired: () => Promise<boolean>;
   /** Verify a login-time challenge with either a TOTP code or a recovery code. */
-  verifyChallenge: (code: string) => Promise<OpResult>;
+  verifyChallenge: (code: string) => Promise<ChallengeResult>;
+  /** Remaining challenge lockout in ms (0 when a code may be submitted). */
+  challengeLockMs: () => number;
 }
 
 /** Resolve the verified TOTP factor id for the signed-in user (live only). */
@@ -91,6 +115,7 @@ export const useMfaStore = create<MfaState>()(
       recoveryCodes: null,
       demoSecret: null,
       demoRecoveryHashes: [],
+      challengeThrottle: emptyThrottle(),
 
       load: async () => {
         if (!isSupabaseConfigured) {
@@ -243,46 +268,83 @@ export const useMfaStore = create<MfaState>()(
       },
 
       verifyChallenge: async (code) => {
-        const input = code.trim();
-        if (!isSupabaseConfigured) {
-          const secret = get().demoSecret;
-          if (!secret) return { error: 'not-enrolled' };
-          if (isValidTotpFormat(input)) {
-            const ok = await verifyTotp(secret, input);
-            return ok ? { error: null } : { error: 'invalid-code' };
-          }
-          const { matched, remaining } = await consumeRecoveryCode(
-            get().demoRecoveryHashes,
-            input,
-          );
-          if (!matched) return { error: 'invalid-code' };
-          set({ demoRecoveryHashes: remaining });
-          return { error: null };
+        const now = Date.now();
+        const sec = useSecurityStore.getState();
+
+        // Refuse before evaluating the code while a challenge lockout is in
+        // force, so a stolen password plus brute force over the 6-digit space is
+        // rate-limited (mirrors the pre-lock guard in authStore.signIn).
+        const preLock = remainingLockMs(get().challengeThrottle, now);
+        if (preLock > 0) {
+          sec.log('mfaChallengeLocked');
+          return { error: 'locked', lockedMs: preLock };
         }
 
-        // Live: only an authenticator code can step the session up to aal2.
-        // Recovery-code login requires a privileged server routine and is wired
-        // separately (see T29); offline/demo recovery is fully functional.
-        if (!isValidTotpFormat(input)) return { error: 'recovery-live-unavailable' };
-        const factorId = await verifiedTotpFactorId();
-        if (!factorId) return { error: 'not-enrolled' };
-        const { data: ch, error: chErr } = await supabase.auth.mfa.challenge({ factorId });
-        if (chErr || !ch) return { error: chErr?.message ?? 'challenge-failed' };
-        const { error: vErr } = await supabase.auth.mfa.verify({
-          factorId,
-          challengeId: ch.id,
-          code: input,
-        });
-        return { error: vErr ? vErr.message : null };
+        // The actual verification (demo TOTP/recovery, or live TOTP via Supabase).
+        const { error } = await (async (): Promise<OpResult> => {
+          const input = code.trim();
+          if (!isSupabaseConfigured) {
+            const secret = get().demoSecret;
+            if (!secret) return { error: 'not-enrolled' };
+            if (isValidTotpFormat(input)) {
+              const ok = await verifyTotp(secret, input);
+              return ok ? { error: null } : { error: 'invalid-code' };
+            }
+            const { matched, remaining } = await consumeRecoveryCode(
+              get().demoRecoveryHashes,
+              input,
+            );
+            if (!matched) return { error: 'invalid-code' };
+            set({ demoRecoveryHashes: remaining });
+            return { error: null };
+          }
+
+          // Live: only an authenticator code can step the session up to aal2.
+          // Recovery-code login requires a privileged server routine and is wired
+          // separately (see T29); offline/demo recovery is fully functional.
+          if (!isValidTotpFormat(input)) return { error: 'recovery-live-unavailable' };
+          const factorId = await verifiedTotpFactorId();
+          if (!factorId) return { error: 'not-enrolled' };
+          const { data: ch, error: chErr } = await supabase.auth.mfa.challenge({ factorId });
+          if (chErr || !ch) return { error: chErr?.message ?? 'challenge-failed' };
+          const { error: vErr } = await supabase.auth.mfa.verify({
+            factorId,
+            challengeId: ch.id,
+            code: input,
+          });
+          return { error: vErr ? vErr.message : null };
+        })();
+
+        if (!error) {
+          set({ challengeThrottle: throttleOk() });
+          return { error: null, lockedMs: 0 };
+        }
+
+        // Only a wrong-credential guess counts toward the brute-force budget;
+        // config/availability errors (not-enrolled, recovery-live-unavailable,
+        // challenge-failed) are not attacker probes and must not lock anyone out.
+        if (mfaErrorKey(error) === 'invalidCode') {
+          const next = throttleFail(get().challengeThrottle, now);
+          set({ challengeThrottle: next });
+          const lockedMs = remainingLockMs(next, now);
+          sec.log(lockedMs > 0 ? 'mfaChallengeLocked' : 'mfaChallengeFailed');
+          return { error, lockedMs };
+        }
+        return { error, lockedMs: 0 };
       },
+
+      challengeLockMs: () => remainingLockMs(get().challengeThrottle, Date.now()),
     }),
     {
       name: 'intrevecini.mfa',
-      // Only the demo enrolment survives reloads. Live state is read from
-      // Supabase on load(); plaintext recovery codes and drafts are never stored.
+      // Only the demo enrolment + the challenge lockout survive reloads. Live
+      // state is read from Supabase on load(); plaintext recovery codes and
+      // drafts are never stored. Persisting the throttle keeps a temporary
+      // challenge lockout from being reset by a simple page reload.
       partialize: (s) => ({
         demoSecret: s.demoSecret,
         demoRecoveryHashes: s.demoRecoveryHashes,
+        challengeThrottle: s.challengeThrottle,
       }),
     },
   ),

@@ -150,7 +150,12 @@ export default function LoginPage() {
     if (!mfaCode.trim()) return;
     setLoading(true);
     try {
-      const { error } = await verifyChallenge(mfaCode);
+      const { error, lockedMs } = await verifyChallenge(mfaCode);
+      if (lockedMs > 0) {
+        toast.error(t('auth.mfaLockout', { minutes: lockoutMinutes(lockedMs) }));
+        setMfaCode('');
+        return;
+      }
       if (error) {
         toast.error(t(`auth.mfa.err.${mfaErrorKey(error)}`));
         return;
