@@ -2,6 +2,38 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## Minors' privacy: enforce aggregate-only, don't just declare it (T23)
+
+The privacy policy already stated that child data is aggregate-only; T23 made it
+**enforced**. The non-trivial choices:
+
+**A runtime guard plus parse-based locks, not only documentation.** Rather than
+trust the F64 data model to stay aggregate, `src/shared/lib/minorsGuard.ts` gives
+the rule teeth: `assertAggregateOnly(record, allowed, context)` runs on every
+write into the kids store and throws `MinorIdentityError` if a record carries a
+field outside its allowlist or a field whose name identifies a child. The
+regression test adds a **structural lock** (parses `domain.ts` — `KidsAgeRange`/
+`KidsEvent` must equal the allowlisted aggregate field sets) and a **schema lock**
+(parses the migration — no child-identifying column on `kids_age_ranges`/
+`kids_events`). So adding `child_name`, `date_of_birth`, `cnp`, etc. to a kids
+record fails the unit suite, in line with the project's other parse-based guards
+(T35/T46/T70).
+
+**The identity detector targets the child, not the responsible adult.**
+`MINOR_IDENTITY_FIELD_PATTERNS` flags child-scoped identifiers (`child_name`,
+`copil_*`, `data_nasterii`, `cnp`, `școală`, `birthday`) but deliberately does
+**not** flag bare `name`/`email` or `user_id`/`organizer_name` — those describe
+the adult parent/organizer, whose identity is legitimate. The field allowlists
+are the precise guard; the name detector is the platform-wide net for a future
+minor-facing record that has no allowlist yet.
+
+**Future minor-facing identifying data goes through parental consent, not a
+widened pattern.** The documented rule (`MINORS_PRIVACY.md`) is: prefer aggregate;
+if a future feature genuinely needs a minor's identifying data, it is processed
+only with verifiable parent/legal-representative consent (GDPR art. 8 / Legea
+190/2018 art. 8), with a lawful-basis note here, a retention entry, and a ROPA
+entry — never by quietly relaxing the guard.
+
 ## Three owner-requested capability areas: documents, invite QR, superadmin tier (T88-T100)
 
 A planning pass that specced and queued three capabilities (no code yet). The

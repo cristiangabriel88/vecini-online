@@ -18,7 +18,27 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-24, T12 F67 Acasă personalizabil)
+## 0. Current status (updated 2026-05-24, T23 Minors' consent guardrails)
+
+- **2026-05-24 — T23 (P1) Minors' consent guardrails (Legea 190/2018).** Made the
+  "no feature collects identifying data about children" rule enforced, not just
+  declared. New pure `src/shared/lib/minorsGuard.ts`: the aggregate field
+  allowlists `KIDS_AGE_RANGE_FIELDS`/`KIDS_EVENT_FIELDS`, an identity-name
+  detector (`MINOR_IDENTITY_FIELD_PATTERNS`/`minorIdentityFields` — flags
+  `child_name`, `copil_*`, `data_nasterii`, `cnp`, `școală`, `birthday`, but not
+  the responsible adult's `user_id`/`organizer_name`), and
+  `assertAggregateOnly(record, allowed, context)` throwing `MinorIdentityError`.
+  The F64 kids store now calls the guard on every write, so an identifying field
+  can never reach the store. New `tests/unit/minorsGuard.test.ts` (14): detector
+  positives/negatives, the runtime guard, a structural lock parsing `domain.ts`
+  (the `KidsAgeRange`/`KidsEvent` types must equal the allowlists), a schema lock
+  parsing the migration (no child-identifying column), and that the live store +
+  demo seed hold no child identity. Enhanced the privacy policy "Minori"/"Children"
+  sections (RO+EN) to cite GDPR art. 8 + Legea 190/2018 art. 8 and state the rule
+  is enforced technically. New `MINORS_PRIVACY.md` reference doc; decision in
+  `DECISIONS.md`. Pipeline green: lint, typecheck, 111 files / 789 tests, build.
+  No new problems surfaced (F64 is the only minor-facing feature; the guard is
+  ready for any future one).
 
 - **2026-05-24 — T12 (P1) F67 Acasă personalizabil (customizable home).** The
   second Category-9 personalization feature, completing the pair with F66. New

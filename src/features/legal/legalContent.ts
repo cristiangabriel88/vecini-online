@@ -93,7 +93,8 @@ export function privacyPolicy(lang: Lang): LegalDoc {
         {
           heading: 'Children',
           paragraphs: [
-            'The platform is intended for adult residents. Information about children (for example age ranges for activities) is processed only in aggregate and never identifies a child, in line with Romanian rules on the consent of minors.',
+            'The platform is intended for adult residents. We do not collect data that identifies a child: information about children (for example age ranges for activities) is processed only in aggregate — counts per age group — and never identifies an individual child. This rule is enforced technically in our systems, not merely stated.',
+            'Should any future feature ever need to process a minor’s identifying data, it would be handled only with the consent of a parent or legal representative, in line with art. 8 of Regulation (EU) 2016/679 (GDPR) and art. 8 of Law no. 190/2018.',
           ],
         },
         {
@@ -167,7 +168,8 @@ export function privacyPolicy(lang: Lang): LegalDoc {
       {
         heading: 'Minori',
         paragraphs: [
-          'Platforma este destinată locatarilor adulți. Informațiile despre copii (de exemplu intervalele de vârstă pentru activități) sunt prelucrate doar agregat și nu identifică niciodată un copil, în acord cu regulile din România privind consimțământul minorilor.',
+          'Platforma este destinată locatarilor adulți. Nu colectăm date care identifică un copil: informațiile despre copii (de exemplu intervalele de vârstă pentru activități) sunt prelucrate doar agregat — numere pe grupe de vârstă — și nu identifică niciodată un copil anume. Această regulă este aplicată tehnic în sistemele noastre, nu doar declarată.',
+          'Dacă vreo funcționalitate viitoare ar avea nevoie să prelucreze date care identifică un minor, acestea ar fi gestionate doar cu consimțământul unui părinte sau reprezentant legal, în acord cu art. 8 din Regulamentul (UE) 2016/679 (GDPR) și art. 8 din Legea nr. 190/2018.',
         ],
       },
       {

@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 import type { KidsAgeBucket, KidsAgeRange, KidsEvent } from '@/shared/types/domain';
 import { DEMO_KIDS_RANGES, DEMO_KIDS_EVENTS } from '@/shared/demo/demoData';
+import {
+  KIDS_AGE_RANGE_FIELDS,
+  KIDS_EVENT_FIELDS,
+  assertAggregateOnly,
+} from '@/shared/lib/minorsGuard';
 
 /** Demo identity of the signed-in resident (a parent). */
 export const DEMO_USER = { id: 'u-res', name: 'Popescu Andrei' };
@@ -34,47 +39,48 @@ export const useKidsStore = create<KidsState>((set) => ({
     set((s) => {
       const existing = s.ranges.find((r) => r.user_id === DEMO_USER.id && r.bucket === bucket);
       if (existing) {
+        const updated = { ...existing, count };
+        assertAggregateOnly(updated, KIDS_AGE_RANGE_FIELDS, 'kids_age_ranges');
         return {
-          ranges: s.ranges.map((r) => (r.id === existing.id ? { ...r, count } : r)),
+          ranges: s.ranges.map((r) => (r.id === existing.id ? updated : r)),
         };
       }
-      return {
-        ranges: [
-          ...s.ranges,
-          {
-            id: `kr-${Date.now()}`,
-            asociatie_id: 'demo-asoc',
-            user_id: DEMO_USER.id,
-            bucket,
-            count,
-          },
-        ],
+      const record: KidsAgeRange = {
+        id: `kr-${Date.now()}`,
+        asociatie_id: 'demo-asoc',
+        user_id: DEMO_USER.id,
+        bucket,
+        count,
       };
+      // Minors' privacy guard (T23): a registration is counts only, never a child's identity.
+      assertAggregateOnly(record, KIDS_AGE_RANGE_FIELDS, 'kids_age_ranges');
+      return { ranges: [...s.ranges, record] };
     }),
   removeRange: (bucket) =>
     set((s) => ({
       ranges: s.ranges.filter((r) => !(r.user_id === DEMO_USER.id && r.bucket === bucket)),
     })),
   addEvent: (title, date, time, location, bucket, note) =>
-    set((s) => ({
-      events: [
-        ...s.events,
-        {
-          id: `ke-${Date.now()}`,
-          asociatie_id: 'demo-asoc',
-          title,
-          date,
-          time,
-          location,
-          bucket,
-          note,
-          interested: 0,
-          organizer_user_id: DEMO_USER.id,
-          organizer_name: DEMO_USER.name,
-          created_at: new Date().toISOString(),
-        },
-      ],
-    })),
+    set((s) => {
+      const record: KidsEvent = {
+        id: `ke-${Date.now()}`,
+        asociatie_id: 'demo-asoc',
+        title,
+        date,
+        time,
+        location,
+        bucket,
+        note,
+        interested: 0,
+        organizer_user_id: DEMO_USER.id,
+        organizer_name: DEMO_USER.name,
+        created_at: new Date().toISOString(),
+      };
+      // Minors' privacy guard (T23): an activity carries the adult organizer + a target
+      // age bucket, never an identified child.
+      assertAggregateOnly(record, KIDS_EVENT_FIELDS, 'kids_events');
+      return { events: [...s.events, record] };
+    }),
   removeEvent: (id) =>
     set((s) => {
       const joinedIds = new Set(s.joinedIds);
