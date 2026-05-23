@@ -1752,7 +1752,8 @@
     "withdraw": "Retrage consimțământul",
     "withdrawn": "Consimțământul a fost retras",
     "dataRightsTitle": "Drepturile asupra datelor",
-    "dataRightsLink": "Datele mele personale (export, ștergere)"
+    "dataRightsLink": "Datele mele personale (export, ștergere)",
+    "processingLink": "Registrul activităților de prelucrare și acordul DPA (administrare)"
   },
   "gdpr": {
     "rightsTitle": "Datele mele personale",
@@ -1841,6 +1842,79 @@
     "notePlaceholder": "ex. verificat, fără datorii",
     "actionedBy": "de {{name}}"
   },
+  "ropa": {
+    "title": "Prelucrarea datelor (DPA și registru)",
+    "subtitle": "Acordul de prelucrare a datelor și registrul activităților de prelucrare (art. 28 și 30 GDPR).",
+    "noAccessTitle": "Acces restricționat",
+    "noAccessBody": "Doar administratorul sau președintele asociației pot consulta acordul de prelucrare și registrul activităților de prelucrare.",
+    "controller": "Operator",
+    "processor": "Persoană împuternicită",
+    "dpaTitle": "Acord de prelucrare a datelor (art. 28)",
+    "dpaBody": "Asociația este operatorul de date, iar vecini.online este persoana împuternicită. Acest model de acord stabilește obligațiile fiecărei părți și trebuie revizuit înainte de adoptare.",
+    "downloadDpa": "Descarcă acordul (text)",
+    "dpaDownloaded": "Acordul de prelucrare a fost descărcat",
+    "registerTitle": "Registrul activităților de prelucrare (art. 30)",
+    "registerBody": "Generat automat din funcțiile active ale asociației: pentru fiecare activitate, ce date prelucrează, în ce temei, cât le păstrează și cine le primește.",
+    "exported": "Registrul a fost descărcat",
+    "colActivity": "Activitate",
+    "colPurpose": "Scop",
+    "colData": "Categorii de date",
+    "colSubjects": "Persoane vizate",
+    "colBasis": "Temei legal",
+    "colRetention": "Păstrare",
+    "colRecipients": "Destinatari",
+    "subjectsNote": "Persoane vizate pentru toate activitățile: {{subjects}}.",
+    "data": {
+      "identity": "Identificare",
+      "contact": "Contact",
+      "apartment": "Apartament",
+      "content": "Conținut trimis",
+      "financial": "Date financiare",
+      "location": "Localizare",
+      "optional": "Date opționale",
+      "usage": "Date tehnice"
+    },
+    "basis": {
+      "contract": "Executarea contractului (art. 6 alin. (1) lit. b)",
+      "legal": "Obligație legală (art. 6 alin. (1) lit. c)",
+      "legitimate": "Interes legitim (art. 6 alin. (1) lit. f)",
+      "consent": "Consimțământ (art. 6 alin. (1) lit. a)"
+    },
+    "retain": {
+      "active": "Cât timp funcția este activă / contul există",
+      "mandate": "Pe durata mandatului asociației",
+      "legal10y": "10 ani (obligație contabilă)",
+      "consent": "Până la retragerea consimțământului",
+      "security": "12 luni"
+    },
+    "recip": {
+      "committee": "Comitet / administrator",
+      "residents": "Locatarii asociației (după rol)",
+      "self": "Doar autorul",
+      "processor": "vecini.online (persoană împuternicită)"
+    },
+    "subjects": {
+      "residents": "locatari, proprietari și chiriași ai asociației"
+    },
+    "platform": {
+      "account": {
+        "title": "Cont și autentificare",
+        "purpose": "Crearea contului, autentificarea și menținerea sesiunii pentru accesul la platformă."
+      },
+      "security": {
+        "title": "Jurnal de securitate",
+        "purpose": "Înregistrarea evenimentelor de securitate (autentificări, schimbări 2FA) pentru protecția contului."
+      },
+      "consent": {
+        "title": "Evidența consimțământului",
+        "purpose": "Păstrarea dovezii alegerilor de consimțământ ca obligație de conformitate (art. 7)."
+      },
+      "dsr": {
+        "title": "Cereri privind datele personale",
+        "purpose": "Gestionarea cererilor de export și de ștergere ale persoanelor vizate (art. 15-22)."
+      }
+    }
+  },
   "chrome": {
     "home": "Acasă",
     "admin": "Administrare",
@@ -1848,6 +1922,7 @@
     "apartments": "Apartamente",
     "invites": "Coduri de invitație",
     "dataRequests": "Cereri date personale",
+    "processing": "Prelucrarea datelor (DPA)",
     "primaryNav": "Navigație principală",
     "bottomNav": "Navigație",
     "helpTitle": "Ajutor și suport",

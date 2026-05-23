@@ -506,3 +506,136 @@
 .gdpr-queue__trail {
   margin: 8px 0 0;
 }
+
+/* --- T21: DPA + record of processing activities (art. 28 & 30) --- */
+
+.ropa-noaccess {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: var(--text-muted);
+}
+
+.ropa-noaccess__title {
+  margin: 0 0 2px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ropa-roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 4px 0 12px;
+}
+
+.ropa-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+/* DPA template, rendered inside a card (lighter than the public legal pages) */
+.dpa-doc {
+  border-top: 1px solid var(--border-subtle);
+  margin-top: 4px;
+  padding-top: 12px;
+}
+
+.dpa-doc__updated {
+  margin: 0 0 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+}
+
+.dpa-doc__intro {
+  margin: 0 0 12px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.dpa-doc__section {
+  margin-bottom: 12px;
+}
+
+.dpa-doc__heading {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.dpa-doc__p {
+  margin: 0 0 6px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+/* Record of processing activities table */
+.ropa-table {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm, 8px);
+  overflow: hidden;
+}
+
+.ropa-table__row {
+  display: grid;
+  grid-template-columns: 1.8fr 1.4fr 1.2fr 1.1fr 1.2fr;
+  gap: var(--space-3);
+  padding: 10px 12px;
+  font-size: 12.5px;
+  border-top: 1px solid var(--border-subtle);
+  align-items: start;
+}
+
+.ropa-table__row:first-child {
+  border-top: none;
+}
+
+.ropa-table__row--head {
+  background: var(--bg-sunken);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+}
+
+.ropa-table__name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.ropa-table__purpose {
+  display: block;
+  margin-top: 2px;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.ropa-table__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+@media (max-width: 720px) {
+  .ropa-table__row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .ropa-table__row--head {
+    display: none;
+  }
+}

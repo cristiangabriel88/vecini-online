@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { ShieldCheck, FileText, Cookie, ScrollText, DatabaseZap } from 'lucide-react';
+import { ShieldCheck, FileText, Cookie, ScrollText, DatabaseZap, ClipboardList } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Switch } from '@/shared/components/Switch';
 import { useConsentStore } from '@/shared/store/consentStore';
+import { useAuthStore } from '@/shared/store/authStore';
 import { formatDateTime } from '@/shared/lib/format';
 import {
   type ConsentCategory,
@@ -24,6 +25,8 @@ export default function PrivacySettingsPage() {
   const history = useConsentStore((s) => s.history);
   const decide = useConsentStore((s) => s.decide);
   const reset = useConsentStore((s) => s.reset);
+  const role = useAuthStore((s) => s.activeRole)();
+  const isController = role === 'admin' || role === 'presedinte';
   const [draft, setDraft] = useState<ConsentChoices>(record?.choices ?? defaultChoices());
 
   const setCat = (cat: ConsentCategory, value: boolean) => setDraft((d) => ({ ...d, [cat]: value }));
@@ -74,6 +77,12 @@ export default function PrivacySettingsPage() {
             <DatabaseZap size={16} />
             <span>{t('consent.dataRightsLink')}</span>
           </Link>
+          {isController && (
+            <Link className="consent-link" to="/app/admin/prelucrare-date">
+              <ClipboardList size={16} />
+              <span>{t('consent.processingLink')}</span>
+            </Link>
+          )}
         </div>
       </Card>
 

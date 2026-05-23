@@ -18,8 +18,33 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T06 GDPR data-subject rights)
+## 0. Current status (updated 2026-05-23, T21 DPA + records of processing)
 
+- **2026-05-23 — T21 (P0) DPA + records of processing (art. 28 & 30 GDPR).**
+  The asociație is the data controller and vecini.online the processor. New pure,
+  unit-tested `ropaLogic` generates the per-asociație **Record of Processing
+  Activities (art. 30) from the feature/data model**: a `ProcessingProfile` (data
+  categories, lawful basis, retention, recipients) per `FeatureCategory` default,
+  sharpened by per-feature overrides for the special cases (financial F12/F20/F44,
+  opt-in/consent F36/F37/F49/F63/F64, the anonymous F05 carrying no identity), plus
+  four always-present platform activities (account/auth, security log, consent
+  records, data-subject requests). `buildRopa(enabledKeys)` returns the platform
+  activities then one entry per enabled, implemented feature in registry order;
+  `profileFor` shallow-merges the override without mutating the defaults;
+  `ropaToCsv`/`ropaToJson` serialize the localized register (11 assertions, incl. a
+  guard that every implemented feature resolves a non-empty profile so none falls
+  outside the register). New `dpaContent.ts` ships the bilingual **DPA template
+  (art. 28)** as structured `LegalDoc` content with the controller name interpolated
+  and the art. 28(3)(a-h) processor obligations + `dpaToText`. New admin
+  `ProcessingRecordsPage` at `/app/admin/prelucrare-date` (admin/președinte-gated,
+  sidebar nav + `ClipboardList`, also linked from the privacy settings for
+  controllers): a DPA card (controller/processor, rendered template, text download)
+  and the art. 30 register as a 5-column table generated from `useAsociatieFlags()`
+  with JSON/CSV export. Fully offline, bilingual `ropa.*`/`dpa.*` RO/EN with the
+  art. 6 references, `/prelucrare` bot help. Decision recorded in `DECISIONS.md`.
+  Pipeline green: lint, typecheck, 98 files / 622 tests, build. Surfaced T74
+  (declare the processing profile on the registry as the single source for the
+  ROPA) and T75 (live: persist a per-asociație ROPA snapshot + DPA adoption record).
 - **2026-05-23 — T06 (P0) GDPR data-subject rights (export + erasure).** Finished
   the partially-built, uncommitted T06 work (pure `gdprLogic` + `gdprStore` +
   `MyDataPage` + locales + migration existed but were unwired/uncommitted) and

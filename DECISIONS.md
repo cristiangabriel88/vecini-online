@@ -553,3 +553,28 @@ under T34's parent-scoped read policy, so the `not exists` lock evaluates
 reliably for them. The helper is additive and idempotent (drops `"owner manage"`
 and any prior run of the scoped policies before recreating). It only narrows the
 owner grant; no other policy changes.
+
+## T21 — ROPA generated from the feature model; DPA as an informational template
+
+The asociația de proprietari is the **data controller** and vecini.online the
+**processor** (art. 28). Rather than ship a static, hand-maintained "Registru al
+activităților de prelucrare" (art. 30) that drifts the moment a module is enabled
+or disabled, the register is **generated from the feature/data model**: each
+`FeatureCategory` carries a default processing profile (data categories, lawful
+basis, retention, recipients), sharpened by a small set of per-feature overrides
+in `ropaLogic` for the genuinely-different cases (financial records F12/F20/F44
+with a 10-year accounting retention; opt-in/consent features F36/F37/F49/F63/F64;
+the anonymous channel F05, which carries no identity). `buildRopa(enabledKeys)`
+then lists four always-present platform activities (account/auth, security log,
+consent records, data-subject requests) followed by one entry per enabled,
+implemented feature, so the register an admin sees reflects exactly the modules
+that asociație runs. A unit guard asserts every implemented feature resolves a
+non-empty profile, so a new feature cannot silently fall outside the register.
+
+The override map lives in `ropaLogic` for now; T74 will move the profile onto
+`FeatureDef` so the registry is the single source of truth. The DPA (art. 28) is
+an **informational bilingual template** in `dpaContent.ts` (controller name
+interpolated, the art. 28(3)(a-h) processor obligations), downloadable as text;
+it is explicitly to be reviewed before an asociație relies on it, consistent with
+how `legalContent.ts` treats the public policy prose. Persisting a point-in-time
+ROPA snapshot + a DPA adoption record under RLS is the live follow-up T75.

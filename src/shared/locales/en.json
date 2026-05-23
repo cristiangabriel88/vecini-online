@@ -1750,7 +1750,8 @@
     "withdraw": "Withdraw consent",
     "withdrawn": "Consent withdrawn",
     "dataRightsTitle": "Your data rights",
-    "dataRightsLink": "My personal data (export, deletion)"
+    "dataRightsLink": "My personal data (export, deletion)",
+    "processingLink": "Record of processing activities and DPA (administration)"
   },
   "gdpr": {
     "rightsTitle": "My personal data",
@@ -1839,6 +1840,79 @@
     "notePlaceholder": "e.g. verified, no debts",
     "actionedBy": "by {{name}}"
   },
+  "ropa": {
+    "title": "Data processing (DPA and register)",
+    "subtitle": "The data processing agreement and the record of processing activities (GDPR art. 28 and 30).",
+    "noAccessTitle": "Restricted access",
+    "noAccessBody": "Only the association's administrator or president can view the data processing agreement and the record of processing activities.",
+    "controller": "Controller",
+    "processor": "Processor",
+    "dpaTitle": "Data Processing Agreement (art. 28)",
+    "dpaBody": "The association is the data controller and vecini.online is the processor. This template agreement sets out each party's obligations and should be reviewed before adoption.",
+    "downloadDpa": "Download the agreement (text)",
+    "dpaDownloaded": "The data processing agreement was downloaded",
+    "registerTitle": "Record of processing activities (art. 30)",
+    "registerBody": "Generated automatically from the association's enabled features: for each activity, what data it processes, on what basis, how long it is kept and who receives it.",
+    "exported": "The register was downloaded",
+    "colActivity": "Activity",
+    "colPurpose": "Purpose",
+    "colData": "Data categories",
+    "colSubjects": "Data subjects",
+    "colBasis": "Lawful basis",
+    "colRetention": "Retention",
+    "colRecipients": "Recipients",
+    "subjectsNote": "Data subjects for all activities: {{subjects}}.",
+    "data": {
+      "identity": "Identity",
+      "contact": "Contact",
+      "apartment": "Apartment",
+      "content": "Submitted content",
+      "financial": "Financial data",
+      "location": "Location",
+      "optional": "Optional data",
+      "usage": "Technical data"
+    },
+    "basis": {
+      "contract": "Performance of a contract (art. 6(1)(b))",
+      "legal": "Legal obligation (art. 6(1)(c))",
+      "legitimate": "Legitimate interest (art. 6(1)(f))",
+      "consent": "Consent (art. 6(1)(a))"
+    },
+    "retain": {
+      "active": "While the feature is active / the account exists",
+      "mandate": "For the association's mandate",
+      "legal10y": "10 years (accounting obligation)",
+      "consent": "Until consent is withdrawn",
+      "security": "12 months"
+    },
+    "recip": {
+      "committee": "Committee / administrator",
+      "residents": "The association's residents (by role)",
+      "self": "The author only",
+      "processor": "vecini.online (processor)"
+    },
+    "subjects": {
+      "residents": "residents, owners and tenants of the association"
+    },
+    "platform": {
+      "account": {
+        "title": "Account and authentication",
+        "purpose": "Creating the account, authenticating and keeping the session to access the platform."
+      },
+      "security": {
+        "title": "Security log",
+        "purpose": "Recording security events (sign-ins, 2FA changes) to protect the account."
+      },
+      "consent": {
+        "title": "Consent records",
+        "purpose": "Keeping proof of consent choices as a compliance obligation (art. 7)."
+      },
+      "dsr": {
+        "title": "Personal-data requests",
+        "purpose": "Handling data subjects' export and erasure requests (art. 15-22)."
+      }
+    }
+  },
   "chrome": {
     "home": "Home",
     "admin": "Administration",
@@ -1846,6 +1920,7 @@
     "apartments": "Apartments",
     "invites": "Invite codes",
     "dataRequests": "Personal-data requests",
+    "processing": "Data processing (DPA)",
     "primaryNav": "Primary navigation",
     "bottomNav": "Navigation",
     "helpTitle": "Help & support",

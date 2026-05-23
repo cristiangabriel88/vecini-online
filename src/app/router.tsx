@@ -13,6 +13,7 @@ const PrivacyPolicyPage = lazy(() => import('@/features/legal/PrivacyPolicyPage'
 const TermsPage = lazy(() => import('@/features/legal/TermsPage'));
 const CookiePolicyPage = lazy(() => import('@/features/legal/CookiePolicyPage'));
 const PrivacySettingsPage = lazy(() => import('@/features/legal/PrivacySettingsPage'));
+const ProcessingRecordsPage = lazy(() => import('@/features/legal/ProcessingRecordsPage'));
 const OnboardingWizard = lazy(() => import('@/features/onboarding/OnboardingWizard'));
 const JoinAsociatiePage = lazy(() => import('@/features/onboarding/JoinAsociatiePage'));
 const HomePage = lazy(() => import('@/features/home/HomePage'));
@@ -192,6 +193,7 @@ export const router = createBrowserRouter([
       { path: 'admin/apartamente', element: <S><ApartmentsPage /></S> },
       { path: 'admin/invitatii', element: <S><InvitesAdminPage /></S> },
       { path: 'admin/cereri-date', element: <S><DsrAdminPage /></S> },
+      { path: 'admin/prelucrare-date', element: <S><ProcessingRecordsPage /></S> },
       { path: '*', element: <S><NotImplementedPage /></S> },
     ],
   },
