@@ -230,6 +230,23 @@
 }
 .iconbtn:hover { background: var(--bg-sunken); color: var(--text-primary); transform: translateY(-1px); }
 .iconbtn:active { transform: translateY(0) scale(0.92); transition-duration: 80ms; }
+.iconbtn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+/* ── Profile account links ─────────────────────────────── */
+.profile-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: background 180ms var(--ease-out);
+}
+.profile-link:hover { background: var(--bg-sunken); }
 .iconbtn__dot {
   position: absolute;
   top: 8px;

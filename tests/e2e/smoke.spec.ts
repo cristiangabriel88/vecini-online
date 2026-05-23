@@ -545,6 +545,20 @@ test('T06: resident files an erasure request and an admin actions it', async ({ 
   await expect(page.getByText('Finalizată').first()).toBeVisible();
 });
 
+test('T11 (F66): resident edits their profile and adds a custom field', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/profil');
+  await expect(page.getByRole('heading', { name: 'Profil' })).toBeVisible();
+  // Editing a standard field autosaves and shows the "saved" indicator.
+  await page.getByLabel('Nume afișat').fill('Andrei E2E');
+  await expect(page.getByText('Salvat')).toBeVisible();
+  // Add a custom field through the modal and see it render in the list.
+  await page.getByRole('button', { name: 'Adaugă câmp' }).click();
+  await page.getByLabel('Eticheta câmpului').fill('Hobby');
+  await page.getByRole('button', { name: /Creează/i }).click();
+  await expect(page.getByText('Hobby')).toBeVisible();
+});
+
 test('home page has no critical accessibility violations', async ({ page }) => {
   await enterDemo(page);
   const results = await new AxeBuilder({ page })

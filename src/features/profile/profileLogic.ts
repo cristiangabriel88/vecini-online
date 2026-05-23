@@ -117,6 +117,40 @@ export function initials(name: string): string {
     .join('');
 }
 
+// ── Avatar photo (offline data URL, live Storage object) ────────────────────
+// The resident's photo is center-cropped to a square and downscaled before it is
+// stored, so the offline data URL stays small and the displayed (circular)
+// avatar is always square. The crop maths is pure + unit-tested; the actual
+// canvas draw happens in the page where the DOM is available.
+
+/** Longest edge (px) of the stored square avatar thumbnail. */
+export const AVATAR_MAX_DIM = 256;
+/** Reject source images larger than this before reading them (5 MB). */
+export const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
+
+/** Whether a MIME type is an image we accept for the avatar. */
+export function isAcceptedImageType(mime: string): boolean {
+  return /^image\/(png|jpe?g|webp|gif)$/i.test(mime);
+}
+
+/** The centered square crop of a `width`×`height` source: offset + side length. */
+export function squareCropRect(
+  width: number,
+  height: number,
+): { sx: number; sy: number; size: number } {
+  const size = Math.max(0, Math.min(Math.floor(width), Math.floor(height)));
+  return {
+    sx: Math.round((width - size) / 2),
+    sy: Math.round((height - size) / 2),
+    size,
+  };
+}
+
+/** The square thumbnail side for a crop of `cropSize`, capped at `AVATAR_MAX_DIM`. */
+export function avatarThumbDim(cropSize: number): number {
+  return Math.min(AVATAR_MAX_DIM, Math.max(1, Math.round(cropSize)));
+}
+
 // ── Validation ────────────────────────────────────────────────────────────
 // Each validator returns a stable error key (resolved by i18n) or null when the
 // value is acceptable. Empty optional values are always acceptable; "required"

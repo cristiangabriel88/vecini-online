@@ -18,7 +18,36 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T30 MFA enforcement test harness)
+## 0. Current status (updated 2026-05-24, T11 F66 Profil complet)
+
+- **2026-05-24 — T11 (P1) F66 Profil complet (rich profile editor).** The pure
+  `profileLogic`/`profileStore` existed (committed, unwired); wired them end-to-end
+  behind a rewritten `ProfilePage` and rounded out the model. Added the avatar crop
+  maths to `profileLogic` (`squareCropRect` center-crop, `avatarThumbDim` cap at 256,
+  `AVATAR_MAX_BYTES` 5 MB, `isAcceptedImageType`) on top of the existing per-type
+  validators (email/phone/RO-plate/date/number/link → stable error keys),
+  `completeness` (0-100 over 10 fields), and the non-mutating custom-field ops
+  (`new`/`add`/`update`/`remove`/`move`/`sorted`/`neighbourVisible`). New `ProfilePage`
+  at `/app/profil` (replacing the name+language+logout stub): circular avatar
+  (file → center-cropped square JPEG data URL via canvas, initials fallback) + live
+  completeness bar + autosave (every change persists, transient "Salvat"); standard
+  fields (full/display name, phone, email, apartament `Select` prefilling scara/etaj,
+  car plate→F28, address, DOB→F63, language→i18n) with inline per-type errors;
+  emergency-contact card; custom-fields card rendering the right control per type
+  with a private↔neighbours toggle, up/down reorder + delete and an "Adaugă câmp"
+  modal; account card linking to Notificări/Securitate/Datele mele/Confidențialitate
+  + sign-out. Additive migration `20260523000001_profile_complete.sql` extends `users`
+  with the standard columns and adds the owner-RLS `profile_custom_fields` table
+  (field_type + visibility checks mirroring the app catalog); apartment link stays in
+  `apartment_residents`, avatar reuses `users.avatar_url` live (Storage bucket is a
+  follow-up), so the tenant-consistency guards are untouched. Bilingual `profile.*`
+  RO/EN, `/profil` bot help, `.profile-link` CSS. Tests: `profileLogic.test.ts` (20) +
+  `profileSchema.test.ts` (5, app↔schema parity) + one E2E. Verified the new table
+  against the RLS-coverage (T35), tenant-isolation (T04) and apartment-ref (T71)
+  guards. Pipeline green: lint, typecheck, 108 files / 760 tests, build. Surfaced
+  T103 (live persistence + Storage avatar), T104 (wire car_plate→F28 + visible fields→F36
+  + admin profile view), T105 (drag-reorder). F66 is the first of the two Category-9
+  personalization features; F67 (T12) is the remaining one.
 
 - **2026-05-23 — T30 (P1) MFA enforcement E2E for live privileged roles.** The
   T02 in-app 2FA gate (`AppLayout` steers an un-enrolled privileged session to

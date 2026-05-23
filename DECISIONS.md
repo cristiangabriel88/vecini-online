@@ -809,3 +809,42 @@ The audit trail records state changes across features (actor, time, before/after
   client-side (fine for demo); a forging client could mint its own chain live.
   Server-authoritative seq/hash stamping (a trigger or Edge Function reading the
   current tail) is T86, behind `isSupabaseConfigured`.
+
+## T11 — F66 rich profile editor (2026-05-24)
+
+- **Profile fields extend the global `users` row; the apartment link stays in
+  `apartment_residents`.** F66 lists apartament alongside scara/etaj, but `users`
+  is a global identity table (it references `auth.users` and carries no
+  `asociatie_id`), while apartment ownership is per-association and already
+  modelled by `apartment_residents`. Adding an `apartment_id` FK on `users` would
+  be wrong (single-tenant on a multi-tenant identity) and would also drag `users`
+  into the apartment-ref tenant-consistency guard (T71). So the migration adds
+  only the scalar standard columns (`display_name`/`scara`/`etaj`/`car_plate`/
+  `address`/`date_of_birth`/`emergency_contact` jsonb) to `users`; the offline
+  profile's single `apartmentId` is a UI convenience persisted locally, and the
+  live apartment is resolved through `apartment_residents`.
+- **`profile_custom_fields` is owner-only (no `asociatie_id`).** Custom fields are
+  global identity attributes of the user, not tenant data, so the table is scoped
+  by `user_id = auth.uid()` with a single for-all policy and RLS enabled directly
+  (not via `apply_standard_rls`, which would require an `asociatie_id` the table
+  must not have). This keeps it out of the tenant-consistency / apartment-ref
+  guards while still being caught by the RLS-coverage guard (T35). Surfacing a
+  "visible to neighbours" field in the F36 directory and admin cross-association
+  profile reads are deliberately separate read paths (T104), not a wider grant.
+- **Avatar: center-crop to a capped square data URL offline; reuse `users.avatar_url`
+  live.** A full interactive drag-crop UI is gold-plating; a deterministic centered
+  square crop downscaled to 256 px and stored as a JPEG data URL (cap 5 MB source)
+  is complete, keeps the offline store small, and renders as a circle via CSS. The
+  crop maths is pure + unit-tested; the canvas draw lives in the page. Live, the
+  same path writes a Storage object whose path goes in the existing
+  `users.avatar_url`; the Storage bucket + RLS is the follow-up T103 (mirroring the
+  F33 T88/T89 offline-then-Storage split).
+- **Autosave persists even partially-invalid drafts.** Every field change writes
+  through `profileStore` immediately (with a transient "Salvat" indicator) rather
+  than gating the save on validation, so a resident never loses a draft mid-edit;
+  validation is surfaced inline per field (and per custom field by its type) but
+  is advisory, matching the "autosaves drafts" acceptance.
+- **Reorder via up/down buttons now; drag is a later UI layer (T105).** The pure
+  `moveCustomField` ordering op backs accessible, keyboard-friendly up/down
+  controls. True pointer/touch drag-reorder sits on the same ops as a UI
+  enhancement and is queued (T105) rather than blocking the feature.
