@@ -1,6 +1,30 @@
 import Papa from 'papaparse';
 import type { Locale } from '@/shared/types/domain';
-import type { Idea, MarketplaceListing, Ticket } from '@/shared/types/domain';
+import type {
+  AnonymousMessage,
+  Bike,
+  BirthdayConsent,
+  CarpoolProfile,
+  DirectoryEntry,
+  DiscussionThread,
+  Idea,
+  KidsAgeRange,
+  KidsEvent,
+  LaundryBooking,
+  LendingItem,
+  MarketplaceListing,
+  MovingBooking,
+  Pet,
+  Petition,
+  PlatformFeedback,
+  PrivateThread,
+  SitterProfile,
+  SkillOffering,
+  ThankYou,
+  Ticket,
+  VenueBooking,
+  VisitorReport,
+} from '@/shared/types/domain';
 import type { ConsentRecord } from '@/features/legal/consentLogic';
 import type { AuthAuditEvent } from '@/features/auth/authAudit';
 
@@ -37,6 +61,13 @@ export interface DataSubjectExport {
   sections: ExportSection[];
 }
 
+/**
+ * Every store that may hold rows attributable to one resident. The arrays are
+ * passed in by the page (so this stays pure and backend-free); each section's
+ * `select` filters to the rows that genuinely belong to the subject. New
+ * personal-data features must be added here, which makes them part of the
+ * export, the erasure plan and the retention policy at once (see SUBJECT_SECTIONS).
+ */
 export interface CollectInput {
   userId: string;
   name: string;
@@ -46,35 +77,78 @@ export interface CollectInput {
   tickets: Ticket[];
   marketplace: MarketplaceListing[];
   ideas: Idea[];
+  discussionThreads: DiscussionThread[];
+  adminChatThreads: PrivateThread[];
+  anonymousMessages: AnonymousMessage[];
+  petitions: Petition[];
+  thankYous: ThankYou[];
+  directory: DirectoryEntry[];
+  birthdays: BirthdayConsent[];
+  carpool: CarpoolProfile[];
+  sitters: SitterProfile[];
+  barter: SkillOffering[];
+  pets: Pet[];
+  bikes: Bike[];
+  lending: LendingItem[];
+  feedback: PlatformFeedback[];
+  kidsRanges: KidsAgeRange[];
+  kidsEvents: KidsEvent[];
+  laundryBookings: LaundryBooking[];
+  movingBookings: MovingBooking[];
+  venueBookings: VenueBooking[];
+  visitorReports: VisitorReport[];
   consentHistory: ConsentRecord[];
   securityEvents: AuthAuditEvent[];
   now?: Date;
 }
 
 /**
- * Assemble every piece of personal data the platform holds about one resident,
- * filtered to rows that are genuinely theirs (authored/reported by them).
+ * The single source of truth for personal-data sections. Each entry declares,
+ * in one place, how to pull the subject's rows for the export (`select`), what
+ * happens to that category on erasure (`action` + `reasonKey`) and how long it
+ * is retained (`periodKey` + `basisKey`). The export sections, the erasure plan
+ * and the retention policy are all derived from this array, so a personal-data
+ * feature added here can never silently fall outside any of the three.
  */
-export function collectPersonalData(input: CollectInput): DataSubjectExport {
-  const { userId } = input;
-  const now = input.now ?? new Date();
+interface SectionSpec {
+  /** Stable key; also the i18n label key under `gdpr.section.*`. */
+  key: string;
+  action: ErasureAction;
+  /** i18n key for the erasure rationale (`gdpr.reason.*`). */
+  reasonKey: string;
+  /** i18n key for the retention period (`gdpr.retain.*`). */
+  periodKey: string;
+  /** i18n key for the lawful basis (`gdpr.basis.*`). */
+  basisKey: string;
+  /** The subject's rows for this section, pulled from the full input. */
+  select: (input: CollectInput, userId: string) => Record<string, unknown>[];
+}
 
-  const sections: ExportSection[] = [
-    {
-      key: 'profile',
-      rows: [
-        {
-          user_id: userId,
-          name: input.name,
-          email: input.email ?? '',
-          apartment: input.apartment ?? '',
-          asociatie: input.asociatieName,
-        },
-      ],
-    },
-    {
-      key: 'tickets',
-      rows: input.tickets
+const SUBJECT_SECTIONS: SectionSpec[] = [
+  {
+    key: 'profile',
+    action: 'delete',
+    reasonKey: 'gdpr.reason.profile',
+    periodKey: 'gdpr.retain.account',
+    basisKey: 'gdpr.basis.contract',
+    select: (input, userId) => [
+      {
+        user_id: userId,
+        name: input.name,
+        email: input.email ?? '',
+        apartment: input.apartment ?? '',
+        asociatie: input.asociatieName,
+      },
+    ],
+  },
+  {
+    key: 'tickets',
+    action: 'anonymize',
+    reasonKey: 'gdpr.reason.tickets',
+    periodKey: 'gdpr.retain.tickets',
+    basisKey: 'gdpr.basis.legitimate',
+    select: (input, userId) =>
+      input.tickets
         .filter((t) => t.reporter_user_id === userId)
         .map((t) => ({
           id: t.id,
@@ -85,10 +159,15 @@ export function collectPersonalData(input: CollectInput): DataSubjectExport {
           status: t.status,
           created_at: t.created_at,
         })),
-    },
-    {
-      key: 'marketplace',
-      rows: input.marketplace
+  },
+  {
+    key: 'marketplace',
+    action: 'delete',
+    reasonKey: 'gdpr.reason.marketplace',
+    periodKey: 'gdpr.retain.account',
+    basisKey: 'gdpr.basis.consent',
+    select: (input, userId) =>
+      input.marketplace
         .filter((m) => m.seller_user_id === userId)
         .map((m) => ({
           id: m.id,
@@ -98,10 +177,15 @@ export function collectPersonalData(input: CollectInput): DataSubjectExport {
           price: m.price ?? '',
           created_at: m.created_at,
         })),
-    },
-    {
-      key: 'ideas',
-      rows: input.ideas
+  },
+  {
+    key: 'ideas',
+    action: 'anonymize',
+    reasonKey: 'gdpr.reason.ideas',
+    periodKey: 'gdpr.retain.community',
+    basisKey: 'gdpr.basis.legitimate',
+    select: (input, userId) =>
+      input.ideas
         .filter((i) => i.author_user_id === userId)
         .map((i) => ({
           id: i.id,
@@ -111,10 +195,301 @@ export function collectPersonalData(input: CollectInput): DataSubjectExport {
           votes: i.votes,
           created_at: i.created_at,
         })),
-    },
-    {
-      key: 'consent',
-      rows: input.consentHistory.map((c) => ({
+  },
+  {
+    key: 'discussions',
+    action: 'anonymize',
+    reasonKey: 'gdpr.reason.messages',
+    periodKey: 'gdpr.retain.community',
+    basisKey: 'gdpr.basis.legitimate',
+    select: (input, userId) =>
+      input.discussionThreads.flatMap((th) =>
+        th.messages
+          .filter((m) => m.author_user_id === userId)
+          .map((m) => ({
+            thread: th.title,
+            message_id: m.id,
+            body: m.body,
+            created_at: m.created_at,
+          })),
+      ),
+  },
+  {
+    key: 'adminchat',
+    action: 'anonymize',
+    reasonKey: 'gdpr.reason.messages',
+    periodKey: 'gdpr.retain.account',
+    basisKey: 'gdpr.basis.legitimate',
+    select: (input, userId) =>
+      input.adminChatThreads
+        .filter((th) => th.resident_user_id === userId)
+        .flatMap((th) =>
+          th.messages
+            .filter((m) => m.sender === 'resident')
+            .map((m) => ({
+              subject: th.subject,
+              message_id: m.id,
+              body: m.body,
+              created_at: m.created_at,
+            })),
+        ),
+  },
+  {
+    key: 'anonymous',
+    action: 'anonymize',
+    reasonKey: 'gdpr.reason.messages',
+    periodKey: 'gdpr.retain.account',
+    basisKey: 'gdpr.basis.legitimate',
+    select: (input, userId) =>
+      input.anonymousMessages
+        .filter((m) => m.sender_user_id === userId)
+        .map((m) => ({
+          id: m.id,
+          body: m.body,
+          status: m.status,
+          created_at: m.created_at,
+        })),
+  },
+  {
+    key: 'petitions',
+    action: 'anonymize',
+    reasonKey: 'gdpr.reason.petitions',
+    periodKey: 'gdpr.retain.community',
+    basisKey: 'gdpr.basis.legitimate',
+    select: (input, userId) =>
+      input.petitions
+        .filter((p) => p.author_user_id === userId)
+        .map((p) => ({
+          id: p.id,
+          title: p.title,
+          body: p.body,
+          status: p.status,
+          created_at: p.created_at,
+        })),
+  },
+  {
+    key: 'thankyous',
+    action: 'delete',
+    reasonKey: 'gdpr.reason.listings',
+    periodKey: 'gdpr.retain.account',
+    basisKey: 'gdpr.basis.consent',
+    select: (input, userId) =>
+      input.thankYous
+        .filter((tt) => tt.from_user_id === userId)
+        .map((tt) => ({
+          id: tt.id,
+          to_apartment: tt.to_apartment,
+          message: tt.message,
+          created_at: tt.created_at,
+        })),
+  },
+  {
+    key: 'directory',
+    action: 'delete',
+    reasonKey: 'gdpr.reason.listings',
+    periodKey: 'gdpr.retain.account',
+    basisKey: 'gdpr.basis.consent',
+    select: (input, userId) =>
+      input.directory
+        .filter((d) => d.user_id === userId)
+        .map((d) => ({
+          id: d.id,
+          name: d.name,
+          apartment: d.apartment,
+          phone: d.phone,
+          email: d.email,
+          show_name: d.show_name,
+          show_apartment: d.show_apartment,
+          show_phone: d.show_phone,
+          show_email: d.show_email,
+        })),
+  },
+  {
+    key: 'birthdays',
+    action: 'delete',
+    reasonKey: 'gdpr.reason.listings',
+    periodKey: 'gdpr.retain.account',
+    basisKey: 'gdpr.basis.consent',
+    select: (input, userId) =>
+      input.birthdays
+        .filter((b) => b.user_id === userId)
+        .map((b) => ({ id: b.id, birth_day: b.birth_day, birth_month: b.birth_month })),
+  },
+  {
+    key: 'carpool',
+    action: 'delete',
+    reasonKey: 'gdpr.reason.listings',
+    periodKey: 'gdpr.retain.account',
+    basisKey: 'gdpr.basis.consent',
+    select: (input, userId) =>
+      input.carpool
+        .filter((c) => c.user_id === userId)
+        .map((c) => ({ id: c.id, destination: c.destination, schedule: c.schedule })),
+  },
+  {
+    key: 'sitters',
+    action: 'delete',
+    reasonKey: 'gdpr.reason.listings',
+    periodKey: 'gdpr.retain.account',
+    basisKey: 'gdpr.basis.consent',
+    select: (input, userId) =>
+      input.sitters
+        .filter((s) => s.user_id === userId)
+        .map((s) => ({ id: s.id, kind: s.kind, availability: s.availability, rate: s.rate })),
+  },
+  {
+    key: 'barter',
+    action: 'delete',
+    reasonKey: 'gdpr.reason.listings',
+    periodKey: 'gdpr.retain.account',
+    basisKey: 'gdpr.basis.consent',
+    select: (input, userId) =>
+      input.barter
+        .filter((o) => o.user_id === userId)
+        .map((o) => ({ id: o.id, offers: o.offers, needs: o.needs })),
+  },
+  {
+    key: 'pets',
+    action: 'delete',
+    reasonKey: 'gdpr.reason.listings',
+    periodKey: 'gdpr.retain.account',
+    basisKey: 'gdpr.basis.consent',
+    select: (input, userId) =>
+      input.pets
+        .filter((p) => p.owner_user_id === userId)
+        .map((p) => ({
+          id: p.id,
+          name: p.name,
+          species: p.species,
+          emergency_contact: p.emergency_contact ?? '',
+          created_at: p.created_at,
+        })),
+  },
+  {
+    key: 'bikes',
+    action: 'delete',
+    reasonKey: 'gdpr.reason.listings',
+    periodKey: 'gdpr.retain.account',
+    basisKey: 'gdpr.basis.consent',
+    select: (input, userId) =>
+      input.bikes
+        .filter((b) => b.owner_user_id === userId)
+        .map((b) => ({
+          id: b.id,
+          description: b.description,
+          serial: b.serial ?? '',
+          created_at: b.created_at,
+        })),
+  },
+  {
+    key: 'lending',
+    action: 'delete',
+    reasonKey: 'gdpr.reason.listings',
+    periodKey: 'gdpr.retain.account',
+    basisKey: 'gdpr.basis.consent',
+    select: (input, userId) =>
+      input.lending
+        .filter((it) => it.owner_user_id === userId)
+        .map((it) => ({
+          id: it.id,
+          name: it.name,
+          category: it.category,
+          available: it.available,
+          created_at: it.created_at,
+        })),
+  },
+  {
+    key: 'feedback',
+    action: 'delete',
+    reasonKey: 'gdpr.reason.listings',
+    periodKey: 'gdpr.retain.account',
+    basisKey: 'gdpr.basis.consent',
+    select: (input, userId) =>
+      input.feedback
+        .filter((f) => !f.anonymous && f.user_id === userId)
+        .map((f) => ({ id: f.id, body: f.body, sentiment: f.sentiment, created_at: f.created_at })),
+  },
+  {
+    key: 'kids',
+    action: 'delete',
+    reasonKey: 'gdpr.reason.listings',
+    periodKey: 'gdpr.retain.account',
+    basisKey: 'gdpr.basis.consent',
+    select: (input, userId) =>
+      input.kidsRanges
+        .filter((r) => r.user_id === userId)
+        .map((r) => ({ id: r.id, bucket: r.bucket, count: r.count })),
+  },
+  {
+    key: 'kidsEvents',
+    action: 'delete',
+    reasonKey: 'gdpr.reason.listings',
+    periodKey: 'gdpr.retain.account',
+    basisKey: 'gdpr.basis.consent',
+    select: (input, userId) =>
+      input.kidsEvents
+        .filter((e) => e.organizer_user_id === userId)
+        .map((e) => ({
+          id: e.id,
+          title: e.title,
+          date: e.date,
+          time: e.time,
+          location: e.location,
+          created_at: e.created_at,
+        })),
+  },
+  {
+    key: 'laundry',
+    action: 'delete',
+    reasonKey: 'gdpr.reason.bookings',
+    periodKey: 'gdpr.retain.bookings',
+    basisKey: 'gdpr.basis.legitimate',
+    select: (input, userId) =>
+      input.laundryBookings
+        .filter((b) => b.user_id === userId)
+        .map((b) => ({ id: b.id, resource: b.resource, date: b.date, slot: b.slot })),
+  },
+  {
+    key: 'moving',
+    action: 'delete',
+    reasonKey: 'gdpr.reason.bookings',
+    periodKey: 'gdpr.retain.bookings',
+    basisKey: 'gdpr.basis.legitimate',
+    select: (input, userId) =>
+      input.movingBookings
+        .filter((b) => b.user_id === userId)
+        .map((b) => ({ id: b.id, date: b.date, slot: b.slot, floor: b.floor })),
+  },
+  {
+    key: 'venue',
+    action: 'delete',
+    reasonKey: 'gdpr.reason.bookings',
+    periodKey: 'gdpr.retain.bookings',
+    basisKey: 'gdpr.basis.legitimate',
+    select: (input, userId) =>
+      input.venueBookings
+        .filter((b) => b.user_id === userId)
+        .map((b) => ({ id: b.id, venue: b.venue, date: b.date, slot: b.slot, purpose: b.purpose })),
+  },
+  {
+    key: 'visitors',
+    action: 'anonymize',
+    reasonKey: 'gdpr.reason.reports',
+    periodKey: 'gdpr.retain.tickets',
+    basisKey: 'gdpr.basis.legitimate',
+    select: (input, userId) =>
+      input.visitorReports
+        .filter((r) => r.reporter_user_id === userId)
+        .map((r) => ({ id: r.id, note: r.note, status: r.status, created_at: r.created_at })),
+  },
+  {
+    key: 'consent',
+    action: 'retain',
+    reasonKey: 'gdpr.reason.consent',
+    periodKey: 'gdpr.retain.consent',
+    basisKey: 'gdpr.basis.obligation',
+    select: (input) =>
+      input.consentHistory.map((c) => ({
         decided_at: c.decidedAt,
         version: c.version,
         necessary: c.choices.necessary,
@@ -122,16 +497,37 @@ export function collectPersonalData(input: CollectInput): DataSubjectExport {
         analytics: c.choices.analytics,
         marketing: c.choices.marketing,
       })),
-    },
-    {
-      key: 'security',
-      rows: input.securityEvents.map((e) => ({
+  },
+  {
+    key: 'security',
+    action: 'retain',
+    reasonKey: 'gdpr.reason.security',
+    periodKey: 'gdpr.retain.security',
+    basisKey: 'gdpr.basis.security',
+    select: (input) =>
+      input.securityEvents.map((e) => ({
         event: e.type,
         email_mask: e.emailMask ?? '',
         at: e.at,
       })),
-    },
-  ];
+  },
+];
+
+/** All export section keys, in display order (also the `gdpr.section.*` keys). */
+export const EXPORT_SECTION_KEYS: string[] = SUBJECT_SECTIONS.map((s) => s.key);
+
+/**
+ * Assemble every piece of personal data the platform holds about one resident,
+ * filtered to rows that are genuinely theirs (authored/reported by them).
+ */
+export function collectPersonalData(input: CollectInput): DataSubjectExport {
+  const { userId } = input;
+  const now = input.now ?? new Date();
+
+  const sections: ExportSection[] = SUBJECT_SECTIONS.map((spec) => ({
+    key: spec.key,
+    rows: spec.select(input, userId),
+  }));
 
   return {
     generatedAt: now.toISOString(),
@@ -178,20 +574,26 @@ export interface ErasureRule {
 }
 
 /**
- * The erasure plan: free-text contributions and contact data are deleted, but
- * records whose integrity or legal retention the association depends on are
- * kept with the resident's identity stripped (anonymize) or kept intact where
- * the law requires it (retain).
+ * Categories the resident contributed to but does not hold as exportable rows
+ * of their own (votes are scoped by apartment, financial records by ledger), so
+ * they have no export section but are still part of the erasure + retention
+ * story: both are retained because their integrity / legal basis requires it.
+ */
+const RETAINED_ONLY: { category: string; reasonKey: string; periodKey: string; basisKey: string }[] = [
+  { category: 'votes', reasonKey: 'gdpr.reason.votes', periodKey: 'gdpr.retain.votes', basisKey: 'gdpr.basis.legal' },
+  { category: 'financial', reasonKey: 'gdpr.reason.financial', periodKey: 'gdpr.retain.financial', basisKey: 'gdpr.basis.legal' },
+];
+
+/**
+ * The erasure plan, derived from {@link SUBJECT_SECTIONS} plus the retain-only
+ * categories: free-text contributions and contact data are deleted, but records
+ * whose integrity or legal retention the association depends on are kept with
+ * the resident's identity stripped (anonymize) or kept intact (retain). Derived
+ * so every export section automatically has a documented erasure outcome.
  */
 export const ERASURE_PLAN: ErasureRule[] = [
-  { category: 'profile', action: 'delete', reasonKey: 'gdpr.reason.profile' },
-  { category: 'marketplace', action: 'delete', reasonKey: 'gdpr.reason.marketplace' },
-  { category: 'tickets', action: 'anonymize', reasonKey: 'gdpr.reason.tickets' },
-  { category: 'ideas', action: 'anonymize', reasonKey: 'gdpr.reason.ideas' },
-  { category: 'votes', action: 'retain', reasonKey: 'gdpr.reason.votes' },
-  { category: 'financial', action: 'retain', reasonKey: 'gdpr.reason.financial' },
-  { category: 'consent', action: 'retain', reasonKey: 'gdpr.reason.consent' },
-  { category: 'security', action: 'retain', reasonKey: 'gdpr.reason.security' },
+  ...SUBJECT_SECTIONS.map((s) => ({ category: s.key, action: s.action, reasonKey: s.reasonKey })),
+  ...RETAINED_ONLY.map((r) => ({ category: r.category, action: 'retain' as const, reasonKey: r.reasonKey })),
 ];
 
 /** Placeholder identity that replaces an erased resident on retained records. */
@@ -215,13 +617,14 @@ export interface RetentionRule {
   basisKey: string;
 }
 
+/**
+ * Retention period + lawful basis per category, derived from
+ * {@link SUBJECT_SECTIONS} plus the retain-only categories, so every export
+ * section documents how long the platform keeps that data and why.
+ */
 export const RETENTION_POLICY: RetentionRule[] = [
-  { category: 'profile', periodKey: 'gdpr.retain.account', basisKey: 'gdpr.basis.contract' },
-  { category: 'tickets', periodKey: 'gdpr.retain.tickets', basisKey: 'gdpr.basis.legitimate' },
-  { category: 'votes', periodKey: 'gdpr.retain.votes', basisKey: 'gdpr.basis.legal' },
-  { category: 'financial', periodKey: 'gdpr.retain.financial', basisKey: 'gdpr.basis.legal' },
-  { category: 'consent', periodKey: 'gdpr.retain.consent', basisKey: 'gdpr.basis.obligation' },
-  { category: 'security', periodKey: 'gdpr.retain.security', basisKey: 'gdpr.basis.security' },
+  ...SUBJECT_SECTIONS.map((s) => ({ category: s.key, periodKey: s.periodKey, basisKey: s.basisKey })),
+  ...RETAINED_ONLY.map((r) => ({ category: r.category, periodKey: r.periodKey, basisKey: r.basisKey })),
 ];
 
 /* ----------------------------- request model ------------------------------ */

@@ -14,6 +14,25 @@ import { useSecurityStore } from '@/shared/store/securityStore';
 import { useAsociatieTickets } from '@/features/tickets/ticketsStore';
 import { useMarketplaceStore } from '@/features/marketplace/marketplaceStore';
 import { useIdeasStore } from '@/features/ideas/ideasStore';
+import { useAsociatieThreads } from '@/features/discussions/discussionStore';
+import { useAdminChatStore } from '@/features/adminchat/adminChatStore';
+import { useAnonymousStore } from '@/features/anonymous/anonymousStore';
+import { usePetitionStore } from '@/features/petitions/petitionStore';
+import { useThankYousStore } from '@/features/thankyous/thankYousStore';
+import { useDirectoryStore } from '@/features/directory/directoryStore';
+import { useBirthdaysStore } from '@/features/birthdays/birthdaysStore';
+import { useCarpoolStore } from '@/features/carpool/carpoolStore';
+import { useSitterStore } from '@/features/sitters/sitterStore';
+import { useBarterStore } from '@/features/barter/barterStore';
+import { usePetsStore } from '@/features/pets/petsStore';
+import { useBikesStore } from '@/features/bikes/bikesStore';
+import { useLendingStore } from '@/features/lending/lendingStore';
+import { useFeedbackStore } from '@/features/feedback/feedbackStore';
+import { useKidsStore } from '@/features/kids/kidsStore';
+import { useLaundryStore } from '@/features/laundry/laundryStore';
+import { useMovingStore } from '@/features/moving/movingStore';
+import { useVenueStore } from '@/features/venue/venueStore';
+import { useVisitorsStore } from '@/features/visitors/visitorsStore';
 import { formatDateTime } from '@/shared/lib/format';
 import {
   DEMO_APARTMENTS,
@@ -64,6 +83,26 @@ export default function MyDataPage() {
   const tickets = useAsociatieTickets();
   const listings = useMarketplaceStore((s) => s.listings);
   const ideas = useIdeasStore((s) => s.items);
+  const discussionThreads = useAsociatieThreads();
+  const adminChatThreads = useAdminChatStore((s) => s.threads);
+  const anonymousMessages = useAnonymousStore((s) => s.messages);
+  const petitions = usePetitionStore((s) => s.petitions);
+  const thankYous = useThankYousStore((s) => s.items);
+  const directory = useDirectoryStore((s) => s.entries);
+  const birthdays = useBirthdaysStore((s) => s.consents);
+  const carpool = useCarpoolStore((s) => s.profiles);
+  const sitters = useSitterStore((s) => s.profiles);
+  const barter = useBarterStore((s) => s.offerings);
+  const pets = usePetsStore((s) => s.pets);
+  const bikes = useBikesStore((s) => s.bikes);
+  const lending = useLendingStore((s) => s.items);
+  const feedback = useFeedbackStore((s) => s.items);
+  const kidsRanges = useKidsStore((s) => s.ranges);
+  const kidsEvents = useKidsStore((s) => s.events);
+  const laundryBookings = useLaundryStore((s) => s.bookings);
+  const movingBookings = useMovingStore((s) => s.bookings);
+  const venueBookings = useVenueStore((s) => s.bookings);
+  const visitorReports = useVisitorsStore((s) => s.reports);
   const consentHistory = useConsentStore((s) => s.history);
   const securityEvents = useSecurityStore((s) => s.events);
 
@@ -103,6 +142,26 @@ export default function MyDataPage() {
       tickets,
       marketplace: listings,
       ideas,
+      discussionThreads,
+      adminChatThreads,
+      anonymousMessages,
+      petitions,
+      thankYous,
+      directory,
+      birthdays,
+      carpool,
+      sitters,
+      barter,
+      pets,
+      bikes,
+      lending,
+      feedback,
+      kidsRanges,
+      kidsEvents,
+      laundryBookings,
+      movingBookings,
+      venueBookings,
+      visitorReports,
       consentHistory,
       securityEvents,
     });

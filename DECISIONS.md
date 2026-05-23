@@ -612,3 +612,37 @@ Decisions:
 - **No breached data is stored** — only the breach description, its approximate
   scope (categories as i18n keys, affected count) and the handling trail; the
   reporter is recorded by display name only, mirroring the T06 DSR model.
+
+## T73 — data-subject export driven by one section spec (export + erasure + retention)
+
+The art. 15 export was broadened from 6 to 26 sections covering every store that
+holds rows attributable to a resident. Rather than maintaining the export
+sections, the erasure plan and the retention policy as three parallel lists that
+can drift, all three are **derived from a single private `SUBJECT_SECTIONS`
+array** in `gdprLogic`. Each entry declares, in one place, how to `select` the
+subject's rows, the erasure `action` + rationale key, and the retention period +
+basis key. Adding a personal-data feature means adding one entry, which makes it
+part of the export, the erasure plan and the retention policy at once, so a new
+feature can never silently fall outside any of them.
+
+Decisions:
+
+- **`collectPersonalData` stays pure.** It takes the store arrays as input (the
+  page wires the stores in) and each section's `select` filters to the subject's
+  rows by that store's real attribution field (`user_id` / `owner_user_id` /
+  `author_user_id` / `reporter_user_id` / `sender_user_id` / `from_user_id` /
+  `organizer_user_id` / `resident_user_id`). Backend-free, so it runs in demo
+  mode and is fully unit-testable.
+- **`votes` and `financial` are retain-only.** The resident contributed to them
+  but does not hold them as exportable rows of their own (votes are scoped by
+  apartment, financial records by ledger), so they have no export section but
+  remain in the erasure plan + retention policy as retained categories.
+- **Parking is excluded** — spots are assigned by apartment label, with no
+  `user_id`, so no row is attributable to a subject.
+- **Feedback exports only non-anonymous rows** (`!anonymous && user_id === me`),
+  so anonymous feedback stays anonymous even in the author's own export.
+- **The section set is locked by test.** `gdprLogic.test.ts` asserts the exact
+  `EXPORT_SECTION_KEYS` set (a new store must be added there), that every export
+  section has an erasure outcome + retention period, and that every category's
+  i18n section label + every reason/period/basis key resolves in both ro.json
+  and en.json — so a section cannot ship without bilingual strings.

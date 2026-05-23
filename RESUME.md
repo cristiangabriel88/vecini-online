@@ -18,8 +18,33 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T22 personal-data breach procedure)
+## 0. Current status (updated 2026-05-23, T73 broadened data-subject export)
 
+- **2026-05-23 — T73 (P1) Broaden the data-subject export to all personal-data
+  stores.** The art. 15 export covered only 6 sections; a resident holds personal
+  data in many more features. Refactored `gdprLogic` around a single source of
+  truth — a private `SUBJECT_SECTIONS` array where each entry declares how to
+  `select` the subject's rows, the erasure `action` + rationale, and the
+  retention period + basis — and **derived** the export sections, `ERASURE_PLAN`
+  and `RETENTION_POLICY` all from it (plus the retain-only `votes`/`financial`
+  categories), so a personal-data feature added there can never silently fall
+  outside any of the three. Broadened from 6 to **26** export sections: forum
+  messages, admin-chat messages, anonymous messages, authored petitions,
+  thank-yous, directory, birthdays, carpool/sitter/barter profiles, pets, bikes,
+  lending items, non-anonymous platform feedback, kids age-ranges + organized
+  kids events, laundry/moving/venue bookings and visitor reports — each filtered
+  to the subject by its real attribution field (parking correctly excluded, no
+  `user_id`). `collectPersonalData` stays pure (the page passes store arrays in);
+  `MyDataPage` wires the 20 additional stores. New `EXPORT_SECTION_KEYS` export.
+  Locales: 20 new `gdpr.section.*` + 5 `gdpr.reason.*` + 2 `gdpr.retain.*` + 1
+  `gdpr.basis.*`, bilingual RO/EN. Rewrote `gdprLogic.test.ts` (22 assertions):
+  per-store subject filtering, an exact `EXPORT_SECTION_KEYS` set lock, an
+  erasure+retention coverage guard, and an i18n-coverage guard that every
+  category resolves in both ro.json and en.json. Decision recorded in
+  `DECISIONS.md`. Pipeline green: lint, typecheck, 99 files / 658 tests, build.
+  Surfaced T77 (aggregate tickets+discussions across all the subject's asociații,
+  not just the active one) and T78 (live erasure must also delete Storage photo
+  objects).
 - **2026-05-23 — T22 (P0) Personal-data breach procedure (art. 33/34 GDPR).**
   The asociație, as data controller, must notify ANSPDCP within 72 hours of
   becoming aware of a breach (art. 33) and, on a high risk, inform the affected
