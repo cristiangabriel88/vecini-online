@@ -18,8 +18,27 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T73 broadened data-subject export)
+## 0. Current status (updated 2026-05-23, T35 automated RLS-coverage guard)
 
+- **2026-05-23 — T35 (P1) Automated RLS-coverage guard (regression test).**
+  T34 happened because three tables shipped with RLS never enabled and nothing
+  caught it. New backend-free guard `tests/unit/rlsCoverage.test.ts` (5
+  assertions) parses every migration, collects all **124** public `create table`
+  names, and asserts each is RLS-enabled — recognising the two real enabling
+  paths (a direct `alter table X enable row level security`, or a
+  `apply_standard_rls('X')` call, which the macro runs before adding policies;
+  30 direct + 94 via the macro, disjoint). A second assertion catches the subtle
+  variant where a non-enabling macro (`apply_owner_rls`/`reapply_owner_rls`/
+  `apply_member_insert_rls`/`apply_governance_owner_rls`) adds a policy to a table
+  whose RLS was never enabled — in Postgres that policy is silently ignored and
+  the table is open — checking all 27 such targets are also enabled; a third
+  parses the owner/member-insert macro bodies to pin that they contain no
+  `enable row level security`, so a future edit can't quietly invalidate the
+  coverage logic. Complements `rlsTenantIsolation.test.ts` (T04 invariants) and
+  `rlsHelperColumns.test.ts` (T70 column existence); live cross-tenant tests
+  remain T08. Pipeline green: lint, typecheck, 100 files / 663 tests, build.
+  Surfaced T79 (guard that every RLS-enabled table also carries at least one
+  policy — deny-all is a broken feature, not a leak, so lower priority).
 - **2026-05-23 — T73 (P1) Broaden the data-subject export to all personal-data
   stores.** The art. 15 export covered only 6 sections; a resident holds personal
   data in many more features. Refactored `gdprLogic` around a single source of
