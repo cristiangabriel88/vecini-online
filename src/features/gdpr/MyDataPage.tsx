@@ -11,10 +11,12 @@ import { useAuthStore } from '@/shared/store/authStore';
 import { useGdprStore } from '@/shared/store/gdprStore';
 import { useConsentStore } from '@/shared/store/consentStore';
 import { useSecurityStore } from '@/shared/store/securityStore';
-import { useAsociatieTickets } from '@/features/tickets/ticketsStore';
+import { useTicketsStore } from '@/features/tickets/ticketsStore';
+import { ticketsForAsociatii } from '@/features/tickets/ticketLogic';
 import { useMarketplaceStore } from '@/features/marketplace/marketplaceStore';
 import { useIdeasStore } from '@/features/ideas/ideasStore';
-import { useAsociatieThreads } from '@/features/discussions/discussionStore';
+import { useDiscussionStore } from '@/features/discussions/discussionStore';
+import { threadsForAsociatii } from '@/features/discussions/discussionLogic';
 import { useAdminChatStore } from '@/features/adminchat/adminChatStore';
 import { useAnonymousStore } from '@/features/anonymous/anonymousStore';
 import { usePetitionStore } from '@/features/petitions/petitionStore';
@@ -46,6 +48,7 @@ import {
   RETENTION_POLICY,
   collectPersonalData,
   hasOpenRequest,
+  subjectAsociatieIds,
   toExportCsv,
   toExportJson,
   type DsrStatus,
@@ -76,14 +79,13 @@ export default function MyDataPage() {
   const profile = useAuthStore((s) => s.profile);
   const demo = useAuthStore((s) => s.demo);
   const currentAsociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const memberships = useAuthStore((s) => s.memberships);
   const localAsociatii = useAuthStore((s) => s.localAsociatii);
   const sessionEmail = useAuthStore((s) => s.session?.user?.email ?? null);
   const sessionUserId = useAuthStore((s) => s.session?.user?.id ?? null);
 
-  const tickets = useAsociatieTickets();
   const listings = useMarketplaceStore((s) => s.listings);
   const ideas = useIdeasStore((s) => s.items);
-  const discussionThreads = useAsociatieThreads();
   const adminChatThreads = useAdminChatStore((s) => s.threads);
   const anonymousMessages = useAnonymousStore((s) => s.messages);
   const petitions = usePetitionStore((s) => s.petitions);
@@ -132,8 +134,17 @@ export default function MyDataPage() {
   );
   const erasurePending = hasOpenRequest(requests, userId, 'erasure');
 
-  const buildExport = () =>
-    collectPersonalData({
+  const buildExport = () => {
+    // Tickets + discussions are keyed per asociație, so gather them across every
+    // asociație the subject belongs to (not just the active one) for a complete
+    // art. 15 access right (T77); the flat stores below already span all of them.
+    const asociatieIds = subjectAsociatieIds(memberships, currentAsociatieId);
+    const tickets = ticketsForAsociatii(useTicketsStore.getState().byAsociatie, asociatieIds);
+    const discussionThreads = threadsForAsociatii(
+      useDiscussionStore.getState().byAsociatie,
+      asociatieIds,
+    );
+    return collectPersonalData({
       userId,
       name,
       email,
@@ -165,6 +176,7 @@ export default function MyDataPage() {
       consentHistory,
       securityEvents,
     });
+  };
 
   /** Log the self-service access (accountability trail) then hand over the file. */
   const logExport = () => {

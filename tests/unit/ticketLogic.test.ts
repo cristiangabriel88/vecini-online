@@ -5,6 +5,7 @@ import {
   SLA_HOURS,
   seedTickets,
   ticketsForAsociatie,
+  ticketsForAsociatii,
   newTicket,
   addTicketIn,
   type NewTicketInput,
@@ -80,5 +81,17 @@ describe('tickets scoped per asociație (T49)', () => {
 
     const fresh = addTicketIn({}, 'asoc-y', tk);
     expect(fresh['asoc-y']).toEqual([tk]);
+  });
+
+  it('unions tickets across several asociații (T77), in order, deduped, ignoring unknowns', () => {
+    const now = new Date('2026-05-23T10:00:00Z');
+    const byAsociatie = {
+      a1: [{ ...newTicket(INPUT, 'a1', 'u-7', now), id: 'a1-1' }],
+      a2: [{ ...newTicket(INPUT, 'a2', 'u-7', now), id: 'a2-1' }],
+    };
+    // Active first, dedupes a repeated id, ignores an asociație with no tickets.
+    const out = ticketsForAsociatii(byAsociatie, ['a2', 'a1', 'a2', 'a3']);
+    expect(out.map((t) => t.id)).toEqual(['a2-1', 'a1-1']);
+    expect(ticketsForAsociatii(byAsociatie, [])).toEqual([]);
   });
 });

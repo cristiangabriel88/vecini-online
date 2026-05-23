@@ -63,6 +63,28 @@ export function ticketsForAsociatie(
   return byAsociatie[asociatieId] ?? EMPTY_TICKETS;
 }
 
+/**
+ * The tickets across several asociații (a resident's memberships), unioned in
+ * the order the ids are given and deduping repeated ids. Used by the GDPR export
+ * (T77) so a multi-asociație resident's access right (art. 15) spans every
+ * asociație they belong to, not just the active one. Returns a fresh array; the
+ * caller filters it to the subject's own rows.
+ */
+export function ticketsForAsociatii(
+  byAsociatie: TicketsByAsociatie,
+  asociatieIds: string[],
+): Ticket[] {
+  const seen = new Set<string>();
+  const out: Ticket[] = [];
+  for (const id of asociatieIds) {
+    if (seen.has(id)) continue;
+    seen.add(id);
+    const list = byAsociatie[id];
+    if (list) out.push(...list);
+  }
+  return out;
+}
+
 /** The fields a resident supplies to submit a sesizare; the rest is derived. */
 export interface NewTicketInput {
   title: string;

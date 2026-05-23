@@ -13,6 +13,7 @@ import {
   seedThreads,
   sortThreads,
   threadsForAsociatie,
+  threadsForAsociatii,
   togglePinIn,
 } from '@/features/discussions/discussionLogic';
 import { DEMO_ASOCIATIE, DEMO_DISCUSSIONS } from '@/shared/demo/demoData';
@@ -166,5 +167,14 @@ describe('per-asociație scoping (T48)', () => {
     // Unknown asociație: returns the same map untouched (no phantom asociație).
     expect(togglePinIn(before, 'asoc-unknown', 'dt-1')).toBe(before);
     expect(deleteMessageIn(before, 'asoc-unknown', 'dt-1', 'dm-1')).toBe(before);
+  });
+
+  it('threadsForAsociatii unions threads across several asociații (T77), in order, deduped', () => {
+    const t1 = newThread({ title: 'A', topic: '#a' }, 'a1');
+    const t2 = newThread({ title: 'B', topic: '#b' }, 'a2');
+    const byAsociatie = { a1: [t1], a2: [t2] };
+    // Active first, dedupes a repeated id, ignores an asociație with no threads.
+    expect(threadsForAsociatii(byAsociatie, ['a2', 'a1', 'a2', 'a3'])).toEqual([t2, t1]);
+    expect(threadsForAsociatii(byAsociatie, [])).toEqual([]);
   });
 });

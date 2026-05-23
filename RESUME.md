@@ -18,7 +18,28 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, three new capability areas specced + queued)
+## 0. Current status (updated 2026-05-23, T77 membership-complete GDPR export)
+
+- **2026-05-23 — T77 (P2) Aggregate the data-subject export across all the
+  subject's asociății.** T73 broadened the art. 15 export to 26 sections, but
+  tickets and discussions were read in `MyDataPage` via the active-asociație
+  hooks, so a resident in more than one asociație got only the active tenant's
+  tickets + forum messages (the flat stores already spanned all asociații). New
+  pure, unit-tested union helpers — `ticketsForAsociatii` (`ticketLogic`) and
+  `threadsForAsociatii` (`discussionLogic`) — flatten the per-asociație
+  `byAsociatie` map across a list of ids, in order, deduping repeated ids and
+  ignoring empty asociații (the caller's `reporter_user_id`/`author_user_id`
+  filters narrow to the subject). New pure `subjectAsociatieIds(memberships,
+  currentAsociatieId)` in `gdprLogic` resolves the asociații whose keyed stores
+  may hold the subject's rows (active first, then every membership, deduped).
+  `buildExport` now reads the two keyed stores via `getState().byAsociatie`
+  (fresh at click time, no render-time selector churn) scoped to those ids, so
+  the export is membership-complete; `collectPersonalData` stays pure. The
+  active-only hooks are kept for the per-asociație feature views. Tests: +3
+  `subjectAsociatieIds` + 1 each in `ticketLogic`/`discussionLogic`. Pipeline
+  green: lint, typecheck, 105 files / 723 tests, build. Surfaced T101 (label each
+  export section's asociație so a multi-asociație copy is self-describing). The
+  remaining export/erasure follow-up is T78 (Storage photo erasure).
 
 - **2026-05-23 — Specced + queued three owner-requested capability areas (no
   code built yet; planning/backlog pass).** Added 13 tasks (T88-T100) to

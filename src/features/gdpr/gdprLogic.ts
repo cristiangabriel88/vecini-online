@@ -1,5 +1,5 @@
 import Papa from 'papaparse';
-import type { Locale } from '@/shared/types/domain';
+import type { Locale, Membership } from '@/shared/types/domain';
 import type {
   AnonymousMessage,
   Bike,
@@ -515,6 +515,32 @@ const SUBJECT_SECTIONS: SectionSpec[] = [
 
 /** All export section keys, in display order (also the `gdpr.section.*` keys). */
 export const EXPORT_SECTION_KEYS: string[] = SUBJECT_SECTIONS.map((s) => s.key);
+
+/**
+ * The set of asociație ids whose per-asociație stores may hold the subject's
+ * rows: every asociație they are a member of, plus the active asociație as a
+ * defensive fallback (normally already in the membership list). Deduped, active
+ * asociație first so the export is ordered predictably. Used to gather the
+ * per-asociație tickets + discussions across all the subject's memberships (T77),
+ * so the art. 15 access right is membership-complete rather than active-only
+ * (the flat stores already span every asociație; only tickets and discussions
+ * are keyed by asociație). Pure, so it stays unit-testable.
+ */
+export function subjectAsociatieIds(
+  memberships: Membership[],
+  currentAsociatieId: string | null,
+): string[] {
+  const ids: string[] = [];
+  const seen = new Set<string>();
+  const push = (id: string | null) => {
+    if (!id || seen.has(id)) return;
+    seen.add(id);
+    ids.push(id);
+  };
+  push(currentAsociatieId);
+  for (const m of memberships) push(m.asociatie_id);
+  return ids;
+}
 
 /**
  * Assemble every piece of personal data the platform holds about one resident,

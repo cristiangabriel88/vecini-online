@@ -4,6 +4,7 @@ import type {
   DiscussionThread,
   Idea,
   MarketplaceListing,
+  Membership,
   Pet,
   PrivateThread,
   Ticket,
@@ -24,6 +25,7 @@ import {
   makeRequest,
   pendingCount,
   sortRequests,
+  subjectAsociatieIds,
   toExportCsv,
   toExportJson,
   type CollectInput,
@@ -359,6 +361,34 @@ describe('gdprLogic — i18n coverage of every category', () => {
       expect(resolve(ros, r.basisKey), `ro ${r.basisKey}`).toBeTruthy();
       expect(resolve(ens, r.basisKey), `en ${r.basisKey}`).toBeTruthy();
     }
+  });
+});
+
+describe('gdprLogic — subjectAsociatieIds (T77 membership-complete export)', () => {
+  const membership = (asociatieId: string): Membership => ({
+    id: `m-${asociatieId}`,
+    user_id: ME,
+    asociatie_id: asociatieId,
+    role: 'proprietar',
+    title: null,
+    joined_at: '2026-01-01T00:00:00.000Z',
+    ended_at: null,
+  });
+
+  it('unions every membership asociație with the active one, active first, deduped', () => {
+    expect(subjectAsociatieIds([membership('a1'), membership('a2')], 'a2')).toEqual([
+      'a2',
+      'a1',
+    ]);
+  });
+
+  it('includes the active asociație even when it is not (yet) in the membership list', () => {
+    expect(subjectAsociatieIds([membership('a1')], 'a-new')).toEqual(['a-new', 'a1']);
+  });
+
+  it('handles a null active asociație and dedupes repeated memberships', () => {
+    expect(subjectAsociatieIds([membership('a1'), membership('a1')], null)).toEqual(['a1']);
+    expect(subjectAsociatieIds([], null)).toEqual([]);
   });
 });
 

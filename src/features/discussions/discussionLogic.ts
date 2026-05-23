@@ -82,6 +82,28 @@ export function threadsForAsociatie(
   return byAsociatie[asociatieId] ?? EMPTY_THREADS;
 }
 
+/**
+ * The threads across several asociații (a resident's memberships), unioned in
+ * the order the ids are given and deduping repeated ids. Used by the GDPR export
+ * (T77) so a multi-asociație resident's forum messages (art. 15) span every
+ * asociație they belong to, not just the active one. Returns a fresh array; the
+ * caller filters the messages to the subject's own.
+ */
+export function threadsForAsociatii(
+  byAsociatie: ThreadsByAsociatie,
+  asociatieIds: string[],
+): DiscussionThread[] {
+  const seen = new Set<string>();
+  const out: DiscussionThread[] = [];
+  for (const id of asociatieIds) {
+    if (seen.has(id)) continue;
+    seen.add(id);
+    const list = byAsociatie[id];
+    if (list) out.push(...list);
+  }
+  return out;
+}
+
 /** The fields a resident supplies to open a thread; the rest is derived. */
 export interface NewThreadInput {
   title: string;
