@@ -2030,6 +2030,45 @@
       }
     }
   },
+  "audit": {
+    "title": "Audit log",
+    "subtitle": "History of changes in the association, with a tamper-evident chain",
+    "noAccessTitle": "Restricted access",
+    "noAccessBody": "Only the admin or president can view the audit log.",
+    "integrityOk": "Chain intact",
+    "integrityBroken": "Chain broken at #{{seq}}",
+    "count": "{{count}} entries",
+    "filterAction": "Action",
+    "filterEntity": "Type",
+    "allActions": "All actions",
+    "allEntities": "All types",
+    "filterActor": "Actor",
+    "filterActorPlaceholder": "Search by name",
+    "filterText": "Search",
+    "filterTextPlaceholder": "Search in details",
+    "from": "From",
+    "to": "To",
+    "clear": "Reset filters",
+    "empty": "No entries match the filters.",
+    "action": {
+      "feature.enabled": "Feature enabled",
+      "feature.disabled": "Feature disabled",
+      "invite.issued": "Invite code issued",
+      "invite.revoked": "Invite code revoked",
+      "dsr.completed": "Data request completed",
+      "dsr.rejected": "Data request rejected",
+      "breach.recorded": "Breach recorded",
+      "breach.advanced": "Breach updated",
+      "announcement.published": "Announcement published"
+    },
+    "entity": {
+      "feature": "Feature",
+      "invite": "Invite",
+      "dsr": "Data request",
+      "breach": "Breach",
+      "announcement": "Announcement"
+    }
+  },
   "chrome": {
     "home": "Home",
     "admin": "Administration",
@@ -2039,6 +2078,7 @@
     "dataRequests": "Personal-data requests",
     "processing": "Data processing (DPA)",
     "breaches": "Data breaches",
+    "auditLog": "Audit log",
     "primaryNav": "Primary navigation",
     "bottomNav": "Navigation",
     "helpTitle": "Help & support",

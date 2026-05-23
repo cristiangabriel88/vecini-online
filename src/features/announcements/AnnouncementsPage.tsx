@@ -15,6 +15,7 @@ import { sanitizeHtml } from '@/shared/lib/sanitize';
 import type { AnnouncementCategory } from '@/shared/types/domain';
 import { useAuthStore } from '@/shared/store/authStore';
 import { DEMO_CURRENT_USER_ID } from '@/shared/demo/demoData';
+import { recordAudit } from '@/shared/store/auditStore';
 import { useAnnouncementsStore, useAsociatieAnnouncements } from './announcementsStore';
 
 const categoryTone: Record<AnnouncementCategory, 'urgent' | 'warning' | 'primary' | 'success'> = {
@@ -41,6 +42,13 @@ export default function AnnouncementsPage() {
       title: title.trim(),
       body_html: `<p>${body.trim()}</p>`,
       category,
+    });
+    recordAudit({
+      action: 'announcement.published',
+      entity: 'announcement',
+      entity_label: title.trim(),
+      before: null,
+      after: category,
     });
     toast.success(t('announcements.published'));
     setOpen(false);

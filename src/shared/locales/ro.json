@@ -2032,6 +2032,45 @@
       }
     }
   },
+  "audit": {
+    "title": "Jurnal de audit",
+    "subtitle": "Istoricul modificărilor din asociație, cu lanț inviolabil",
+    "noAccessTitle": "Acces restricționat",
+    "noAccessBody": "Doar administratorul sau președintele pot consulta jurnalul de audit.",
+    "integrityOk": "Lanț integru",
+    "integrityBroken": "Lanț compromis la #{{seq}}",
+    "count": "{{count}} înregistrări",
+    "filterAction": "Acțiune",
+    "filterEntity": "Tip",
+    "allActions": "Toate acțiunile",
+    "allEntities": "Toate tipurile",
+    "filterActor": "Autor",
+    "filterActorPlaceholder": "Caută după nume",
+    "filterText": "Caută",
+    "filterTextPlaceholder": "Caută în detalii",
+    "from": "De la",
+    "to": "Până la",
+    "clear": "Resetează filtrele",
+    "empty": "Nicio înregistrare care să corespundă filtrelor.",
+    "action": {
+      "feature.enabled": "Funcționalitate activată",
+      "feature.disabled": "Funcționalitate dezactivată",
+      "invite.issued": "Cod de invitație emis",
+      "invite.revoked": "Cod de invitație revocat",
+      "dsr.completed": "Cerere de date finalizată",
+      "dsr.rejected": "Cerere de date respinsă",
+      "breach.recorded": "Incident înregistrat",
+      "breach.advanced": "Incident actualizat",
+      "announcement.published": "Anunț publicat"
+    },
+    "entity": {
+      "feature": "Funcționalitate",
+      "invite": "Invitație",
+      "dsr": "Cerere date",
+      "breach": "Incident",
+      "announcement": "Anunț"
+    }
+  },
   "chrome": {
     "home": "Acasă",
     "admin": "Administrare",
@@ -2041,6 +2080,7 @@
     "dataRequests": "Cereri date personale",
     "processing": "Prelucrarea datelor (DPA)",
     "breaches": "Incidente de securitate",
+    "auditLog": "Jurnal de audit",
     "primaryNav": "Navigație principală",
     "bottomNav": "Navigație",
     "helpTitle": "Ajutor și suport",

@@ -103,6 +103,7 @@ const FEATURE_COMMANDS: Record<string, string> = {
   '/datele_mele': '🛡 Datele mele personale — descarcă o copie completă (JSON sau CSV) a datelor tale personale (drepturile de acces și portabilitate, GDPR art. 15 și 20) sau cere ștergerea contului (dreptul de a fi uitat, art. 17) din secțiunea „Datele mele personale”.',
   '/prelucrare': '📋 Prelucrarea datelor — administratorul găsește acordul de prelucrare a datelor (DPA, art. 28) și registrul activităților de prelucrare (art. 30), generat din funcțiile active și exportabil în JSON/CSV, în secțiunea „Prelucrarea datelor”.',
   '/incidente': '🚨 Incidente de securitate a datelor — administratorul înregistrează o încălcare a securității datelor, evaluează riscul și generează notificarea de 72 de ore către ANSPDCP (art. 33) și, la risc ridicat, informarea către locatari (art. 34), în secțiunea „Incidente de securitate”.',
+  '/jurnal': '📜 Jurnal de audit — administratorul vede istoricul modificărilor din asociație (cine, ce și când a schimbat), filtrabil și exportabil, cu un lanț inviolabil verificat la fiecare vizită, în secțiunea „Jurnal de audit”.',
 };
 
 async function handleMessage(msg: TelegramMessage) {

@@ -18,7 +18,29 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T07 resilience & error handling)
+## 0. Current status (updated 2026-05-23, T09 audit log surface)
+
+- **2026-05-23 — T09 (P1) Audit log surface.** Added a cross-feature,
+  admin-viewable audit trail. Pure `auditLogic` (`src/features/audit/`): a
+  hash-chained `AuditEntry` (`seq` + `prev_hash` + `hash` linking each entry to
+  its predecessor) with `appendEntry`, `verifyChain` (recomputes every link →
+  `{ ok, brokenAt }`, catching any edit/reorder), `filterEntries`
+  (action/entity/actor/text/date range), `pruneExpired` (730-day retention,
+  the T06 security window), `auditToJson`/`auditToCsv`, and a deterministic
+  `buildDemoAuditChain` seed (14 unit assertions). Persisted (`intrevecini.audit`)
+  `auditStore` keyed by asociație, seeded for demo, `record`/`recordAudit`
+  appending to the active chain + mirroring best-effort to `audit_log`; a
+  `useAsociatieAudit()` hook. Admin `AuditLogPage` at `/app/admin/jurnal`
+  (admin/președinte-gated, sidebar nav): live chain-integrity badge, filter bar,
+  JSON/CSV export, newest-first entry list (actor, action, before→after, seq).
+  Migration `20260522000021_audit_log.sql` (RLS = admin/președinte read +
+  member self-append, **no update/delete** → append-only/tamper-evident).
+  Tamper-evidence is two-layered: append-only storage + the re-verifiable hash
+  chain. Five cross-feature emitters wired from their pages (feature toggle,
+  invite issue/revoke, DSR decision, breach record/advance, announcement
+  publish). Bilingual `audit.*`, `/jurnal` bot help, one E2E. Pipeline green
+  (105 files / 718 tests). Surfaced T85 (wire the remaining features), T86 (live
+  read + server-authoritative chain), T87 (HMAC/Merkle tamper-evidence).
 
 - **2026-05-23 — T07 (P1) Resilience & error handling.** Added the missing
   global resilience layer. A privacy-first, dependency-free error-reporting hook

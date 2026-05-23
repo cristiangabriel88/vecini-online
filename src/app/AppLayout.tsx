@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate, NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Home, Megaphone, Zap, Menu, User, Bell, Moon, Sun, Settings, Search, ChevronDown, Info, Phone, Siren, ArrowUpRight, Globe, KeyRound, ShieldCheck, ClipboardList } from 'lucide-react';
+import { Home, Megaphone, Zap, Menu, User, Bell, Moon, Sun, Settings, Search, ChevronDown, Info, Phone, Siren, ArrowUpRight, Globe, KeyRound, ShieldCheck, ClipboardList, ScrollText } from 'lucide-react';
 import { FEATURES, FEATURE_CATEGORIES, categoryLabel, featureTitle, type FeatureCategory } from '@/shared/features/registry';
 import { useAsociatieFlags } from '@/shared/features/featureStore';
 import { useThemeStore } from '@/shared/store/themeStore';
@@ -189,6 +189,12 @@ function Sidebar() {
               active={isActive('admin/incidente-date')}
               onClick={() => navigate('/app/admin/incidente-date')}
               icon={<Siren size={16} />}
+            />
+            <NavItem
+              label={t('chrome.auditLog')}
+              active={isActive('admin/jurnal')}
+              onClick={() => navigate('/app/admin/jurnal')}
+              icon={<ScrollText size={16} />}
             />
           </div>
         </div>

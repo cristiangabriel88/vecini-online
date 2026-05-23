@@ -14,6 +14,7 @@ import {
 } from '@/shared/features/registry';
 import { useAsociatieFlags, useFeatureStore } from '@/shared/features/featureStore';
 import { useAuthStore } from '@/shared/store/authStore';
+import { recordAudit } from '@/shared/store/auditStore';
 
 export default function FeaturesAdminPage() {
   const { t } = useTranslation();
@@ -45,7 +46,17 @@ export default function FeaturesAdminPage() {
                     label={`${featureTitle(t, f)}: ${flags[f.key] ? t('features.enabled') : t('features.disabled')}`}
                     checked={Boolean(flags[f.key])}
                     disabled={!asociatieId}
-                    onChange={(v) => asociatieId && setFlag(asociatieId, f.key, v)}
+                    onChange={(v) => {
+                      if (!asociatieId) return;
+                      setFlag(asociatieId, f.key, v);
+                      recordAudit({
+                        action: v ? 'feature.enabled' : 'feature.disabled',
+                        entity: 'feature',
+                        entity_label: f.key,
+                        before: v ? 'off' : 'on',
+                        after: v ? 'on' : 'off',
+                      });
+                    }}
                   />
                 </div>
               ))}

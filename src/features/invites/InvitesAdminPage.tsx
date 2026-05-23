@@ -12,6 +12,7 @@ import { EmptyState } from '@/shared/components/EmptyState';
 import { formatDate } from '@/shared/lib/format';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useInviteStore } from '@/shared/store/inviteStore';
+import { recordAudit } from '@/shared/store/auditStore';
 import { DEMO_APARTMENTS } from '@/shared/demo/demoData';
 import {
   type ExpiryPreset,
@@ -77,7 +78,25 @@ export default function InvitesAdminPage() {
       singleUse,
       createdBy: userId,
     });
+    recordAudit({
+      action: 'invite.issued',
+      entity: 'invite',
+      entity_label: invite.code,
+      before: null,
+      after: invite.role,
+    });
     toast.success(t('invites.issued', { code: invite.code }));
+  };
+
+  const onRevoke = (id: string, code: string) => {
+    revoke(id);
+    recordAudit({
+      action: 'invite.revoked',
+      entity: 'invite',
+      entity_label: code,
+      before: 'ok',
+      after: 'revoked',
+    });
   };
 
   const copy = async (code: string) => {
@@ -180,7 +199,7 @@ export default function InvitesAdminPage() {
                       <Copy className="h-4 w-4" /> {t('invites.copy')}
                     </Button>
                     {status === 'ok' && (
-                      <Button variant="danger" size="sm" onClick={() => revoke(invite.id)}>
+                      <Button variant="danger" size="sm" onClick={() => onRevoke(invite.id, invite.code)}>
                         <Trash2 className="h-4 w-4" /> {t('invites.revoke')}
                       </Button>
                     )}

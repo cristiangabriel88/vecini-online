@@ -66,6 +66,7 @@ const InvitesAdminPage = lazy(() => import('@/features/invites/InvitesAdminPage'
 const MyDataPage = lazy(() => import('@/features/gdpr/MyDataPage'));
 const DsrAdminPage = lazy(() => import('@/features/gdpr/DsrAdminPage'));
 const BreachAdminPage = lazy(() => import('@/features/gdpr/BreachAdminPage'));
+const AuditLogPage = lazy(() => import('@/features/audit/AuditLogPage'));
 const AnonymousPage = lazy(() => import('@/features/anonymous/AnonymousPage'));
 const PvDocumentsPage = lazy(() => import('@/features/pv/PvDocumentsPage'));
 const RfpPage = lazy(() => import('@/features/rfp/RfpPage'));
@@ -196,6 +197,7 @@ export const router = createBrowserRouter([
       { path: 'admin/cereri-date', element: <S><DsrAdminPage /></S> },
       { path: 'admin/prelucrare-date', element: <S><ProcessingRecordsPage /></S> },
       { path: 'admin/incidente-date', element: <S><BreachAdminPage /></S> },
+      { path: 'admin/jurnal', element: <S><AuditLogPage /></S> },
       { path: '*', element: <S><NotImplementedPage /></S> },
     ],
   },

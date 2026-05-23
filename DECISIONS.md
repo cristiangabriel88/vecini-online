@@ -719,3 +719,38 @@ Decisions:
 - **New audit events.** `mfaChallengeFailed`/`mfaChallengeLocked` join the
   privacy-safe auth stream (no code/secret stored). The `auth_audit_events`
   `event_type` is unconstrained text, so no migration was needed.
+
+## T09 — audit log surface: tamper-evident hash chain + append-only RLS (2026-05-23)
+
+The audit trail records state changes across features (actor, time, before/after).
+
+- **Tamper-evidence is two-layered, not one mechanism.** The real guarantee is
+  the storage being append-only: the `audit_log` RLS grants admin/președinte
+  read and member self-append, but **no** update or delete to anyone (admins
+  included), so the ordering cannot be rewritten in place. On top of that, each
+  entry carries `seq`, the predecessor's hash (`prev_hash`) and its own `hash`
+  over its content + that link, forming a chain `verifyChain` re-derives on every
+  view; editing or reordering any row breaks every hash after it. The chain
+  detects an honest-but-careless mutation and surfaces exactly where; the
+  append-only grant is what stops a deliberate one.
+- **Non-cryptographic hash (cyrb53), deliberately.** The chain uses a fast
+  synchronous 64-bit hash, not SHA/HMAC. The app's hashing is synchronous and
+  runs in the demo path with no secret to key an HMAC with; a non-crypto digest
+  is sufficient for ordering/integrity evidence given the append-only store.
+  Stronger, secret-keyed or Merkle-anchored evidence (so integrity no longer
+  depends on the store being honest) is the explicit follow-up T87.
+- **Persisted, unlike the content stores.** `auditStore` uses `persist`
+  (`intrevecini.audit`), whereas announcements/discussions/tickets are not yet
+  persisted (T65). An audit trail must survive a reload to be tamper-evident at
+  all, so the seeded demo chain plus recorded entries are kept in local storage
+  offline; the seq/hash chain is therefore continuous across reloads.
+- **Emit from pages, not stores.** `recordAudit` is called from the event
+  handlers of the admin/content pages (feature toggle, invite issue/revoke, DSR
+  decision, breach record/advance, announcement publish), where the actor +
+  active asociație are already resolved. Emitting from inside the feature stores
+  would couple every store to `auditStore` and risk import cycles; the page is
+  the natural authorization boundary and keeps `auditStore` a leaf.
+- **Live ordering authority deferred.** Offline the seq/hashes are computed
+  client-side (fine for demo); a forging client could mint its own chain live.
+  Server-authoritative seq/hash stamping (a trigger or Edge Function reading the
+  current tail) is T86, behind `isSupabaseConfigured`.

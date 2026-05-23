@@ -21,6 +21,7 @@ import { Switch } from '@/shared/components/Switch';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useBreachStore } from '@/shared/store/breachStore';
+import { recordAudit } from '@/shared/store/auditStore';
 import { formatDateTime } from '@/shared/lib/format';
 import { DEMO_ASOCIATIE, DEMO_CURRENT_USER_NAME } from '@/shared/demo/demoData';
 import type { Lang } from '@/features/legal/legalContent';
@@ -185,8 +186,26 @@ export default function BreachAdminPage() {
       consequences,
       measures,
     });
+    recordAudit({
+      action: 'breach.recorded',
+      entity: 'breach',
+      entity_label: title.trim() || t('breach.title'),
+      before: null,
+      after: 'detectat',
+    });
     reset();
     toast.success(t('breach.recorded'));
+  };
+
+  const onAdvance = (b: BreachRecord, next: string) => {
+    advance(b.id);
+    recordAudit({
+      action: 'breach.advanced',
+      entity: 'breach',
+      entity_label: b.title,
+      before: b.status,
+      after: next,
+    });
   };
 
   const downloadAuthority = (b: BreachRecord) => {
@@ -406,7 +425,7 @@ export default function BreachAdminPage() {
                       </Button>
                     )}
                     {next && (
-                      <Button variant="ghost" onClick={() => advance(b.id)}>
+                      <Button variant="ghost" onClick={() => onAdvance(b, next)}>
                         <ArrowRight size={15} /> {t(`breach.advanceTo.${next}`)}
                       </Button>
                     )}

@@ -10,6 +10,7 @@ import { Input } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useGdprStore } from '@/shared/store/gdprStore';
+import { recordAudit } from '@/shared/store/auditStore';
 import { formatDateTime } from '@/shared/lib/format';
 import { DEMO_ASOCIATIE, DEMO_CURRENT_USER_NAME } from '@/shared/demo/demoData';
 import { isPending, pendingCount, sortRequests, type DsrStatus } from './gdprLogic';
@@ -71,7 +72,15 @@ export default function DsrAdminPage() {
 
   const decide = (id: string, status: Extract<DsrStatus, 'completed' | 'rejected'>) => {
     const note = notes[id]?.trim() || null;
+    const req = queue.find((r) => r.id === id);
     actionRequest(id, status, actorName, note);
+    recordAudit({
+      action: status === 'completed' ? 'dsr.completed' : 'dsr.rejected',
+      entity: 'dsr',
+      entity_label: req ? t(`gdpr.type.${req.type}`) : id,
+      before: 'pending',
+      after: status,
+    });
     setNotes((prev) => {
       const next = { ...prev };
       delete next[id];

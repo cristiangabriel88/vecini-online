@@ -60,6 +60,22 @@ test('T22: admin records a personal-data breach and sees it logged with notifica
   await expect(page.getByRole('button', { name: /Informare locatari/i })).toBeVisible();
 });
 
+test('T09: admin views the audit log and a feature toggle is recorded', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/admin/jurnal');
+  await expect(page.getByRole('heading', { name: 'Jurnal de audit' })).toBeVisible();
+  // The demo asociație is seeded with a valid chain; integrity must verify.
+  await expect(page.getByText('Lanț integru')).toBeVisible();
+  await expect(page.getByText('Curățenie generală scara A')).toBeVisible();
+  // Toggle a feature, then confirm the change is appended to the trail.
+  await page.goto('/app/admin/functionalitati');
+  const row = page.locator('div', { hasText: 'Anunțuri oficiale' }).first();
+  await row.getByRole('switch').click();
+  await page.goto('/app/admin/jurnal');
+  await expect(page.getByText('Funcționalitate dezactivată')).toBeVisible();
+  await expect(page.getByText('Lanț integru')).toBeVisible();
+});
+
 test('resident can cast a vote and see results', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/voturi');
