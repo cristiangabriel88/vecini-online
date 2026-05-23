@@ -27,6 +27,7 @@ When you receive **`make progress`**, follow the protocol defined in `BACKLOG.md
 - Never use the em dash character in code or docs.
 - Every user-facing surface is **fully bilingual (RO + EN)** via i18n; code/backend stay English. Romanian uses real diacritics.
 - Every new table has RLS scoped by `asociatie_id`. Personal data is handled per the GDPR tasks. Never log secrets or PII.
+- Platform/superadmin privileged operations (cross-tenant reads, account provisioning, impersonation) must be re-checked server-side (`is_super_admin()` + service-role Netlify functions); never trust a client-supplied role. The superadmin tier is a separate app on its own origin/subdomain (`src/platform/*`) and must never be reachable from the resident/admin origin.
 - Keep demo mode working so the app always runs offline and E2E stays executable.
 - Hold the **premium-feel** bar: smooth eased motion, tasteful restraint, warm-graphite dark mode.
 - Don't ask the user questions mid-task; decide, record in `DECISIONS.md`, continue.
@@ -38,6 +39,7 @@ When you receive **`make progress`**, follow the protocol defined in `BACKLOG.md
 
 ## Where things live
 - Features: `src/features/*`; shared: `src/shared/*`; demo seed: `src/shared/demo/demoData.ts`; feature registry/toggles: `registry.ts`.
+- Superadmin app (planned, BACKLOG T20/T91-T100): `src/platform/*` — a separate Vite build deployed to its own subdomain, gated to `super_admin`, sharing the Supabase client + types + i18n with the main app.
 - Migrations + RLS: `supabase/migrations/`; seed: `supabase/seed.sql`.
 - Telegram webhook: `netlify/functions/telegram-webhook.ts`.
 - Status docs: `BACKLOG.md` (queue), `FEATURES.md` (feature truth table), `RESUME.md` (resume summary), `DECISIONS.md` (choices).

@@ -18,7 +18,27 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T09 audit log surface)
+## 0. Current status (updated 2026-05-23, three new capability areas specced + queued)
+
+- **2026-05-23 — Specced + queued three owner-requested capability areas (no
+  code built yet; planning/backlog pass).** Added 13 tasks (T88-T100) to
+  `BACKLOG.md` at their priority positions and recorded the requirements in
+  `FEATURES.md` / `DECISIONS.md` / `CLAUDE.md`. (1) **Building documents** —
+  extend F33 with real file upload (admin/comitet upload, all members view +
+  download): T88 (offline, size-capped base64 data URL so demo keeps working) +
+  T89 (live Supabase Storage bucket + RLS). (2) **Invite QR** — T90 adds
+  `qrcode.react` to render/download a QR of the invite redeem link on the admin
+  invite surface. (3) **Superadmin tier** (breaks down the placeholder T20) — a
+  **separate app on its own subdomain** (`src/platform/*`) for origin/session
+  isolation, with the real protection being database RLS + server-side
+  `super_admin` re-checks: T91 (platform identity + cross-asociatie RLS), T92
+  (server-side provisioning via Netlify service-role functions — superadmin
+  creates admins, admins onboard residents via invites), T100 (mandatory hardened
+  MFA), T93 (separate app shell), T94 (asociații + admin console), T95
+  (cross-asociatie audit viewer), T96 (platform error feed), T97 (usage/health
+  metrics), T98 (audited read-only impersonation), T99 (admin↔superadmin
+  messenger). Decisions recorded in `DECISIONS.md`. Feature counts unchanged
+  (nothing implemented yet); pipeline untouched (Markdown-only edits).
 
 - **2026-05-23 — T09 (P1) Audit log surface.** Added a cross-feature,
   admin-viewable audit trail. Pure `auditLogic` (`src/features/audit/`): a

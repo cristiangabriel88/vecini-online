@@ -257,11 +257,12 @@ Each feature follows this structure:
 ## Category 5 — Information & Records (F33-F40)
 
 ### F33 — Document arhivă (regulamente, statut)
-- **Audience:** all read
+- **Audience:** comitet/admin upload + manage; all residents read + download
 - **Description:** Repository of official documents: statutul asociației, regulamentul de ordine interioară, contracte cu furnizorii (apa, gaz, salubritate), documente cadastrale. Searchable.
 - **Acceptance:** Upload, categorize, search, version history.
+- **Planned (BACKLOG T88/T89) — real file upload:** the admin/comitet uploads the building's actual document files (PDF/images); every other member can only view + download them, never upload or delete. Offline/demo persists the file as a size-capped, type-allowlisted base64 data URL so it works with no backend; the live path stores the object in a per-asociație Supabase Storage bucket served via signed URLs, with Storage RLS (admin/comitet write, member read, scoped by `asociatie_id`). Upload/delete actions are recorded in the audit trail (F-Platform / T09).
 - **Telegram:** `/documente` shows categories.
-- **Data:** `documents`
+- **Data:** `documents` (+ `storage_path` → Supabase Storage)
 
 ### F34 — Furnizori / contracte
 - **Audience:** comitet, admin write; all read
@@ -564,7 +565,7 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 | F30 | Boxa / dependinți | ✅ | Storage-room registry with assigned/unassigned filter, apartment badges, notes and add (assigned units float to top); validation + assignment filter + search/sort logic unit-tested; `/boxe` bot command. Table `storage_units` + RLS. |
 | F31 | Plante / spații verzi | ✅ | Volunteer schedule for green-space tasks: tasks bucketed soonest-week-first with assigned/free badges, an open-tasks banner, self sign-up/release and comitet add (task + week); validation/sort/assignment/open-count/mine logic unit-tested; `/plante` bot command. Tables `green_space_tasks`, `task_signups` + owner RLS on signups. |
 | F32 | Acces curierat (cod temporar) | ✅ | One-tap generation of a 6-digit interphone code valid 30 min, with live active/expired badges and minutes-left countdown, newest-first; code generation (injectable RNG), expiry math, active/minutes-left and sort logic unit-tested; `/curier` bot command. Table `access_codes` + owner RLS. |
-| F33 | Document arhivă | ✅ | Searchable document repository (statut/regulament/contracte/cadastru) with category filter, version display and add; category + diacritic-insensitive search logic unit-tested; `/documente` bot command. Table `documents` with GIN full-text search + RLS. |
+| F33 | Document arhivă | ✅ | Searchable document repository (statut/regulament/contracte/cadastru) with category filter, version display and add; category + diacritic-insensitive search logic unit-tested; `/documente` bot command. Table `documents` with GIN full-text search + RLS. **Planned (BACKLOG T88/T89):** real file upload — admin/comitet upload PDFs/images, every member views + downloads; size-capped data-URL offline, Supabase Storage live. |
 | F34 | Furnizori / contracte | ✅ | Supplier catalog sorted by contract end (undated last) with active/expiring/expired contract badges, an alert summary banner and add; contract-status (reuses warranty classifier), validation, sort and alert-count logic unit-tested; `/furnizori` bot command. Tables `suppliers`, `supplier_complaints` + RLS. |
 | F35 | Apartament info | ✅ | Read-only per-apartament aggregation over existing data (no table of its own): the apartment card (owner, location, suprafață, cotă-parte indiviză as a RO percent, persoane), meters with their latest index plus full reading history newest-first, the resident's tickets (matched by apartment or reporter, de-duplicated, newest-first) with an open/resolved summary and status badges, and per-poll vote summaries (voted option label or a "votează acum" link) with a cast/total count; payments card shows a finance-module-disabled empty state. Meters/tickets/votes folding, cota-parte percent, short-label, open-ticket classing and option-label logic unit-tested; `/apartament_meu` bot command. Computed — no table (reads apartments/meters/readings/tickets/votes). |
 | F36 | Locator directory | ✅ | Per-field opt-in consent toggles + searchable list of opted-in neighbours (tap-to-call/email); consent-masking + search logic unit-tested; `/vecini` bot command. Table `resident_directory_consent` + RLS. |
@@ -709,3 +710,37 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
   recovery-code single-use and role enforcement; one E2E happy-path (enrol →
   recovery codes → challenged at next sign-in). Live recovery-code login needs a
   server routine (BACKLOG T29). See DECISIONS.md.
+
+### Invite codes & QR (onboarding) ✅ (QR planned)
+- **Audience:** admin / comitet (issue); anyone with a code (redeem)
+- **Description:** The onboarding plumbing that lets an admin grow their asociație.
+  From `/app/admin/invitatii` an admin issues invite codes scoped to the active
+  asociație (granted role, optional apartment link, expiry preset, single-use
+  flag), lists / copies / revokes them; a resident redeems one at
+  `/onboarding/alatura` to join with the granted role. The codes/links are shown
+  as copyable text today.
+- **Planned (BACKLOG T90) — QR:** render a scannable **QR of the invite redeem
+  link** (the `/onboarding/alatura` deep link carrying the code, built from
+  `VITE_APP_URL`) next to each issued code, with a one-tap PNG download, so an
+  admin can print or share it. Uses `qrcode.react`.
+- **Files:** `src/features/invites/{inviteLogic.ts,InvitesAdminPage.tsx}`,
+  `src/features/invites/JoinAsociatiePage.tsx`, `src/shared/store/inviteStore.ts`,
+  `src/shared/lib/inviteCode.ts`, `invites.*`/`join.*` locale keys (RO/EN),
+  `/invitatii` + `/alatura` bot commands, `invite_codes` table (RLS admin-manage).
+
+### Platform / Superadmin tier (planned — BACKLOG T20 → T91-T100)
+- **Audience:** platform operators only (`super_admin`, ~2 accounts) — strictly separated from any tenant admin.
+- **Not a tenant-toggleable F## feature:** this is a platform-level capability (like the helpers above), built as a **separate front-end app on its own subdomain** (e.g. `admin.vecini.online`), in this monorepo under `src/platform/*` with its own Vite build, sharing the Supabase client + domain types + i18n. The resident/admin app never ships the superadmin code.
+- **Security model (the point of the separation):** the real protection is **database RLS + server-side `super_admin` re-checks**, not the frontend. A compromised *admin* stays scoped to a single asociație (enforced in Postgres) and every action they take is recorded in the tamper-evident audit log; they can never reach the superadmin tier or another asociație. A separate origin additionally isolates the superadmin **session** — an XSS in the resident/admin app cannot read a superadmin token. Privileged operations (account creation, impersonation) run in **Netlify functions using the service role** that re-verify the caller is `super_admin`; the client is never trusted. Superadmin accounts carry **mandatory, non-removable MFA**.
+- **Capabilities (each a BACKLOG task):**
+  - **Platform identity + cross-asociatie RLS (T91):** a platform-wide `super_admin` marker (not a per-asociație membership), an `is_super_admin()` SQL helper, and read-only cross-tenant RLS for the console.
+  - **Server-side provisioning (T92):** the superadmin **creates an asociație and provisions its first admin**; that admin then onboards their own residents via invite codes (F-invites). Superadmin creates admins, admins add users.
+  - **Mandatory hardened MFA (T100)** for every `super_admin` session.
+  - **Separate app shell (T93):** the gated, separate-subdomain front-end, with a demo superadmin so it runs offline.
+  - **Asociații + admin management console (T94).**
+  - **Cross-asociatie audit viewer (T95):** read-only aggregate of every asociație's tamper-evident T09 audit chain, so the superadmin sees what each admin is doing platform-wide.
+  - **Platform error feed (T96):** scrubbed app errors (from the T07 reporting hook, no PII) surfaced so the superadmin can spot problems with the app.
+  - **Usage/health metrics (T97):** per-asociație adoption + activity.
+  - **Audited read-only impersonation (T98):** enter an asociație's context to diagnose, every entry/exit logged.
+  - **Admin ↔ superadmin messenger (T99):** a bidirectional support thread per asociație (modeled on F04 `adminchat`) — admins raise issues to the superadmin and back. Admin side in the main app, superadmin inbox in the platform app.
+- **Data (planned):** a platform-role store/table + `is_super_admin()`; cross-tenant read policies on `asociatii` / `memberships` / `audit_log`; an error-report store/table; the support-thread tables (reuse `private_threads`/`private_messages` shape). All scoped so only `super_admin` crosses tenant boundaries.

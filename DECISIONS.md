@@ -2,6 +2,61 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## Three owner-requested capability areas: documents, invite QR, superadmin tier (T88-T100)
+
+A planning pass that specced and queued three capabilities (no code yet). The
+non-trivial choices:
+
+**Building documents extend F33, not a new feature.** The owner's "page where the
+admin loads the building's documents (contracts with salubritate)" is exactly
+F33 Document arhivă's existing scope, which already has a page, store, a
+`documents` table and standard RLS but only stored a title/category/free-text.
+Rather than build a parallel feature, T88 adds **real file upload** to F33:
+admin/comitet upload, every member views + downloads (the standard "comitet write
+/ members read" RLS already encodes this). Offline/demo persists the file as a
+**size-capped, type-allowlisted base64 data URL** in the store so the demo keeps
+working with no backend and a download works fully offline; the live path (T89)
+stores the object in a per-asociatie **Supabase Storage** bucket served via signed
+URLs with Storage RLS. Splitting offline (T88) from live Storage (T89) follows the
+MVP rule that overnight work must never require provisioning.
+
+**Invite QR uses `qrcode.react` (a dependency, against the usual dependency-light
+ethos).** The project normally hand-rolls (TOTP, the audit hash, dependency-free
+error reporting), so a vendored encoder was the default suggestion, but the owner
+chose the well-known `qrcode.react`. Recorded so the later QR work (T90) doesn't
+re-litigate it. The QR encodes the **invite redeem link** (the
+`/onboarding/alatura` deep link carrying the code, built from `VITE_APP_URL`), not
+the bare code, so a scan lands the resident straight in the join flow.
+
+**Superadmin is a separate app on its own subdomain, not a route in the main app.**
+The owner's concern was blast radius: with only ~2 superadmins, a compromised
+admin must never endanger the platform. The decision and its rationale:
+- **The real security boundary is database RLS + server-side `super_admin`
+  re-checks, not the frontend.** A compromised *admin* is scoped to one asociatie
+  by Postgres RLS and recorded in the tamper-evident audit log; they cannot reach
+  the superadmin tier or another asociatie regardless of which bundle they load.
+  This is built (T91/T92) independent of packaging.
+- **A separate origin is still worth it for session isolation.** Browsers isolate
+  stored tokens by origin, so hosting the superadmin app on its own subdomain
+  (e.g. `admin.vecini.online`) means an XSS in the resident/admin app physically
+  cannot read a superadmin session token, and the superadmin's privileged code is
+  never shipped to regular users. Chosen over a same-origin `/platforma` route
+  (weakest — shared session storage) and over a brand-new repository (same
+  isolation but duplicates the Supabase client/types/i18n/build and falls outside
+  this backlog loop). So: **same monorepo under `src/platform/*`, own Vite build
+  + demo mode, deployed to a separate subdomain** (T93).
+- **Privileged operations run server-side.** Account creation and impersonation go
+  through Netlify functions using the service role that **re-verify the caller is
+  `super_admin`** (T92/T98); the client is never trusted. Superadmins carry
+  **mandatory, non-removable MFA** (T100).
+- **Division of labour:** the superadmin **creates asociatii and provisions their
+  admins** (T94); each admin then **adds their own residents via the existing
+  invite lifecycle** (T41/T42). Oversight is read-only and cross-tenant only for
+  `super_admin`: a cross-asociatie audit viewer (T95), a platform error feed from
+  the T07 reporting hook (T96), usage/health metrics (T97), and audited read-only
+  impersonation (T98). The admin↔superadmin messenger (T99) reuses the F04
+  `adminchat` thread/message shape.
+
 ## GDPR data-subject rights: self-service export, admin-actioned erasure (T06)
 
 The two rights a resident exercises over their personal data are split by how
