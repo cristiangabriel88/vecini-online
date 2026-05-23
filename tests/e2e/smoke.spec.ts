@@ -46,6 +46,24 @@ test('T49: resident can submit a sesizare and see it listed', async ({ page }) =
   await expect(page.getByRole('heading', { name: 'Sesizare de test E2E' })).toBeVisible();
 });
 
+test('T12: resident customizes the home — hides a card and the choice persists', async ({ page }) => {
+  await enterDemo(page);
+  const main = page.locator('main');
+  // The F01 shortcut card is on the home grid by default (scoped to main so the
+  // sidebar nav item of the same name does not interfere).
+  await expect(main.getByText('Anunțuri oficiale')).toBeVisible();
+  // Enter edit mode and hide the first visible card (F01).
+  await page.getByRole('button', { name: /Personalizează/i }).click();
+  await expect(page.getByText(/Modificările se salvează automat/i)).toBeVisible();
+  await main.getByRole('button', { name: 'Ascunde cardul' }).first().click();
+  // Exit edit mode — the hidden card no longer shows on the grid.
+  await page.getByRole('button', { name: /^Gata$/ }).click();
+  await expect(main.getByText('Anunțuri oficiale')).toBeHidden();
+  // The personalized layout survives a reload (saved per resident).
+  await page.reload();
+  await expect(main.getByText('Anunțuri oficiale')).toBeHidden();
+});
+
 test('T22: admin records a personal-data breach and sees it logged with notifications', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/admin/incidente-date');

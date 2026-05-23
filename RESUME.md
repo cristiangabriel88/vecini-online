@@ -18,7 +18,38 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-24, T11 F66 Profil complet)
+## 0. Current status (updated 2026-05-24, T12 F67 Acasă personalizabil)
+
+- **2026-05-24 — T12 (P1) F67 Acasă personalizabil (customizable home).** The
+  second Category-9 personalization feature, completing the pair with F66. New
+  pure, unit-tested `homeLayoutLogic` (`src/features/home/`): the `HomeCard`
+  model (`{ key, visible, size: 'compact' | 'expanded' }`); `homeCardCatalog`
+  returns the enabled, routed features in registry order (the single source for
+  the card catalog, so a disabled feature is never offered); `defaultLayout`
+  shows the first `DEFAULT_VISIBLE_COUNT` (6) and hides the rest;
+  `reconcileLayout` keeps a saved layout's order/visibility/size for still-enabled
+  keys, drops disabled keys and appends newly enabled ones (so it can never
+  reference a disabled feature); non-mutating `toggleCardVisible`/`cycleCardSize`/
+  `moveCard`/`moveCardTo`, plus `visibleCards`/`isDefaultLayout`/`layoutForKey`
+  (stable frozen empty reference)/`layoutStorageKey` (12 assertions). Persisted
+  `homeLayoutStore` (`intrevecini.home`) keyed by `${residentId}::${asociatieId}`
+  with `save`/`reset`/`forKey`/`hasLayout` + a `useHomeLayoutKey()` hook. Rewrote
+  `HomePage`: a `Personalizează` pencil flips the grid into edit mode (eased
+  transitions) where each card has show/hide, up/down reorder + native
+  drag-and-drop and a compact↔expanded size toggle; `Resetează la implicit`
+  (disabled at default) + `Gata` exit; every edit autosaves per resident. View
+  mode renders only visible cards in order (expanded = two columns) with an
+  all-hidden empty state; announcements/polls show outside edit mode. Additive,
+  idempotent migration `20260524000001_home_layouts.sql` (resident+asociație FKs,
+  ordered `cards` jsonb, one-per-resident-per-asociație unique, owner-only +
+  tenant-tightened `is_member` for-all RLS). Backend-free schema-parity guard
+  `homeLayoutSchema.test.ts` (3). Bilingual `home.*` RO/EN; no bot command (web
+  surface). Verified against the RLS-coverage (T35), tenant-isolation (T04/T46)
+  and helper-column (T70) guards. Pipeline green: lint, typecheck, 110 files /
+  775 tests, build; one E2E (customize → hide F01 card → leaves the grid →
+  survives reload). Surfaced T106 (live persistence under owner RLS), T107
+  (touch-friendly pointer drag), T108 (rich per-card home widgets). **Both
+  Category-9 personalization features (F66 + F67) are now complete.**
 
 - **2026-05-24 — T11 (P1) F66 Profil complet (rich profile editor).** The pure
   `profileLogic`/`profileStore` existed (committed, unwired); wired them end-to-end

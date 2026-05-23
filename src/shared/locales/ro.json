@@ -252,6 +252,20 @@
     "notifications": "Notificări",
     "security": "Securitate"
   },
+  "home": {
+    "customize": "Personalizează",
+    "done": "Gata",
+    "reset": "Resetează la implicit",
+    "editHint": "Afișează sau ascunde cardurile, reordonează-le prin tragere sau cu săgețile și alege dimensiunea fiecăruia. Modificările se salvează automat.",
+    "moveUp": "Mută mai sus",
+    "moveDown": "Mută mai jos",
+    "makeCompact": "Card compact",
+    "makeExpanded": "Card extins",
+    "hideCard": "Ascunde cardul",
+    "showCard": "Afișează cardul",
+    "allHiddenTitle": "Niciun card afișat",
+    "allHiddenBody": "Ai ascuns toate cardurile. Apasă „Personalizează” ca să afișezi din nou funcțiile care te interesează."
+  },
   "onboarding": {
     "title": "Configurarea asociației",
     "step": "Pasul {{current}} din {{total}}",

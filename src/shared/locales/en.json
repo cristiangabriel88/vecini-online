@@ -252,6 +252,20 @@
     "notifications": "Notifications",
     "security": "Security"
   },
+  "home": {
+    "customize": "Customize",
+    "done": "Done",
+    "reset": "Reset to default",
+    "editHint": "Show or hide cards, reorder them by dragging or with the arrows, and choose each card's size. Changes save automatically.",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "makeCompact": "Compact card",
+    "makeExpanded": "Expanded card",
+    "hideCard": "Hide card",
+    "showCard": "Show card",
+    "allHiddenTitle": "No cards shown",
+    "allHiddenBody": "You have hidden every card. Tap \"Customize\" to bring back the features you care about."
+  },
   "onboarding": {
     "title": "Association setup",
     "step": "Step {{current}} of {{total}}",
