@@ -2,6 +2,24 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## Consumer-rights as a dedicated legal page, not only inline Terms (T24)
+
+The mandatory consumer-protection information for a distance SaaS contract (ANPC,
+the EU ODR/SOL platform, the 14-day right of withdrawal, refunds, pre-contractual
+info) is shipped as its own informational `LegalDoc` (`consumerRights`) rendered
+at `/protectia-consumatorului`, mirroring the existing privacy/terms/cookies
+pattern, rather than folded only into a Terms paragraph. Reasoning: this body of
+information is long and legally self-contained, must be linkable on its own (from
+the footer, the login screen and the privacy settings), and will be the single
+content source the billing checkout reuses at the point of sale (T110). The Terms
+keep a short "Consumer rights" section that points to the dedicated page so the
+two are cross-referenced. The content is informational template text (same caveat
+as the other legal docs) to be reviewed by the association before going live; it
+cites OUG 34/2014 (Directive 2011/83/UE) for withdrawal and OG 38/2015 for SAL.
+Presenting the pre-contractual info + express-consent/withdrawal acknowledgement
+at the actual moment of purchase (durable medium) belongs to the billing surface
+and is queued as T110 (prereq T19); this page is the static-information half.
+
 ## ROPA processing profile lives on the registry, not a parallel map (T74)
 
 T21 generated the art. 30 register from a `FeatureCategory` default plus a

@@ -18,7 +18,34 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-24, T74 ROPA profile on the registry)
+## 0. Current status (updated 2026-05-24, T24 consumer-rights surface)
+
+- **2026-05-24 — T24 (P1) Consumer-rights surface (ANPC / SOL).** Surfaced the
+  mandatory consumer-protection information for a distance SaaS contract with
+  consumer residents as a new public `LegalDoc` (`consumerRights`) in
+  `legalContent.ts` (same typed bilingual pattern as privacy/terms/cookies):
+  who provides the service + contact, pre-contractual information (OUG 34/2014,
+  Directive 2011/83/UE), the 14-day right of withdrawal (with the
+  started-service / fully-performed carve-outs), refunds, complaints + ANPC
+  (Autoritatea Națională pentru Protecția Consumatorilor, B-dul Aviatorilor nr.
+  72, Sector 1, București; www.anpc.ro), online + alternative dispute resolution
+  (the EU ODR/SOL platform at ec.europa.eu/consumers/odr; SAL per OG 38/2015;
+  Romanian courts remain competent) and an in-app help route. New
+  `ConsumerRightsPage` (reuses `LegalDocPage`) at the public route
+  `/protectia-consumatorului`. Wired into Terms (a new "Consumer
+  rights"/"Drepturile consumatorilor" section in both languages) and linked from
+  the three legal-link surfaces — app footer (`AppLayout`), login footer
+  (`LoginPage`), privacy-settings documents card (`PrivacySettingsPage`, `Scale`
+  icon) — via a new bilingual `consent.consumerLink` string. Fully offline, no
+  backend. New `tests/unit/consumerRights.test.ts` (7 assertions): non-empty doc
+  with ≥6 sections + no blank paragraph in both languages, ANPC + www.anpc.ro,
+  the ODR/SOL URL, the 14-day withdrawal under OUG 34/2014, refunds +
+  pre-contractual info, the SAL/OG 38/2015 route, and that Terms carries a
+  consumer-rights section — so a required element can't silently drop. Decision
+  in `DECISIONS.md`. Pipeline green: lint, typecheck, 112 files / 799 tests,
+  build. Surfaced T110 (present the pre-contractual info + express-consent /
+  withdrawal acknowledgement at the billing checkout when T19 lands). The
+  billing-surface wiring proper folds into T19.
 
 - **2026-05-24 — T74 (P2) Declare each feature's processing profile on the
   registry (single source for the ROPA).** Removed the parallel `FEATURE_OVERRIDES`

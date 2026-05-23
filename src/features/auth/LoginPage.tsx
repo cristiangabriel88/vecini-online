@@ -362,6 +362,8 @@ export default function LoginPage() {
         <Link to="/termeni">{t('consent.termsLink')}</Link>
         <span aria-hidden="true">·</span>
         <Link to="/cookies">{t('consent.cookieLink')}</Link>
+        <span aria-hidden="true">·</span>
+        <Link to="/protectia-consumatorului">{t('consent.consumerLink')}</Link>
       </nav>
     </div>
   );

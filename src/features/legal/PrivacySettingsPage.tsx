@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { ShieldCheck, FileText, Cookie, ScrollText, DatabaseZap, ClipboardList, Siren } from 'lucide-react';
+import { ShieldCheck, FileText, Cookie, ScrollText, DatabaseZap, ClipboardList, Siren, Scale } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
@@ -105,6 +105,10 @@ export default function PrivacySettingsPage() {
           <Link className="consent-link" to="/termeni">
             <ScrollText size={16} />
             <span>{t('consent.termsLink')}</span>
+          </Link>
+          <Link className="consent-link" to="/protectia-consumatorului">
+            <Scale size={16} />
+            <span>{t('consent.consumerLink')}</span>
           </Link>
         </div>
       </Card>
