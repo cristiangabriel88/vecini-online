@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter, useLocation } from 'react-router-dom';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter, useLocation, useNavigate } from 'react-router-dom';
 import type { Role } from '@/shared/types/domain';
 import {
   MFA_SECURITY_PATH,
@@ -201,5 +201,73 @@ describe('useMfaEnforcement (live routing harness)', () => {
     seedMfa({ loaded: false, enrolled: false });
     renderAt('/app/anunturi');
     await waitFor(() => expect(screen.getByTestId('path')).toHaveTextContent('/app/anunturi'));
+  });
+});
+
+/**
+ * T112: the gate re-resolves the AAL on every navigation rather than caching it,
+ * so a session that completes the in-app step-up (elevating to AAL2) can leave
+ * the security page into the shell instead of being bounced back.
+ */
+describe('useMfaEnforcement re-resolves AAL on navigation (T112)', () => {
+  beforeEach(() => {
+    seedRole('admin');
+  });
+  afterEach(cleanup);
+
+  function NavHarness() {
+    useMfaEnforcement();
+    const { pathname } = useLocation();
+    const navigate = useNavigate();
+    return (
+      <>
+        <span data-testid="path">{pathname}</span>
+        <button onClick={() => navigate('/app/anunturi')}>go</button>
+      </>
+    );
+  }
+
+  function renderNavAt(path: string) {
+    return render(
+      <MemoryRouter initialEntries={[path]}>
+        <NavHarness />
+      </MemoryRouter>,
+    );
+  }
+
+  it('lets the session into the shell once the AAL2 challenge is satisfied in-session', async () => {
+    // Enrolled but at AAL1 to begin with; the gate kept it on the security page.
+    let needsChallenge = true;
+    useMfaStore.setState({
+      loaded: true,
+      enrolled: true,
+      load: async () => {},
+      challengeRequired: async () => needsChallenge,
+    });
+    renderNavAt(MFA_SECURITY_PATH);
+    await waitFor(() => expect(screen.getByTestId('path')).toHaveTextContent(MFA_SECURITY_PATH));
+
+    // Completing the in-app step-up elevates the session to AAL2.
+    needsChallenge = false;
+    fireEvent.click(screen.getByText('go'));
+
+    // The gate re-resolves the now-satisfied AAL and does NOT bounce it back.
+    await waitFor(() => expect(screen.getByTestId('path')).toHaveTextContent('/app/anunturi'));
+  });
+
+  it('still bounces a session that navigates while the AAL2 challenge is unsatisfied', async () => {
+    useMfaStore.setState({
+      loaded: true,
+      enrolled: true,
+      load: async () => {},
+      challengeRequired: async () => true,
+    });
+    renderNavAt(MFA_SECURITY_PATH);
+    await waitFor(() => expect(screen.getByTestId('path')).toHaveTextContent(MFA_SECURITY_PATH));
+
+    fireEvent.click(screen.getByText('go'));
+
+    // Re-gated: a still-AAL1 session cannot reach the shell.
+    await waitFor(() => expect(screen.getByTestId('path')).toHaveTextContent(MFA_SECURITY_PATH));
   });
 });

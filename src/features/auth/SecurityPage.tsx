@@ -20,8 +20,14 @@ import { Modal } from '@/shared/components/Modal';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useMfaStore } from '@/shared/store/mfaStore';
 import { useSecurityStore } from '@/shared/store/securityStore';
+import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import { formatDateTime } from '@/shared/lib/format';
 import { isValidTotpFormat, mfaErrorKey, requiresMfa } from './mfaLogic';
+
+/** Round a remaining-lockout duration up to whole minutes for the message. */
+function lockoutMinutes(ms: number): number {
+  return Math.max(1, Math.ceil(ms / 60_000));
+}
 
 function downloadCodes(codes: string[]) {
   const blob = new Blob([`vecini.online — coduri de recuperare 2FA\n\n${codes.join('\n')}\n`], {
@@ -56,12 +62,21 @@ export default function SecurityPage() {
     disable,
     regenerateRecoveryCodes,
     clearRecoveryCodes,
+    challengeRequired,
+    verifyChallenge,
   } = useMfaStore();
 
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [confirmDisable, setConfirmDisable] = useState(false);
   const [confirmSignOutAll, setConfirmSignOutAll] = useState(false);
+  // In-app AAL2 step-up: a re-gated session (enrolled but still at AAL1) is
+  // steered here by `useMfaEnforcement`, but the TOTP/recovery challenge itself
+  // otherwise lives only in the login flow. Surface it here so the session can
+  // elevate without a full re-login (T112). Live path only — demo mode is never
+  // gated, so it never needs an in-app step-up.
+  const [needsStepUp, setNeedsStepUp] = useState(false);
+  const [stepUpCode, setStepUpCode] = useState('');
 
   const onSignOutEverywhere = async () => {
     setConfirmSignOutAll(false);
@@ -72,6 +87,21 @@ export default function SecurityPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // Resolve whether this enrolled live session still owes the AAL2 challenge.
+  useEffect(() => {
+    if (!isSupabaseConfigured || !loaded || !enrolled) {
+      setNeedsStepUp(false);
+      return;
+    }
+    let active = true;
+    void challengeRequired().then((needs) => {
+      if (active) setNeedsStepUp(needs);
+    });
+    return () => {
+      active = false;
+    };
+  }, [loaded, enrolled, challengeRequired]);
 
   const account = profile?.email ?? session?.user?.email ?? 'demo@vecini.online';
   const mustEnrol = requiresMfa(role) && !enrolled;
@@ -142,6 +172,30 @@ export default function SecurityPage() {
     }
   };
 
+  const onStepUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stepUpCode.trim()) return;
+    setBusy(true);
+    try {
+      const { error, lockedMs } = await verifyChallenge(stepUpCode);
+      if (lockedMs > 0) {
+        toast.error(t('auth.mfaLockout', { minutes: lockoutMinutes(lockedMs) }));
+        setStepUpCode('');
+        return;
+      }
+      if (error) {
+        fail(error);
+        return;
+      }
+      setStepUpCode('');
+      setNeedsStepUp(false);
+      toast.success(t('auth.mfa.stepUpDone'));
+      navigate('/app');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div>
       <PageHeader title={t('nav.security')} subtitle={t('auth.mfa.subtitle')} />
@@ -154,6 +208,33 @@ export default function SecurityPage() {
             <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0" />
             <p>{t('auth.mfa.requiredNotice')}</p>
           </div>
+        )}
+
+        {/* In-app AAL2 step-up for a re-gated enrolled-but-AAL1 session (T112). */}
+        {needsStepUp && !draft && !recoveryCodes && (
+          <Card title={t('auth.mfa.stepUpTitle')}>
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-warning/10 text-warning">
+                <ShieldAlert className="h-5 w-5" />
+              </span>
+              <p className="text-sm text-muted">{t('auth.mfa.stepUpBody')}</p>
+            </div>
+            <form onSubmit={onStepUp} className="mt-4 space-y-3">
+              <Input
+                label={t('auth.mfa.codeLabel')}
+                inputMode="text"
+                autoComplete="one-time-code"
+                autoFocus
+                value={stepUpCode}
+                onChange={(e) => setStepUpCode(e.target.value)}
+                hint={t('auth.mfa.challengeHint')}
+                required
+              />
+              <Button type="submit" loading={busy} disabled={!stepUpCode.trim()}>
+                <ShieldCheck className="h-4 w-4" /> {t('auth.mfa.verify')}
+              </Button>
+            </form>
+          </Card>
         )}
 
         {/* Freshly minted recovery codes — shown once. */}

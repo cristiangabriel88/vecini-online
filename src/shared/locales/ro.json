@@ -230,6 +230,9 @@
       "challengeTitle": "Verificare în doi pași",
       "challengeBody": "Introdu codul din aplicația de autentificare.",
       "challengeHint": "Cod de 6 cifre sau un cod de recuperare.",
+      "stepUpTitle": "Confirmă identitatea pentru a continua",
+      "stepUpBody": "Sesiunea ta nu a trecut încă verificarea în doi pași. Introdu un cod pentru a accesa restul aplicației.",
+      "stepUpDone": "Identitate confirmată. Poți continua.",
       "err": {
         "invalidCode": "Cod incorect. Încearcă din nou.",
         "recoveryLiveUnavailable": "Conectarea cu un cod de recuperare nu este încă disponibilă online. Folosește aplicația de autentificare.",

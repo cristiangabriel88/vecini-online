@@ -230,6 +230,9 @@
       "challengeTitle": "Two-step verification",
       "challengeBody": "Enter the code from your authenticator app.",
       "challengeHint": "A 6-digit code or a recovery code.",
+      "stepUpTitle": "Confirm your identity to continue",
+      "stepUpBody": "This session hasn't passed two-step verification yet. Enter a code to reach the rest of the app.",
+      "stepUpDone": "Identity confirmed. You can continue.",
       "err": {
         "invalidCode": "Incorrect code. Please try again.",
         "recoveryLiveUnavailable": "Signing in with a recovery code is not available online yet. Use your authenticator app.",

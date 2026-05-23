@@ -18,7 +18,29 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-24, T102 AAL2 re-gate at the shell)
+## 0. Current status (updated 2026-05-24, T112 in-app AAL2 step-up)
+
+- **2026-05-24 — T112 (P2) Let a re-gated enrolled-but-AAL1 session complete the
+  step-up in-app.** Closed the gap left by T102: the AAL2 re-gate steers an
+  enrolled-but-AAL1 privileged session to `/app/securitate`, but that page only
+  managed enrolment/recovery, so the session had no in-app way to satisfy the
+  second factor short of a full re-login. `SecurityPage` now surfaces an in-app
+  step-up `Card` (shown when `challengeRequired()` is true for an enrolled live
+  session) wired to the existing `verifyChallenge` — reusing the T31 throttle,
+  the lockout toast, and the `auth.mfa.challenge*` strings plus three new
+  bilingual `auth.mfa.stepUp{Title,Body,Done}` strings; on success it navigates
+  to `/app`. Demo stays ungated (gated on `isSupabaseConfigured`).
+  `useMfaEnforcement` was refactored from a cached `aalSatisfied` into a single
+  async effect that re-resolves the AAL fresh per navigation (only for an
+  enrolled live privileged session) and feeds the unchanged pure
+  `mfaEnforcementRedirect`, so a stepped-up session reaching the shell is let
+  through instead of being bounced back, while a still-AAL1 session is re-gated
+  on any navigation. Tests: +2 in the T30/T102 render harness (20 total) proving
+  the re-resolution lets a now-satisfied session into the shell and still bounces
+  an unsatisfied one. Pipeline green: lint, typecheck, 113 files / 816 tests,
+  build. Follow-up T113 (carry a return-to through the step-up). Recovery-code
+  step-up still needs the T29 server routine; the live AAL re-check across a
+  token-refresh folds into T08.
 
 - **2026-05-24 — T102 (P2) Re-gate the in-app shell on AAL2, not only on
   enrolment.** Closed the gap where a privileged session that lands on the shell

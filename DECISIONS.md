@@ -2,6 +2,32 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## In-app AAL2 step-up on the security page + AAL re-resolved per navigation (T112)
+
+T102 re-gates an enrolled-but-AAL1 privileged session to `/app/securitate`, but
+the TOTP/recovery challenge lived only in the login flow, so a re-gated session
+had no in-app way to elevate short of signing out and back in. Two choices made
+the in-app step-up work:
+
+- **Surface the step-up on the existing security page, not a new route.** The
+  page is already the steer target and already imports the MFA store; adding a
+  conditional challenge `Card` (shown only when `challengeRequired()` is true for
+  an enrolled live session) reuses `verifyChallenge` + the T31 throttle + the
+  `auth.mfa.challenge*` strings with no new routing surface. Gated on
+  `isSupabaseConfigured` so demo (never gated) never shows it.
+- **`useMfaEnforcement` resolves the AAL fresh per navigation instead of caching
+  it.** The hook previously held `aalSatisfied` in state resolved only on
+  enrolment changes, so after a successful step-up the stale `false` bounced the
+  session right back. It is now a single async effect keyed on `pathname` that
+  re-reads the AAL (only for an enrolled live privileged role — residents/demo
+  skip the Supabase AAL read) and feeds the **unchanged** pure
+  `mfaEnforcementRedirect`. So a stepped-up session reaching the shell re-checks
+  the now-elevated AAL and passes, while a still-AAL1 session is re-gated on any
+  navigation. The pure decision (and its unit tests) are untouched; only how the
+  hook feeds it changed. Recovery-code step-up still needs the T29 server routine
+  (live recovery cannot step a session to AAL2 client-side); return-to after the
+  step-up is the queued follow-up T113.
+
 ## Platform superadmin: a `platform_admins` table + `is_super_admin()`, read-only cross-tenant (T91)
 
 The `super_admin` tier is platform-wide, not a per-asociație role, so it gets its
