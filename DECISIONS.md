@@ -2,6 +2,45 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## ROPA processing profile lives on the registry, not a parallel map (T74)
+
+T21 generated the art. 30 register from a `FeatureCategory` default plus a
+per-feature `FEATURE_OVERRIDES` map kept inside `ropaLogic`. That was a second
+source of truth alongside `registry.ts`: a new feature added to the registry
+silently inherited its category default and could misstate its real processing
+with nothing flagging it. The non-trivial choices:
+
+**The processing vocabulary moved to `registry.ts`, not the reverse.** The
+processing types (`RopaDataCategory`, `ProcessingProfile`), the recipient-key
+constants, `CATEGORY_DEFAULTS`, and the new optional `FeatureDef.processing`
+override now live on the registry, and `ropaLogic` imports them. The dependency
+direction forces this: `ropaLogic` already imports the registry, and the shared
+registry must never import a feature module, so defining `ProcessingProfile` in
+`ropaLogic` and referencing it from `FeatureDef` would be a wrong-direction (and
+cyclic) import. Co-locating the profile with the feature definition is also the
+whole point — the register is now generated from the single source that defines
+the feature.
+
+**An optional partial override that inherits the category default, not a full
+profile per feature.** `processing?: Partial<ProcessingProfile>` shallow-merges
+over `CATEGORY_DEFAULTS[category]`. A feature that processes exactly what its
+category implies declares nothing (deliberate inheritance); only the special
+cases (financial, consent opt-in, the identity-free anonymous channel) carry an
+override. This keeps the 65-entry registry terse and makes the override list
+the exhaustive set of "processing that differs from the norm".
+
+**`ropaLogic` re-exports the moved symbols for import-site stability.** It
+re-exports `CATEGORY_DEFAULTS` + the `ProcessingProfile`/`RopaDataCategory`
+types so existing consumers (and the test) keep a stable import path while the
+definitions live on the registry.
+
+**The guard proves form, not semantics (T109 carries the rest).** The regression
+test asserts overrides are well-formed and that override-free features inherit
+their category default verbatim, but it cannot catch a feature whose real
+processing differs from its category default yet declares no override. That
+semantic safety net (a heuristic or a per-feature "reviewed" flag) is queued as
+T109 rather than over-built here.
+
 ## Minors' privacy: enforce aggregate-only, don't just declare it (T23)
 
 The privacy policy already stated that child data is aggregate-only; T23 made it

@@ -1,13 +1,29 @@
 import { describe, expect, it } from 'vitest';
-import { FEATURES, FEATURE_MAP } from '@/shared/features/registry';
 import {
   CATEGORY_DEFAULTS,
+  FEATURES,
+  FEATURE_MAP,
+  type RopaDataCategory,
+} from '@/shared/features/registry';
+import {
   PLATFORM_ACTIVITIES,
   buildRopa,
   profileFor,
   ropaToCsv,
   ropaToJson,
 } from '@/features/legal/ropaLogic';
+
+/** The data categories the registry's RopaDataCategory union declares. */
+const DATA_CATEGORIES: RopaDataCategory[] = [
+  'identity',
+  'contact',
+  'apartment',
+  'content',
+  'financial',
+  'location',
+  'optional',
+  'usage',
+];
 
 describe('ropaLogic', () => {
   it('always lists the platform activities first, regardless of enabled features', () => {
@@ -64,6 +80,39 @@ describe('ropaLogic', () => {
       expect(profile.basisKey).toBeTruthy();
       expect(profile.retentionKey).toBeTruthy();
       expect(profile.recipients.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('declares the per-feature override on the registry FeatureDef (single source)', () => {
+    // The processing override now lives on the registry entry, not a parallel
+    // map in ropaLogic, so it cannot drift from the feature definition.
+    expect(FEATURE_MAP['F12'].processing?.data).toContain('financial');
+    expect(FEATURE_MAP['F05'].processing?.data).toEqual(['content']);
+    expect(FEATURE_MAP['F36'].processing?.basisKey).toBe('ropa.basis.consent');
+    // And the resolved profile reflects exactly what the registry declares.
+    expect(profileFor(FEATURE_MAP['F12'])).toMatchObject({
+      ...CATEGORY_DEFAULTS.governance,
+      ...FEATURE_MAP['F12'].processing,
+    });
+  });
+
+  it('inherits the category default verbatim for every feature with no override', () => {
+    for (const f of FEATURES.filter((x) => x.implemented && !x.processing)) {
+      expect(profileFor(f)).toEqual(CATEGORY_DEFAULTS[f.category]);
+    }
+  });
+
+  it('keeps every declared processing override well-formed (non-empty, valid keys)', () => {
+    for (const f of FEATURES.filter((x) => x.processing)) {
+      const o = f.processing!;
+      // A declared override must actually set at least one field.
+      expect(Object.keys(o).length).toBeGreaterThan(0);
+      o.data?.forEach((d) => expect(DATA_CATEGORIES).toContain(d));
+      if (o.data) expect(o.data.length).toBeGreaterThan(0);
+      if (o.basisKey) expect(o.basisKey.startsWith('ropa.basis.')).toBe(true);
+      if (o.retentionKey) expect(o.retentionKey.startsWith('ropa.retain.')).toBe(true);
+      o.recipients?.forEach((r) => expect(r.startsWith('ropa.recip.')).toBe(true));
+      if (o.recipients) expect(o.recipients.length).toBeGreaterThan(0);
     }
   });
 

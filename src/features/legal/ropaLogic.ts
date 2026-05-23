@@ -1,5 +1,13 @@
 import Papa from 'papaparse';
-import { FEATURES, type FeatureCategory, type FeatureDef, type FeatureKey } from '@/shared/features/registry';
+import {
+  CATEGORY_DEFAULTS,
+  FEATURES,
+  RECIP_COMMITTEE,
+  RECIP_PROCESSOR,
+  type FeatureDef,
+  type FeatureKey,
+  type ProcessingProfile,
+} from '@/shared/features/registry';
 
 /**
  * Records of Processing Activities (GDPR art. 30) + the controller/processor
@@ -13,139 +21,30 @@ import { FEATURES, type FeatureCategory, type FeatureDef, type FeatureKey } from
  * model** so it always reflects the modules the asociație actually has enabled,
  * rather than being a hand-maintained document that drifts out of date.
  *
+ * Each feature's processing profile is declared on its `FeatureDef` in the
+ * registry (the category default in `CATEGORY_DEFAULTS` plus an optional
+ * per-feature `processing` override), so the register is generated from the
+ * **same single source that defines the feature** rather than a parallel map
+ * kept here. `profileFor` resolves the effective profile for one feature.
+ *
  * Everything here is pure and backend-free so it runs in demo mode and is fully
  * unit-testable. The page resolves the i18n keys and offers JSON/CSV export so
  * the admin can produce the register on request (e.g. for ANSPDCP).
  */
 
-/* ----------------------------- data categories ---------------------------- */
-
-/** Coarse categories of personal data the platform processes (art. 30(1)(c)). */
-export type RopaDataCategory =
-  | 'identity' // name, role
-  | 'contact' // e-mail, phone
-  | 'apartment' // apartment, stairwell, floor
-  | 'content' // submitted content: messages, tickets, documents, photos
-  | 'financial' // meter readings, contributions, amounts
-  | 'location' // parking spot, routes
-  | 'optional' // opt-in extras: date of birth, car plate, pets, directory
-  | 'usage'; // technical: session, audit, preferences
-
-/* ------------------------------- profiles --------------------------------- */
+// Re-exported from the registry so existing consumers keep a stable import site.
+export { CATEGORY_DEFAULTS } from '@/shared/features/registry';
+export type { ProcessingProfile, RopaDataCategory } from '@/shared/features/registry';
 
 /**
- * The processing profile of one activity: what data it touches, on what lawful
- * basis, for how long, and who receives it. All non-data fields are i18n keys so
- * the register can be rendered bilingually.
+ * The processing profile for one feature: its category default (from the
+ * registry) shallow-merged with the feature's own `processing` override when it
+ * declares one, else the category default unchanged. Pure: never mutates the
+ * shared default.
  */
-export interface ProcessingProfile {
-  data: RopaDataCategory[];
-  /** Lawful basis i18n key under `ropa.basis.*` (carries the art. 6 reference). */
-  basisKey: string;
-  /** Retention i18n key under `ropa.retain.*`. */
-  retentionKey: string;
-  /** Recipient category i18n keys under `ropa.recip.*` (art. 30(1)(d)). */
-  recipients: string[];
-}
-
-/** Recipient keys reused across profiles. */
-const COMMITTEE = 'ropa.recip.committee';
-const RESIDENTS = 'ropa.recip.residents';
-const SELF = 'ropa.recip.self';
-const PROCESSOR = 'ropa.recip.processor';
-
-/**
- * Default profile per feature category. Most features process the author's
- * identity plus the content they submit; the category sets the lawful basis and
- * the dominant recipient. Per-feature overrides below sharpen the special cases.
- */
-export const CATEGORY_DEFAULTS: Record<FeatureCategory, ProcessingProfile> = {
-  communication: {
-    data: ['identity', 'content'],
-    basisKey: 'ropa.basis.legitimate',
-    retentionKey: 'ropa.retain.active',
-    recipients: [RESIDENTS, COMMITTEE, PROCESSOR],
-  },
-  governance: {
-    data: ['identity', 'apartment', 'content'],
-    basisKey: 'ropa.basis.legal',
-    retentionKey: 'ropa.retain.mandate',
-    recipients: [RESIDENTS, COMMITTEE, PROCESSOR],
-  },
-  maintenance: {
-    data: ['identity', 'apartment', 'content'],
-    basisKey: 'ropa.basis.contract',
-    retentionKey: 'ropa.retain.active',
-    recipients: [COMMITTEE, PROCESSOR],
-  },
-  spaces: {
-    data: ['identity', 'apartment', 'content'],
-    basisKey: 'ropa.basis.contract',
-    retentionKey: 'ropa.retain.active',
-    recipients: [COMMITTEE, PROCESSOR],
-  },
-  information: {
-    data: ['identity', 'content'],
-    basisKey: 'ropa.basis.legitimate',
-    retentionKey: 'ropa.retain.active',
-    recipients: [RESIDENTS, COMMITTEE, PROCESSOR],
-  },
-  projects: {
-    data: ['identity', 'content'],
-    basisKey: 'ropa.basis.contract',
-    retentionKey: 'ropa.retain.active',
-    recipients: [RESIDENTS, COMMITTEE, PROCESSOR],
-  },
-  safety: {
-    data: ['identity', 'content'],
-    basisKey: 'ropa.basis.legitimate',
-    retentionKey: 'ropa.retain.active',
-    recipients: [COMMITTEE, PROCESSOR],
-  },
-  community: {
-    data: ['identity', 'optional', 'content'],
-    basisKey: 'ropa.basis.consent',
-    retentionKey: 'ropa.retain.consent',
-    recipients: [RESIDENTS, PROCESSOR],
-  },
-};
-
-/**
- * Per-feature overrides for activities whose data, basis, retention or
- * recipients genuinely differ from their category default (consent-based opt-in
- * features, financial records with a legal retention, anonymous channels, etc.).
- * A partial profile shallow-merges over the category default.
- */
-export const FEATURE_OVERRIDES: Partial<Record<FeatureKey, Partial<ProcessingProfile>>> = {
-  // Anonymous message to the committee: no identity is attached.
-  F05: { data: ['content'], recipients: [COMMITTEE, PROCESSOR] },
-  // AGA: legally-mandated assembly records under Law 196/2018.
-  F10: { data: ['identity', 'apartment', 'content'], basisKey: 'ropa.basis.legal', retentionKey: 'ropa.retain.mandate' },
-  // Participatory budget: financial decisions kept per accounting law.
-  F12: { data: ['identity', 'apartment', 'financial'], basisKey: 'ropa.basis.legal', retentionKey: 'ropa.retain.legal10y' },
-  // Meter readings tie to billing: financial data on a contract basis.
-  F20: { data: ['identity', 'apartment', 'financial'], basisKey: 'ropa.basis.contract', retentionKey: 'ropa.retain.legal10y' },
-  // Parking register + location of the spot.
-  F28: { data: ['identity', 'apartment', 'location', 'optional'] },
-  // Resident directory: opt-in contact data shared with neighbours by consent.
-  F36: { data: ['identity', 'contact', 'apartment', 'optional'], basisKey: 'ropa.basis.consent', retentionKey: 'ropa.retain.consent', recipients: [RESIDENTS, PROCESSOR] },
-  // Pets register: opt-in.
-  F37: { data: ['identity', 'apartment', 'optional'], basisKey: 'ropa.basis.consent', retentionKey: 'ropa.retain.consent', recipients: [RESIDENTS, PROCESSOR] },
-  // Trusted-contacts safety code: opt-in, visible only to the author.
-  F49: { data: ['identity', 'optional'], basisKey: 'ropa.basis.consent', retentionKey: 'ropa.retain.consent', recipients: [SELF, PROCESSOR] },
-  // Children activities: aggregate only, never identifying a child (see T23).
-  F64: { data: ['optional'], basisKey: 'ropa.basis.consent', retentionKey: 'ropa.retain.consent', recipients: [RESIDENTS, PROCESSOR] },
-  // Crowdfunding small projects: financial contributions.
-  F44: { data: ['identity', 'financial'], basisKey: 'ropa.basis.contract', retentionKey: 'ropa.retain.legal10y' },
-  // Birthdays: opt-in date of birth.
-  F63: { data: ['identity', 'optional'], basisKey: 'ropa.basis.consent', retentionKey: 'ropa.retain.consent', recipients: [RESIDENTS, PROCESSOR] },
-};
-
-/** The processing profile for one feature: category default sharpened by any override. */
 export function profileFor(feature: FeatureDef): ProcessingProfile {
   const base = CATEGORY_DEFAULTS[feature.category];
-  const override = FEATURE_OVERRIDES[feature.key];
-  return override ? { ...base, ...override } : { ...base };
+  return feature.processing ? { ...base, ...feature.processing } : { ...base };
 }
 
 /* ----------------------------- activity model ----------------------------- */
@@ -185,7 +84,7 @@ export const PLATFORM_ACTIVITIES: ProcessingActivity[] = [
     data: ['identity', 'contact', 'apartment', 'usage'],
     basisKey: 'ropa.basis.contract',
     retentionKey: 'ropa.retain.active',
-    recipients: [COMMITTEE, PROCESSOR],
+    recipients: [RECIP_COMMITTEE, RECIP_PROCESSOR],
   },
   {
     id: 'plat-security',
@@ -195,7 +94,7 @@ export const PLATFORM_ACTIVITIES: ProcessingActivity[] = [
     data: ['identity', 'usage'],
     basisKey: 'ropa.basis.legitimate',
     retentionKey: 'ropa.retain.security',
-    recipients: [COMMITTEE, PROCESSOR],
+    recipients: [RECIP_COMMITTEE, RECIP_PROCESSOR],
   },
   {
     id: 'plat-consent',
@@ -205,7 +104,7 @@ export const PLATFORM_ACTIVITIES: ProcessingActivity[] = [
     data: ['identity', 'usage'],
     basisKey: 'ropa.basis.legal',
     retentionKey: 'ropa.retain.consent',
-    recipients: [COMMITTEE, PROCESSOR],
+    recipients: [RECIP_COMMITTEE, RECIP_PROCESSOR],
   },
   {
     id: 'plat-dsr',
@@ -215,7 +114,7 @@ export const PLATFORM_ACTIVITIES: ProcessingActivity[] = [
     data: ['identity', 'content'],
     basisKey: 'ropa.basis.legal',
     retentionKey: 'ropa.retain.active',
-    recipients: [COMMITTEE, PROCESSOR],
+    recipients: [RECIP_COMMITTEE, RECIP_PROCESSOR],
   },
 ];
 

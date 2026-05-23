@@ -18,7 +18,26 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-24, T23 Minors' consent guardrails)
+## 0. Current status (updated 2026-05-24, T74 ROPA profile on the registry)
+
+- **2026-05-24 — T74 (P2) Declare each feature's processing profile on the
+  registry (single source for the ROPA).** Removed the parallel `FEATURE_OVERRIDES`
+  map inside `ropaLogic` so the art. 30 register is generated from the same module
+  that defines each feature. `registry.ts` now owns the GDPR processing vocabulary
+  — `RopaDataCategory`, `ProcessingProfile`, the `RECIP_*` recipient-key constants,
+  `CATEGORY_DEFAULTS`, and a new optional `FeatureDef.processing?: Partial<ProcessingProfile>`
+  that shallow-merges over the category default. The 11 special-case overrides
+  (F05 anonymous, F10/F12 legal, F20/F44 financial, F28 location, F36/F37/F49/F63/F64
+  consent opt-in) now live inline on their `FeatureDef`. The types live on the
+  registry (not `ropaLogic`) to keep the dependency direction correct and avoid a
+  cycle; `ropaLogic.profileFor` reads `feature.processing` and re-exports
+  `CATEGORY_DEFAULTS`/the types for stable import sites. No locale change (keys
+  moved, not added). `ropaLogic.test.ts` adds 3 guards (override declared on the
+  registry + resolved profile = default ⊕ override; override-free features inherit
+  the category default verbatim; every declared override is well-formed). Decision
+  in `DECISIONS.md`. Pipeline green: lint, typecheck, 111 files / 792 tests, build.
+  Surfaced follow-up T109 (semantic guard for a feature that *should* override but
+  doesn't).
 
 - **2026-05-24 — T23 (P1) Minors' consent guardrails (Legea 190/2018).** Made the
   "no feature collects identifying data about children" rule enforced, not just

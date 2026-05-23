@@ -25,6 +25,104 @@ export type FeatureCategory =
 
 export type FeatureAudience = 'admin' | 'comitet' | 'proprietar' | 'chirias' | 'all';
 
+/* ----------------------- GDPR processing profile (art. 30) ---------------- */
+
+/**
+ * Coarse categories of personal data the platform processes (GDPR art.
+ * 30(1)(c)). Declared here, on the registry, so each feature's processing
+ * profile lives next to its definition and the art. 30 register
+ * (`ropaLogic.buildRopa`) is generated from this single source of truth rather
+ * than a parallel map that can drift as the feature set grows.
+ */
+export type RopaDataCategory =
+  | 'identity' // name, role
+  | 'contact' // e-mail, phone
+  | 'apartment' // apartment, stairwell, floor
+  | 'content' // submitted content: messages, tickets, documents, photos
+  | 'financial' // meter readings, contributions, amounts
+  | 'location' // parking spot, routes
+  | 'optional' // opt-in extras: date of birth, car plate, pets, directory
+  | 'usage'; // technical: session, audit, preferences
+
+/**
+ * The processing profile of one activity: what data it touches, on what lawful
+ * basis, for how long, and who receives it. All non-data fields are i18n keys so
+ * the register renders bilingually.
+ */
+export interface ProcessingProfile {
+  data: RopaDataCategory[];
+  /** Lawful basis i18n key under `ropa.basis.*` (carries the art. 6 reference). */
+  basisKey: string;
+  /** Retention i18n key under `ropa.retain.*`. */
+  retentionKey: string;
+  /** Recipient category i18n keys under `ropa.recip.*` (art. 30(1)(d)). */
+  recipients: string[];
+}
+
+/** Recipient keys reused across processing profiles. */
+export const RECIP_COMMITTEE = 'ropa.recip.committee';
+export const RECIP_RESIDENTS = 'ropa.recip.residents';
+export const RECIP_SELF = 'ropa.recip.self';
+export const RECIP_PROCESSOR = 'ropa.recip.processor';
+
+/**
+ * Default processing profile per feature category. Most features process the
+ * author's identity plus the content they submit; the category sets the lawful
+ * basis and the dominant recipient. A feature's optional `processing` override
+ * (on its FeatureDef below) shallow-merges over this default to sharpen the
+ * special cases.
+ */
+export const CATEGORY_DEFAULTS: Record<FeatureCategory, ProcessingProfile> = {
+  communication: {
+    data: ['identity', 'content'],
+    basisKey: 'ropa.basis.legitimate',
+    retentionKey: 'ropa.retain.active',
+    recipients: [RECIP_RESIDENTS, RECIP_COMMITTEE, RECIP_PROCESSOR],
+  },
+  governance: {
+    data: ['identity', 'apartment', 'content'],
+    basisKey: 'ropa.basis.legal',
+    retentionKey: 'ropa.retain.mandate',
+    recipients: [RECIP_RESIDENTS, RECIP_COMMITTEE, RECIP_PROCESSOR],
+  },
+  maintenance: {
+    data: ['identity', 'apartment', 'content'],
+    basisKey: 'ropa.basis.contract',
+    retentionKey: 'ropa.retain.active',
+    recipients: [RECIP_COMMITTEE, RECIP_PROCESSOR],
+  },
+  spaces: {
+    data: ['identity', 'apartment', 'content'],
+    basisKey: 'ropa.basis.contract',
+    retentionKey: 'ropa.retain.active',
+    recipients: [RECIP_COMMITTEE, RECIP_PROCESSOR],
+  },
+  information: {
+    data: ['identity', 'content'],
+    basisKey: 'ropa.basis.legitimate',
+    retentionKey: 'ropa.retain.active',
+    recipients: [RECIP_RESIDENTS, RECIP_COMMITTEE, RECIP_PROCESSOR],
+  },
+  projects: {
+    data: ['identity', 'content'],
+    basisKey: 'ropa.basis.contract',
+    retentionKey: 'ropa.retain.active',
+    recipients: [RECIP_RESIDENTS, RECIP_COMMITTEE, RECIP_PROCESSOR],
+  },
+  safety: {
+    data: ['identity', 'content'],
+    basisKey: 'ropa.basis.legitimate',
+    retentionKey: 'ropa.retain.active',
+    recipients: [RECIP_COMMITTEE, RECIP_PROCESSOR],
+  },
+  community: {
+    data: ['identity', 'optional', 'content'],
+    basisKey: 'ropa.basis.consent',
+    retentionKey: 'ropa.retain.consent',
+    recipients: [RECIP_RESIDENTS, RECIP_PROCESSOR],
+  },
+};
+
 export interface FeatureDef {
   key: FeatureKey;
   title: string;
@@ -38,6 +136,16 @@ export interface FeatureDef {
   description: string;
   /** whether a working UI page exists yet (vs. registered-only) */
   implemented: boolean;
+  /**
+   * GDPR art. 30 processing override for this feature: a partial profile that
+   * shallow-merges over its category default (CATEGORY_DEFAULTS). Set it only
+   * when the feature's real processing differs from the category default
+   * (financial records, consent-based opt-in, the identity-free anonymous
+   * channel, etc.). When absent, the feature deliberately inherits the category
+   * default. This is the single source the art. 30 register is generated from
+   * (see `ropaLogic.profileFor`/`buildRopa`).
+   */
+  processing?: Partial<ProcessingProfile>;
 }
 
 export const FEATURE_CATEGORIES: Record<FeatureCategory, string> = {
@@ -57,16 +165,19 @@ export const FEATURES: FeatureDef[] = [
   { key: 'F02', title: 'Canal de discuții moderat', category: 'communication', icon: 'MessagesSquare', audience: ['all'], path: 'discutii', description: 'Canal de discuții între locatari, moderat de comitet.', implemented: true },
   { key: 'F03', title: 'Alertă de bloc (urgență)', category: 'communication', icon: 'Siren', audience: ['all'], path: 'alerte', description: 'Difuzare de urgență care ignoră orele de liniște.', implemented: true },
   { key: 'F04', title: 'Mesagerie privată cu administratorul', category: 'communication', icon: 'MessageCircle', audience: ['proprietar', 'chirias', 'admin'], path: 'mesaje-admin', description: 'Canal privat între locatar și administrator.', implemented: true },
-  { key: 'F05', title: 'Mesaj anonim către comitet', category: 'communication', icon: 'EyeOff', audience: ['all'], path: 'anonim', description: 'Mesaj către comitet cu identitate ascunsă.', implemented: true },
+  // F05 anonymous channel: no identity is attached to the message.
+  { key: 'F05', title: 'Mesaj anonim către comitet', category: 'communication', icon: 'EyeOff', audience: ['all'], path: 'anonim', description: 'Mesaj către comitet cu identitate ascunsă.', implemented: true, processing: { data: ['content'], recipients: [RECIP_COMMITTEE, RECIP_PROCESSOR] } },
   { key: 'F06', title: 'Anunțuri vecini (locator)', category: 'communication', icon: 'StickyNote', audience: ['all'], path: 'locator', description: 'Anunțuri neoficiale între vecini, cu expirare la 14 zile.', implemented: true },
   { key: 'F07', title: 'Întrebări frecvente (FAQ)', category: 'communication', icon: 'HelpCircle', audience: ['all'], path: 'faq', description: 'Întrebări frecvente, căutabile, întreținute de administrator.', implemented: true },
   { key: 'F08', title: 'Calendar de evenimente', category: 'communication', icon: 'CalendarDays', audience: ['all'], path: 'evenimente', description: 'Calendar de evenimente cu RSVP și memento-uri.', implemented: true },
 
   // Category 2 — Governance & Voting
   { key: 'F09', title: 'Vot rapid pe propuneri', category: 'governance', icon: 'Vote', audience: ['proprietar', 'comitet', 'admin'], path: 'voturi', description: 'Voturi rapide pe propuneri, cu cvorum și majoritate configurabile.', implemented: true },
-  { key: 'F10', title: 'AGA digitală', category: 'governance', icon: 'Gavel', audience: ['proprietar'], path: 'aga', description: 'Adunare Generală digitală conformă cu Legea 196/2018.', implemented: true },
+  // F10 AGA: legally-mandated assembly records under Law 196/2018.
+  { key: 'F10', title: 'AGA digitală', category: 'governance', icon: 'Gavel', audience: ['proprietar'], path: 'aga', description: 'Adunare Generală digitală conformă cu Legea 196/2018.', implemented: true, processing: { data: ['identity', 'apartment', 'content'], basisKey: 'ropa.basis.legal', retentionKey: 'ropa.retain.mandate' } },
   { key: 'F11', title: 'Procese verbale (arhivă)', category: 'governance', icon: 'FileSignature', audience: ['all'], path: 'procese-verbale', description: 'Arhivă căutabilă de procese verbale semnate.', implemented: true },
-  { key: 'F12', title: 'Buget participativ', category: 'governance', icon: 'PiggyBank', audience: ['proprietar', 'admin'], path: 'buget', description: 'Fond discreționar votat de locatari.', implemented: true },
+  // F12 participatory budget: financial decisions kept per accounting law.
+  { key: 'F12', title: 'Buget participativ', category: 'governance', icon: 'PiggyBank', audience: ['proprietar', 'admin'], path: 'buget', description: 'Fond discreționar votat de locatari.', implemented: true, processing: { data: ['identity', 'apartment', 'financial'], basisKey: 'ropa.basis.legal', retentionKey: 'ropa.retain.legal10y' } },
   { key: 'F13', title: 'Prioritizare proiecte mari', category: 'governance', icon: 'ListOrdered', audience: ['proprietar'], path: 'prioritati', description: 'Clasare prin tragere-și-plasare a proiectelor mari.', implemented: true },
   { key: 'F14', title: 'Cutie de idei', category: 'governance', icon: 'Lightbulb', audience: ['all'], path: 'idei', description: 'Sugestii deschise cu vot, promovate trimestrial.', implemented: true },
   { key: 'F15', title: 'Sondaje de opinie', category: 'governance', icon: 'BarChart3', audience: ['all'], path: 'sondaje', description: 'Sondaje neobligatorii, anonime implicit.', implemented: true },
@@ -76,7 +187,8 @@ export const FEATURES: FeatureDef[] = [
   { key: 'F17', title: 'Sesizări cu foto', category: 'maintenance', icon: 'AlertCircle', audience: ['all'], path: 'sesizari', description: 'Raportarea problemelor cu fotografii și urmărirea statusului.', implemented: true },
   { key: 'F18', title: 'Istoric reparații', category: 'maintenance', icon: 'Wrench', audience: ['comitet', 'proprietar', 'admin'], path: 'istoric-reparatii', description: 'Jurnal căutabil al tuturor reparațiilor majore.', implemented: true },
   { key: 'F19', title: 'Calendar service-uri programate', category: 'maintenance', icon: 'CalendarClock', audience: ['all'], path: 'mentenanta', description: 'Mentenanță programată cu memento-uri automate.', implemented: true },
-  { key: 'F20', title: 'Citire contoare', category: 'maintenance', icon: 'Gauge', audience: ['proprietar', 'admin'], path: 'contoare', description: 'Trimiterea lunară a indexurilor cu fotografie.', implemented: true },
+  // F20 meter readings tie to billing: financial data on a contract basis.
+  { key: 'F20', title: 'Citire contoare', category: 'maintenance', icon: 'Gauge', audience: ['proprietar', 'admin'], path: 'contoare', description: 'Trimiterea lunară a indexurilor cu fotografie.', implemented: true, processing: { data: ['identity', 'apartment', 'financial'], basisKey: 'ropa.basis.contract', retentionKey: 'ropa.retain.legal10y' } },
   { key: 'F21', title: 'Sesizări recurente', category: 'maintenance', icon: 'Repeat', audience: ['comitet', 'admin'], path: 'sesizari-recurente', description: 'Detectarea automată a problemelor repetate.', implemented: true },
   { key: 'F22', title: 'Solicitare oferte (RFP)', category: 'maintenance', icon: 'FileSpreadsheet', audience: ['comitet', 'admin'], path: 'oferte', description: 'Solicitarea și compararea ofertelor de la contractori.', implemented: true },
   { key: 'F23', title: 'Vecin de gardă', category: 'maintenance', icon: 'ShieldCheck', audience: ['all'], path: 'garda', description: 'Voluntar de gardă în weekend, prin rotație.', implemented: true },
@@ -86,7 +198,8 @@ export const FEATURES: FeatureDef[] = [
   { key: 'F25', title: 'Rezervare spălătorie', category: 'spaces', icon: 'WashingMachine', audience: ['all'], path: 'spalatorie', description: 'Rezervarea sloturilor pentru spălătoria comună.', implemented: true },
   { key: 'F26', title: 'Rezervare lift pentru mutare', category: 'spaces', icon: 'Truck', audience: ['all'], path: 'lift-mutare', description: 'Rezervarea liftului pentru mutări.', implemented: true },
   { key: 'F27', title: 'Rezervare sală comună / terasă', category: 'spaces', icon: 'PartyPopper', audience: ['all'], path: 'sala', description: 'Rezervarea sălii comune sau a terasei.', implemented: true },
-  { key: 'F28', title: 'Parcare', category: 'spaces', icon: 'Car', audience: ['all'], path: 'parcare', description: 'Registru locuri de parcare cu mesagerie anonimă.', implemented: true },
+  // F28 parking register + location of the spot.
+  { key: 'F28', title: 'Parcare', category: 'spaces', icon: 'Car', audience: ['all'], path: 'parcare', description: 'Registru locuri de parcare cu mesagerie anonimă.', implemented: true, processing: { data: ['identity', 'apartment', 'location', 'optional'] } },
   { key: 'F29', title: 'Bicicletăria', category: 'spaces', icon: 'Bike', audience: ['all'], path: 'biciclete', description: 'Registru al bicicletelor din camera comună.', implemented: true },
   { key: 'F30', title: 'Boxa / dependinți', category: 'spaces', icon: 'Box', audience: ['all'], path: 'boxe', description: 'Registru al boxelor și dependințelor.', implemented: true },
   { key: 'F31', title: 'Plante / spații verzi', category: 'spaces', icon: 'Sprout', audience: ['all'], path: 'plante', description: 'Program de voluntariat pentru spațiile verzi.', implemented: true },
@@ -96,8 +209,10 @@ export const FEATURES: FeatureDef[] = [
   { key: 'F33', title: 'Document arhivă', category: 'information', icon: 'FileText', audience: ['all'], path: 'documente', description: 'Repertoriu de documente oficiale, căutabil.', implemented: true },
   { key: 'F34', title: 'Furnizori / contracte', category: 'information', icon: 'Building2', audience: ['comitet', 'admin'], path: 'furnizori', description: 'Catalog de furnizori cu alerte de expirare a contractelor.', implemented: true },
   { key: 'F35', title: 'Informații apartament', category: 'information', icon: 'DoorOpen', audience: ['proprietar'], path: 'apartament-info', description: 'Pagina informativă a fiecărui apartament.', implemented: true },
-  { key: 'F36', title: 'Agendă vecini', category: 'information', icon: 'Contact', audience: ['all'], path: 'vecini', description: 'Agendă de contacte ale locatarilor (opt-in).', implemented: true },
-  { key: 'F37', title: 'Animale de companie', category: 'information', icon: 'PawPrint', audience: ['all'], path: 'animale', description: 'Registru de animale de companie (opt-in).', implemented: true },
+  // F36 resident directory: opt-in contact data shared with neighbours by consent.
+  { key: 'F36', title: 'Agendă vecini', category: 'information', icon: 'Contact', audience: ['all'], path: 'vecini', description: 'Agendă de contacte ale locatarilor (opt-in).', implemented: true, processing: { data: ['identity', 'contact', 'apartment', 'optional'], basisKey: 'ropa.basis.consent', retentionKey: 'ropa.retain.consent', recipients: [RECIP_RESIDENTS, RECIP_PROCESSOR] } },
+  // F37 pets register: opt-in.
+  { key: 'F37', title: 'Animale de companie', category: 'information', icon: 'PawPrint', audience: ['all'], path: 'animale', description: 'Registru de animale de companie (opt-in).', implemented: true, processing: { data: ['identity', 'apartment', 'optional'], basisKey: 'ropa.basis.consent', retentionKey: 'ropa.retain.consent', recipients: [RECIP_RESIDENTS, RECIP_PROCESSOR] } },
   { key: 'F38', title: 'Carte de aur (mulțumiri)', category: 'information', icon: 'Heart', audience: ['all'], path: 'multumiri', description: 'Perete public de mulțumiri între vecini.', implemented: true },
   { key: 'F39', title: 'Wiki bloc', category: 'information', icon: 'BookOpen', audience: ['all'], path: 'wiki', description: 'Wiki colaborativ cu cunoștințe locale.', implemented: true },
   { key: 'F40', title: 'Glosar de termeni', category: 'information', icon: 'BookA', audience: ['all'], path: 'glosar', description: 'Definiții pentru termenii din facturi și AGA.', implemented: true },
@@ -106,14 +221,16 @@ export const FEATURES: FeatureDef[] = [
   { key: 'F41', title: 'Urmărire proiecte', category: 'projects', icon: 'KanbanSquare', audience: ['all'], path: 'proiecte', description: 'Urmărirea lucrărilor majore: faze, buget, fotografii.', implemented: true },
   { key: 'F42', title: 'Jurnal foto lucrări', category: 'projects', icon: 'Images', audience: ['all'], path: 'jurnal-foto', description: 'Jurnal foto al lucrărilor în desfășurare.', implemented: true },
   { key: 'F43', title: 'Bibliotecă de contractori', category: 'projects', icon: 'HardHat', audience: ['comitet', 'admin'], path: 'contractori', description: 'Bibliotecă de contractori verificați, cu rating.', implemented: true },
-  { key: 'F44', title: 'Finanțare colectivă proiecte mici', category: 'projects', icon: 'HandCoins', audience: ['all'], path: 'crowdfund', description: 'Contribuții voluntare la proiecte mici.', implemented: true },
+  // F44 crowdfunding small projects: financial contributions.
+  { key: 'F44', title: 'Finanțare colectivă proiecte mici', category: 'projects', icon: 'HandCoins', audience: ['all'], path: 'crowdfund', description: 'Contribuții voluntare la proiecte mici.', implemented: true, processing: { data: ['identity', 'financial'], basisKey: 'ropa.basis.contract', retentionKey: 'ropa.retain.legal10y' } },
   { key: 'F45', title: 'Plan multianual de mentenanță', category: 'projects', icon: 'CalendarRange', audience: ['all'], path: 'plan-multianual', description: 'Plan de lucrări pe 5-10 ani.', implemented: true },
   { key: 'F46', title: 'Recomandări fond de reparații', category: 'projects', icon: 'Calculator', audience: ['all'], path: 'fond-reparatii', description: 'Calculator pentru rata fondului de reparații.', implemented: true },
   { key: 'F47', title: 'Eficiență energetică', category: 'projects', icon: 'Zap', audience: ['all'], path: 'energie', description: 'Urmărirea consumului energetic al blocului.', implemented: true },
   { key: 'F48', title: 'Garanții echipamente', category: 'projects', icon: 'BadgeCheck', audience: ['comitet', 'admin'], path: 'garantii', description: 'Urmărirea garanțiilor echipamentelor instalate.', implemented: true },
 
   // Category 7 — Safety & Compliance
-  { key: 'F49', title: 'Cod portari / vecini de încredere', category: 'safety', icon: 'Lock', audience: ['all'], path: 'cod-siguranta', description: 'Liste de vecini de încredere, stocate criptat.', implemented: true },
+  // F49 trusted-contacts safety code: opt-in, visible only to the author.
+  { key: 'F49', title: 'Cod portari / vecini de încredere', category: 'safety', icon: 'Lock', audience: ['all'], path: 'cod-siguranta', description: 'Liste de vecini de încredere, stocate criptat.', implemented: true, processing: { data: ['identity', 'optional'], basisKey: 'ropa.basis.consent', retentionKey: 'ropa.retain.consent', recipients: [RECIP_SELF, RECIP_PROCESSOR] } },
   { key: 'F50', title: 'Plan de evacuare', category: 'safety', icon: 'Map', audience: ['all'], path: 'evacuare', description: 'Planuri de evacuare cu marcaje pentru animale.', implemented: true },
   { key: 'F51', title: 'Verificări PSI', category: 'safety', icon: 'Flame', audience: ['comitet', 'admin'], path: 'psi', description: 'Urmărirea verificărilor PSI obligatorii.', implemented: true },
   { key: 'F52', title: 'Asigurare bloc', category: 'safety', icon: 'Umbrella', audience: ['comitet', 'admin'], path: 'asigurare', description: 'Urmărirea poliței de asigurare a blocului.', implemented: true },
@@ -129,8 +246,10 @@ export const FEATURES: FeatureDef[] = [
   { key: 'F60', title: 'Schimb de servicii', category: 'community', icon: 'Repeat2', audience: ['all'], path: 'barter', description: 'Schimb de servicii și abilități între vecini.', implemented: true },
   { key: 'F61', title: 'Grupuri de cumpărături comune', category: 'community', icon: 'ShoppingCart', audience: ['all'], path: 'cumparaturi', description: 'Coordonarea cumpărăturilor în grup.', implemented: true },
   { key: 'F62', title: 'Kit de bun-venit', category: 'community', icon: 'Gift', audience: ['all'], path: 'welcome-kit', description: 'Mesaj de bun-venit pentru locatarii noi.', implemented: true },
-  { key: 'F63', title: 'Aniversări (opt-in)', category: 'community', icon: 'Cake', audience: ['all'], path: 'aniversari', description: 'Felicitări de ziua de naștere (opt-in).', implemented: true },
-  { key: 'F64', title: 'Activități copii și adolescenți', category: 'community', icon: 'ToyBrick', audience: ['all'], path: 'copii', description: 'Coordonarea activităților pentru copii.', implemented: true },
+  // F63 birthdays: opt-in date of birth.
+  { key: 'F63', title: 'Aniversări (opt-in)', category: 'community', icon: 'Cake', audience: ['all'], path: 'aniversari', description: 'Felicitări de ziua de naștere (opt-in).', implemented: true, processing: { data: ['identity', 'optional'], basisKey: 'ropa.basis.consent', retentionKey: 'ropa.retain.consent', recipients: [RECIP_RESIDENTS, RECIP_PROCESSOR] } },
+  // F64 children activities: aggregate only, never identifying a child (see T23).
+  { key: 'F64', title: 'Activități copii și adolescenți', category: 'community', icon: 'ToyBrick', audience: ['all'], path: 'copii', description: 'Coordonarea activităților pentru copii.', implemented: true, processing: { data: ['optional'], basisKey: 'ropa.basis.consent', retentionKey: 'ropa.retain.consent', recipients: [RECIP_RESIDENTS, RECIP_PROCESSOR] } },
   { key: 'F65', title: 'Feedback platformă', category: 'community', icon: 'MessageSquarePlus', audience: ['all'], path: 'feedback', description: 'Feedback despre platforma vecini.online.', implemented: true },
 ];
 
