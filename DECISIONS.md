@@ -646,3 +646,51 @@ Decisions:
   section has an erasure outcome + retention period, and that every category's
   i18n section label + every reason/period/basis key resolves in both ro.json
   and en.json — so a section cannot ship without bilingual strings.
+
+## T38 — Least-privilege RLS for individual response rows (survey/vote/ranking privacy)
+
+`survey_responses`, `votes` and `priority_rankings` shipped with the standard
+`apply_standard_rls` "members read · comitet write" RLS. The "members read"
+policy (`for select using (is_member(asociatie_id))`) let any member of the
+asociație read every individual row — who answered an "anonymous" survey
+(`surveys.anonymous` defaults to `true`), how each neighbour voted, what each
+apartment ranked. A within-tenant privacy leak (less severe than the
+cross-tenant T34 gap, but real). Fixed in
+`20260522000020_response_privacy.sql`.
+
+Decisions:
+
+- **Additive narrowing migration, not a source edit.** Unlike T70 (where a
+  broken `create policy` aborted the migration so the source had to be fixed in
+  place), the standard policies here apply cleanly. So a new additive migration
+  drops the over-permissive `"members read"` / `"comitet write"` policies and
+  recreates least-privilege ones, matching T34/T45/T46/T71. Idempotent (guarded
+  drops, `create or replace` functions).
+- **Self-read only, plus a narrow comitet exception for named surveys.** A
+  respondent reads only their own row. Comitet may read individual
+  `survey_responses` rows ONLY for a non-anonymous survey
+  (`surveys.anonymous = false`); for an anonymous survey nobody — not even
+  comitet — can read attributed rows.
+- **Votes default to ballot secrecy.** `polls` carries no per-poll secrecy flag,
+  so the privacy-preserving default is that a voter reads only their own vote and
+  everyone else sees results through the aggregate. Formal AGA votes, which are
+  attributable by Legea 196/2018, live in the separate `aga_votes` table and
+  keep comitet visibility there — unchanged.
+- **Cast rows stay immutable; rankings are revisable.** `survey_responses` and
+  `votes` get no update/delete/for-all policy (a cast answer/vote is immutable,
+  like T34's vote/signature tables). `priority_rankings` is a per-apartment
+  preference list a resident may revise, so it gets a single `for all` self
+  policy scoped through `apartment_residents` (the `event_rsvps` "self rsvp"
+  precedent) — select/insert/update/delete all confined to the resident's own
+  apartment.
+- **Aggregates served by SECURITY DEFINER functions, attribution-free.**
+  `survey_tally`, `poll_tally` and `priority_ranking_turnout` read past RLS to
+  aggregate but return counts only (never a user/voter/apartment id), gated on
+  `is_member` of the owning asociație with a fixed `search_path` (matching
+  `is_member`/`has_role`). Ranked polls aggregate their `ranked_options` jsonb at
+  the application layer; the functions cover the option-selection poll types.
+- **Locked by test.** `responsePrivacyRls.test.ts` asserts the blanket policies
+  are dropped, the self-scoped reads exist, the comitet survey read is gated on
+  non-anonymous, votes/responses carry no mutation policy, the ranking policy is
+  apartment-scoped (no `has_role`), and the aggregate functions are security
+  definer with a fixed search_path and project no identity column.

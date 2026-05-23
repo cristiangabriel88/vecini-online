@@ -18,8 +18,27 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T35 automated RLS-coverage guard)
+## 0. Current status (updated 2026-05-23, T38 response-row privacy RLS)
 
+- **2026-05-23 — T38 (P1) Anonymous-survey / vote / ranking response privacy.**
+  `survey_responses`, `votes` and `priority_rankings` shipped on the standard
+  `apply_standard_rls` "members read" policy, so any member of the asociație
+  could read every individual row — who answered an "anonymous" survey
+  (`surveys.anonymous` defaults true), how each neighbour voted, what each
+  apartment ranked. A within-tenant privacy leak (less severe than the
+  cross-tenant T34, but real). New additive, idempotent migration
+  `20260522000020_response_privacy.sql` drops the blanket "members read" and
+  "comitet write" (for-all) policies on all three and replaces them with
+  least-privilege RLS: a respondent reads only their own row; comitet reads
+  individual survey rows only for a NON-anonymous survey (never anonymous,
+  polls or rankings); votes default to ballot secrecy (formal AGA votes keep
+  their separate `aga_votes` visibility); cast survey/vote rows stay immutable
+  while a per-apartment ranking is revisable through `apartment_residents`.
+  Member-visible results are served attribution-free by three `security definer`
+  (fixed search_path, `is_member`-gated) functions returning counts only:
+  `survey_tally`, `poll_tally`, `priority_ranking_turnout`. Backend-free guard
+  `responsePrivacyRls.test.ts` (13 assertions) locks the shape in. Pipeline
+  green: lint, typecheck, 101 files / 676 tests, build.
 - **2026-05-23 — T35 (P1) Automated RLS-coverage guard (regression test).**
   T34 happened because three tables shipped with RLS never enabled and nothing
   caught it. New backend-free guard `tests/unit/rlsCoverage.test.ts` (5
