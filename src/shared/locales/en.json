@@ -1748,7 +1748,96 @@
     "historyTitle": "Consent history",
     "historyEmpty": "You have not recorded any choice yet.",
     "withdraw": "Withdraw consent",
-    "withdrawn": "Consent withdrawn"
+    "withdrawn": "Consent withdrawn",
+    "dataRightsTitle": "Your data rights",
+    "dataRightsLink": "My personal data (export, deletion)"
+  },
+  "gdpr": {
+    "rightsTitle": "My personal data",
+    "rightsSubtitle": "Exercise your GDPR rights: download a copy of your data or request account deletion.",
+    "exportTitle": "Download my data",
+    "exportBody": "Receive a complete, machine-readable copy of all the personal data the platform holds about you (the rights of access and portability, GDPR art. 15 and 20).",
+    "downloadJson": "Download JSON",
+    "downloadCsv": "Download CSV",
+    "exported": "A copy of your data was downloaded",
+    "retentionTitle": "How long we keep data",
+    "retentionBody": "Each data category has a retention period and a lawful basis. Data is kept only as long as necessary.",
+    "colCategory": "Category",
+    "colPeriod": "Retention period",
+    "colBasis": "Lawful basis",
+    "erasureTitle": "Account deletion",
+    "erasureBody": "You can request deletion of your account (the right to be forgotten, GDPR art. 17). Some records are kept anonymized where the association has a legal or integrity obligation (vote validity, accounting), so deletion cannot rewrite history.",
+    "erasurePlanTitle": "What happens to your data on deletion",
+    "requestErasure": "Request account deletion",
+    "erasureRequested": "Your deletion request was sent to the administrator",
+    "alreadyRequested": "You already have a pending deletion request.",
+    "myRequestsTitle": "My requests",
+    "myRequestsEmpty": "You have not filed any request yet.",
+    "section": {
+      "profile": "Profile",
+      "tickets": "Tickets",
+      "marketplace": "Marketplace listings",
+      "ideas": "Proposed ideas",
+      "consent": "Consent",
+      "security": "Security activity",
+      "votes": "Votes",
+      "financial": "Financial data"
+    },
+    "action": {
+      "delete": "Deleted",
+      "anonymize": "Anonymized",
+      "retain": "Retained"
+    },
+    "reason": {
+      "profile": "Your contact and profile data is fully deleted.",
+      "marketplace": "Your marketplace listings are fully deleted.",
+      "tickets": "Tickets remain for maintenance continuity, but without your identity.",
+      "ideas": "Ideas remain for context, but without your identity.",
+      "votes": "Votes are kept so adopted decisions stay valid (Law 196/2018).",
+      "financial": "Financial records are kept per accounting obligations.",
+      "consent": "Proof of consent is kept as a compliance obligation.",
+      "security": "The security log is kept to protect the account."
+    },
+    "retain": {
+      "account": "Until account deletion",
+      "tickets": "Until resolution + 1 year",
+      "votes": "For the association's mandate",
+      "financial": "10 years (accounting obligation)",
+      "consent": "3 years after withdrawal",
+      "security": "12 months"
+    },
+    "basis": {
+      "contract": "Performance of a contract",
+      "legitimate": "Legitimate interest",
+      "legal": "Legal obligation",
+      "obligation": "Compliance obligation",
+      "security": "Legitimate interest (security)"
+    },
+    "type": {
+      "export": "Data export",
+      "erasure": "Account deletion"
+    },
+    "status": {
+      "pending": "Pending",
+      "completed": "Completed",
+      "rejected": "Rejected"
+    },
+    "adminTitle": "Personal-data requests",
+    "adminSubtitle": "Action residents' export and deletion requests, with a full audit trail.",
+    "pendingBadge": "{{count}} pending",
+    "adminEmpty": "No requests.",
+    "noAccessTitle": "Restricted access",
+    "noAccessBody": "Only the association's administrator or president can manage personal-data requests.",
+    "colSubject": "Resident",
+    "colType": "Type",
+    "colRequested": "Requested",
+    "colStatus": "Status",
+    "colActioned": "Actioned",
+    "complete": "Complete",
+    "reject": "Reject",
+    "noteLabel": "Note (optional)",
+    "notePlaceholder": "e.g. verified, no debts",
+    "actionedBy": "by {{name}}"
   },
   "chrome": {
     "home": "Home",
@@ -1756,6 +1845,7 @@
     "features": "Features",
     "apartments": "Apartments",
     "invites": "Invite codes",
+    "dataRequests": "Personal-data requests",
     "primaryNav": "Primary navigation",
     "bottomNav": "Navigation",
     "helpTitle": "Help & support",

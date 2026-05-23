@@ -1750,7 +1750,96 @@
     "historyTitle": "Istoricul consimțământului",
     "historyEmpty": "Nu ai înregistrat încă nicio alegere.",
     "withdraw": "Retrage consimțământul",
-    "withdrawn": "Consimțământul a fost retras"
+    "withdrawn": "Consimțământul a fost retras",
+    "dataRightsTitle": "Drepturile asupra datelor",
+    "dataRightsLink": "Datele mele personale (export, ștergere)"
+  },
+  "gdpr": {
+    "rightsTitle": "Datele mele personale",
+    "rightsSubtitle": "Exercită-ți drepturile GDPR: descarcă o copie a datelor tale sau cere ștergerea contului.",
+    "exportTitle": "Descarcă datele mele",
+    "exportBody": "Primești o copie completă, în format citibil de mașină, a tuturor datelor personale pe care platforma le deține despre tine (drepturile de acces și portabilitate, art. 15 și 20 GDPR).",
+    "downloadJson": "Descarcă JSON",
+    "downloadCsv": "Descarcă CSV",
+    "exported": "Copia datelor tale a fost descărcată",
+    "retentionTitle": "Cât păstrăm datele",
+    "retentionBody": "Fiecare categorie de date are o perioadă de păstrare și un temei legal. Datele se păstrează doar atât cât este necesar.",
+    "colCategory": "Categorie",
+    "colPeriod": "Perioadă de păstrare",
+    "colBasis": "Temei legal",
+    "erasureTitle": "Ștergerea contului",
+    "erasureBody": "Poți cere ștergerea contului tău (dreptul de a fi uitat, art. 17 GDPR). Unele înregistrări sunt păstrate anonimizat acolo unde asociația are o obligație legală sau de integritate (validitatea voturilor, contabilitate), astfel încât ștergerea să nu rescrie istoricul.",
+    "erasurePlanTitle": "Ce se întâmplă cu datele tale la ștergere",
+    "requestErasure": "Cere ștergerea contului",
+    "erasureRequested": "Cererea de ștergere a fost trimisă administratorului",
+    "alreadyRequested": "Ai deja o cerere de ștergere în așteptare.",
+    "myRequestsTitle": "Cererile mele",
+    "myRequestsEmpty": "Nu ai trimis încă nicio cerere.",
+    "section": {
+      "profile": "Profil",
+      "tickets": "Sesizări",
+      "marketplace": "Anunțuri marketplace",
+      "ideas": "Idei propuse",
+      "consent": "Consimțământ",
+      "security": "Activitate de securitate",
+      "votes": "Voturi",
+      "financial": "Date financiare"
+    },
+    "action": {
+      "delete": "Se șterge",
+      "anonymize": "Se anonimizează",
+      "retain": "Se păstrează"
+    },
+    "reason": {
+      "profile": "Datele de contact și de profil sunt șterse complet.",
+      "marketplace": "Anunțurile tale din marketplace sunt șterse complet.",
+      "tickets": "Sesizările rămân pentru continuitatea mentenanței, dar fără identitatea ta.",
+      "ideas": "Ideile rămân pentru context, dar fără identitatea ta.",
+      "votes": "Voturile se păstrează ca să rămână valide deciziile luate (Legea 196/2018).",
+      "financial": "Înregistrările financiare se păstrează conform obligațiilor contabile.",
+      "consent": "Dovada consimțământului se păstrează ca obligație de conformitate.",
+      "security": "Jurnalul de securitate se păstrează pentru protecția contului."
+    },
+    "retain": {
+      "account": "Până la ștergerea contului",
+      "tickets": "Până la rezolvare + 1 an",
+      "votes": "Pe durata mandatului asociației",
+      "financial": "10 ani (obligație contabilă)",
+      "consent": "3 ani de la retragere",
+      "security": "12 luni"
+    },
+    "basis": {
+      "contract": "Executarea contractului",
+      "legitimate": "Interes legitim",
+      "legal": "Obligație legală",
+      "obligation": "Obligație de conformitate",
+      "security": "Interes legitim (securitate)"
+    },
+    "type": {
+      "export": "Export de date",
+      "erasure": "Ștergere cont"
+    },
+    "status": {
+      "pending": "În așteptare",
+      "completed": "Finalizată",
+      "rejected": "Respinsă"
+    },
+    "adminTitle": "Cereri privind datele personale",
+    "adminSubtitle": "Acționează cererile de export și de ștergere ale rezidenților, cu trasabilitate completă.",
+    "pendingBadge": "{{count}} în așteptare",
+    "adminEmpty": "Nu există cereri.",
+    "noAccessTitle": "Acces restricționat",
+    "noAccessBody": "Doar administratorul sau președintele asociației pot gestiona cererile privind datele personale.",
+    "colSubject": "Rezident",
+    "colType": "Tip",
+    "colRequested": "Solicitată",
+    "colStatus": "Stare",
+    "colActioned": "Acționată",
+    "complete": "Finalizează",
+    "reject": "Respinge",
+    "noteLabel": "Notă (opțional)",
+    "notePlaceholder": "ex. verificat, fără datorii",
+    "actionedBy": "de {{name}}"
   },
   "chrome": {
     "home": "Acasă",
@@ -1758,6 +1847,7 @@
     "features": "Funcționalități",
     "apartments": "Apartamente",
     "invites": "Coduri de invitație",
+    "dataRequests": "Cereri date personale",
     "primaryNav": "Navigație principală",
     "bottomNav": "Navigație",
     "helpTitle": "Ajutor și suport",

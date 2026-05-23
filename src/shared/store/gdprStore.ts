@@ -47,6 +47,7 @@ function mirrorInsert(req: DataSubjectRequest): void {
       await supabase.from('data_subject_requests').insert({
         asociatie_id: req.asociatie_id,
         subject_user_id: req.subject_user_id,
+        subject_name: req.subject_name,
         type: req.type,
         status: req.status,
         requested_at: req.requested_at,
@@ -63,7 +64,12 @@ function mirrorAction(req: DataSubjectRequest): void {
     try {
       await supabase
         .from('data_subject_requests')
-        .update({ status: req.status, actioned_at: req.actioned_at, note: req.note })
+        .update({
+          status: req.status,
+          actioned_at: req.actioned_at,
+          actioned_by: req.actioned_by,
+          note: req.note,
+        })
         .eq('id', req.id);
     } catch {
       /* mirroring is best-effort */

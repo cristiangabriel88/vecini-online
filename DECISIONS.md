@@ -2,6 +2,44 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## GDPR data-subject rights: self-service export, admin-actioned erasure (T06)
+
+The two rights a resident exercises over their personal data are split by how
+reversible they are:
+
+- **Export (art. 15 + 20) is self-service.** The resident downloads a complete
+  JSON/CSV copy immediately in-app, with no admin in the loop, because access /
+  portability is a read that carries no risk. The request is still logged to the
+  queue so the controller keeps an accountability trail of who asked and when.
+- **Erasure (art. 17) is filed pending and actioned by an admin/president.**
+  Deletion is irreversible and may need a manual check (e.g. outstanding debts,
+  ongoing governance), so it is not auto-executed. The admin completes or rejects
+  it, and the actor + time are stamped on the row.
+
+**Erasure is a per-category plan, not a blanket delete.** Profile/contact and
+marketplace listings are deleted; tickets/ideas are anonymized (kept for
+continuity/context with the identity stripped to a bilingual placeholder); votes,
+financial records, consent proof and the security log are retained because
+erasing them would invalidate adopted decisions (Legea 196/2018), breach
+accounting law, or destroy the proof of lawful processing. The resident sees this
+plan with per-category rationale before requesting erasure. The pure
+`ERASURE_PLAN`/`RETENTION_POLICY` model in `gdprLogic.ts` is the single source;
+`DATA_RETENTION.md` is its human-readable counterpart.
+
+**The actual cross-store mutation + periodic cleanup run server-side, later.**
+Offline, the request queue and an erased-id marker work in the persisted
+`gdprStore`; no destructive mutation runs because there is no backend store to
+mutate. Executing the plan (delete/anonymize/retain across tables) and purging
+expired records on a schedule belongs to a service-role Supabase routine when a
+backend is provisioned, so it stays out of the client and the offline build.
+
+**The `data_subject_requests` table is append/no-delete under RLS.** A resident
+files + reads only their own requests; admin/president read the asociație queue
+and may only advance a pending request's status — no delete policy exists for
+anyone, so the accountability trail cannot be rewritten. The row carries request
+metadata only (never exported personal data; `actioned_by` is the admin's display
+name, not extra identifiers).
+
 ## Fixing the `aga_votes` RLS column mismatch by editing the source migration (T70)
 
 `20260121000002_features.sql` called `apply_standard_rls('aga_votes')`, but

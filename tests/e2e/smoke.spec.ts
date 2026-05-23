@@ -502,6 +502,19 @@ test('T54: the full MVP loop works end-to-end in demo mode', async ({ page }) =>
   await expect(page.getByText(/nu este activată pentru asociația ta/i)).toBeVisible();
 });
 
+test('T06: resident files an erasure request and an admin actions it', async ({ page }) => {
+  await enterDemo(page);
+  // Resident self-service: request account erasure from "Datele mele personale".
+  await page.goto('/app/datele-mele');
+  await page.getByRole('button', { name: /Cere ștergerea contului/i }).click();
+  // It appears in the resident's own request list as pending.
+  await expect(page.getByText('În așteptare').first()).toBeVisible();
+  // The association admin reviews and completes it in the request queue.
+  await page.goto('/app/admin/cereri-date');
+  await page.getByRole('button', { name: /Finalizează/i }).first().click();
+  await expect(page.getByText('Finalizată').first()).toBeVisible();
+});
+
 test('home page has no critical accessibility violations', async ({ page }) => {
   await enterDemo(page);
   const results = await new AxeBuilder({ page })

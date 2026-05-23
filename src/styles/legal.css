@@ -344,3 +344,165 @@
 .auth-link:hover {
   text-decoration: underline;
 }
+
+/* ── GDPR data-subject rights (T06) ──────────────────────────────────────── */
+/* Retention table (resident self-service) */
+.gdpr-table {
+  display: flex;
+  flex-direction: column;
+  margin-top: 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm, 8px);
+  overflow: hidden;
+}
+
+.gdpr-table__row {
+  display: grid;
+  grid-template-columns: 1.2fr 1.4fr 1.4fr;
+  gap: var(--space-3);
+  padding: 9px 12px;
+  font-size: 12.5px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.gdpr-table__row:first-child {
+  border-top: none;
+}
+
+.gdpr-table__row--head {
+  background: var(--bg-sunken);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+}
+
+/* Erasure plan list */
+.gdpr-plan__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gdpr-plan__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+
+.gdpr-plan__item:first-child {
+  border-top: none;
+}
+
+.gdpr-plan__cat {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.gdpr-plan__reason {
+  flex: 1 1 240px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+/* Resident's own request history */
+.gdpr-requests {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.gdpr-requests__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 12.5px;
+}
+
+.gdpr-requests__row:first-child {
+  border-top: none;
+}
+
+.gdpr-requests__type {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+/* Admin request queue */
+.gdpr-queue {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gdpr-queue__row {
+  padding: 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm, 8px);
+}
+
+.gdpr-queue__row[data-pending='true'] {
+  border-color: var(--border);
+  background: var(--bg-sunken);
+}
+
+.gdpr-queue__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.gdpr-queue__type {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.gdpr-queue__subject {
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.gdpr-queue__when {
+  flex: 1;
+  font-size: 12px;
+}
+
+.gdpr-queue__action {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gdpr-queue__buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.gdpr-queue__trail {
+  margin: 8px 0 0;
+}

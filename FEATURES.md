@@ -625,6 +625,33 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
   `consent_records` migration. Unit-tested (choices, version re-prompt, the
   `mayNotify` gate); one E2E happy-path. See DECISIONS.md for lawful bases.
 
+### GDPR data-subject rights (export + erasure) ✅
+- **Audience:** every signed-in resident (self-service); admin / president (request queue)
+- **Description:** The GDPR data-subject rights surface (BACKLOG T06), built on
+  the T05 consent surface. From `/app/datele-mele` (linked from the privacy
+  settings page) a resident exercises the rights of **access + portability**
+  (art. 15 + 20): a one-tap download of a complete, machine-readable copy of all
+  the personal data the platform holds about them, as **JSON or CSV**, assembled
+  from their profile, tickets, marketplace listings, ideas, consent history and
+  security-activity log (only rows genuinely theirs). The same page documents the
+  **retention policy** (period + lawful basis per category) and the **erasure
+  plan** (what is deleted vs. anonymized vs. retained, each with its legal
+  rationale) before the resident files an **erasure** request (art. 17). Export is
+  self-service but still logged for accountability; erasure is filed pending and
+  **actioned by an admin/president** in the request queue at
+  `/app/admin/cereri-date`, which records who actioned it and when (tamper-evident
+  trail, no delete policy on the table). Works fully offline in demo mode; mirrors
+  requests to `data_subject_requests` when a backend is present. Bilingual RO/EN.
+- **Files:** `src/features/gdpr/{gdprLogic.ts,MyDataPage.tsx,DsrAdminPage.tsx}`,
+  `src/shared/store/gdprStore.ts`, routes `/app/datele-mele` +
+  `/app/admin/cereri-date`, sidebar admin nav link + privacy-settings link,
+  `gdpr.*` locale keys (RO/EN), `/datele_mele` bot command, additive
+  `data_subject_requests` migration (append/no-delete RLS: self files+reads own,
+  admin/president reads+actions), GDPR CSS in `src/styles/legal.css`,
+  `DATA_RETENTION.md` policy doc. Unit-tested (collect/serialize/erasure plan/
+  retention/request lifecycle, 13 tests); one E2E happy-path (file erasure →
+  admin completes it).
+
 ### Help assistant ✅
 - **Audience:** all residents (role-filtered)
 - **Description:** A floating corner chat widget (FAB → panel) that answers "what is X / how do I X / where is X" about the app **and surfaces concrete facts** like "numărul de telefon al președintelui". **Local + rule-based, no LLM, no network:** a grounded matcher normalizes the query (diacritic-insensitive, with prefix matching so Romanian inflections like *președintelui* match *președinte*), scores it against a curated knowledge base derived from the feature registry plus a few how-to/concept entries, and returns only pre-written answers — so it can neither hallucinate nor leak. Data lookups draw from **user-visible** sources only: emergency contacts (F56, public — administrator + committee president phones) and the **opt-in resident directory** (F36) passed through the same `visibleEntry` consent mask, so a number an owner did not choose to share never becomes an answer. **No admin access** is enforced by filtering every entry to the viewer's role (demo/unknown → resident, never privileged) and only using enabled features; it is info-only and never performs actions. Bilingual RO/EN.

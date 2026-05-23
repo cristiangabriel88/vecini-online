@@ -18,8 +18,36 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-23, T60 invite_codes role + single_use schema parity)
+## 0. Current status (updated 2026-05-23, T06 GDPR data-subject rights)
 
+- **2026-05-23 — T06 (P0) GDPR data-subject rights (export + erasure).** Finished
+  the partially-built, uncommitted T06 work (pure `gdprLogic` + `gdprStore` +
+  `MyDataPage` + locales + migration existed but were unwired/uncommitted) and
+  wired it end-to-end. Pure, unit-tested `gdprLogic`: `collectPersonalData`
+  assembles a per-section export filtered to rows genuinely the subject's
+  (profile, tickets, marketplace, ideas, consent, security activity);
+  `toExportJson`/`toExportCsv` (art. 15 + 20 machine-readable copy); `ERASURE_PLAN`
+  (delete/anonymize/retain with a legal rationale per category); `RETENTION_POLICY`
+  (period + lawful basis); `ANONYMIZED_NAME`; the `DataSubjectRequest` lifecycle
+  (`makeRequest`/`actionRequest` immutable-after-action, `hasOpenRequest`,
+  `pendingCount`, `sortRequests`) — 13 assertions. Resident self-service
+  `MyDataPage` at `/app/datele-mele` (linked from privacy settings): one-tap
+  JSON/CSV export, the retention table, the erasure plan with rationale, a
+  dedup-guarded "request erasure" (art. 17), and the resident's own request
+  history. New admin actioning surface `DsrAdminPage` at `/app/admin/cereri-date`
+  (sidebar nav link, role-gated to admin/președinte with a bilingual restricted
+  state): the per-asociație queue with a pending badge, optional note, and
+  complete/reject stamping actor + time. Export is self-service but logged;
+  erasure is admin-actioned. Persisted `gdprStore` keeps the queue + erased-id
+  marker offline, mirroring to `data_subject_requests` when a backend exists.
+  Additive migration `20260522000018_data_subject_requests.sql` (append/no-delete
+  RLS: self files+reads own; admin/president reads+actions; no delete for anyone).
+  New `DATA_RETENTION.md` documents the periods, the erasure plan, and that the
+  cross-store mutation + periodic cleanup run server-side when provisioned.
+  `/datele_mele` bot help, GDPR CSS, bilingual `gdpr.*` RO/EN, one E2E happy-path.
+  Decision recorded in `DECISIONS.md`. Pipeline green: lint, typecheck, 97 files /
+  612 tests, build. Surfaced T72 (live server-side erasure execution + retention
+  cleanup) and T73 (broaden the export to the remaining personal-data stores).
 - **2026-05-23 — T60 (P2) `invite_codes` schema parity for the T41 local invite
   model.** The offline invite model carries a granted `role` and a `singleUse`
   flag, but the live `invite_codes` table modelled neither (single-use only

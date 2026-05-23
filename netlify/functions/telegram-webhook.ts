@@ -100,6 +100,7 @@ const FEATURE_COMMANDS: Record<string, string> = {
   '/securitate': '🔐 Securitate cont — activează autentificarea în doi pași (2FA) cu o aplicație de autentificare, generează coduri de recuperare și gestionează-ți factorul al doilea în secțiunea „Securitate”. Obligatorie pentru rolurile de administrare.',
   '/invitatii': '🎟 Coduri de invitație — generează, listează și revocă codurile prin care vecinii se alătură asociației (rol, apartament și expirare opționale) în secțiunea „Coduri de invitație” (administrare).',
   '/alatura': '🤝 Alătură-te unei asociații — ai primit un cod de invitație de la administrator? Deschide aplicația, alege „Alătură-te unei asociații existente” și introdu codul ca să intri în asociația ta.',
+  '/datele_mele': '🛡 Datele mele personale — descarcă o copie completă (JSON sau CSV) a datelor tale personale (drepturile de acces și portabilitate, GDPR art. 15 și 20) sau cere ștergerea contului (dreptul de a fi uitat, art. 17) din secțiunea „Datele mele personale”.',
 };
 
 async function handleMessage(msg: TelegramMessage) {

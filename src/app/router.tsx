@@ -62,6 +62,8 @@ const NotificationsPage = lazy(() => import('@/features/profile/NotificationsPag
 const FeaturesAdminPage = lazy(() => import('@/features/admin/FeaturesAdminPage'));
 const ApartmentsPage = lazy(() => import('@/features/admin/ApartmentsPage'));
 const InvitesAdminPage = lazy(() => import('@/features/invites/InvitesAdminPage'));
+const MyDataPage = lazy(() => import('@/features/gdpr/MyDataPage'));
+const DsrAdminPage = lazy(() => import('@/features/gdpr/DsrAdminPage'));
 const AnonymousPage = lazy(() => import('@/features/anonymous/AnonymousPage'));
 const PvDocumentsPage = lazy(() => import('@/features/pv/PvDocumentsPage'));
 const RfpPage = lazy(() => import('@/features/rfp/RfpPage'));
@@ -185,9 +187,11 @@ export const router = createBrowserRouter([
       { path: 'securitate', element: <S><SecurityPage /></S> },
       { path: 'notificari', element: <S><NotificationsPage /></S> },
       { path: 'confidentialitate', element: <S><PrivacySettingsPage /></S> },
+      { path: 'datele-mele', element: <S><MyDataPage /></S> },
       { path: 'admin/functionalitati', element: <S><FeaturesAdminPage /></S> },
       { path: 'admin/apartamente', element: <S><ApartmentsPage /></S> },
       { path: 'admin/invitatii', element: <S><InvitesAdminPage /></S> },
+      { path: 'admin/cereri-date', element: <S><DsrAdminPage /></S> },
       { path: '*', element: <S><NotImplementedPage /></S> },
     ],
   },
