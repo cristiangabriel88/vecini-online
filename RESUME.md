@@ -18,7 +18,28 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-24, T91 platform superadmin foundation)
+## 0. Current status (updated 2026-05-24, T102 AAL2 re-gate at the shell)
+
+- **2026-05-24 — T102 (P2) Re-gate the in-app shell on AAL2, not only on
+  enrolment.** Closed the gap where a privileged session that lands on the shell
+  enrolled-but-AAL1 (a skipped challenge, a stale tab, an expired step-up, a
+  direct deep-link) would pass the in-app 2FA gate. Extended the pure
+  `mfaEnforcementRedirect` (`mfaLogic.ts`) with an optional, back-compatible
+  `aalSatisfied` axis: the security page is reachable first, an un-enrolled
+  privileged session is steered to enrol, and now an enrolled session whose
+  `aalSatisfied === false` is also steered — being merely enrolled is no longer
+  enough, the session must have passed the second factor. Omitted/unknown AAL is
+  treated as satisfied so the gate never steers on a flash. `useMfaEnforcement`
+  resolves `mfaStore.challengeRequired()` into the axis (live, enrolled sessions
+  only) and feeds the same pure decision; demo/offline stays ungated. Steers to
+  the existing security page (the task's "(or the security page)" option) rather
+  than re-routing to `/login`. Tests reuse the T30 render harness
+  (`mfaEnforcement.test.tsx`, +6 → 18): pure cases (all privileged roles re-gated
+  on `aalSatisfied:false`, allowed on `true`, un-enrolled still steered, no loop
+  on the security page) and live-routing cases (enrolled-but-AAL1 admin routed to
+  `/app/securitate`, enrolled+AAL2 admin reaches the shell, resident never
+  re-gated). Pipeline green: lint, typecheck, 113 files / 814 tests, build. The
+  live AAL re-check across token-refresh folds into the live E2E (T08).
 
 - **2026-05-24 — T91 (P1) Platform superadmin identity + cross-asociatie RLS
   foundation.** Established the platform tier the whole superadmin surface

@@ -243,6 +243,14 @@ export interface MfaEnforcementInput {
   role: Role | null | undefined;
   /** Whether a verified second factor is active for the account. */
   enrolled: boolean;
+  /**
+   * Whether this session has actually satisfied the AAL2 challenge (T102). Only
+   * meaningful once `enrolled` is true — an un-enrolled session has no factor to
+   * satisfy. Left optional and treated as satisfied when omitted (or before it
+   * has resolved), so the axis is opt-in and never steers on a flash of unknown
+   * AAL; only a resolved `false` (enrolled but still at AAL1) re-gates the shell.
+   */
+  aalSatisfied?: boolean;
   /** The current in-app location. */
   pathname: string;
   /** Where to steer to; defaults to the security page. */
@@ -250,16 +258,21 @@ export interface MfaEnforcementInput {
 }
 
 /**
- * The in-app 2FA enforcement decision (T02/T30). On the live (Supabase-backed)
- * path a signed-in member in a 2FA-mandatory role who has not yet enrolled a
- * second factor is steered to the security page and cannot reach any other
- * in-app route until they enrol. The gate is deliberately inert when:
+ * The in-app 2FA enforcement decision (T02/T30/T102). On the live
+ * (Supabase-backed) path a signed-in member in a 2FA-mandatory role is steered
+ * to the security page and cannot reach any other in-app route when it has
+ * either (a) not yet enrolled a second factor, or (b) enrolled one but not yet
+ * satisfied the AAL2 challenge in this session (a skipped challenge, a stale
+ * tab, an expired step-up, or a direct deep-link). Being merely enrolled is not
+ * enough; the session must have passed the second factor. The gate is
+ * deliberately inert when:
  *
  * - no backend is configured (demo mode has no real role, stays inspectable),
  * - the enrolment status is not yet known (avoids steering on a flash of null),
  * - the role is not privileged (a resident is never gated), or
- * - a verified factor is already enrolled, or the session is already on the
- *   security page (so enrolling there is reachable).
+ * - the session is already on the security page (so enrolling/recovering is
+ *   reachable), or a verified factor is enrolled AND the AAL2 challenge is
+ *   satisfied (or its status has not resolved yet).
  *
  * Returns the path to redirect to, or null when the current location is allowed.
  */
@@ -268,9 +281,12 @@ export function mfaEnforcementRedirect(input: MfaEnforcementInput): string | nul
   if (!input.supabaseConfigured) return null;
   if (!input.loaded) return null;
   if (!requiresMfa(input.role)) return null;
-  if (input.enrolled) return null;
   if (input.pathname === securityPath) return null;
-  return securityPath;
+  // Not enrolled at all: must set up a second factor before reaching the shell.
+  if (!input.enrolled) return securityPath;
+  // Enrolled but this session has not passed the AAL2 challenge: re-gate it.
+  if (input.aalSatisfied === false) return securityPath;
+  return null;
 }
 
 /** Stable i18n keys (under `auth.mfa.err`) for the 2FA error states we surface. */

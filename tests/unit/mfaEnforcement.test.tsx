@@ -9,10 +9,20 @@ import {
 
 // The hook reads `isSupabaseConfigured` to gate on the live path; force it true
 // so the render harness exercises the live (backed) enforcement. The stores also
-// import the supabase client, so a minimal stub is provided for the module graph.
+// import the supabase client, so a minimal stub is provided for the module graph
+// (incl. the AAL read the live `challengeRequired()` calls, defaulting to aal2).
 vi.mock('@/shared/lib/supabase', () => ({
   isSupabaseConfigured: true,
-  supabase: { auth: { mfa: { listFactors: async () => ({ data: { totp: [] } }) } } },
+  supabase: {
+    auth: {
+      mfa: {
+        listFactors: async () => ({ data: { totp: [] } }),
+        getAuthenticatorAssuranceLevel: async () => ({
+          data: { currentLevel: 'aal2', nextLevel: 'aal2' },
+        }),
+      },
+    },
+  },
 }));
 
 import { useMfaEnforcement } from '@/app/useMfaEnforcement';
@@ -53,8 +63,41 @@ describe('mfaEnforcementRedirect (pure decision)', () => {
     expect(mfaEnforcementRedirect(input({ role: null }))).toBeNull();
   });
 
-  it('does not steer once a verified factor is enrolled', () => {
+  it('does not steer once a verified factor is enrolled (AAL axis omitted)', () => {
     expect(mfaEnforcementRedirect(input({ enrolled: true }))).toBeNull();
+  });
+
+  it('re-gates an enrolled session that has not satisfied the AAL2 challenge (T102)', () => {
+    expect(mfaEnforcementRedirect(input({ enrolled: true, aalSatisfied: false }))).toBe(
+      MFA_SECURITY_PATH,
+    );
+    for (const role of ['super_admin', 'admin', 'presedinte', 'comitet', 'cenzor'] as const) {
+      expect(
+        mfaEnforcementRedirect(input({ role, enrolled: true, aalSatisfied: false })),
+      ).toBe(MFA_SECURITY_PATH);
+    }
+  });
+
+  it('allows an enrolled session once the AAL2 challenge is satisfied', () => {
+    expect(mfaEnforcementRedirect(input({ enrolled: true, aalSatisfied: true }))).toBeNull();
+  });
+
+  it('does not re-gate an un-enrolled session on the AAL axis (enrolment check wins)', () => {
+    // An un-enrolled session is steered to enrol regardless of the AAL flag.
+    expect(mfaEnforcementRedirect(input({ enrolled: false, aalSatisfied: true }))).toBe(
+      MFA_SECURITY_PATH,
+    );
+    expect(mfaEnforcementRedirect(input({ enrolled: false, aalSatisfied: false }))).toBe(
+      MFA_SECURITY_PATH,
+    );
+  });
+
+  it('does not loop on the security page even when AAL is unsatisfied', () => {
+    expect(
+      mfaEnforcementRedirect(
+        input({ enrolled: true, aalSatisfied: false, pathname: MFA_SECURITY_PATH }),
+      ),
+    ).toBeNull();
   });
 
   it('does not loop when already on the security page', () => {
@@ -76,9 +119,18 @@ function seedRole(role: Role | null) {
   });
 }
 
-/** Seed the resolved enrolment status and neutralise the async live `load()`. */
-function seedMfa(opts: { loaded: boolean; enrolled: boolean }) {
-  useMfaStore.setState({ loaded: opts.loaded, enrolled: opts.enrolled, load: async () => {} });
+/**
+ * Seed the resolved enrolment status, neutralise the async live `load()`, and
+ * stub `challengeRequired()` so the hook's AAL resolution is deterministic
+ * (defaults to satisfied = no pending challenge).
+ */
+function seedMfa(opts: { loaded: boolean; enrolled: boolean; needsChallenge?: boolean }) {
+  useMfaStore.setState({
+    loaded: opts.loaded,
+    enrolled: opts.enrolled,
+    load: async () => {},
+    challengeRequired: async () => opts.needsChallenge ?? false,
+  });
 }
 
 function Harness() {
@@ -116,9 +168,23 @@ describe('useMfaEnforcement (live routing harness)', () => {
     await waitFor(() => expect(screen.getByTestId('path')).toHaveTextContent(MFA_SECURITY_PATH));
   });
 
-  it('does not steer a privileged session that has already enrolled', async () => {
+  it('does not steer a privileged session that has enrolled and satisfied AAL2', async () => {
     seedRole('admin');
-    seedMfa({ loaded: true, enrolled: true });
+    seedMfa({ loaded: true, enrolled: true, needsChallenge: false });
+    renderAt('/app/anunturi');
+    await waitFor(() => expect(screen.getByTestId('path')).toHaveTextContent('/app/anunturi'));
+  });
+
+  it('re-gates an enrolled-but-AAL1 privileged session to the security page (T102)', async () => {
+    seedRole('admin');
+    seedMfa({ loaded: true, enrolled: true, needsChallenge: true });
+    renderAt('/app/anunturi');
+    await waitFor(() => expect(screen.getByTestId('path')).toHaveTextContent(MFA_SECURITY_PATH));
+  });
+
+  it('does not re-gate a resident even when a challenge is pending', async () => {
+    seedRole('proprietar');
+    seedMfa({ loaded: true, enrolled: true, needsChallenge: true });
     renderAt('/app/anunturi');
     await waitFor(() => expect(screen.getByTestId('path')).toHaveTextContent('/app/anunturi'));
   });
