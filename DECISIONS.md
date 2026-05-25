@@ -2,6 +2,31 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## In-app superadmin preview persona vs the separate-origin production console
+
+The login page's demo section previews the app "as" admin / superadmin / locatar.
+Admin and locatar live in the resident/admin app (`/app`), but the superadmin's
+real home is the separate-origin console (`src/platform/*`), so previewing
+"superadmin" by entering `/app` just rendered the admin chrome (the role had no
+distinct surface there). Two choices fixed that without weakening the production
+boundary:
+
+- **The `super_admin` demo persona gets its own surface inside `/app`.** A
+  `RequireSuperAdmin` gate guards `/app/platforma/*`, the `/app` index
+  (`AppHome`) redirects a superadmin to `/app/platforma`, and the sidebar/bottom
+  nav render the platform console nav (overview + asociații + the upcoming
+  sections) instead of the resident/admin nav. The pages reuse the platform
+  store + provisioning logic + the shared `platform.*` strings, re-skinned in the
+  main app's chrome, so the persona renders its own experience consistently with
+  the other demo personas. This is a **preview surface**, chosen over a hard
+  hand-off to `platform.html` so all three demo buttons behave alike in one app.
+- **Production security is unchanged.** The real superadmin tier remains the
+  separate-origin app (T93) gated by the server-side `is_super_admin()` check;
+  this in-app surface is reached only by the offline demo persona (a seeded
+  `super_admin` membership with no backend). No cross-tenant data or privileged
+  write is exposed client-side here; provisioning stays the offline local store
+  with the live write deferred to the T92 service-role function.
+
 ## Superadmin provisioning is offline-local + audited into the new asociație's chain; live write deferred to T92 (T94)
 
 The first console page (asociații + admin provisioning) had to work fully

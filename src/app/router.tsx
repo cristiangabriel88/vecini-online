@@ -5,6 +5,7 @@ import { AppLayout } from './AppLayout';
 import { RequireAuth } from './RequireAuth';
 import { RequireAsociatie } from './RequireAsociatie';
 import { RequireAdmin } from './RequireAdmin';
+import { RequireSuperAdmin } from './RequireSuperAdmin';
 import { SkeletonList } from '@/shared/components/Skeleton';
 
 const LoginPage = lazy(() => import('@/features/auth/LoginPage'));
@@ -18,7 +19,9 @@ const PrivacySettingsPage = lazy(() => import('@/features/legal/PrivacySettingsP
 const ProcessingRecordsPage = lazy(() => import('@/features/legal/ProcessingRecordsPage'));
 const OnboardingWizard = lazy(() => import('@/features/onboarding/OnboardingWizard'));
 const JoinAsociatiePage = lazy(() => import('@/features/onboarding/JoinAsociatiePage'));
-const HomePage = lazy(() => import('@/features/home/HomePage'));
+const AppHome = lazy(() => import('./AppHome'));
+const SuperAdminHomePage = lazy(() => import('@/features/superadmin/SuperAdminHomePage'));
+const SuperAdminAsociatiiPage = lazy(() => import('@/features/superadmin/SuperAdminAsociatiiPage'));
 const AnnouncementsPage = lazy(() => import('@/features/announcements/AnnouncementsPage'));
 const PollsPage = lazy(() => import('@/features/polls/PollsPage'));
 const TicketsPage = lazy(() => import('@/features/tickets/TicketsPage'));
@@ -124,7 +127,7 @@ export const router = createBrowserRouter([
       </RequireAuth>
     ),
     children: [
-      { index: true, element: <S><HomePage /></S> },
+      { index: true, element: <S><AppHome /></S> },
       { path: 'anunturi', element: <S><AnnouncementsPage /></S> },
       { path: 'voturi', element: <S><PollsPage /></S> },
       { path: 'sesizari', element: <S><TicketsPage /></S> },
@@ -210,6 +213,13 @@ export const router = createBrowserRouter([
           { path: 'admin/prelucrare-date', element: <S><ProcessingRecordsPage /></S> },
           { path: 'admin/incidente-date', element: <S><BreachAdminPage /></S> },
           { path: 'admin/jurnal', element: <S><AuditLogPage /></S> },
+        ],
+      },
+      {
+        element: <RequireSuperAdmin />,
+        children: [
+          { path: 'platforma', element: <S><SuperAdminHomePage /></S> },
+          { path: 'platforma/asociatii', element: <S><SuperAdminAsociatiiPage /></S> },
         ],
       },
       { path: '*', element: <S><NotImplementedPage /></S> },

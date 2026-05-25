@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Outlet, useLocation, useNavigate, NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Home, Megaphone, Zap, Menu, User, Bell, Moon, Sun, Settings, Search, ChevronDown, Info, Phone, Siren, ArrowUpRight, Globe, KeyRound, ShieldCheck, ClipboardList, ScrollText, Building2 } from 'lucide-react';
+import { Home, Megaphone, Zap, Menu, User, Bell, Moon, Sun, Settings, Search, ChevronDown, Info, Phone, Siren, ArrowUpRight, Globe, KeyRound, ShieldCheck, ClipboardList, ScrollText, Building2, LayoutDashboard, Activity, TriangleAlert, UserCog, MessagesSquare } from 'lucide-react';
 import { FEATURES, FEATURE_CATEGORIES, categoryLabel, featureTitle, type FeatureCategory } from '@/shared/features/registry';
 import { useAsociatieFlags } from '@/shared/features/featureStore';
 import { useThemeStore } from '@/shared/store/themeStore';
@@ -67,11 +67,22 @@ function saveCollapsed(state: Record<string, boolean>) {
   }
 }
 
+/** The platform console sections still to be built (T95-T99), shown to the
+ *  superadmin persona as upcoming entries so the nav anticipates them. */
+const PLATFORM_PLANNED = [
+  { key: 'audit', icon: ScrollText },
+  { key: 'errors', icon: TriangleAlert },
+  { key: 'usage', icon: Activity },
+  { key: 'impersonation', icon: UserCog },
+  { key: 'messenger', icon: MessagesSquare },
+] as const;
+
 function Sidebar() {
   const { t } = useTranslation();
   const enabled = useEnabledFeatures();
   const navigate = useNavigate();
   const isActive = useActive();
+  const { pathname } = useLocation();
   // The administration group is only meaningful to management roles; a plain
   // locatar (proprietar / chirias) never sees it, so each demo persona renders
   // the chrome they would actually get.
@@ -118,6 +129,63 @@ function Sidebar() {
       <span className="navitem__label">{label}</span>
     </button>
   );
+
+  // A platform superadmin sees the console nav (overview + asociații, plus the
+  // upcoming sections) instead of the resident/admin nav, so the persona renders
+  // its own experience inside the shared app chrome.
+  if (role === 'super_admin') {
+    return (
+      <aside className="sidebar" aria-label={t('chrome.primaryNav')}>
+        <div className="sidebar__group">
+          <NavItem
+            label={t('platform.sections.overview.title')}
+            active={pathname === '/app/platforma'}
+            onClick={() => navigate('/app/platforma')}
+            icon={<LayoutDashboard size={16} />}
+          />
+        </div>
+        <div className="sidebar__group">
+          <GroupHeader id="platform" label={t('platform.appName')} />
+          <div className="sidebar__collapse" data-collapsed={collapsed['platform'] ? 'true' : 'false'}>
+            <div className="sidebar__collapse-inner">
+              <NavItem
+                label={t('platform.sections.asociatii.title')}
+                active={isActive('platforma/asociatii')}
+                onClick={() => navigate('/app/platforma/asociatii')}
+                icon={<Building2 size={16} />}
+              />
+              {PLATFORM_PLANNED.map((s) => (
+                <button
+                  key={s.key}
+                  type="button"
+                  className="navitem"
+                  disabled
+                  style={{ opacity: 0.5, cursor: 'default' }}
+                >
+                  <span className="navitem__icon">
+                    <s.icon size={16} />
+                  </span>
+                  <span className="navitem__label">{t(`platform.sections.${s.key}.title`)}</span>
+                  <span
+                    style={{
+                      marginLeft: 'auto',
+                      fontSize: 10,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                      color: 'var(--text-faint)',
+                    }}
+                  >
+                    {t('platform.sections.planned')}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div style={{ flex: 1 }} />
+      </aside>
+    );
+  }
 
   return (
     <aside className="sidebar" aria-label={t('chrome.primaryNav')}>
@@ -254,7 +322,18 @@ function BottomNav() {
   const { t } = useTranslation();
   const flags = useAsociatieFlags();
   const isActive = useActive();
-  const items = [
+  const { pathname } = useLocation();
+  const role = useAuthStore((s) => s.activeRole)();
+  // The superadmin persona's mobile nav mirrors its console (overview, asociații,
+  // profile) rather than the resident shortcuts.
+  const items =
+    role === 'super_admin'
+      ? [
+          { to: '/app/platforma', label: t('platform.sections.overview.title'), icon: LayoutDashboard, active: pathname === '/app/platforma' },
+          { to: '/app/platforma/asociatii', label: t('platform.sections.asociatii.title'), icon: Building2, active: isActive('platforma/asociatii') },
+          { to: '/app/profil', label: t('nav.profile'), icon: User, active: isActive('profil') },
+        ]
+      : [
     { to: '/app', label: t('nav.home'), icon: Home, active: isActive() },
     ...(flags['F01']
       ? [{ to: '/app/anunturi', label: t('nav.announcements'), icon: Megaphone, active: isActive('anunturi') }]
