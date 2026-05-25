@@ -1,8 +1,8 @@
-# Architecture — BlocHub
+# Architecture — vecini.online
 
 ## Overview
 
-BlocHub is a multi-tenant SaaS-style web application for Romanian residential building associations (*asociații de proprietari*). One codebase serves many buildings (tenants). Each tenant gets isolated data, configurable features, and its own Telegram bot integration.
+vecini.online is a multi-tenant SaaS-style web application for Romanian residential building associations (*asociații de proprietari*). One codebase serves many buildings (tenants). Each tenant gets isolated data, configurable features, and its own Telegram bot integration.
 
 The stack is intentionally simple to keep hosting cheap and operations boring:
 
@@ -102,7 +102,7 @@ This means even if frontend code has bugs, the database refuses unauthorized rea
 
 | Role | Scope | Description |
 |------|-------|-------------|
-| `super_admin` | Platform | BlocHub operators only — used for billing and platform support |
+| `super_admin` | Platform | vecini.online operators only — used for billing and platform support |
 | `admin` | Asociație | Administrator (usually a paid professional) — full configuration access |
 | `presedinte` | Asociație | President of the comitet — can call AGAs, approve big decisions |
 | `comitet` | Asociație | Comitet members — can manage tickets, polls, announcements |

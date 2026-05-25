@@ -1,4 +1,4 @@
--- IntreVecini — invite_codes live parity for the T41 local invite model (T60).
+-- vecini.online — invite_codes live parity for the T41 local invite model (T60).
 --
 -- The offline invite model (src/features/invites/inviteLogic.ts) carries two
 -- fields the live invite_codes table (..._init_core.sql) never modelled:

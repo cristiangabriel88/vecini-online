@@ -1,10 +1,10 @@
-# Telegram Bot — BlocHub
+# Telegram Bot — vecini.online
 
 The Telegram bot is the primary touchpoint for residents who don't want to install a separate app or use a web browser. Everything in this doc is implementation detail. The user-facing setup guide is in `/BOT_SETUP.md`.
 
 ## High-level model
 
-- **One bot per BlocHub deployment**, multi-tenant aware
+- **One bot per vecini.online deployment**, multi-tenant aware
 - The bot identifies the user's asociație by looking up `telegram_user_id` in `telegram_users` joined to `apartments` joined to `asociatii`
 - Webhook receives all updates at `/.netlify/functions/telegram-webhook`
 - The bot is mostly callback-driven (inline keyboards) rather than text-command driven, because that's easier for non-tech-savvy residents
@@ -38,7 +38,7 @@ The deployment script provides all the commands they need to paste into BotFathe
 /setari - Preferințe notificări
 /help - Ajutor
 /contact_admin - Trimite mesaj privat administratorului
-/feedback - Trimite feedback echipei BlocHub
+/feedback - Trimite feedback echipei vecini.online
 ```
 
 Disabled features remove their corresponding commands from the active set.

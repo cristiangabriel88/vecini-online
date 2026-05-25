@@ -1,4 +1,4 @@
--- IntreVecini — F67 Acasă personalizabil (T12).
+-- vecini.online — F67 Acasă personalizabil (T12).
 -- Each resident customizes their own home screen per asociație: which feature
 -- cards they see, in what order, and at what size. The layout is stored as an
 -- ordered jsonb array of { card_key, visible, size }, mirroring the offline

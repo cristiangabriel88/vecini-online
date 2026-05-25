@@ -1,4 +1,4 @@
--- IntreVecini — close the tenant-isolation hole on the vote/signature junction
+-- vecini.online — close the tenant-isolation hole on the vote/signature junction
 -- tables (T34, the concrete severe instance of T04).
 --
 -- `budget_votes`, `idea_votes` and `petition_signatures` shipped in

@@ -1,5 +1,5 @@
 /* global React */
-/* IntreVecini — icon set
+/* vecini.online — icon set
    Stroke-based, 20×20 default, currentColor.
    Distinctive (slightly rounded joins, 1.5 stroke) — not generic Heroicons. */
 

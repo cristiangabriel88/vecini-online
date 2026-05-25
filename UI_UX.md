@@ -1,4 +1,4 @@
-# UI/UX — BlocHub
+# UI/UX — vecini.online
 
 ## Design principles
 
@@ -202,7 +202,7 @@ Each asociație can customize:
 - Welcome message in onboarding
 - Email sender name (still goes through Supabase)
 
-The BlocHub footer remains in all installs ("Powered by BlocHub") but can be removed in higher tiers.
+The vecini.online footer remains in all installs ("Powered by vecini.online") but can be removed in higher tiers.
 
 ## Telegram Mini App UI
 

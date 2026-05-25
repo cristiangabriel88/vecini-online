@@ -1,4 +1,4 @@
--- IntreVecini — apartment-reference tenant consistency for parent-scoped
+-- vecini.online — apartment-reference tenant consistency for parent-scoped
 -- junction tables (T71).
 --
 -- T46 closed cross-tenant references with a COMPOSITE foreign key, but only for

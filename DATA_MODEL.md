@@ -1,4 +1,4 @@
-# Data Model — BlocHub
+# Data Model — vecini.online
 
 All tables use `uuid` primary keys (generated via `gen_random_uuid()`), `timestamptz` for all timestamps, and include `created_at`, `updated_at`. Every domain table has `asociatie_id uuid not null references asociatii(id) on delete cascade`. RLS policies enforce isolation.
 
@@ -37,7 +37,7 @@ created_at, updated_at
 ```
 
 ### `telegram_users`
-Links Telegram identity to BlocHub user.
+Links Telegram identity to vecini.online user.
 ```sql
 id uuid pk
 telegram_user_id bigint unique not null

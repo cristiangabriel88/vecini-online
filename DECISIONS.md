@@ -1,4 +1,4 @@
-# Decisions — IntreVecini
+# Decisions — vecini.online
 
 A running log of non-trivial choices made while building the app. Newest first.
 
@@ -509,13 +509,13 @@ without new dependencies while preserving the real shape:
   scopes voting to an `in_desfasurare` assembly within the asociație.
 
 
-## Product name: IntreVecini vs. BlocHub
+## Product name: vecini.online vs. vecini.online
 
-The repository, environment, and master prompt name the product **IntreVecini**.
+The repository, environment, and master prompt name the product **vecini.online**.
 The `/docs` (ARCHITECTURE, FEATURES, etc.) were written against an earlier
-working title, **BlocHub**. The prompt says docs win on conflicts, but a product
+working title, **vecini.online**. The prompt says docs win on conflicts, but a product
 name is a branding decision, not an architectural one, and the repo/prompt are
-the more authoritative source for it. **Decision:** ship as *IntreVecini* in all
+the more authoritative source for it. **Decision:** ship as *vecini.online* in all
 user-facing strings, code, and package name; leave the historical docs as-is
 (they remain accurate for architecture/data/feature specs).
 

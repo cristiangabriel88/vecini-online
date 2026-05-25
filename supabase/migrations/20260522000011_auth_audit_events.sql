@@ -1,4 +1,4 @@
--- IntreVecini — authentication audit-event stream (T03).
+-- vecini.online — authentication audit-event stream (T03).
 -- A privacy-preserving log of security-relevant auth events (sign-in, failed
 -- sign-in, temporary lockout, sign-out, password and MFA changes) so a resident
 -- can review their own account activity and an association admin has an

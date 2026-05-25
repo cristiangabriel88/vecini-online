@@ -1,4 +1,4 @@
--- IntreVecini — cross-feature audit log (T09).
+-- vecini.online — cross-feature audit log (T09).
 -- An append-only, tamper-evident trail of state changes across the app's admin
 -- and content surfaces: who changed what, when, and the before/after value, so
 -- an association admin has an accountability record. Mirrors the client-side

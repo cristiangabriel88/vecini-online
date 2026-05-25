@@ -1,4 +1,4 @@
--- IntreVecini — platform superadmin identity + cross-asociatie RLS foundation
+-- vecini.online — platform superadmin identity + cross-asociatie RLS foundation
 -- (T91, the security spine the whole superadmin tier T92/T100/T93-T99 depends on).
 --
 -- Until now the `super_admin` role existed in the Role type but had no home in

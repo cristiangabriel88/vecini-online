@@ -1,4 +1,4 @@
--- IntreVecini — additive schema for features built out with UI in this batch
+-- vecini.online — additive schema for features built out with UI in this batch
 -- (F15, F24, F29, F37, F48, F54, F57, F65). The base tables and standard/owner
 -- RLS already ship in 20260121000002_features.sql; this migration only adds the
 -- few columns the new pages need and grants residents insert on the tables
@@ -27,6 +27,6 @@ select apply_member_insert_rls('visitor_reports', 'reporter_user_id');
 select apply_member_insert_rls('survey_responses', 'user_id');
 
 -- platform_feedback may have a null asociatie_id (cross-association feedback to
--- the IntreVecini team), so it gets its own authenticated-insert policy.
+-- the vecini.online team), so it gets its own authenticated-insert policy.
 create policy "authenticated insert" on platform_feedback for insert
   with check (auth.uid() is not null and (user_id is null or user_id = auth.uid()));

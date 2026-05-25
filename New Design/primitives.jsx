@@ -1,5 +1,5 @@
 /* global React, Icons */
-/* IntreVecini — Primitives (drop-in shapes for src/shared/components/*) */
+/* vecini.online — Primitives (drop-in shapes for src/shared/components/*) */
 
 const { useState, useEffect, useRef } = React;
 

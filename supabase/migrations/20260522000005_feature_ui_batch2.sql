@@ -1,4 +1,4 @@
--- IntreVecini — additive RLS for the features built out with UI in this batch
+-- vecini.online — additive RLS for the features built out with UI in this batch
 -- (F32, F45, F47, F58, F59, F60, F61, F63). The base tables and standard RLS
 -- (members read · comitet write) already ship in 20260121000002_features.sql;
 -- this migration layers an "owner may manage own row" policy on the opt-in /

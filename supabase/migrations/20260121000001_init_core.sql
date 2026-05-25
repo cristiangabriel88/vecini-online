@@ -1,4 +1,4 @@
--- IntreVecini — core multi-tenant schema
+-- vecini.online — core multi-tenant schema
 -- Every domain table carries asociatie_id and is protected by RLS.
 
 create extension if not exists "pgcrypto";

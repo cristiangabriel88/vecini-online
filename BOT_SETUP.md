@@ -1,11 +1,11 @@
 # BOT_SETUP.md — Telegram Bot Setup
 
-This guide walks you through creating the Telegram bot for your BlocHub deployment. It takes about 10 minutes.
+This guide walks you through creating the Telegram bot for your vecini.online deployment. It takes about 10 minutes.
 
 ## What you'll need
 
 - A Telegram account (any phone with Telegram)
-- Your Netlify deployment URL (e.g., `https://blochub.netlify.app`)
+- Your Netlify deployment URL (e.g., `https://vecini.online`)
 - A text file to save your credentials
 
 ## Step 1 — Create the bot with BotFather
@@ -16,7 +16,7 @@ This guide walks you through creating the Telegram bot for your BlocHub deployme
 4. BotFather asks for a **name**. This is what users see. Recommend something like:
    > `Asociația Mea — Asistent Digital`
 5. BotFather asks for a **username**. It must end in `bot`. Recommend something descriptive:
-   > `blochub_asociatiamea_bot`
+   > `vecini_asociatiamea_bot`
 6. BotFather replies with your bot's API token. It looks like:
    > `7123456789:AAGxxxxxxxxxxxxxxxxxxxxxxxxxx`
    
@@ -30,7 +30,7 @@ Still in BotFather:
    > `Sunt asistentul digital al asociației tale de proprietari. Te ajut cu anunțuri, voturi, sesizări, rezervări și multe altele. Pentru a începe, trimite /start urmat de codul de invitație primit de la administrator.`
 
 8. Send `/setabouttext`, pick your bot, paste:
-   > `BlocHub — gestionează viața blocului tău mai ușor.`
+   > `vecini.online — gestionează viața blocului tău mai ușor.`
 
 9. (Optional) Send `/setuserpic` and upload a building emoji icon or your asociație logo.
 
@@ -53,16 +53,16 @@ marketplace - Anunțuri vecini
 urgenta - Numere de urgență
 setari - Preferințe notificări
 contact_admin - Mesaj privat administratorului
-feedback - Trimite feedback BlocHub
+feedback - Trimite feedback vecini.online
 help - Ajutor
 ```
 
 ## Step 4 — Configure the Mini App domain
 
-Some BlocHub features open as Mini Apps inside Telegram (richer interfaces for documents, project tracker, etc.). You need to allow your domain:
+Some vecini.online features open as Mini Apps inside Telegram (richer interfaces for documents, project tracker, etc.). You need to allow your domain:
 
 11. Send `/setdomain`, pick your bot, then paste your Netlify URL **without** trailing slash:
-    > `https://blochub.netlify.app`
+    > `https://vecini.online`
 
    (Replace with your actual URL.)
 
@@ -121,7 +121,7 @@ After the redeploy completes:
 
 ## Step 8 — Test it
 
-18. Open your bot in Telegram (use the username from Step 1.5, e.g., `t.me/blochub_asociatiamea_bot`).
+18. Open your bot in Telegram (use the username from Step 1.5, e.g., `t.me/vecini_asociatiamea_bot`).
 19. Tap **Start**.
 20. You should see the bot's welcome message asking for an invite code.
 
@@ -134,7 +134,7 @@ If nothing happens:
 
 ## Step 9 — Create your first invite code
 
-21. In the BlocHub web app, log in as admin.
+21. In the vecini.online web app, log in as admin.
 22. Go to **Apartamente** → pick an apartament → click **Generează cod de invitație**.
 23. Copy the 8-character code.
 24. In Telegram, send your bot: `/start <THE-CODE>`

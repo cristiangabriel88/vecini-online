@@ -1,6 +1,6 @@
-# Deployment — BlocHub
+# Deployment — vecini.online
 
-This guide is for the human deploying BlocHub. It covers Supabase, Netlify, and the Telegram bot. Estimated time: 30-45 minutes if everything goes smoothly.
+This guide is for the human deploying vecini.online. It covers Supabase, Netlify, and the Telegram bot. Estimated time: 30-45 minutes if everything goes smoothly.
 
 ## Prerequisites
 
@@ -14,7 +14,7 @@ This guide is for the human deploying BlocHub. It covers Supabase, Netlify, and 
 ## Step 1 — Supabase setup
 
 1. Go to https://supabase.com/dashboard and create a new project.
-   - Name: `blochub-prod` (or similar)
+   - Name: `vecini-online-prod` (or similar)
    - Region: closest to your users (likely `eu-central-1` for Romania)
    - Database password: generate a strong one and **save it in a password manager**.
    
@@ -64,7 +64,7 @@ This guide is for the human deploying BlocHub. It covers Supabase, Netlify, and 
 
 ## Step 3 — Netlify setup
 
-1. Push the BlocHub code to a GitHub repo.
+1. Push the vecini.online code to a GitHub repo.
 
 2. Go to https://app.netlify.com → Add new site → Import from Git → select repo.
 
@@ -83,7 +83,7 @@ This guide is for the human deploying BlocHub. It covers Supabase, Netlify, and 
    | `TELEGRAM_BOT_TOKEN` | from Step 2.3 |
    | `TELEGRAM_WEBHOOK_SECRET` | random string from Step 2.7 |
    | `TELEGRAM_BOT_USERNAME` | from Step 2.2 |
-   | `APP_URL` | your Netlify URL (e.g., `https://blochub.netlify.app`) |
+   | `APP_URL` | your Netlify URL (e.g., `https://vecini.online`) |
    | `SENTRY_DSN` | optional, for error monitoring |
    | `RESEND_API_KEY` | optional, for transactional emails |
    
@@ -114,7 +114,7 @@ This guide is for the human deploying BlocHub. It covers Supabase, Netlify, and 
 ## Step 4 — First admin account
 
 1. Open your Netlify URL in a browser.
-2. You'll see the BlocHub landing page.
+2. You'll see the vecini.online landing page.
 3. Click "Înregistrare administrator" — this option is only available when no admin exists yet (bootstrap).
 4. Create your account with email + password.
 5. After login, you're prompted to create your first asociație.

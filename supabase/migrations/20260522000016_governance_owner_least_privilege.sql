@@ -1,4 +1,4 @@
--- IntreVecini — least-privilege owner grants on governance tables (T69, a
+-- vecini.online — least-privilege owner grants on governance tables (T69, a
 -- refinement of the T45 owner-RLS membership tightening).
 --
 -- apply_owner_rls grants the author a single "owner manage" policy that is a

@@ -7,8 +7,8 @@ This is a documentation-first, autonomous build package. You don't write the cod
 ### 1. Create the git repository
 
 ```bash
-mkdir blochub
-cd blochub
+mkdir vecini-online
+cd vecini-online
 git init
 ```
 
@@ -22,7 +22,7 @@ git commit -m "docs: initial specification"
 Push to GitHub:
 
 ```bash
-git remote add origin git@github.com:<your-username>/blochub.git
+git remote add origin git@github.com:<your-username>/vecini-online.git
 git push -u origin main
 ```
 

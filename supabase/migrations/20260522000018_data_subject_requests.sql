@@ -1,4 +1,4 @@
--- IntreVecini — data-subject requests (T06, GDPR art. 15/17/20).
+-- vecini.online — data-subject requests (T06, GDPR art. 15/17/20).
 -- The accountability trail for the two rights a resident exercises over their
 -- personal data: access/portability (`export`) and erasure (`erasure`). Export
 -- is self-service (the resident downloads their copy immediately in-app), but

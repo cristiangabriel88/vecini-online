@@ -1,4 +1,4 @@
--- IntreVecini — T38: least-privilege RLS for individual response rows
+-- vecini.online — T38: least-privilege RLS for individual response rows
 -- (survey_responses, votes, priority_rankings).
 --
 -- These three tables shipped in 20260121000002_features.sql with the standard

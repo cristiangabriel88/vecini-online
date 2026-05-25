@@ -1,5 +1,5 @@
 /* global React, Icons, IconButton, Avatar, Badge */
-/* IntreVecini — App shell components */
+/* vecini.online — App shell components */
 
 const Topbar = ({ onToggleTheme, theme, isMobile, onMobileMenu, pageTitle }) => {
   return (

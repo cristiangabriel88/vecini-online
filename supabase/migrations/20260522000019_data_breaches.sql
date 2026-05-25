@@ -1,4 +1,4 @@
--- IntreVecini — personal-data breach log (T22, GDPR art. 33/34).
+-- vecini.online — personal-data breach log (T22, GDPR art. 33/34).
 -- The asociație is the data controller. When a personal-data breach occurs it
 -- must notify the supervisory authority (ANSPDCP) without undue delay and, where
 -- feasible, within 72 hours of becoming aware (art. 33), unless the breach is

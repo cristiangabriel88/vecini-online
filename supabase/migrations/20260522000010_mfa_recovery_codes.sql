@@ -1,4 +1,4 @@
--- IntreVecini — 2FA recovery codes (T02).
+-- vecini.online — 2FA recovery codes (T02).
 -- Single-use backup codes for account recovery when a resident loses access to
 -- their authenticator app. Only the SHA-256 hash of each code is ever stored;
 -- the plaintext is shown to the resident once at generation and never again.

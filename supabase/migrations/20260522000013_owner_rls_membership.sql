@@ -1,4 +1,4 @@
--- IntreVecini — require active membership in the row's asociatie on every
+-- vecini.online — require active membership in the row's asociatie on every
 -- owner-scoped policy (T45, a write-path tightening of the T04 sweep).
 --
 -- The "owner manage" policy created by apply_owner_rls gated only on

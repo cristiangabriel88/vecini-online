@@ -1,4 +1,4 @@
--- IntreVecini — GDPR consent records (T05).
+-- vecini.online — GDPR consent records (T05).
 -- Stores the "who consented to what, when, version" trail required to evidence
 -- valid consent under art. 7 GDPR. Append-only from the resident's side; the
 -- active choice is the most recent row. Mirrors the client-side consent store

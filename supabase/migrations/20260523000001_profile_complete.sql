@@ -1,4 +1,4 @@
--- IntreVecini — F66 Profil complet (T11).
+-- vecini.online — F66 Profil complet (T11).
 -- The rich profile editor keeps the resident's identity in two places, mirroring
 -- the offline `profileLogic` model: structured standard fields extend the global
 -- `users` row, and any number of user-added typed custom fields live in a new

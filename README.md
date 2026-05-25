@@ -1,4 +1,4 @@
-# IntreVecini
+# vecini.online
 
 A multi-tenant web app and Telegram bot for Romanian *asociații de proprietari*.
 
@@ -7,7 +7,7 @@ an 18-apartment bloc or a 1000-apartment complex.
 
 > Built from `CLAUDE_CODE_PROMPT.md`. The spec docs (`ARCHITECTURE.md`,
 > `FEATURES.md`, `DATA_MODEL.md`, …) were authored under the working title
-> *BlocHub*; the shipped product is **IntreVecini** (see `DECISIONS.md`).
+> *vecini.online*; the shipped product is **vecini.online** (see `DECISIONS.md`).
 
 ## What it does
 

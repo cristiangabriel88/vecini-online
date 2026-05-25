@@ -1,4 +1,4 @@
--- IntreVecini — per-feature tables (F01–F65)
+-- vecini.online — per-feature tables (F01–F65)
 -- Standard RLS: members of the asociație may read; admin/presedinte/comitet may
 -- write. Owner-scoped tables get an extra owner policy below.
 

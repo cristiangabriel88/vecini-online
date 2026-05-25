@@ -1,9 +1,9 @@
-# RESUME — IntreVecini
+# RESUME — vecini.online
 
 A quick-start status summary so work can resume without re-reading the full spec.
 Sourced from `DECISIONS.md` and `FEATURES.md` (both live at the repo root, not
 under `docs/`, despite references to the contrary). The product ships as
-**IntreVecini**; the docs use the earlier working title **BlocHub** but remain
+**vecini.online**; the docs use the earlier working title **vecini.online** but remain
 accurate for architecture/data/feature specs.
 
 > Scope note: the spec defines **65 features (F01–F65)**. This codebase is a

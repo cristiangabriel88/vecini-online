@@ -1,4 +1,4 @@
-# Features — BlocHub
+# Features — vecini.online
 
 Every feature below has a unique key (F01-F67). The admin can toggle each one on or off during onboarding and at any time afterwards. When Claude Code completes a feature, mark it with ✅ next to the title and a one-line note about the implementation.
 
@@ -503,9 +503,9 @@ Each feature follows this structure:
 - **Telegram:** `/copii_evenimente`.
 - **Data:** `kids_age_ranges`, `kids_events`
 
-### F65 — Feedback platformă (BlocHub)
-- **Audience:** all (open to BlocHub team)
-- **Description:** Residents and admins can submit feedback about BlocHub itself. Helps the developers improve. Optional thumbs-up/down on each feature.
+### F65 — Feedback platformă (vecini.online)
+- **Audience:** all (open to vecini.online team)
+- **Description:** Residents and admins can submit feedback about vecini.online itself. Helps the developers improve. Optional thumbs-up/down on each feature.
 - **Acceptance:** Submission form, anonymous option, public roadmap.
 - **Telegram:** `/feedback`.
 - **Data:** `platform_feedback`

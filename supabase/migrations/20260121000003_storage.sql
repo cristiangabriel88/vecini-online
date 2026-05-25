@@ -1,4 +1,4 @@
--- IntreVecini — storage buckets and RLS-mirroring policies.
+-- vecini.online — storage buckets and RLS-mirroring policies.
 -- Buckets are private; access is scoped to the user's asociație. The first path
 -- segment of every object key is the asociatie_id, e.g. `<asociatie_id>/...`.
 

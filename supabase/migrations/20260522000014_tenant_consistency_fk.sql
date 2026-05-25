@@ -1,4 +1,4 @@
--- IntreVecini — parent-child tenant-consistency guards (T46).
+-- vecini.online — parent-child tenant-consistency guards (T46).
 --
 -- A child row that references a parent row carries its own asociatie_id, and
 -- RLS only checks that the actor is a member of the CHILD's asociatie_id. Nothing

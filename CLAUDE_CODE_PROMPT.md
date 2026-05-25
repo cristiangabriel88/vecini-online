@@ -1,4 +1,4 @@
-# Master Prompt for Claude Code — IntreVecini
+# Master Prompt for Claude Code — vecini.online
 
 Paste this entire prompt into Claude Code in the root of an empty git repo. Then leave it running.
 
@@ -6,7 +6,7 @@ Paste this entire prompt into Claude Code in the root of an empty git repo. Then
 
 ## Mission
 
-Build **IntreVecini** — a complete, production-ready, multi-tenant React web application for Romanian _asociații de proprietari_, deployable to Netlify, that integrates with a Telegram bot for resident-facing interactions. The app must support buildings from 10 to 1000+ apartments with the same codebase. Every feature must be toggleable per asociație by the admin during onboarding and afterwards.
+Build **vecini.online** — a complete, production-ready, multi-tenant React web application for Romanian _asociații de proprietari_, deployable to Netlify, that integrates with a Telegram bot for resident-facing interactions. The app must support buildings from 10 to 1000+ apartments with the same codebase. Every feature must be toggleable per asociație by the admin during onboarding and afterwards.
 
 **You will work autonomously and continuously until the entire app is built, tested, and verified.** Do not stop to ask the user questions. Do not pause for confirmation. If you encounter ambiguity, make the most reasonable decision, document it in `DECISIONS.md`, and continue.
 

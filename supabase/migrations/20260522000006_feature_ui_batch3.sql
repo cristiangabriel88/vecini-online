@@ -1,4 +1,4 @@
--- IntreVecini — additive RLS for the features built out with UI in batch 3
+-- vecini.online — additive RLS for the features built out with UI in batch 3
 -- (F16, F19, F28, F44, F46, F51, F52, F53). The base tables and standard RLS
 -- (members read · comitet write) already ship in 20260121000002_features.sql.
 --
