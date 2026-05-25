@@ -17,6 +17,7 @@ import {
   validateApartment,
 } from './apartmentsLogic';
 import { createApartments } from './apartmentsApi';
+import { EntranceField } from './EntranceField';
 
 const FIELDS: { key: keyof ApartmentInput; width: string; type?: string; labelKey: string }[] = [
   { key: 'scara', width: 'w-16', labelKey: 'apartments.scara' },
@@ -119,14 +120,23 @@ export default function ApartmentsBulkAddPage() {
                 <tr key={i} className="border-t border-border align-top">
                   {FIELDS.map((f) => (
                     <td key={f.key} className="px-2 py-1.5">
-                      <Input
-                        type={f.type}
-                        className={f.width}
-                        aria-label={t(f.labelKey)}
-                        value={row[f.key]}
-                        error={showErr && errs[f.key] ? ' ' : undefined}
-                        onChange={(e) => setCell(i, f.key, e.target.value)}
-                      />
+                      {f.key === 'scara' ? (
+                        <EntranceField
+                          className={f.width}
+                          ariaLabel={t(f.labelKey)}
+                          value={row.scara}
+                          onChange={(value) => setCell(i, 'scara', value)}
+                        />
+                      ) : (
+                        <Input
+                          type={f.type}
+                          className={f.width}
+                          aria-label={t(f.labelKey)}
+                          value={row[f.key]}
+                          error={showErr && errs[f.key] ? ' ' : undefined}
+                          onChange={(e) => setCell(i, f.key, e.target.value)}
+                        />
+                      )}
                     </td>
                   ))}
                   <td className="px-2 py-1.5">

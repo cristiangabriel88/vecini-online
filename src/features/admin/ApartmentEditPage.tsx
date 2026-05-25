@@ -23,6 +23,7 @@ import {
   validateApartment,
 } from './apartmentsLogic';
 import { updateApartment } from './apartmentsApi';
+import { EntranceField } from './EntranceField';
 
 export default function ApartmentEditPage() {
   const { t } = useTranslation();
@@ -88,10 +89,10 @@ export default function ApartmentEditPage() {
 
       <Card className="mb-4">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Input
+          <EntranceField
             label={t('apartments.scara')}
             value={input.scara}
-            onChange={(e) => setField('scara', e.target.value)}
+            onChange={(value) => setField('scara', value)}
           />
           <Input
             type="number"

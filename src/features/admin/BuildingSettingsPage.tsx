@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
@@ -6,15 +6,17 @@ import { ArrowLeft, Check } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
-import { Input, Textarea } from '@/shared/components/Input';
+import { Input } from '@/shared/components/Input';
+import { Select } from '@/shared/components/Select';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useAsociatieStore, useCurrentAsociatie } from './asociatieStore';
-
-/** Read the building's stairwells from the flexible settings bag (string list). */
-function readScari(settings: Record<string, unknown>): string {
-  const value = settings.scari;
-  return Array.isArray(value) ? value.join(', ') : '';
-}
+import {
+  type EntranceMode,
+  detectEntranceConfig,
+  entranceInterval,
+  entranceOptions,
+  scariList,
+} from './buildingLogic';
 
 export default function BuildingSettingsPage() {
   const { t } = useTranslation();
@@ -23,16 +25,34 @@ export default function BuildingSettingsPage() {
   const asociatie = useCurrentAsociatie();
   const update = useAsociatieStore((s) => s.update);
 
+  const initialEntrances = useMemo(
+    () => detectEntranceConfig(scariList(asociatie?.settings)),
+    [asociatie?.settings],
+  );
+
   const [form, setForm] = useState(() => ({
     name: asociatie?.name ?? '',
     address: asociatie?.address ?? '',
     cui: asociatie?.cui ?? '',
     registration_number: asociatie?.registration_number ?? '',
-    scari: asociatie ? readScari(asociatie.settings) : '',
   }));
+  const [mode, setMode] = useState<EntranceMode>(initialEntrances.mode);
+  const [first, setFirst] = useState(initialEntrances.first);
+  const [last, setLast] = useState(initialEntrances.last);
+
+  const options = entranceOptions(mode);
+  const preview = entranceInterval(mode, first, last);
 
   const set = (key: keyof typeof form, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
+
+  const changeMode = (next: EntranceMode) => {
+    setMode(next);
+    // Reset the bounds to the first option of the new mode so they stay valid.
+    const opts = entranceOptions(next);
+    setFirst(opts[0]);
+    setLast(opts[0]);
+  };
 
   const save = () => {
     if (!asociatieId || !asociatie) return;
@@ -40,16 +60,12 @@ export default function BuildingSettingsPage() {
       toast.error(t('common.required'));
       return;
     }
-    const scari = form.scari
-      .split(',')
-      .map((s) => s.trim())
-      .filter((s) => s !== '');
     update(asociatieId, {
       name: form.name.trim(),
       address: form.address.trim(),
       cui: form.cui.trim() || null,
       registration_number: form.registration_number.trim() || null,
-      settings: { ...asociatie.settings, scari },
+      settings: { ...asociatie.settings, scari: preview },
     });
     toast.success(t('building.saved'));
     navigate('/app/admin/apartamente');
@@ -82,12 +98,46 @@ export default function BuildingSettingsPage() {
               onChange={(e) => set('registration_number', e.target.value)}
             />
           </div>
-          <Textarea
-            label={t('building.scari')}
-            value={form.scari}
-            hint={t('building.scariHint')}
-            onChange={(e) => set('scari', e.target.value)}
-          />
+
+          <div className="border-t border-border pt-4">
+            <p className="field__label">{t('building.scari')}</p>
+            <p className="mb-3 text-sm text-muted">{t('building.scariHint')}</p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Select
+                label={t('building.entrancesMode')}
+                value={mode}
+                onChange={(e) => changeMode(e.target.value as EntranceMode)}
+              >
+                <option value="letters">{t('building.modeLetters')}</option>
+                <option value="numbers">{t('building.modeNumbers')}</option>
+              </Select>
+              <Select
+                label={t('building.firstEntrance')}
+                value={first}
+                onChange={(e) => setFirst(e.target.value)}
+              >
+                {options.map((o) => (
+                  <option key={o} value={o}>
+                    {o}
+                  </option>
+                ))}
+              </Select>
+              <Select
+                label={t('building.lastEntrance')}
+                value={last}
+                onChange={(e) => setLast(e.target.value)}
+              >
+                {options.map((o) => (
+                  <option key={o} value={o}>
+                    {o}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <p className="mt-2 text-sm text-muted">
+              {t('building.entrancesPreview', { list: preview.join(', ') })}
+            </p>
+          </div>
         </div>
       </Card>
       <div className="mt-5 flex justify-between">
