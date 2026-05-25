@@ -1,8 +1,12 @@
+import { parseSecurityEnforcement, type SecurityEnforcement } from '@/features/auth/mfaLogic';
+
 interface ClientEnv {
   supabaseUrl: string;
   supabaseAnonKey: string;
   defaultLocale: string;
   appUrl: string;
+  /** 2FA enforcement posture: `strict` (default/production) or `relaxed` (self-hosted/dev). */
+  securityEnforcement: SecurityEnforcement;
 }
 
 const rawUrl = import.meta.env.VITE_SUPABASE_URL ?? '';
@@ -13,6 +17,7 @@ export const env: ClientEnv = {
   supabaseAnonKey: rawKey,
   defaultLocale: import.meta.env.VITE_DEFAULT_LOCALE ?? 'ro',
   appUrl: import.meta.env.VITE_APP_URL ?? window.location.origin,
+  securityEnforcement: parseSecurityEnforcement(import.meta.env.VITE_SECURITY_ENFORCEMENT),
 };
 
 /** True when Supabase credentials are present. In their absence the app runs

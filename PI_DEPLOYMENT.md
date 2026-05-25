@@ -204,6 +204,30 @@ The capability is resolved in `src/shared/lib/storage.ts`; the UI reads
 
 ---
 
+## Security enforcement
+
+Privileged roles (admin, comitet, cenzor, president, super_admin) are normally
+required to set up and pass a second factor (2FA) before reaching any in-app
+route. On a fresh local Supabase stack the admin has no second factor yet, so in
+the default `strict` mode every navigation is steered to `/app/securitate` and
+the admin cannot explore the app until MFA is fully set up.
+
+For a trusted self-hosted LAN deployment you can relax this:
+
+```bash
+# in .env on the Pi
+VITE_SECURITY_ENFORCEMENT=relaxed
+```
+
+In `relaxed` mode the gate never forces the security page, so the local admin
+navigates the app normally; the Security page stays reachable so MFA can still
+be enrolled voluntarily. Anything other than an explicit `relaxed` resolves to
+`strict`, so production behaviour is unchanged unless you opt in. Use `relaxed`
+only on a trusted network, since it removes the mandatory-MFA guarantee.
+
+> Demo/offline mode is never gated regardless of this setting (it has no real
+> backend role).
+
 ## Environment variables
 
 | Variable | Purpose |
@@ -213,6 +237,7 @@ The capability is resolved in `src/shared/lib/storage.ts`; the UI reads
 | `SUPABASE_SERVICE_ROLE_KEY` | Local service-role key (server-side only). |
 | `SUPABASE_DB_URL` | Direct Postgres URL (:54322) for backups/migrations. |
 | `VITE_STORAGE_MODE` | `supabase` \| `local` \| `none` — object storage behaviour. |
+| `VITE_SECURITY_ENFORCEMENT` | `strict` (default/production) \| `relaxed` (self-hosted) — see [Security enforcement](#security-enforcement). |
 | `TELEGRAM_BOT_TOKEN` | Bot token from @BotFather. |
 | `TELEGRAM_BOT_USERNAME` | Bot username (for deep links). |
 | `TELEGRAM_WEBHOOK_SECRET` | Secret matched against the Telegram secret header. |

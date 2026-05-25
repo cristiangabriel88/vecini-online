@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useMfaStore } from '@/shared/store/mfaStore';
 import { isSupabaseConfigured } from '@/shared/lib/supabase';
+import { env } from '@/shared/lib/env';
 import { mfaEnforcementRedirect, requiresMfa } from '@/features/auth/mfaLogic';
 
 /**
@@ -43,8 +44,11 @@ export function useMfaEnforcement(): void {
       // gated, and demo mode has no real backend AAL). `undefined` leaves the
       // axis opt-out so the gate never steers on a flash of unknown AAL; only a
       // resolved `false` (enrolled but still at AAL1) re-gates the shell.
+      const enforcement = env.securityEnforcement;
       let aalSatisfied: boolean | undefined;
-      if (isSupabaseConfigured && loaded && enrolled && requiresMfa(role)) {
+      // The AAL probe only matters for strict enforcement; relaxed mode never
+      // forces a redirect, so skip the network round-trip entirely.
+      if (enforcement !== 'relaxed' && isSupabaseConfigured && loaded && enrolled && requiresMfa(role)) {
         const needs = await challengeRequired();
         if (!active) return;
         aalSatisfied = !needs;
@@ -56,6 +60,7 @@ export function useMfaEnforcement(): void {
         enrolled,
         aalSatisfied,
         pathname,
+        enforcement,
       });
       if (active && target) navigate(target, { replace: true });
     })();

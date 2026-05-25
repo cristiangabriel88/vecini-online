@@ -233,6 +233,28 @@ export function anyRoleRequiresMfa(roles: Role[]): boolean {
 /** The in-app route a session is steered to when it still owes a second factor. */
 export const MFA_SECURITY_PATH = '/app/securitate';
 
+/**
+ * Security enforcement posture for the in-app 2FA gate.
+ *
+ * - `strict` (default, production): a privileged session must set up and pass a
+ *   second factor before reaching any in-app route. Safe default.
+ * - `relaxed` (opt-in, for local/self-hosted/dev, e.g. the Raspberry Pi): the
+ *   gate never forces a privileged session onto the security page, so the local
+ *   admin can navigate the app normally. The security page stays reachable so
+ *   MFA can still be set up voluntarily.
+ *
+ * Chosen by the `VITE_SECURITY_ENFORCEMENT` env var; anything other than an
+ * explicit `relaxed` resolves to `strict`, so a typo never weakens production.
+ */
+export type SecurityEnforcement = 'strict' | 'relaxed';
+
+/** Parse the configured enforcement posture; defaults to the safe `strict`. */
+export function parseSecurityEnforcement(
+  raw: string | undefined | null,
+): SecurityEnforcement {
+  return (raw ?? '').trim().toLowerCase() === 'relaxed' ? 'relaxed' : 'strict';
+}
+
 /** Inputs to the in-app 2FA enforcement decision (kept pure for testing). */
 export interface MfaEnforcementInput {
   /** Whether a real Supabase backend is configured (demo mode is never gated). */
@@ -255,6 +277,12 @@ export interface MfaEnforcementInput {
   pathname: string;
   /** Where to steer to; defaults to the security page. */
   securityPath?: string;
+  /**
+   * Enforcement posture. Defaults to `strict` (production). In `relaxed` mode
+   * the gate never forces a redirect, so local/self-hosted admins are not
+   * trapped on the security page.
+   */
+  enforcement?: SecurityEnforcement;
 }
 
 /**
@@ -279,6 +307,9 @@ export interface MfaEnforcementInput {
 export function mfaEnforcementRedirect(input: MfaEnforcementInput): string | null {
   const securityPath = input.securityPath ?? MFA_SECURITY_PATH;
   if (!input.supabaseConfigured) return null;
+  // Relaxed (opt-in) enforcement never forces the redirect; the security page is
+  // still reachable for voluntary setup. Production defaults to strict.
+  if (input.enforcement === 'relaxed') return null;
   if (!input.loaded) return null;
   if (!requiresMfa(input.role)) return null;
   if (input.pathname === securityPath) return null;

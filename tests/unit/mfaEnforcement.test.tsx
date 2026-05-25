@@ -5,6 +5,7 @@ import type { Role } from '@/shared/types/domain';
 import {
   MFA_SECURITY_PATH,
   mfaEnforcementRedirect,
+  parseSecurityEnforcement,
 } from '@/features/auth/mfaLogic';
 
 // The hook reads `isSupabaseConfigured` to gate on the live path; force it true
@@ -28,6 +29,7 @@ vi.mock('@/shared/lib/supabase', () => ({
 import { useMfaEnforcement } from '@/app/useMfaEnforcement';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useMfaStore } from '@/shared/store/mfaStore';
+import { env } from '@/shared/lib/env';
 
 /** Build the inputs for the pure predicate with sensible live-path defaults. */
 function input(over: Partial<Parameters<typeof mfaEnforcementRedirect>[0]> = {}) {
@@ -107,6 +109,57 @@ describe('mfaEnforcementRedirect (pure decision)', () => {
   it('honours a custom security path', () => {
     expect(mfaEnforcementRedirect(input({ securityPath: '/app/2fa' }))).toBe('/app/2fa');
     expect(mfaEnforcementRedirect(input({ pathname: '/app/2fa', securityPath: '/app/2fa' }))).toBeNull();
+  });
+
+  // Self-hosted / Pi relaxed enforcement (VITE_SECURITY_ENFORCEMENT=relaxed): a
+  // live, Supabase-configured admin must NOT be forced onto the security page on
+  // every route, while strict mode (the production default) keeps enforcing.
+  it('relaxed mode does not force a live privileged session to the security page', () => {
+    // Same live, privileged, un-enrolled session that strict mode would gate.
+    expect(mfaEnforcementRedirect(input())).toBe(MFA_SECURITY_PATH);
+    expect(mfaEnforcementRedirect(input({ enforcement: 'relaxed' }))).toBeNull();
+    for (const role of ['super_admin', 'admin', 'presedinte', 'comitet', 'cenzor'] as const) {
+      expect(mfaEnforcementRedirect(input({ role, enforcement: 'relaxed' }))).toBeNull();
+    }
+  });
+
+  it('relaxed mode does not re-gate an enrolled-but-AAL1 session either', () => {
+    expect(mfaEnforcementRedirect(input({ enrolled: true, aalSatisfied: false }))).toBe(
+      MFA_SECURITY_PATH,
+    );
+    expect(
+      mfaEnforcementRedirect(input({ enrolled: true, aalSatisfied: false, enforcement: 'relaxed' })),
+    ).toBeNull();
+  });
+
+  it('strict mode (explicit or default) still enforces 2FA where intended', () => {
+    expect(mfaEnforcementRedirect(input({ enforcement: 'strict' }))).toBe(MFA_SECURITY_PATH);
+    expect(mfaEnforcementRedirect(input())).toBe(MFA_SECURITY_PATH); // default == strict
+  });
+
+  it('relaxed mode never gates demo/offline mode either (no backend)', () => {
+    expect(
+      mfaEnforcementRedirect(input({ supabaseConfigured: false, enforcement: 'relaxed' })),
+    ).toBeNull();
+    expect(
+      mfaEnforcementRedirect(input({ supabaseConfigured: false, enforcement: 'strict' })),
+    ).toBeNull();
+  });
+});
+
+describe('parseSecurityEnforcement', () => {
+  it('defaults to strict for unset/empty/unknown values', () => {
+    expect(parseSecurityEnforcement(undefined)).toBe('strict');
+    expect(parseSecurityEnforcement(null)).toBe('strict');
+    expect(parseSecurityEnforcement('')).toBe('strict');
+    expect(parseSecurityEnforcement('  ')).toBe('strict');
+    expect(parseSecurityEnforcement('bananas')).toBe('strict');
+    expect(parseSecurityEnforcement('STRICT')).toBe('strict');
+  });
+
+  it('resolves an explicit relaxed (case/whitespace-insensitive)', () => {
+    expect(parseSecurityEnforcement('relaxed')).toBe('relaxed');
+    expect(parseSecurityEnforcement('  RELAXED  ')).toBe('relaxed');
   });
 });
 
@@ -269,5 +322,29 @@ describe('useMfaEnforcement re-resolves AAL on navigation (T112)', () => {
 
     // Re-gated: a still-AAL1 session cannot reach the shell.
     await waitFor(() => expect(screen.getByTestId('path')).toHaveTextContent(MFA_SECURITY_PATH));
+  });
+});
+
+/**
+ * Relaxed enforcement (VITE_SECURITY_ENFORCEMENT=relaxed) end to end through the
+ * hook: a live, Supabase-configured, privileged, un-enrolled admin can navigate
+ * normal app pages instead of being trapped on /app/securitate. The default
+ * (strict) hook behaviour is covered above; here we flip env to relaxed.
+ */
+describe('useMfaEnforcement honours relaxed enforcement', () => {
+  const original = env.securityEnforcement;
+  beforeEach(() => {
+    env.securityEnforcement = 'relaxed';
+  });
+  afterEach(() => {
+    env.securityEnforcement = original;
+    cleanup();
+  });
+
+  it('lets a privileged, un-enrolled live admin stay on a normal route', async () => {
+    seedRole('admin');
+    seedMfa({ loaded: true, enrolled: false });
+    renderAt('/app/anunturi');
+    await waitFor(() => expect(screen.getByTestId('path')).toHaveTextContent('/app/anunturi'));
   });
 });
