@@ -1,19 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import {
   awaitingReply,
+  counterpartOf,
   isValidMessage,
   isValidSubject,
   lastActivityAt,
   sortThreads,
+  threadParticipantLabel,
   toggledStatus,
-  unreadFromAdmin,
+  unreadFor,
   waitingHours,
 } from '@/features/adminchat/adminChatLogic';
-import type { PrivateMessage, PrivateThread } from '@/shared/types/domain';
+import type { PrivateMessage, PrivateSender, PrivateThread } from '@/shared/types/domain';
 
 const msg = (
   id: string,
-  sender: 'resident' | 'admin',
+  sender: PrivateSender,
   created_at: string,
   read = true,
 ): PrivateMessage => ({
@@ -31,15 +33,18 @@ const thread = (
   status: 'open' | 'resolved',
   created_at: string,
   messages: PrivateMessage[],
+  over: Partial<PrivateThread> = {},
 ): PrivateThread => ({
   id,
   asociatie_id: 'a',
   resident_user_id: 'u-res',
-  resident_name: 'Andrei',
+  resident_name: 'Popescu Andrei',
+  apartment_label: 'Ap. 5',
   subject: 'Subiect',
   status,
   created_at,
   messages,
+  ...over,
 });
 
 describe('isValidSubject / isValidMessage', () => {
@@ -48,6 +53,13 @@ describe('isValidSubject / isValidMessage', () => {
     expect(isValidSubject('abc')).toBe(true);
     expect(isValidMessage(' ')).toBe(false);
     expect(isValidMessage('da')).toBe(true);
+  });
+});
+
+describe('counterpartOf', () => {
+  it('pairs each viewer with the other party', () => {
+    expect(counterpartOf('admin')).toBe('resident');
+    expect(counterpartOf('resident')).toBe('admin');
   });
 });
 
@@ -69,7 +81,7 @@ describe('lastActivityAt', () => {
 });
 
 describe('awaitingReply', () => {
-  it('is true only when open and the last message is the resident\'s', () => {
+  it("is true only when open and the last message is the resident's", () => {
     expect(
       awaitingReply(
         thread('1', 'open', 'x', [msg('m1', 'admin', 'a'), msg('m2', 'resident', 'b')]),
@@ -80,11 +92,7 @@ describe('awaitingReply', () => {
         thread('1', 'open', 'x', [msg('m1', 'resident', 'a'), msg('m2', 'admin', 'b')]),
       ),
     ).toBe(false);
-    expect(
-      awaitingReply(
-        thread('1', 'resolved', 'x', [msg('m1', 'resident', 'a')]),
-      ),
-    ).toBe(false);
+    expect(awaitingReply(thread('1', 'resolved', 'x', [msg('m1', 'resident', 'a')]))).toBe(false);
     expect(awaitingReply(thread('1', 'open', 'x', []))).toBe(false);
   });
 });
@@ -103,14 +111,22 @@ describe('waitingHours', () => {
   });
 });
 
-describe('unreadFromAdmin', () => {
-  it('counts only unread admin messages', () => {
+describe('unreadFor', () => {
+  it('counts unread messages from the other party, per viewer', () => {
     const t = thread('1', 'open', 'x', [
       msg('m1', 'admin', 'a', false),
       msg('m2', 'admin', 'b', true),
       msg('m3', 'resident', 'c', false),
     ]);
-    expect(unreadFromAdmin(t)).toBe(1);
+    // The resident has one unread administrator message (the read one is excluded).
+    expect(unreadFor(t, 'resident')).toBe(1);
+    // The administrator has one unread resident message.
+    expect(unreadFor(t, 'admin')).toBe(1);
+  });
+
+  it('is zero when everything from the other party is read', () => {
+    const t = thread('1', 'open', 'x', [msg('m1', 'resident', 'a', true)]);
+    expect(unreadFor(t, 'admin')).toBe(0);
   });
 });
 
@@ -125,6 +141,25 @@ describe('sortThreads', () => {
       'o1',
       'r',
     ]);
+  });
+});
+
+describe('threadParticipantLabel', () => {
+  it('shows the administrator label to a resident', () => {
+    expect(threadParticipantLabel(thread('1', 'open', 'x', []), 'resident', 'Administrator')).toBe(
+      'Administrator',
+    );
+  });
+
+  it('shows the resident name and apartment to the administrator', () => {
+    expect(threadParticipantLabel(thread('1', 'open', 'x', []), 'admin', 'Administrator')).toBe(
+      'Popescu Andrei · Ap. 5',
+    );
+  });
+
+  it('falls back to the name alone when no apartment is recorded', () => {
+    const t = thread('1', 'open', 'x', [], { apartment_label: undefined });
+    expect(threadParticipantLabel(t, 'admin', 'Administrator')).toBe('Popescu Andrei');
   });
 });
 

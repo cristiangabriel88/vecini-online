@@ -515,24 +515,46 @@ export const DEMO_ANONYMOUS_MESSAGES: AnonymousMessage[] = [
   { id: 'an-2', asociatie_id: 'demo-asoc', sender_user_id: 'u-res3', body: 'Cred că becul de la etajul 3 e spart de mai bine de o lună. Mulțumesc.', status: 'rezolvat', created_at: new Date(Date.now() - 12 * 86_400_000).toISOString() },
 ];
 
-// F04 — Mesagerie privată cu administratorul.
+// F04 — Mesagerie privată cu administratorul (inbox cu rol dublu).
+// `read` = citit de destinatar: un mesaj al locatarului este citit de administrator,
+// un mesaj al administratorului este citit de locatar.
 const hoursAgo = (h: number) => new Date(Date.now() - h * 3_600_000).toISOString();
 export const DEMO_PRIVATE_THREADS: PrivateThread[] = [
+  // Conversație calmă, complet citită de ambele părți (Popescu Andrei, Ap. 5).
   {
-    id: 'pt-1', asociatie_id: 'demo-asoc', resident_user_id: 'u-res', resident_name: 'Popescu Andrei',
+    id: 'pt-1', asociatie_id: 'demo-asoc', resident_user_id: 'u-res', resident_name: 'Popescu Andrei', apartment_label: 'Ap. 5',
     subject: 'Eroare la cota de întreținere pe luna aceasta', status: 'open', created_at: hoursAgo(30),
     messages: [
-      { id: 'pm-1', thread_id: 'pt-1', sender: 'resident', sender_name: 'Popescu Andrei', body: 'Bună ziua, cred că la apartamentul 24 a fost trecut greșit consumul de apă caldă luna aceasta. Puteți verifica?', created_at: hoursAgo(30), read: true },
-      { id: 'pm-2', thread_id: 'pt-1', sender: 'admin', sender_name: 'Administrator', body: 'Bună ziua, verific indexul declarat și revin cu un răspuns până mâine.', created_at: hoursAgo(28), read: false },
+      { id: 'pm-1', thread_id: 'pt-1', sender: 'resident', sender_name: 'Popescu Andrei', body: 'Bună ziua, cred că la apartamentul meu a fost trecut greșit consumul de apă caldă luna aceasta. Puteți verifica?', created_at: hoursAgo(30), read: true },
+      { id: 'pm-2', thread_id: 'pt-1', sender: 'admin', sender_name: 'Administrator', body: 'Bună ziua, verific indexul declarat și revin cu un răspuns până mâine.', created_at: hoursAgo(28), read: true },
       { id: 'pm-3', thread_id: 'pt-1', sender: 'resident', sender_name: 'Popescu Andrei', body: 'Vă mulțumesc!', created_at: hoursAgo(27), read: true },
     ],
   },
+  // Conversație rezolvată (Popescu Andrei, Ap. 5).
   {
-    id: 'pt-2', asociatie_id: 'demo-asoc', resident_user_id: 'u-res', resident_name: 'Popescu Andrei',
+    id: 'pt-2', asociatie_id: 'demo-asoc', resident_user_id: 'u-res', resident_name: 'Popescu Andrei', apartment_label: 'Ap. 5',
     subject: 'Adeverință pentru fond de rulment', status: 'resolved', created_at: hoursAgo(240),
     messages: [
       { id: 'pm-4', thread_id: 'pt-2', sender: 'resident', sender_name: 'Popescu Andrei', body: 'Am nevoie de o adeverință că nu am restanțe la întreținere, pentru bancă.', created_at: hoursAgo(240), read: true },
       { id: 'pm-5', thread_id: 'pt-2', sender: 'admin', sender_name: 'Administrator', body: 'Am pregătit adeverința, o puteți ridica de la birou sau v-o trimit pe email. Confirmați adresa?', created_at: hoursAgo(236), read: true },
+    ],
+  },
+  // Mesaj nou de la alt locatar, necitit de administrator (Ionescu Maria, Ap. 1):
+  // apare în inbox-ul administratorului ca necitit și în așteptarea unui răspuns.
+  {
+    id: 'pt-3', asociatie_id: 'demo-asoc', resident_user_id: 'u-ap1', resident_name: 'Ionescu Maria', apartment_label: 'Ap. 1',
+    subject: 'Zgomot de la lucrările vecinului de deasupra', status: 'open', created_at: hoursAgo(5),
+    messages: [
+      { id: 'pm-6', thread_id: 'pt-3', sender: 'resident', sender_name: 'Ionescu Maria', body: 'Bună ziua, vecinul de la etajul superior face lucrări de renovare după ora 20:00. Puteți să îi reamintiți de orele de liniște?', created_at: hoursAgo(5), read: false },
+    ],
+  },
+  // Conversație inițiată de administrator către un locatar (Georgescu Elena, Ap. 9),
+  // încă necitită de locatar.
+  {
+    id: 'pt-4', asociatie_id: 'demo-asoc', resident_user_id: 'u-ap3', resident_name: 'Georgescu Elena', apartment_label: 'Ap. 9',
+    subject: 'Index contor apă rece — luna mai', status: 'open', created_at: hoursAgo(20),
+    messages: [
+      { id: 'pm-7', thread_id: 'pt-4', sender: 'admin', sender_name: 'Administrator', body: 'Bună ziua, nu am primit indexul la apa rece pentru luna mai. Îl puteți transmite până vineri, vă rog?', created_at: hoursAgo(20), read: false },
     ],
   },
 ];

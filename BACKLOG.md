@@ -200,6 +200,12 @@ Load the active asociație's flags from `asociatie_features` on hydrate and pers
 ### ⬜ T57 — [P2] Live activation: content slices read/write Supabase (Anunțuri / Discuții / Sesizări)
 Wire the T47/T48/T49 stores to read/write `announcements` / `discussion_threads`+`discussion_messages` / `tickets` under RLS, scoped by `asociatie_id`, behind `isSupabaseConfigured`, demo store as fallback. Prereq: T47, T48, T49.
 
+### ⬜ T118 — [P2] Live activation: F04 private messaging read/write Supabase
+Surfaced building the F04 role-aware inbox: `adminChatApi.ts` already branches on `isSupabaseConfigured` (hydrate `private_threads` + nested `private_messages`, mirror create/reply/markRead/toggleStatus) and migration `20260525000002_private_threads_inbox.sql` aligns the schema and installs the party-or-admin RLS (a resident reads only their own threads; admin/președinte read all in the asociație). The live path has never run against a real backend. Apply the migration, verify hydration + each mutation under RLS for both a resident JWT and an admin JWT, harden the best-effort mirrors (surface a user-visible error on a failed write), and add a live E2E that proves a resident cannot read another resident's thread. Behind `isSupabaseConfigured`, demo store stays the offline fallback. Prereq: F04 rework; coordinates with T57, T08.
+
+### ⬜ T119 — [P2] Link admin-initiated F04 threads to the resident's account
+Surfaced building the F04 inbox: when the administrator starts a thread toward an apartment, the resident party is recorded from the embedded `persons` list (person id + name), which is fine for demo but in live mode will not equal the resident's `auth.uid()`, so the targeted resident would not see the thread under the party-or-admin RLS. Once occupants are account-linked, set `resident_user_id` to the linked account (or leave it pending until the resident claims the apartment) so an admin-initiated conversation reaches the right inbox. Prereq: T117 (persons ↔ `apartment_residents` reconciliation).
+
 ### ⬜ T58 — [P2] Live activation: Telegram webhook deploy + env (`/start CODE`)
 Deploy the Netlify webhook function, set `TELEGRAM_BOT_TOKEN`/secret, register the bot + Mini App, and exercise the T50 linking path live. Requires a bot token + deployment. Coordinate with / folds into T15. Prereq: T50.
 

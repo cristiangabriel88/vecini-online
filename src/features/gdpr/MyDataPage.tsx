@@ -18,6 +18,7 @@ import { useIdeasStore } from '@/features/ideas/ideasStore';
 import { useDiscussionStore } from '@/features/discussions/discussionStore';
 import { threadsForAsociatii } from '@/features/discussions/discussionLogic';
 import { useAdminChatStore } from '@/features/adminchat/adminChatStore';
+import { privateThreadsForAsociatii } from '@/features/adminchat/adminChatLogic';
 import { useAnonymousStore } from '@/features/anonymous/anonymousStore';
 import { usePetitionStore } from '@/features/petitions/petitionStore';
 import { useThankYousStore } from '@/features/thankyous/thankYousStore';
@@ -86,7 +87,6 @@ export default function MyDataPage() {
 
   const listings = useMarketplaceStore((s) => s.listings);
   const ideas = useIdeasStore((s) => s.items);
-  const adminChatThreads = useAdminChatStore((s) => s.threads);
   const anonymousMessages = useAnonymousStore((s) => s.messages);
   const petitions = usePetitionStore((s) => s.petitions);
   const thankYous = useThankYousStore((s) => s.items);
@@ -142,6 +142,10 @@ export default function MyDataPage() {
     const tickets = ticketsForAsociatii(useTicketsStore.getState().byAsociatie, asociatieIds);
     const discussionThreads = threadsForAsociatii(
       useDiscussionStore.getState().byAsociatie,
+      asociatieIds,
+    );
+    const adminChatThreads = privateThreadsForAsociatii(
+      useAdminChatStore.getState().byAsociatie,
       asociatieIds,
     );
     return collectPersonalData({

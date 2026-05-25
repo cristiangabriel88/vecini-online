@@ -1443,13 +1443,21 @@
   "adminChat": {
     "title": "Mesagerie privată cu administratorul",
     "subtitle": "Un canal privat cu administratorul pentru întrebări financiare personale sau aspecte sensibile. Doar tu și administratorul vedeți conversația.",
+    "inboxTitle": "Mesaje de la locatari",
+    "inboxSubtitle": "Conversațiile private cu locatarii. Deschide un mesaj ca să răspunzi sau pornește o conversație nouă către un apartament.",
     "newThread": "Mesaj nou",
+    "newToResident": "Mesaj către un locatar",
+    "selectApartment": "Apartament",
+    "selectApartmentPlaceholder": "Alege apartamentul…",
     "subject": "Subiect",
     "subjectHint": "ex: eroare la cota de întreținere",
     "message": "Mesaj",
     "messageHint": "Descrie întrebarea ta către administrator.",
+    "messageHintAdmin": "Scrie mesajul tău către locatar.",
     "replyPlaceholder": "Scrie un răspuns…",
-    "privacyNote": "Conversația este privată între tine și administrator — comitetul nu o poate vedea.",
+    "backToInbox": "Înapoi la mesaje",
+    "privacyNote": "Conversația este privată între tine și administrator, iar comitetul nu o poate vedea.",
+    "adminPrivacyNote": "Conversația este privată între tine și locatarul ales. Ceilalți locatari nu o pot vedea.",
     "you": "Tu",
     "administrator": "Administrator",
     "messageCount": "{{count}} mesaje",
@@ -1459,7 +1467,9 @@
     "markResolved": "Marchează rezolvat",
     "reopen": "Redeschide",
     "threadStarted": "Mesaj trimis către administrator.",
-    "empty": "Nicio conversație încă. Începe una cu butonul de mai sus."
+    "threadStartedToResident": "Mesaj trimis către locatar.",
+    "empty": "Nicio conversație încă. Începe una cu butonul de mai sus.",
+    "emptyAdmin": "Niciun mesaj de la locatari încă. Poți porni tu o conversație cu butonul de mai sus."
   },
   "welcomeKit": {
     "title": "Kit de bun-venit",

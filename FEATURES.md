@@ -38,9 +38,10 @@ Each feature follows this structure:
 - **Data:** `alerts`, `alert_acknowledgments`
 
 ### F04 — Mesagerie privată cu administratorul
-- **Audience:** proprietar/chiriaș ↔ admin
+- **Audience:** proprietar/chiriaș ↔ admin/președinte
 - **Description:** Direct private channel between a resident and the administrator (not the comitet). For personal financial questions, sensitive complaints, etc.
-- **Acceptance:** Threaded conversation, attachments allowed, read receipts. Admin sees all open threads in a queue with SLA timer.
+- **Acceptance:** Threaded conversation, read receipts. Role-aware inbox: the administrator (and președinte) sees every resident's thread (per apartment) with unread and "awaiting reply" hints and can open any one or start a new thread toward a chosen apartment; a resident sees only their own threads. Opening a message shows that conversation (master/detail) and marks the other side's messages read.
+- **Implementation:** `adminChatLogic` (pure, unit-tested: `unreadFor`, `awaitingReply`/`waitingHours`, `sortThreads`, `threadParticipantLabel`) + per-asociație `adminChatStore` (`byAsociatie`, seeded for demo, persisted) + `useAsociatieThreads()` selector. The page branches on `activeRole`. Dual-mode `adminChatApi` mirrors writes to `private_threads`/`private_messages` and hydrates reads when Supabase is configured; private content is never written to the audit log. Custom RLS (migration `20260525000002`) keeps a resident's threads private to them and the administrator. Superadmin→association messaging is deferred (T99).
 - **Telegram:** `/contact_admin` opens a thread; replies routed both ways.
 - **Data:** `private_threads`, `private_messages`
 

@@ -1005,8 +1005,14 @@ accurate for architecture/data/feature specs.
   (privacy-preserving children registry + coordinated activities).
 - **Previously (F62):** Kit de bun-venit — `welcomekit` slice (new-resident
   onboarding checklist with progress bar + comitet add/delete steps).
-- **Previously (F04):** Mesagerie privată cu administratorul — `adminchat` slice
-  (private resident↔admin channel, chat timeline, SLA hint, resolve/reopen).
+- **Previously (F04):** Mesagerie privată cu administratorul — `adminchat` slice,
+  now a role-aware inbox. The administrator/președinte sees every resident's
+  thread (per apartment) with unread + awaiting-reply hints and can open any one
+  or start a thread toward a chosen apartment; a resident sees only their own
+  threads. Master/detail conversation view; per-asociație persisted store +
+  dual-mode `adminChatApi` (mirrors `private_threads`/`private_messages`, no PII
+  to the audit log); party-or-admin RLS in migration `20260525000002`.
+  Superadmin→association messaging deferred (T99); live wiring is T118.
 - **Previously (F27):** Rezervare sală comună / terasă — `venue` slice on the
   F25/F26 booking pattern. Note: the working tree is clean — F21, the help
   assistant, and all earlier slices are committed (latest: `bfabf0e` help

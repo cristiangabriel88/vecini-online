@@ -1441,13 +1441,21 @@
   "adminChat": {
     "title": "Private messages to the administrator",
     "subtitle": "A private channel with the administrator for personal financial questions or sensitive matters. Only you and the administrator can see it.",
+    "inboxTitle": "Messages from residents",
+    "inboxSubtitle": "Your private conversations with residents. Open a message to reply, or start a new conversation toward an apartment.",
     "newThread": "New message",
+    "newToResident": "Message a resident",
+    "selectApartment": "Apartment",
+    "selectApartmentPlaceholder": "Choose the apartment…",
     "subject": "Subject",
     "subjectHint": "e.g. maintenance fee error",
     "message": "Message",
     "messageHint": "Describe your question for the administrator.",
+    "messageHintAdmin": "Write your message to the resident.",
     "replyPlaceholder": "Write a reply…",
-    "privacyNote": "This conversation is private between you and the administrator — the committee cannot see it.",
+    "backToInbox": "Back to messages",
+    "privacyNote": "This conversation is private between you and the administrator, and the committee cannot see it.",
+    "adminPrivacyNote": "This conversation is private between you and the chosen resident. Other residents cannot see it.",
     "you": "You",
     "administrator": "Administrator",
     "messageCount": "{{count}} messages",
@@ -1457,7 +1465,9 @@
     "markResolved": "Mark resolved",
     "reopen": "Reopen",
     "threadStarted": "Message sent to the administrator.",
-    "empty": "No conversations yet. Start one with the button above."
+    "threadStartedToResident": "Message sent to the resident.",
+    "empty": "No conversations yet. Start one with the button above.",
+    "emptyAdmin": "No messages from residents yet. You can start a conversation with the button above."
   },
   "welcomeKit": {
     "title": "Welcome kit",

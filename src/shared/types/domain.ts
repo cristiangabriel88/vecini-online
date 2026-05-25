@@ -694,23 +694,32 @@ export interface AnonymousMessage {
  *  administrator; messages carry a read receipt for the counterpart. */
 export type PrivateThreadStatus = 'open' | 'resolved';
 
+/** Who wrote a private message: the resident party or the administrator. */
+export type PrivateSender = 'resident' | 'admin';
+
 export interface PrivateMessage {
   id: string;
   thread_id: string;
   /** Who wrote it — the resident or the administrator. */
-  sender: 'resident' | 'admin';
+  sender: PrivateSender;
   sender_name: string;
   body: string;
   created_at: string;
-  /** Whether the counterpart has read it. */
+  /** Read by the recipient: a resident message is read by the administrator, an
+   *  administrator message is read by the resident. Drives the unread badges on
+   *  both sides of the inbox. */
   read: boolean;
 }
 
 export interface PrivateThread {
   id: string;
   asociatie_id: string;
+  /** The resident party to the conversation (its only non-admin participant). */
   resident_user_id: string;
   resident_name: string;
+  /** Apartment label of the resident party (e.g. "Ap. 5"), shown in the admin
+   *  inbox so a thread is identifiable at a glance. Optional for legacy rows. */
+  apartment_label?: string;
   subject: string;
   status: PrivateThreadStatus;
   created_at: string;
