@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { lazy, Suspense } from 'react';
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createHashRouter, Navigate } from 'react-router-dom';
 import { SkeletonList } from '@/shared/components/Skeleton';
 import { RequirePlatformAdmin } from './RequirePlatformAdmin';
 import { PlatformLayout } from './PlatformLayout';
@@ -13,7 +13,12 @@ function S({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<SkeletonList rows={4} />}>{children}</Suspense>;
 }
 
-export const platformRouter = createBrowserRouter([
+// Hash routing keeps every platform route a fragment on top of `platform.html`,
+// so a refresh always re-serves the platform file itself rather than the static
+// host's SPA fallback (the resident/admin `index.html`). This both fixes refresh
+// on a single dev origin and keeps the superadmin app fully decoupled from the
+// resident/admin path space (it shares the origin only as a separate file).
+export const platformRouter = createHashRouter([
   { path: '/', element: <S><PlatformLoginPage /></S> },
   {
     path: '/consola',

@@ -226,6 +226,14 @@ export default function LoginPage() {
     }
   };
 
+  // The superadmin tier is a separate app on its own origin (src/platform/*),
+  // never the resident/admin shell — so the superadmin preview hands off to the
+  // platform console rather than entering this app. The `?demo` flag enters the
+  // demo console directly (honoured only with no backend; see platform/main.tsx).
+  const openPlatformConsole = () => {
+    window.location.assign('/platform.html?demo=1#/consola');
+  };
+
   const cancelChallenge = () => {
     setPendingMfa(null);
     setMfaCode('');
@@ -412,7 +420,7 @@ export default function LoginPage() {
                   <Button
                     variant="secondary"
                     className="w-full"
-                    onClick={() => void enterDemoAs('super_admin')}
+                    onClick={openPlatformConsole}
                   >
                     {t('auth.demoRole.superAdmin')}
                   </Button>
