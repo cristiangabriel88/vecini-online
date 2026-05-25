@@ -138,6 +138,30 @@ export function moveCardTo(layout: HomeCard[], key: string, toIndex: number): Ho
 }
 
 /**
+ * Move the card with `key` into an insertion slot in 0..length, where 0 is
+ * before the first card and `length` is after the last. Unlike `moveCardTo`
+ * (which targets a card's index), this targets the *gap* between cards, which is
+ * what a between-cards drop caret points at, so the card lands exactly where the
+ * caret sits. Removing the dragged card shifts every later gap left by one, which
+ * this accounts for. No-op for an unknown key or an unchanged order. Non-mutating.
+ */
+export function moveCardToInsertion(
+  layout: HomeCard[],
+  key: string,
+  insertAt: number,
+): HomeCard[] {
+  const from = layout.findIndex((c) => c.key === key);
+  if (from === -1) return layout;
+  const clamped = Math.max(0, Math.min(insertAt, layout.length));
+  const target = clamped > from ? clamped - 1 : clamped;
+  if (target === from) return layout;
+  const next = layout.map((c) => ({ ...c }));
+  const [moved] = next.splice(from, 1);
+  next.splice(target, 0, moved);
+  return next;
+}
+
+/**
  * Whether a layout already matches the default for the current catalog, so the
  * "Resetează la implicit" action can be disabled when there is nothing to reset.
  */

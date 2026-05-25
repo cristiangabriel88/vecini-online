@@ -11,6 +11,7 @@ import {
   layoutStorageKey,
   moveCard,
   moveCardTo,
+  moveCardToInsertion,
   reconcileLayout,
   toggleCardVisible,
   visibleCards,
@@ -113,6 +114,27 @@ describe('homeLayoutLogic — F67 customizable home (T12)', () => {
     expect(moveCardTo(layout, 'F404', 0)).toBe(layout); // unknown key
     expect(moveCardTo(layout, 'F01', 9)).toBe(layout); // out of range
     expect(moveCardTo(layout, 'F01', 0)).toBe(layout); // unchanged position
+  });
+
+  it('moveCardToInsertion drops a card into a between-cards gap, accounting for the shift', () => {
+    const layout: HomeCard[] = [
+      { key: 'F01', visible: true, size: 'compact' },
+      { key: 'F02', visible: true, size: 'compact' },
+      { key: 'F03', visible: true, size: 'compact' },
+    ];
+    // Drop F01 into the trailing gap (slot 3) -> lands last.
+    expect(moveCardToInsertion(layout, 'F01', 3).map((c) => c.key)).toEqual(['F02', 'F03', 'F01']);
+    // Drop F03 into the leading gap (slot 0) -> lands first.
+    expect(moveCardToInsertion(layout, 'F03', 0).map((c) => c.key)).toEqual(['F03', 'F01', 'F02']);
+    // Drop F02 before F01 (slot 0).
+    expect(moveCardToInsertion(layout, 'F02', 0).map((c) => c.key)).toEqual(['F02', 'F01', 'F03']);
+    // Gaps on either side of a card's own position are no-ops (same reference).
+    expect(moveCardToInsertion(layout, 'F01', 0)).toBe(layout);
+    expect(moveCardToInsertion(layout, 'F01', 1)).toBe(layout);
+    // Unknown key and out-of-range slot (clamped) behave sanely.
+    expect(moveCardToInsertion(layout, 'F404', 1)).toBe(layout);
+    expect(moveCardToInsertion(layout, 'F01', 99).map((c) => c.key)).toEqual(['F02', 'F03', 'F01']);
+    expect(layout.map((c) => c.key)).toEqual(['F01', 'F02', 'F03']); // untouched
   });
 
   it('isDefaultLayout recognises the default and any deviation', () => {

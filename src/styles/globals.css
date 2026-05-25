@@ -33,3 +33,108 @@ html, body, #root {
     display: none !important;
   }
 }
+
+/* ============================================================
+   Home edit-mode drag reorder (F67)
+   ------------------------------------------------------------
+   The whole card is the drag handle; a glowing caret sits in the
+   gap where the card will land, tracking the pointer's side of
+   each card it sweeps over.
+   ============================================================ */
+.home-card-grip {
+  display: inline-flex;
+  cursor: grab;
+}
+
+.home-card-drag {
+  cursor: grab;
+  /* Quick swipes still scroll the page; a press-and-hold lifts the card. While a
+     drag is live (data-dragging) scroll is vetoed in JS, so no native gesture
+     fights the reorder. user-select / touch-callout off so holding never starts
+     a text selection or the iOS callout menu. */
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.home-card-drag:active {
+  cursor: grabbing;
+}
+.home-card-drag[data-dragging] {
+  touch-action: none;
+}
+
+/* The card in flight reads as lifted-out: dimmed, slightly shrunk,
+   with a dashed outline marking the slot it left behind. */
+.home-card-drag[data-dragging] {
+  opacity: 0.45;
+  transform: scale(0.97);
+}
+.home-card-drag[data-dragging] .card {
+  outline: 2px dashed var(--primary);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+/* The drop caret: a primary vertical bar with rounded end-caps,
+   centred in the 12px grid gutter, springing in as it appears. */
+.home-drop-caret {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--primary);
+  box-shadow:
+    0 0 0 1px oklch(from var(--primary) l c h / 0.2),
+    0 0 12px 1px oklch(from var(--primary) l c h / 0.5);
+  z-index: 3;
+  transform-origin: center;
+  animation: home-drop-caret-in 200ms var(--ease-spring);
+  pointer-events: none;
+}
+.home-drop-caret::before,
+.home-drop-caret::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--primary);
+  transform: translateX(-50%);
+}
+.home-drop-caret::before {
+  top: -4px;
+}
+.home-drop-caret::after {
+  bottom: -4px;
+}
+.home-drop-caret--before {
+  left: -7.5px;
+}
+.home-drop-caret--after {
+  right: -7.5px;
+}
+
+@keyframes home-drop-caret-in {
+  from {
+    opacity: 0;
+    transform: scaleY(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-card-drag,
+  .home-card-drag[data-dragging] {
+    transition: none;
+    transform: none;
+  }
+  .home-drop-caret {
+    animation: none;
+  }
+}

@@ -34,12 +34,13 @@ import {
   cycleCardSize,
   isDefaultLayout,
   moveCard,
-  moveCardTo,
+  moveCardToInsertion,
   reconcileLayout,
   toggleCardVisible,
   visibleCards,
 } from './homeLayoutLogic';
 import { useHomeLayoutKey, useHomeLayoutStore } from './homeLayoutStore';
+import { useHomeReorder } from './useHomeReorder';
 
 /** A read-only feature shortcut card (view mode). */
 function ShortcutCard({ feature, expanded }: { feature: FeatureDef; expanded: boolean }) {
@@ -63,42 +64,53 @@ function EditableCard({
   index,
   total,
   dragging,
+  dropBefore,
+  dropAfter,
   onToggle,
   onCycleSize,
   onMove,
-  onDragStart,
-  onDragOver,
-  onDrop,
-  onDragEnd,
+  onPointerDown,
+  onPointerMove,
+  onPointerUp,
+  onPointerCancel,
 }: {
   card: HomeCard;
   index: number;
   total: number;
   dragging: boolean;
+  dropBefore: boolean;
+  dropAfter: boolean;
   onToggle: () => void;
   onCycleSize: () => void;
   onMove: (delta: number) => void;
-  onDragStart: () => void;
-  onDragOver: (e: React.DragEvent) => void;
-  onDrop: () => void;
-  onDragEnd: () => void;
+  onPointerDown: (e: React.PointerEvent<HTMLElement>) => void;
+  onPointerMove: (e: React.PointerEvent<HTMLElement>) => void;
+  onPointerUp: (e: React.PointerEvent<HTMLElement>) => void;
+  onPointerCancel: (e: React.PointerEvent<HTMLElement>) => void;
 }) {
   const { t } = useTranslation();
   const feature = FEATURE_MAP[card.key];
   if (!feature) return null;
+
   return (
     <div
-      draggable
-      onDragStart={onDragStart}
-      onDragOver={onDragOver}
-      onDrop={onDrop}
-      onDragEnd={onDragEnd}
+      data-card-index={index}
+      data-dragging={dragging || undefined}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
       className={cn(
-        'transition-all duration-200',
+        'home-card-drag relative transition-all duration-200',
         card.size === 'expanded' && 'sm:col-span-2',
-        dragging && 'opacity-50',
       )}
     >
+      {dropBefore && (
+        <span className="home-drop-caret home-drop-caret--before" aria-hidden="true" />
+      )}
+      {dropAfter && (
+        <span className="home-drop-caret home-drop-caret--after" aria-hidden="true" />
+      )}
       <Card
         className={cn(
           'flex h-full flex-col gap-2 py-3 transition-opacity duration-200',
@@ -106,7 +118,7 @@ function EditableCard({
         )}
       >
         <div className="flex items-center gap-2">
-          <span className="cursor-grab text-muted" aria-hidden="true">
+          <span className="home-card-grip text-muted" aria-hidden="true">
             <GripVertical size={16} />
           </span>
           <Icon name={feature.icon} className="h-5 w-5 text-primary" />
@@ -174,12 +186,22 @@ export default function HomePage() {
 
   const layout = useMemo(() => reconcileLayout(saved, flags), [saved, flags]);
   const [editing, setEditing] = useState(false);
-  const [draggingKey, setDraggingKey] = useState<string | null>(null);
 
   const canPersist = Boolean(asociatieId);
   const apply = (next: HomeCard[]) => {
     if (asociatieId) persist(userId, asociatieId, next);
   };
+
+  // Pointer-driven reorder (mouse + touch + pen). The caret slot it reports is
+  // resolved against the live card layout when a drop lands.
+  const { draggingKey, dropIndex, gridRef, onItemPointerDown, onItemPointerMove, onItemPointerUp, onItemPointerCancel } =
+    useHomeReorder((key, insertAt) => apply(moveCardToInsertion(layout, key, insertAt)));
+
+  const fromIndex = draggingKey ? layout.findIndex((c) => c.key === draggingKey) : -1;
+  // Hide the caret when a drop would not actually move the card (the slots on
+  // either side of its current position), so the cue only ever promises change.
+  const caretIsNoop =
+    dropIndex === null || dropIndex === fromIndex || dropIndex === fromIndex + 1;
 
   const shown = visibleCards(layout);
   const atDefault = isDefaultLayout(layout, flags);
@@ -224,7 +246,7 @@ export default function HomePage() {
       )}
 
       {editing ? (
-        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div ref={gridRef} className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
           {layout.map((card, i) => (
             <EditableCard
               key={card.key}
@@ -232,16 +254,20 @@ export default function HomePage() {
               index={i}
               total={layout.length}
               dragging={draggingKey === card.key}
+              dropBefore={draggingKey !== null && !caretIsNoop && dropIndex === i}
+              dropAfter={
+                draggingKey !== null &&
+                !caretIsNoop &&
+                i === layout.length - 1 &&
+                dropIndex === layout.length
+              }
               onToggle={() => apply(toggleCardVisible(layout, card.key))}
               onCycleSize={() => apply(cycleCardSize(layout, card.key))}
               onMove={(delta) => apply(moveCard(layout, i, delta))}
-              onDragStart={() => setDraggingKey(card.key)}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={() => {
-                if (draggingKey) apply(moveCardTo(layout, draggingKey, i));
-                setDraggingKey(null);
-              }}
-              onDragEnd={() => setDraggingKey(null)}
+              onPointerDown={(e) => onItemPointerDown(e, card.key)}
+              onPointerMove={onItemPointerMove}
+              onPointerUp={onItemPointerUp}
+              onPointerCancel={onItemPointerCancel}
             />
           ))}
         </div>

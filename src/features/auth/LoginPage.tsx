@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { Building2, MailCheck, ShieldCheck } from 'lucide-react';
+import { ArrowUpRight, Building2, Globe, MailCheck, ShieldCheck } from 'lucide-react';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
 import { Card } from '@/shared/components/Card';
@@ -45,6 +45,45 @@ function PasswordStrength({ assessment }: { assessment: PasswordAssessment }) {
           ? t(`auth.pwd.${issue}`)
           : `${t('auth.pwd.strength')}: ${t(`auth.pwd.${assessment.strength}`)}`}
       </p>
+    </div>
+  );
+}
+
+/**
+ * A refined RO / EN segmented toggle pinned to the top-right of the auth
+ * screen, mirroring the topbar language control for signed-in residents. The
+ * sliding thumb tracks the active language with a gentle spring.
+ */
+function LangToggle() {
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language.startsWith('en') ? 'en' : 'ro';
+  const set = (next: 'ro' | 'en') => {
+    if (next !== lang) void i18n.changeLanguage(next);
+  };
+  return (
+    <div className="login-lang" role="group" aria-label={t('chrome.language')}>
+      <Globe className="login-lang__globe" size={14} aria-hidden="true" />
+      <div className="login-lang__seg" data-lang={lang}>
+        <span className="login-lang__thumb" aria-hidden="true" />
+        <button
+          type="button"
+          className="login-lang__opt"
+          data-active={lang === 'ro'}
+          aria-pressed={lang === 'ro'}
+          onClick={() => set('ro')}
+        >
+          RO
+        </button>
+        <button
+          type="button"
+          className="login-lang__opt"
+          data-active={lang === 'en'}
+          aria-pressed={lang === 'en'}
+          onClick={() => set('en')}
+        >
+          EN
+        </button>
+      </div>
     </div>
   );
 }
@@ -189,6 +228,7 @@ export default function LoginPage() {
   return (
     <div className="relative z-[1] flex min-h-screen flex-col items-center justify-center px-4">
       <Atmosphere />
+      <LangToggle />
       <div className="mb-7 flex flex-col items-center text-center">
         <div
           className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl text-white"
@@ -356,15 +396,30 @@ export default function LoginPage() {
         )}
       </Card>
 
-      <nav className="login-legal" aria-label={t('consent.documentsTitle')}>
-        <Link to="/confidentialitate">{t('consent.privacyLink')}</Link>
-        <span aria-hidden="true">·</span>
-        <Link to="/termeni">{t('consent.termsLink')}</Link>
-        <span aria-hidden="true">·</span>
-        <Link to="/cookies">{t('consent.cookieLink')}</Link>
-        <span aria-hidden="true">·</span>
-        <Link to="/protectia-consumatorului">{t('consent.consumerLink')}</Link>
-      </nav>
+      <footer className="login-footer">
+        <nav className="login-footer__legal" aria-label={t('consent.documentsTitle')}>
+          <Link to="/confidentialitate">{t('consent.privacyLink')}</Link>
+          <span className="login-footer__dot" aria-hidden="true" />
+          <Link to="/termeni">{t('consent.termsLink')}</Link>
+          <span className="login-footer__dot" aria-hidden="true" />
+          <Link to="/cookies">{t('consent.cookieLink')}</Link>
+          <span className="login-footer__dot" aria-hidden="true" />
+          <Link to="/protectia-consumatorului">{t('consent.consumerLink')}</Link>
+        </nav>
+        <div className="login-footer__meta">
+          <span>© 2026 vecini.online</span>
+          <span className="login-footer__dot" aria-hidden="true" />
+          <a
+            className="login-footer__credit"
+            href="https://cristiangabriel.dev"
+            target="_blank"
+            rel="noreferrer"
+          >
+            {t('chrome.createdBy')}
+            <ArrowUpRight size={12} />
+          </a>
+        </div>
+      </footer>
     </div>
   );
 }
