@@ -2338,5 +2338,68 @@
       "contactAdminCta": "Deschide mesajele",
       "close": "Închide"
     }
+  },
+  "platform": {
+    "appName": "Consolă platformă",
+    "demoMode": "Mod demonstrativ",
+    "login": {
+      "title": "Autentificare operator",
+      "subtitle": "Acces restricționat operatorilor platformei.",
+      "signIn": "Intră în consolă",
+      "demoNotice": "Mod demonstrativ — fără backend configurat. Intri în consolă cu date exemplu.",
+      "enterDemo": "Intră în consola demo"
+    },
+    "access": {
+      "verifying": "Se verifică accesul...",
+      "deniedTitle": "Acces neautorizat",
+      "deniedBody": "Acest cont nu are drepturi de operator al platformei. Dacă este o greșeală, contactează un alt operator.",
+      "signOut": "Deconectează-te"
+    },
+    "nav": {
+      "sections": "Secțiuni consolă",
+      "signOut": "Ieșire"
+    },
+    "home": {
+      "welcome": "Bună, {{name}}",
+      "operator": "operator",
+      "subtitle": "Consola platformei vecini.online — administrarea asociațiilor, supraveghere și asistență, separat de aplicația locatarilor.",
+      "statsTitle": "Platforma pe scurt",
+      "stats": {
+        "asociatii": "Asociații",
+        "members": "Membri",
+        "apartments": "Apartamente"
+      },
+      "liveMetricsNote": "Metricile platformei live apar pe măsură ce paginile consolei sunt activate.",
+      "sectionsTitle": "Secțiunile consolei",
+      "demoBanner": "Rulezi în mod demonstrativ, fără backend. Datele afișate sunt exemple."
+    },
+    "sections": {
+      "planned": "În curând",
+      "overview": { "title": "Prezentare generală" },
+      "asociatii": {
+        "title": "Asociații",
+        "desc": "Listează asociațiile și creează una nouă, provizionând primul administrator."
+      },
+      "audit": {
+        "title": "Jurnal de audit",
+        "desc": "Vezi jurnalul inviolabil al fiecărei asociații, agregat la nivel de platformă."
+      },
+      "errors": {
+        "title": "Erori aplicație",
+        "desc": "Rapoartele de eroare anonimizate, pentru a depista rapid problemele."
+      },
+      "usage": {
+        "title": "Utilizare și sănătate",
+        "desc": "Adoptarea și activitatea fiecărei asociații, pentru a identifica asociațiile inactive."
+      },
+      "impersonation": {
+        "title": "Impersonare auditată",
+        "desc": "Intră, doar pentru citire, în contextul unei asociații pentru diagnosticare; fiecare intrare este jurnalizată."
+      },
+      "messenger": {
+        "title": "Mesaje cu administratorii",
+        "desc": "Fir de asistență bidirecțional între administratorii asociațiilor și operatorii platformei."
+      }
+    }
   }
 }

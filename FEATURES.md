@@ -746,7 +746,7 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
   - **Platform identity + cross-asociatie RLS (T91):** a platform-wide `super_admin` marker (not a per-asociație membership), an `is_super_admin()` SQL helper, and read-only cross-tenant RLS for the console.
   - **Server-side provisioning (T92):** the superadmin **creates an asociație and provisions its first admin**; that admin then onboards their own residents via invite codes (F-invites). Superadmin creates admins, admins add users.
   - **Mandatory hardened MFA (T100)** for every `super_admin` session.
-  - **Separate app shell (T93):** the gated, separate-subdomain front-end, with a demo superadmin so it runs offline.
+  - **Separate app shell (T93) ✅:** the gated, separate-subdomain front-end is built under `src/platform/*` as a second Vite page (`platform.html`), with its own router, layout (topbar + left rail, theme/lang, sign-out), an overview landing, and a demo superadmin so it runs fully offline. Access is server-verified via `is_super_admin()` (T91) and never client-trusted; a separate `netlify-platform.toml` documents the subdomain deploy + tightest CSP. The console pages T94-T99 mount inside it.
   - **Asociații + admin management console (T94).**
   - **Cross-asociatie audit viewer (T95):** read-only aggregate of every asociație's tamper-evident T09 audit chain, so the superadmin sees what each admin is doing platform-wide.
   - **Platform error feed (T96):** scrubbed app errors (from the T07 reporting hook, no PII) surfaced so the superadmin can spot problems with the app.

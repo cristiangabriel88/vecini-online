@@ -2336,5 +2336,68 @@
       "contactAdminCta": "Open messages",
       "close": "Close"
     }
+  },
+  "platform": {
+    "appName": "Platform console",
+    "demoMode": "Demo mode",
+    "login": {
+      "title": "Operator sign in",
+      "subtitle": "Restricted to platform operators.",
+      "signIn": "Enter console",
+      "demoNotice": "Demo mode — no backend configured. You enter the console with sample data.",
+      "enterDemo": "Enter demo console"
+    },
+    "access": {
+      "verifying": "Checking access...",
+      "deniedTitle": "Access not authorized",
+      "deniedBody": "This account is not a platform operator. If this is a mistake, contact another operator.",
+      "signOut": "Sign out"
+    },
+    "nav": {
+      "sections": "Console sections",
+      "signOut": "Sign out"
+    },
+    "home": {
+      "welcome": "Hello, {{name}}",
+      "operator": "operator",
+      "subtitle": "The vecini.online platform console — manage associations, oversight and support, kept separate from the resident app.",
+      "statsTitle": "Platform at a glance",
+      "stats": {
+        "asociatii": "Associations",
+        "members": "Members",
+        "apartments": "Apartments"
+      },
+      "liveMetricsNote": "Live platform metrics appear as the console pages are activated.",
+      "sectionsTitle": "Console sections",
+      "demoBanner": "Running in demo mode, with no backend. The data shown is sample data."
+    },
+    "sections": {
+      "planned": "Coming soon",
+      "overview": { "title": "Overview" },
+      "asociatii": {
+        "title": "Associations",
+        "desc": "List associations and create a new one, provisioning its first administrator."
+      },
+      "audit": {
+        "title": "Audit log",
+        "desc": "View every association's tamper-evident log, aggregated platform-wide."
+      },
+      "errors": {
+        "title": "App errors",
+        "desc": "Scrubbed error reports, so problems are spotted quickly."
+      },
+      "usage": {
+        "title": "Usage & health",
+        "desc": "Each association's adoption and activity, to spot dormant associations."
+      },
+      "impersonation": {
+        "title": "Audited impersonation",
+        "desc": "Enter an association's context read-only to diagnose; every entry is logged."
+      },
+      "messenger": {
+        "title": "Admin messenger",
+        "desc": "A two-way support thread between association admins and platform operators."
+      }
+    }
   }
 }

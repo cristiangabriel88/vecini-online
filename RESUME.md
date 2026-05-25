@@ -18,8 +18,38 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-25, T114 admin apartment registry)
+## 0. Current status (updated 2026-05-25, T93 separate superadmin app shell)
 
+- **2026-05-25 — T93 (P2) Separate superadmin app shell (own build +
+  subdomain).** Stood up the platform/superadmin console as its own front-end
+  under `src/platform/*`, built as a second Vite page: `platform.html` →
+  `src/platform/main.tsx`, added to `vite.config.ts`
+  `build.rollupOptions.input`, so `npm run build` emits both `dist/index.html`
+  (resident/admin) and `dist/platform.html` (operator console) and the
+  superadmin bundle is code-split into its own chunk, never shipped to regular
+  users. The shell reuses the Supabase client, domain types, i18n (new
+  `platform.*` RO/EN keys), theme/tint stores, retry/query config and error
+  reporting, but mounts its own `PlatformProviders` (no resident consent
+  banner), `platformRouter`, `PlatformLayout` (own topbar + left rail, theme/lang
+  toggle, sign-out, demo badge) and a `PlatformHomePage` overview (welcome,
+  demo platform totals from a new `demoPlatform.ts`, and roadmap cards for the
+  T94-T99 console areas). Access is server-authoritative, never client-trusted:
+  a pure, unit-tested `resolvePlatformAccess` (`platformAuthLogic.ts`) drives
+  `RequirePlatformAdmin`, and `platformAuthStore.verify()` calls
+  `supabase.rpc('is_super_admin')` (the T91 SECURITY DEFINER helper) for a live
+  session — any error or `false` denies, an unknown result holds on `verifying`,
+  and a `demo` flag grants the offline showcase. `PlatformLoginPage` reuses the
+  shared `signIn` live and offers a single demo-console entry offline. New
+  `netlify-platform.toml` documents the separate Netlify site (shared build,
+  `/* → /platform.html` redirect, tightest CSP: self + Supabase only, COEP
+  `require-corp`, `noindex`). New `tests/unit/platformAuthLogic.test.ts` (10
+  assertions: the full access-state matrix incl. demo short-circuit and
+  verifying-not-denied, plus demo-totals aggregation). Decision in
+  `DECISIONS.md`. Pipeline green: lint, typecheck, 118 files / 871 tests, build
+  (both HTML entries emitted). MFA on the platform login is deferred to T100.
+  Surfaced T118 (verify/lock the `is_super_admin()` RPC grant for the live gate)
+  and T119 (platform-shell access E2E). Unblocks the console pages T94-T99,
+  which mount under `/consola`.
 - **2026-05-25 — T114 (P1) Admin apartment registry (add / configure / edit) +
   building settings.** The admin apartments area is now a full CRUD registry
   instead of a read-only list of `DEMO_APARTMENTS`. First-login empty state leads

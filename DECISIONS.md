@@ -204,6 +204,34 @@ admin must never endanger the platform. The decision and its rationale:
   impersonation (T98). The admin↔superadmin messenger (T99) reuses the F04
   `adminchat` thread/message shape.
 
+## Superadmin app shell: a second Vite page in the same build, not a separate repo or config (T93)
+
+T93 had to give the superadmin tier its own origin (per the T88-T100 decision
+above) without a second repository (which would duplicate the Supabase client,
+domain types, i18n and build, and fall outside this backlog loop). Three options:
+a separate Vite config + `build` script, a brand-new repo, or a **multi-page
+build** in the one config. Chosen: the multi-page build. `vite.config.ts`
+`build.rollupOptions.input` now lists both `index.html` (resident/admin) and
+`platform.html` (operator console → `src/platform/main.tsx`), so a single
+`npm run build` emits both SPAs into `dist/` and the verification pipeline stays
+one command. Rollup code-splits them, so the superadmin bundle is its own chunk
+and is **never served to regular users** — the resident `index.html` only loads
+the resident entry. The separate **origin** is achieved at deploy time, not
+build time: `netlify-platform.toml` documents a second Netlify site from the same
+repo/build whose `/* → /platform.html` redirect serves the console and which
+carries the tightest CSP (self + Supabase only, COEP `require-corp`,
+`noindex`). The shared build keeps the Supabase client/types/i18n/stores DRY
+while the second site gives the operator session its own origin.
+
+The platform gate trusts only the server: `RequirePlatformAdmin` renders from a
+pure `resolvePlatformAccess`, and the live grant comes from
+`supabase.rpc('is_super_admin')` (the T91 SECURITY DEFINER helper) — an unknown
+result holds on `verifying` (never flashing the console or a denial), any error
+or `false` denies. The offline demo path is the only client-asserted grant, and
+it exists solely so the showcase runs without a backend. MFA on the platform
+login is deferred to T100 (mandatory hardened MFA), kept as one task rather than
+split across the two logins.
+
 ## GDPR data-subject rights: self-service export, admin-actioned erasure (T06)
 
 The two rights a resident exercises over their personal data are split by how

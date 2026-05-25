@@ -1,0 +1,57 @@
+# Netlify configuration for the SEPARATE superadmin platform site (T93).
+#
+# The superadmin console ships in the same monorepo but is deployed as its own
+# Netlify site on its own subdomain (e.g. admin.vecini.online), so it has a
+# distinct origin: an XSS in the resident/admin app physically cannot reach a
+# superadmin session token, and the superadmin's privileged bundle is never
+# served to regular users. See DECISIONS.md ("Superadmin is a separate app on
+# its own subdomain").
+#
+# To use: create a second Netlify site from this same repository and point it at
+# this file (Site settings > Build & deploy > "Configuration file path" =
+# netlify-platform.toml), or copy it to netlify.toml on a dedicated branch. The
+# build is shared (npm run build emits both index.html and platform.html); this
+# site simply serves platform.html as its SPA entry and applies the tightest CSP.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Serve the platform SPA: every path resolves to platform.html (not index.html,
+# which is the resident/admin app). The hashed asset under /assets is served
+# directly by the rule below taking precedence over this catch-all.
+[[redirects]]
+  from = "/*"
+  to = "/platform.html"
+  status = 200
+
+[functions]
+  node_bundler = "esbuild"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    # Tightest CSP for the operator origin: only self + the Supabase project, no
+    # external origins at all. No inline scripts; inline styles are allowed only
+    # because the motion layer sets element style attributes. No framing, no
+    # cross-origin embedding. Discourage indexing of the operator surface.
+    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; frame-src 'none'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests"
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Resource-Policy = "same-origin"
+    Cross-Origin-Embedder-Policy = "require-corp"
+    X-DNS-Prefetch-Control = "off"
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

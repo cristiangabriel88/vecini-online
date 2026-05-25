@@ -12,6 +12,14 @@ export default defineConfig({
   build: {
     target: 'es2021',
     rollupOptions: {
+      // Multi-page build: the resident/admin app (index.html) and the separate
+      // superadmin console (platform.html, served on its own subdomain). Keeping
+      // them as distinct entries means the superadmin code is never shipped to
+      // regular users (T93).
+      input: {
+        main: fileURLToPath(new URL('./index.html', import.meta.url)),
+        platform: fileURLToPath(new URL('./platform.html', import.meta.url)),
+      },
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
