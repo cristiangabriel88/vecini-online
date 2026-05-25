@@ -348,20 +348,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .assistant__fab,
-  .assistant__panel,
-  .assistant__open,
-  .assistant__chip,
-  .assistant__send,
-  .assistant__msg,
   .assistant__typing i {
-    transition-duration: 0.01ms;
-    animation-duration: 0.01ms;
-  }
-  .assistant__typing i {
+    animation: none; /* decorative looping dots */
     opacity: 0.55;
-  }
-  .assistant[data-open='true'] .assistant__fab {
-    transform: none;
   }
 }

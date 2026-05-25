@@ -50,7 +50,7 @@ function ShortcutCard({ feature, expanded }: { feature: FeatureDef; expanded: bo
       to={`/app/${feature.path}`}
       className={cn('transition-all duration-200', expanded && 'sm:col-span-2')}
     >
-      <Card className="flex h-full flex-col items-center justify-center gap-2 py-5 text-center transition-colors hover:bg-surface-2">
+      <Card className="home-shortcut h-full transition-colors hover:bg-surface-2">
         <Icon name={feature.icon} className="h-7 w-7 text-primary" />
         <span className="text-sm font-medium">{featureTitle(t, feature)}</span>
       </Card>

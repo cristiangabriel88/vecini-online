@@ -41,6 +41,31 @@ html, body, #root {
    gap where the card will land, tracking the pointer's side of
    each card it sweeps over.
    ============================================================ */
+/* ============================================================
+   Home shortcut cards (Acasă grid)
+   ------------------------------------------------------------
+   The centring has to live on the body, not the .card shell:
+   Card wraps its children in .card__body, so flex utilities on
+   the shell would only centre that single wrapper, leaving the
+   icon + label top-aligned. We make the shell a column whose
+   body grows to fill it, then centre the icon-over-label stack
+   so every card reads identically regardless of label length.
+   ============================================================ */
+.home-shortcut.card {
+  display: flex;
+  flex-direction: column;
+}
+.home-shortcut > .card__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  text-align: center;
+  padding-block: var(--space-5);
+}
+
 .home-card-grip {
   display: inline-flex;
   cursor: grab;

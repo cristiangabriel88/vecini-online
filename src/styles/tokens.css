@@ -42,6 +42,11 @@
   --ease:        cubic-bezier(0.4, 0, 0.2, 1);     /* standard */
   --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1); /* gentle overshoot */
 
+  /* Durations — one lever to tune the whole feel */
+  --dur-fast: 160ms; /* hovers, focus, small state changes */
+  --dur:      260ms; /* default transitions, modals */
+  --dur-slow: 460ms; /* page entrances, large reveals */
+
   /* ── Spacing (8pt with 4pt half-step) ─────────────────── */
   --space-1: 4px;
   --space-2: 8px;
@@ -284,12 +289,15 @@ a { color: inherit; text-decoration: none; }
 *::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 999px; }
 *::-webkit-scrollbar-track { background: transparent; }
 
-/* Reduced motion */
+/* Reduced motion — reduce, not remove.
+   The previous rule collapsed every animation and transition to ~0ms, so the whole app went
+   instant for anyone whose OS reports prefers-reduced-motion (e.g. Windows "Animation effects"
+   off). Instead we keep the short, calm transitions and brief fades that make the UI feel
+   responsive and premium, and silence only the motion that can cause vestibular discomfort:
+   continuous parallax drift, springy overshoot, and decorative looping animation. */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.001ms !important;
-    transition-duration: 0.001ms !important;
-  }
+  :root { --ease-spring: cubic-bezier(0.4, 0, 0.2, 1); } /* drop the bounce/overshoot */
+  .iv-skel { animation: none !important; } /* decorative shimmer loop */
 }
 
 /* ── Utility primitives (tailwind-style atomic) ────────── */

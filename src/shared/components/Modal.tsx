@@ -1,4 +1,5 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type AnimationEvent, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 
@@ -8,11 +9,22 @@ interface ModalProps {
   title: string;
   children: ReactNode;
   footer?: ReactNode;
+  /** Visual width. `lg` is for richer, hero-style content. */
+  size?: 'md' | 'lg';
+  /** Drop the default title/header chrome so the caller can render its own hero.
+      A floating close button is still provided for dismissal + a11y. */
+  bare?: boolean;
 }
 
-export function Modal({ open, onClose, title, children, footer }: ModalProps) {
+export function Modal({ open, onClose, title, children, footer, size = 'md', bare = false }: ModalProps) {
   const { t } = useTranslation();
   const ref = useRef<HTMLDivElement>(null);
+  // Stay mounted through the close animation so the modal eases out instead of cutting instantly.
+  const [mounted, setMounted] = useState(open);
+
+  useEffect(() => {
+    if (open) setMounted(true);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -28,10 +40,18 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!mounted) return null;
 
-  return (
-    <div className="modal-overlay" onClick={onClose}>
+  const state = open ? 'open' : 'closing';
+  const handleAnimationEnd = (e: AnimationEvent<HTMLDivElement>) => {
+    if (!open && e.animationName === 'iv-modal-out') setMounted(false);
+  };
+
+  // Portal to the body so the fixed overlay escapes any ancestor that
+  // establishes a containing block (e.g. the topbar's backdrop-filter),
+  // which would otherwise trap the overlay under the navbar.
+  return createPortal(
+    <div className="modal-overlay" data-state={state} onClick={onClose}>
       <div
         ref={ref}
         role="dialog"
@@ -39,17 +59,31 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
         aria-label={title}
         tabIndex={-1}
         className="modal"
+        data-state={state}
+        data-size={size}
         onClick={(e) => e.stopPropagation()}
+        onAnimationEnd={handleAnimationEnd}
       >
-        <div className="modal__header">
-          <h2 className="modal__title">{title}</h2>
-          <button className="iconbtn" onClick={onClose} aria-label={t('common.close')} style={{ width: 32, height: 32 }}>
+        {bare ? (
+          <button
+            className="modal__close modal__close--floating"
+            onClick={onClose}
+            aria-label={t('common.close')}
+          >
             <X size={16} />
           </button>
-        </div>
-        <div className="modal__body">{children}</div>
+        ) : (
+          <div className="modal__header">
+            <h2 className="modal__title">{title}</h2>
+            <button className="iconbtn" onClick={onClose} aria-label={t('common.close')} style={{ width: 32, height: 32 }}>
+              <X size={16} />
+            </button>
+          </div>
+        )}
+        <div className={bare ? 'modal__body modal__body--bare' : 'modal__body'}>{children}</div>
         {footer && <div className="modal__footer">{footer}</div>}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

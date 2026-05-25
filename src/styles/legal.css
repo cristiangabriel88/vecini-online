@@ -457,12 +457,6 @@
   transform: translate(2px, -2px);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .login-lang__thumb,
-  .login-footer__credit svg {
-    transition: none;
-  }
-}
 
 .auth-link {
   color: var(--primary);

@@ -350,9 +350,10 @@
   align-items: center;
   justify-content: center;
   z-index: 100;
-  animation: iv-fade-in 180ms ease;
   padding: var(--space-4);
 }
+.modal-overlay[data-state="open"] { animation: iv-fade-in 180ms ease; }
+.modal-overlay[data-state="closing"] { animation: iv-fade-out 200ms ease forwards; }
 .modal {
   background: var(--bg-surface);
   border: 1px solid var(--border);
@@ -362,8 +363,34 @@
   max-width: 460px;
   max-height: calc(100vh - var(--space-8));
   overflow: auto;
-  animation: iv-modal-in 240ms cubic-bezier(.16,1,.3,1);
+  position: relative;
 }
+.modal[data-size="lg"] { max-width: 580px; }
+.modal[data-state="open"] { animation: iv-modal-in 240ms cubic-bezier(.16,1,.3,1); }
+.modal[data-state="closing"] { animation: iv-modal-out 200ms cubic-bezier(.4,0,1,1) forwards; }
+.modal__body--bare { padding: 0; }
+/* Floating dismiss for hero (bare) modals: glassy, sits over the hero band. */
+.modal__close--floating {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  border: 1px solid oklch(100% 0 0 / 0.18);
+  background: oklch(0% 0 0 / 0.16);
+  color: #fff;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: background 200ms var(--ease-out), transform 240ms var(--ease-spring);
+}
+.modal__close--floating:hover { background: oklch(0% 0 0 / 0.3); transform: rotate(90deg); }
+.modal__close--floating:active { transform: rotate(90deg) scale(0.9); }
 .modal__header {
   padding: var(--space-5) var(--space-5) var(--space-3);
   display: flex;
@@ -382,9 +409,14 @@
   background: var(--bg-sunken);
 }
 @keyframes iv-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes iv-fade-out { from { opacity: 1; } to { opacity: 0; } }
 @keyframes iv-modal-in {
   from { opacity: 0; transform: translateY(8px) scale(0.98); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes iv-modal-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(6px) scale(0.98); }
 }
 
 /* ── Tabs ──────────────────────────────────────────────── */

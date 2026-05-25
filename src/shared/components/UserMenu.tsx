@@ -13,7 +13,6 @@ import {
   ChevronRight,
   ArrowUpRight,
   MessageSquare,
-  Check,
 } from 'lucide-react';
 import { useTintStore, type Tint } from '@/shared/store/tintStore';
 import { useAuthStore } from '@/shared/store/authStore';
@@ -25,8 +24,9 @@ const USER_NAME = 'Andrei Popescu';
 const SUPPORT_EMAIL = 'contact@vecini.online';
 
 /* Accent tints offered in the menu. `swatch` is a vivid, readable
-   representative of each palette (a white check reads on all five);
-   the live app accents come from the [data-palette] blocks in tokens.css. */
+   representative of each palette; the selected tint is marked by an offset
+   ring in its own colour. The live app accents come from the [data-palette]
+   blocks in tokens.css. */
 const TINTS: { id: Tint; nameKey: string; swatch: string }[] = [
   { id: 'sage', nameKey: 'chrome.userMenu.tintSage', swatch: 'oklch(54% 0.1 140)' },
   { id: 'terracotta', nameKey: 'chrome.userMenu.tintTerracotta', swatch: 'oklch(58% 0.13 38)' },
@@ -185,9 +185,7 @@ export function UserMenu() {
                     title={t(tnt.nameKey)}
                     style={{ ['--swatch' as string]: tnt.swatch }}
                     onClick={() => setTint(tnt.id)}
-                  >
-                    <Check className="tintdot__check" size={12} strokeWidth={3} />
-                  </button>
+                  />
                 );
               })}
             </div>
@@ -236,22 +234,58 @@ export function UserMenu() {
       </div>
 
       {/* ── About ───────────────────────────────────────────── */}
-      <Modal open={modal === 'about'} onClose={() => setModal(null)} title={t('chrome.userMenu.aboutTitle')}>
-        <p className="usermodal__lead">{t('chrome.userMenu.aboutLead')}</p>
-        <p>{t('chrome.userMenu.aboutBody')}</p>
-        <div className="usermodal__meta">
-          <span>
-            {t('chrome.userMenu.aboutMaintained')}{' '}
-            <a
-              href="https://cristiangabriel.dev"
-              target="_blank"
-              rel="noreferrer"
-              style={{ color: 'var(--primary)', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 2 }}
-            >
-              cristiangabriel.dev <ArrowUpRight size={11} />
-            </a>
-          </span>
-          <span className="usermodal__ver">{t('chrome.userMenu.version')} 0.1.0</span>
+      <Modal
+        open={modal === 'about'}
+        onClose={() => setModal(null)}
+        title={t('chrome.userMenu.aboutTitle')}
+        size="lg"
+        bare
+      >
+        <div className="aboutcard__hero">
+          <div className="aboutcard__top">
+            <span className="aboutcard__logo" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 16 16" fill="none">
+                <path d="M3 13V6l5-3.5L13 6v7" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" />
+                <path d="M6.5 13V9.5h3V13" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" />
+              </svg>
+            </span>
+            <span className="aboutcard__word">
+              vecini<em>.online</em>
+            </span>
+          </div>
+          <p className="aboutcard__lead">{t('chrome.userMenu.aboutLead')}</p>
+        </div>
+
+        <div className="aboutcard__body">
+          <p className="aboutcard__desc">{t('chrome.userMenu.aboutBody')}</p>
+
+          <p className="aboutcard__caps">{t('chrome.userMenu.aboutFeaturesLabel')}</p>
+          <ul className="aboutcard__list">
+            {[
+              'capAnnouncements',
+              'capVotes',
+              'capTickets',
+              'capDocuments',
+              'capEvents',
+              'capDiscussions',
+              'capNotifications',
+              'capMeetings',
+            ].map((key, i) => (
+              <li className="aboutcard__feat" key={key} style={{ ['--i' as string]: i }}>
+                {t(`chrome.userMenu.${key}`)}
+              </li>
+            ))}
+          </ul>
+
+          <div className="aboutcard__foot">
+            <span className="aboutcard__by">
+              {t('chrome.userMenu.aboutMaintained')}
+              <a href="https://cristiangabriel.dev" target="_blank" rel="noreferrer">
+                cristiangabriel.dev <ArrowUpRight size={11} />
+              </a>
+            </span>
+            <span className="aboutcard__ver--foot">{t('chrome.userMenu.version')} 0.1.0</span>
+          </div>
         </div>
       </Modal>
 
