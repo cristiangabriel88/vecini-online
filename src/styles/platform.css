@@ -414,6 +414,22 @@
   border-radius: var(--radius-lg);
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
+  transition: transform 240ms var(--ease-out, cubic-bezier(.16, 1, .3, 1)),
+    border-color 240ms var(--ease-out, cubic-bezier(.16, 1, .3, 1)),
+    box-shadow 240ms var(--ease-out, cubic-bezier(.16, 1, .3, 1));
+}
+.platform-asoc-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border);
+  box-shadow: var(--shadow-md);
+}
+@media (prefers-reduced-motion: reduce) {
+  .platform-asoc-card {
+    transition: border-color 240ms ease;
+  }
+  .platform-asoc-card:hover {
+    transform: none;
+  }
 }
 .platform-asoc-card__head {
   display: flex;
@@ -545,6 +561,30 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+}
+/* Staggered rise-in for each field as the modal eases open. Children animate
+   in sequence so the form assembles itself rather than appearing all at once. */
+.platform-asoc-form__lead,
+.platform-asoc-form .field,
+.platform-asoc-form__note {
+  animation: platform-asoc-rise 420ms var(--ease-out, cubic-bezier(.16, 1, .3, 1)) both;
+}
+.platform-asoc-form__lead { animation-delay: 40ms; }
+.platform-asoc-form .field:nth-child(1) { animation-delay: 90ms; }
+.platform-asoc-form .field:nth-child(2) { animation-delay: 140ms; }
+.platform-asoc-form .field:nth-child(3) { animation-delay: 190ms; }
+.platform-asoc-form .field:nth-child(4) { animation-delay: 240ms; }
+.platform-asoc-form__note { animation-delay: 300ms; }
+@keyframes platform-asoc-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .platform-asoc-form__lead,
+  .platform-asoc-form .field,
+  .platform-asoc-form__note {
+    animation: none;
+  }
 }
 .platform-asoc-form__lead {
   margin: 0 0 var(--space-4);

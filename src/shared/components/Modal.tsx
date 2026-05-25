@@ -22,6 +22,15 @@ export function Modal({ open, onClose, title, children, footer, size = 'md', bar
   // Stay mounted through the close animation so the modal eases out instead of cutting instantly.
   const [mounted, setMounted] = useState(open);
 
+  // Keep the latest onClose in a ref so the open-effect below does not depend on it.
+  // Callers pass inline arrows (`() => setX(false)`), so onClose changes every render;
+  // depending on it would re-run the effect on every keystroke and steal focus from
+  // whatever input the user is typing in by refocusing the dialog container.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
   useEffect(() => {
     if (open) setMounted(true);
   }, [open]);
@@ -29,16 +38,17 @@ export function Modal({ open, onClose, title, children, footer, size = 'md', bar
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') onCloseRef.current();
     };
     document.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';
+    // Move focus into the dialog once, on open, for accessibility.
     ref.current?.focus();
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = '';
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!mounted) return null;
 
