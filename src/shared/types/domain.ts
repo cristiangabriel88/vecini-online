@@ -65,6 +65,16 @@ export interface Membership {
   ended_at: string | null;
 }
 
+/** A resident manually recorded on an apartment by the admin. Lives embedded on
+ *  the apartment (jsonb) so the building can be configured before any of these
+ *  people hold an account; account-linked residency stays in apartment_residents. */
+export interface ApartmentPerson {
+  id: string;
+  name: string;
+  role: 'proprietar' | 'chirias' | 'locator';
+  is_primary: boolean;
+}
+
 export interface Apartment {
   id: string;
   asociatie_id: string;
@@ -73,7 +83,10 @@ export interface Apartment {
   numar_apartament: string;
   suprafata_utila: number | null;
   cota_parte_indiviza: number | null;
+  /** Headline occupant count, editable independently of the person list. */
   numar_persoane: number;
+  /** Named occupants the admin has recorded for this apartment. */
+  persons: ApartmentPerson[];
   proprietar_principal_name: string | null;
   is_active: boolean;
   notes: string | null;

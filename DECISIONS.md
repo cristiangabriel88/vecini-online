@@ -995,3 +995,35 @@ The audit trail records state changes across features (actor, time, before/after
   `moveCustomField` ordering op backs accessible, keyboard-friendly up/down
   controls. True pointer/touch drag-reorder sits on the same ops as a UI
   enhancement and is queued (T105) rather than blocking the feature.
+
+## T114 — Admin apartment registry + building settings (add / configure / edit)
+
+- **Named occupants live embedded on the apartment (`persons` jsonb), separate
+  from `apartment_residents`.** The admin configures the building's units before
+  any resident holds an account, so each apartment carries a `persons` list
+  ({ id, name, role, is_primary }) the admin edits directly. The existing
+  `apartment_residents` table stays for account-linked residency (keyed by
+  `user_id`) as a later live-activation path. `numar_persoane` remains the
+  editable headline count: it defaults to the named-person count when the admin
+  leaves it blank, but an explicit value always wins, because some occupants are
+  unregistered or absent. The migration is additive + idempotent and writes are
+  already covered by the existing "admins write apartments" RLS policy, so no new
+  policy was needed.
+- **Editing an apartment is a dedicated page (`/app/admin/apartamente/:id`), not a
+  modal.** Per the user's request: owners and occupants change over time, and a
+  full page hosts the person-list editor comfortably. First-time setup uses a
+  pick-a-count grid at `/app/admin/apartamente/adauga` (enter N, fill N rows,
+  add/remove rows, save all). The list page shows a first-setup CTA when empty.
+- **Building profile is editable via a self-contained `asociatieStore`, not by
+  expanding `authStore`.** The asociație is otherwise stored only as a minimal
+  `{ id, name }` offline; the new store keeps admin profile edits keyed by
+  asociație id (seeded from `DEMO_ASOCIATIE`), exposes `useCurrentAsociatie()`,
+  and mirrors to `asociatii` when configured. Stairwells (`scari`) are kept in the
+  flexible `Asociatie.settings` bag rather than a new column.
+- **Dual-mode persistence via a thin repository (`apartmentsApi.ts`) over a
+  persisted zustand store, not react-query.** The store is the synchronous source
+  of truth the UI reads (so demo works offline and survives reload); the
+  repository applies each mutation there and, when `isSupabaseConfigured`, mirrors
+  it to the `apartments` table best-effort and hydrates reads back into the store
+  on mount. This matches the existing `auditStore` mirroring strategy and avoids
+  introducing react-query as the only consumer in the app.

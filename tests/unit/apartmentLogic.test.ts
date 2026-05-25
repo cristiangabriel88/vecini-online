@@ -29,6 +29,7 @@ const apt: Apartment = {
   suprafata_utila: 63.8,
   cota_parte_indiviza: 0.048,
   numar_persoane: 3,
+  persons: [],
   proprietar_principal_name: 'Popescu Andrei',
   is_active: true,
   notes: null,

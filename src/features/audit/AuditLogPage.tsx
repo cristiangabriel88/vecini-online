@@ -37,6 +37,10 @@ const ACTION_TONE: Record<AuditAction, 'success' | 'danger' | 'warning' | 'neutr
   'breach.recorded': 'warning',
   'breach.advanced': 'warning',
   'announcement.published': 'success',
+  'apartment.created': 'success',
+  'apartment.updated': 'neutral',
+  'apartment.deleted': 'danger',
+  'building.updated': 'neutral',
 };
 
 /** Trigger a client-side download of a text document. */

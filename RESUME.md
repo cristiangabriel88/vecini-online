@@ -18,8 +18,24 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-24, T112 in-app AAL2 step-up)
+## 0. Current status (updated 2026-05-25, T114 admin apartment registry)
 
+- **2026-05-25 — T114 (P1) Admin apartment registry (add / configure / edit) +
+  building settings.** The admin apartments area is now a full CRUD registry
+  instead of a read-only list of `DEMO_APARTMENTS`. First-login empty state leads
+  to a bulk-add grid (pick a count, fill entrance/floor/number/owner/area/
+  cota-parte/people); each row has a pencil to a dedicated edit page
+  (`/app/admin/apartamente/:id`) with a named-occupant list editor alongside the
+  editable `numar_persoane` count; the building profile is editable at
+  `/app/admin/cladire`. New `src/features/admin/` data layer: pure
+  `apartmentsLogic` (zod), a persisted `apartmentsStore` seeded from demo, a
+  dual-mode `apartmentsApi` repository (store + best-effort Supabase mirror), and
+  a self-contained `asociatieStore` for the building profile. Apartment model
+  gained `persons` (jsonb migration `20260525000001`, covered by existing RLS).
+  Audit + bilingual strings extended. Pipeline green: lint, typecheck,
+  115 files / 834 tests, build. Follow-ups queued: T115 (live Supabase
+  activation), T116 (CSV import round-trips occupants), T117 (reconcile `persons`
+  with `apartment_residents`).
 - **2026-05-24 — T112 (P2) Let a re-gated enrolled-but-AAL1 session complete the
   step-up in-app.** Closed the gap left by T102: the AAL2 re-gate steers an
   enrolled-but-AAL1 privileged session to `/app/securitate`, but that page only

@@ -277,6 +277,15 @@ Each feature follows this structure:
 - **Acceptance:** Owner sees only their apartment. Co-owners see shared view.
 - **Telegram:** `/apartament_meu`.
 - **Data:** views across `apartments`, `meter_readings`, `tickets`, `votes`
+- **Admin registry (T114) ✅:** the admin side is now a full CRUD registry, not a
+  read-only list. `/app/admin/apartamente` lists units with per-row edit (pencil to
+  `/app/admin/apartamente/:id`) and delete; a first-login empty state leads to a
+  bulk-add grid (`/app/admin/apartamente/adauga`) where the admin picks a count and
+  fills entrance / floor / number / owner / area / cota-parte / people. Each
+  apartment carries a named-occupant list (`persons`) plus the editable
+  `numar_persoane` count. The building/association profile is editable at
+  `/app/admin/cladire`. Works offline (persisted demo store) with a live Supabase
+  path active when configured (T115).
 
 ### F36 — Locator directory
 - **Audience:** all residents (opt-in)

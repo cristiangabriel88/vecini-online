@@ -36,6 +36,10 @@ export const AUDIT_ACTIONS = [
   'breach.recorded',
   'breach.advanced',
   'announcement.published',
+  'apartment.created',
+  'apartment.updated',
+  'apartment.deleted',
+  'building.updated',
 ] as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
@@ -47,6 +51,8 @@ export const AUDIT_ENTITIES = [
   'dsr',
   'breach',
   'announcement',
+  'apartment',
+  'building',
 ] as const;
 
 export type AuditEntity = (typeof AUDIT_ENTITIES)[number];
