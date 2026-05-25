@@ -65,7 +65,7 @@ export const FEATURE_COMMANDS: Record<string, string> = {
   '/strain': '👀 Vizitatori observați — raportează rapid o persoană suspectă în secțiunea „Vizitatori”.',
   '/marketplace': '🛍 Marketplace intern — vinde sau donează obiecte vecinilor în secțiunea „Marketplace”.',
   '/marketplace_vand': '🛍 Pentru a publica un anunț de vânzare, deschide „Marketplace” și apasă „Anunț nou”.',
-  '/feedback': '💬 Feedback — trimite-ne o părere despre aplicația IntreVecini din secțiunea „Feedback”.',
+  '/feedback': '💬 Feedback — trimite-ne o părere despre aplicația vecini.online din secțiunea „Feedback”.',
   '/documente': '📄 Documente — caută statutul, regulamentul și contractele asociației în secțiunea „Documente”.',
   '/furnizori': '🏢 Furnizori — vezi furnizorii și termenele contractelor în secțiunea „Furnizori” (comitet).',
   '/boxe': '📦 Boxe — vezi cine deține fiecare boxă sau dependință în secțiunea „Boxe”.',

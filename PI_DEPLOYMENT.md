@@ -1,9 +1,14 @@
-# PI_DEPLOYMENT.md — self-hosting IntreVecini on a Raspberry Pi
+# PI_DEPLOYMENT.md — self-hosting vecini.online on a Raspberry Pi
 
-This guide describes the first-class self-hosted deployment path for IntreVecini
+This guide describes the first-class self-hosted deployment path for vecini.online
 on a Raspberry Pi (or any Debian-based single board / mini PC). It runs the same
 codebase as the Netlify + Supabase cloud deployment; nothing here breaks cloud
 compatibility, and demo/offline mode keeps working.
+
+> Conventions used below (match your Pi): the app lives at
+> `/home/cristi/vecini.online`, run by the `cristi` user; the systemd units are
+> `vecini-online.service` (frontend) and `vecini-online-telegram.service`
+> (webhook); a redeploy is automated by `/home/cristi/bin/deploy-vecini-online`.
 
 The Pi deployment is built from three long-lived pieces:
 
@@ -49,8 +54,9 @@ supabase --version
 ## 2. Get the code and configure env
 
 ```bash
-git clone https://github.com/cristiangabriel88/IntreVecini.git
-cd IntreVecini
+# Clone into the preferred local path used by the systemd units below.
+git clone https://github.com/cristiangabriel88/IntreVecini.git /home/cristi/vecini.online
+cd /home/cristi/vecini.online
 npm ci
 cp .env.pi.example .env
 # edit .env: paste the local Supabase keys, bot token, webhook secret, URLs
@@ -110,18 +116,18 @@ Create two unit files. Adjust `User`, `WorkingDirectory` and paths to your
 install. The app is served by `vite preview` on 4173; the webhook runs the
 bundled Node service.
 
-`/etc/systemd/system/vecini-app.service`:
+`/etc/systemd/system/vecini-online.service`:
 
 ```ini
 [Unit]
-Description=IntreVecini frontend (vite preview)
+Description=vecini.online frontend (vite preview)
 After=network.target
 
 [Service]
 Type=simple
-User=pi
-WorkingDirectory=/home/pi/IntreVecini
-EnvironmentFile=/home/pi/IntreVecini/.env
+User=cristi
+WorkingDirectory=/home/cristi/vecini.online
+EnvironmentFile=/home/cristi/vecini.online/.env
 ExecStart=/usr/bin/npm run preview -- --host --port 4173
 Restart=on-failure
 RestartSec=5
@@ -130,18 +136,18 @@ RestartSec=5
 WantedBy=multi-user.target
 ```
 
-`/etc/systemd/system/vecini-telegram.service`:
+`/etc/systemd/system/vecini-online-telegram.service`:
 
 ```ini
 [Unit]
-Description=IntreVecini Telegram webhook service
+Description=vecini.online Telegram webhook service
 After=network.target
 
 [Service]
 Type=simple
-User=pi
-WorkingDirectory=/home/pi/IntreVecini
-EnvironmentFile=/home/pi/IntreVecini/.env
+User=cristi
+WorkingDirectory=/home/cristi/vecini.online
+EnvironmentFile=/home/cristi/vecini.online/.env
 ExecStart=/usr/bin/node dist-server/telegram-server.mjs
 Restart=on-failure
 RestartSec=5
@@ -154,14 +160,30 @@ Enable and start:
 
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable --now vecini-app vecini-telegram
+sudo systemctl enable --now vecini-online vecini-online-telegram
 npm run pi:start            # convenience wrapper around systemctl start
 npm run pi:logs             # journalctl -f for both services
 npm run pi:stop             # stop both
 ```
 
-> The service names default to `vecini-app` and `vecini-telegram`. Override with
-> `VECINI_APP_SERVICE` / `VECINI_TELEGRAM_SERVICE` env vars if you rename them.
+> The service names default to `vecini-online` and `vecini-online-telegram`.
+> Override with `VECINI_APP_SERVICE` / `VECINI_TELEGRAM_SERVICE` env vars if you
+> rename them.
+
+### One-command redeploy
+
+`/home/cristi/bin/deploy-vecini-online` automates a pull + build + restart on the
+Pi. A minimal version:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+cd /home/cristi/vecini.online
+git pull --ff-only
+npm ci
+npm run pi:build
+sudo systemctl restart vecini-online vecini-online-telegram
+```
 
 ### Reverse proxy + Telegram webhook registration
 
@@ -228,6 +250,12 @@ only on a trusted network, since it removes the mandatory-MFA guarantee.
 > Demo/offline mode is never gated regardless of this setting (it has no real
 > backend role).
 
+The local admin account (e.g. `admin@vecini.online`, whose generated password is
+stored on the Pi at `~/.config/vecini.online/local-admin-credentials.txt`) is a
+normal Supabase user; the relaxed setting above is what lets it browse the app
+after login without first completing MFA. The admin email is configuration, not
+code — it is never hardcoded in the app.
+
 ## Environment variables
 
 | Variable | Purpose |
@@ -278,7 +306,7 @@ psql "$SUPABASE_DB_URL" -f backup-2026-05-25.sql
 ```
 
 Notes:
-- Stop `vecini-app`/`vecini-telegram` during a restore to avoid writes mid-restore.
+- Stop `vecini-online`/`vecini-online-telegram` during a restore to avoid writes mid-restore.
 - If `VITE_STORAGE_MODE=local`, also back up the filesystem directory that holds
   uploaded objects.
 - Keep at least one off-Pi copy (rsync/scp to another machine or cloud bucket).

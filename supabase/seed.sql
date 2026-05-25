@@ -1,4 +1,4 @@
--- IntreVecini — development seed data (realistic Romanian sample).
+-- vecini.online — development seed data (realistic Romanian sample).
 -- Loaded only via `npx supabase db seed` / `DEV_LOAD_SEED=true`. Not for prod.
 
 insert into asociatii (id, name, slug, address, cui, registration_number, branding)

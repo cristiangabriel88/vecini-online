@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Raspberry Pi / self-hosted deployment helper for IntreVecini.
+# Raspberry Pi / self-hosted deployment helper for vecini.online.
 #
 # Wraps the systemd services and the local Supabase stack so the npm `pi:*`
 # scripts stay short. Designed to run on the Pi itself (Debian/Raspberry Pi OS).
@@ -11,17 +11,17 @@
 #   ./scripts/pi.sh logs      Follow both services' logs (journalctl).
 #   ./scripts/pi.sh migrate   Apply pending Supabase migrations to the local DB.
 #
-# Service names (see PI_DEPLOYMENT.md): vecini-app (Vite preview) and
-# vecini-telegram (Node webhook service). Both are installed as user units or
-# system units depending on your setup; this script targets system units via
-# sudo and falls back to a clear message when systemd is unavailable.
+# Service names (see PI_DEPLOYMENT.md): vecini-online (Vite preview) and
+# vecini-online-telegram (Node webhook service). Both are installed as user
+# units or system units depending on your setup; this script targets system
+# units via sudo and falls back to a clear message when systemd is unavailable.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-APP_SERVICE="${VECINI_APP_SERVICE:-vecini-app}"
-TG_SERVICE="${VECINI_TELEGRAM_SERVICE:-vecini-telegram}"
+APP_SERVICE="${VECINI_APP_SERVICE:-vecini-online}"
+TG_SERVICE="${VECINI_TELEGRAM_SERVICE:-vecini-online-telegram}"
 
 have() { command -v "$1" >/dev/null 2>&1; }
 
