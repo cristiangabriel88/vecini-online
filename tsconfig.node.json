@@ -14,5 +14,5 @@
     "noUnusedParameters": true,
     "types": ["node"]
   },
-  "include": ["vite.config.ts", "netlify/functions", "tests/e2e", "playwright.config.ts"]
+  "include": ["vite.config.ts", "netlify/functions", "server", "tests/e2e", "playwright.config.ts"]
 }

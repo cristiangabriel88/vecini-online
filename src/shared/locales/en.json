@@ -878,7 +878,13 @@
     "version": "version {{n}}",
     "searchPlaceholder": "Search by title or content…",
     "added": "Document added.",
-    "empty": "No documents found. Adjust the filters or add a new one."
+    "empty": "No documents found. Adjust the filters or add a new one.",
+    "attachmentsUnavailable": "File attachments are unavailable in this deployment, so documents are stored as searchable text only. You can still add titles, categories and descriptions."
+  },
+  "fileStorage": {
+    "unavailableTitle": "File storage unavailable",
+    "unavailableDisabled": "File uploads are turned off for this self-hosted deployment. Storage-backed features are available as text only.",
+    "unavailableUnconfigured": "File uploads need a configured storage backend. Running in offline/demo mode, so uploads are disabled."
   },
   "suppliers": {
     "title": "Suppliers",

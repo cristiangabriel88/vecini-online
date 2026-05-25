@@ -12,7 +12,13 @@
     "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "build:server": "node scripts/build-server.mjs",
+    "pi:build": "bash scripts/pi.sh build",
+    "pi:start": "bash scripts/pi.sh start",
+    "pi:stop": "bash scripts/pi.sh stop",
+    "pi:logs": "bash scripts/pi.sh logs",
+    "pi:migrate": "bash scripts/pi.sh migrate"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { FileText, Plus } from 'lucide-react';
+import { FileText, Plus, Info } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
@@ -11,6 +11,7 @@ import { Select } from '@/shared/components/Select';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Modal } from '@/shared/components/Modal';
 import { formatDate } from '@/shared/lib/format';
+import { isStorageAvailable } from '@/shared/lib/storage';
 import { useDocumentsStore } from './documentsStore';
 import { DOCUMENT_CATEGORIES, isValidDocument, searchDocuments } from './documentLogic';
 
@@ -48,6 +49,13 @@ export default function DocumentsPage() {
           </Button>
         }
       />
+
+      {!isStorageAvailable && (
+        <Card className="mb-4 flex items-start gap-3 p-4 text-sm text-muted">
+          <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+          <p>{t('documents.attachmentsUnavailable')}</p>
+        </Card>
+      )}
 
       <div className="mb-4 flex flex-wrap gap-3">
         <Input

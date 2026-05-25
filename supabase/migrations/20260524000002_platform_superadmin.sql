@@ -39,6 +39,22 @@ create table if not exists platform_admins (
 
 alter table platform_admins enable row level security;
 
+-- ── Helper: is the current user a platform superadmin? ───────────────────────
+-- Platform-wide (no asociatie argument), mirroring is_member/has_role: security
+-- definer + fixed search_path so a malicious search_path cannot shadow
+-- platform_admins, and so the helper reads the roster regardless of RLS (the
+-- same definer pattern is_member relies on for memberships).
+--
+-- Defined BEFORE any policy references it: a policy whose USING clause calls a
+-- not-yet-created function fails at apply time, so on a fresh `supabase db
+-- reset` the helper must come first.
+create or replace function is_super_admin()
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from platform_admins p where p.user_id = auth.uid()
+  );
+$$;
+
 -- Only a platform admin may read the roster; no insert/update/delete policy
 -- exists for anyone, so the roster can only be changed by the service role
 -- (which bypasses RLS) inside the T92 provisioning function. A normal user can
@@ -46,18 +62,6 @@ alter table platform_admins enable row level security;
 drop policy if exists "super admin read platform admins" on platform_admins;
 create policy "super admin read platform admins" on platform_admins for select
   using (is_super_admin());
-
--- ── Helper: is the current user a platform superadmin? ───────────────────────
--- Platform-wide (no asociatie argument), mirroring is_member/has_role: security
--- definer + fixed search_path so a malicious search_path cannot shadow
--- platform_admins, and so the helper reads the roster regardless of RLS (the
--- same definer pattern is_member relies on for memberships).
-create or replace function is_super_admin()
-returns boolean language sql stable security definer set search_path = public as $$
-  select exists (
-    select 1 from platform_admins p where p.user_id = auth.uid()
-  );
-$$;
 
 -- ── Cross-tenant READ for the platform console ───────────────────────────────
 -- Each is an additional permissive SELECT policy gated on is_super_admin(). It

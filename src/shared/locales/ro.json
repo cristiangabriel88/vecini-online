@@ -880,7 +880,13 @@
     "version": "versiunea {{n}}",
     "searchPlaceholder": "Caută după titlu sau conținut…",
     "added": "Document adăugat.",
-    "empty": "Niciun document găsit. Modifică filtrele sau adaugă unul nou."
+    "empty": "Niciun document găsit. Modifică filtrele sau adaugă unul nou.",
+    "attachmentsUnavailable": "Atașamentele de fișiere nu sunt disponibile în această instalare, așa că documentele sunt păstrate doar ca text căutabil. Poți adăuga în continuare titluri, categorii și descrieri."
+  },
+  "fileStorage": {
+    "unavailableTitle": "Stocarea fișierelor indisponibilă",
+    "unavailableDisabled": "Încărcarea fișierelor este dezactivată pentru această instalare găzduită local. Funcțiile bazate pe stocare sunt disponibile doar ca text.",
+    "unavailableUnconfigured": "Încărcarea fișierelor necesită un backend de stocare configurat. Aplicația rulează în mod offline/demo, deci încărcările sunt dezactivate."
   },
   "suppliers": {
     "title": "Furnizori",
