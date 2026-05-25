@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import {
   Activity,
   Building2,
@@ -14,7 +15,7 @@ import { usePlatformAuthStore } from './platformAuthStore';
 import { DEMO_PLATFORM_ADMIN, DEMO_PLATFORM_ASOCIATII, platformTotals } from './demoPlatform';
 
 const SECTION_CARDS = [
-  { key: 'asociatii', icon: Building2 },
+  { key: 'asociatii', icon: Building2, path: '/consola/asociatii' },
   { key: 'audit', icon: ScrollText },
   { key: 'errors', icon: TriangleAlert },
   { key: 'usage', icon: Activity },
@@ -70,20 +71,34 @@ export default function PlatformHomePage() {
           {t('platform.home.sectionsTitle')}
         </h2>
         <div className="platform-sectiongrid">
-          {SECTION_CARDS.map((c) => (
-            <article key={c.key} className="platform-sectioncard">
-              <span className="platform-sectioncard__icon" aria-hidden="true">
-                <c.icon size={18} />
-              </span>
-              <div className="platform-sectioncard__body">
-                <div className="platform-sectioncard__head">
-                  <h3 className="platform-sectioncard__title">{t(`platform.sections.${c.key}.title`)}</h3>
-                  <span className="platform-sectioncard__badge">{t('platform.sections.planned')}</span>
+          {SECTION_CARDS.map((c) => {
+            const path = 'path' in c ? c.path : undefined;
+            const body = (
+              <>
+                <span className="platform-sectioncard__icon" aria-hidden="true">
+                  <c.icon size={18} />
+                </span>
+                <div className="platform-sectioncard__body">
+                  <div className="platform-sectioncard__head">
+                    <h3 className="platform-sectioncard__title">{t(`platform.sections.${c.key}.title`)}</h3>
+                    {!path && (
+                      <span className="platform-sectioncard__badge">{t('platform.sections.planned')}</span>
+                    )}
+                  </div>
+                  <p className="platform-sectioncard__desc">{t(`platform.sections.${c.key}.desc`)}</p>
                 </div>
-                <p className="platform-sectioncard__desc">{t(`platform.sections.${c.key}.desc`)}</p>
-              </div>
-            </article>
-          ))}
+              </>
+            );
+            return path ? (
+              <Link key={c.key} to={path} className="platform-sectioncard platform-sectioncard--link">
+                {body}
+              </Link>
+            ) : (
+              <article key={c.key} className="platform-sectioncard">
+                {body}
+              </article>
+            );
+          })}
         </div>
       </section>
 

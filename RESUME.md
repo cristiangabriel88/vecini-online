@@ -18,8 +18,29 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-25, T93 separate superadmin app shell)
+## 0. Current status (updated 2026-05-25, T94 superadmin asociații + admin provisioning)
 
+- **2026-05-25 — T94 (P2) Superadmin console: asociații + admin provisioning.**
+  The first console page (`/consola/asociatii`) lists every asociație
+  (members/apartments counts, active/dormant signal, last-admin-sign-in) and
+  provisions a new asociație with its first administrator. New pure, unit-tested
+  `platformProvisioningLogic.ts` (`validateProvisionInput` with per-field error
+  codes + a trimmed request; `provisionAsociatie` minting a one-time setup code
+  via the shared `generateInviteCode`, collision-safe; `sortAsociatii`;
+  `isDormant`/`daysSince`). New persisted `platformAsociatiiStore` seeded from
+  the T93 demo dataset: `provision` adds the summary, records the provisioned
+  admin (name/email/setup code) keyed by asociație, and audits the provisioning
+  as the genesis of the new asociație's tamper-evident chain
+  (`asociatie.provisioned` + `admin.provisioned`, surfacing in T09 + the T95
+  viewer). New `PlatformAsociatiiPage` (card grid + provisioning modal with
+  inline validation + a setup-code handoff modal), wired into the router +
+  sidebar; the home overview's asociații card now links. The privileged live
+  write stays the T92 service-role function; the live cross-tenant list read is
+  the new T120. Bilingual RO/EN, premium-feel, offline-first. Decision in
+  `DECISIONS.md`. Pipeline green: lint, typecheck, 119 files / 883 tests, build
+  (both HTML entries + a code-split `PlatformAsociatiiPage` chunk). Surfaced T120
+  (live activation: cross-tenant list read + server-mediated provision) and T121
+  (E2E for the provisioning console).
 - **2026-05-25 — T93 (P2) Separate superadmin app shell (own build +
   subdomain).** Stood up the platform/superadmin console as its own front-end
   under `src/platform/*`, built as a second Vite page: `platform.html` →

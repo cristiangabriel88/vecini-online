@@ -2238,7 +2238,9 @@
       "apartment.created": "Apartment added",
       "apartment.updated": "Apartment updated",
       "apartment.deleted": "Apartment deleted",
-      "building.updated": "Building details updated"
+      "building.updated": "Building details updated",
+      "asociatie.provisioned": "Association provisioned",
+      "admin.provisioned": "Administrator provisioned"
     },
     "entity": {
       "feature": "Feature",
@@ -2247,7 +2249,9 @@
       "breach": "Breach",
       "announcement": "Announcement",
       "apartment": "Apartment",
-      "building": "Building"
+      "building": "Building",
+      "asociatie": "Association",
+      "admin": "Administrator"
     }
   },
   "chrome": {
@@ -2398,6 +2402,55 @@
         "title": "Admin messenger",
         "desc": "A two-way support thread between association admins and platform operators."
       }
+    },
+    "asociatii": {
+      "title": "Associations",
+      "subtitle": "List the platform's associations and provision a new one with its first administrator. The admin then onboards their residents through invite codes.",
+      "provisionCta": "Provision new association",
+      "provisionTitle": "Provision association",
+      "provisionLead": "Create the association and provision its first administrator's account. The operator does not add residents; the admin onboards them afterwards.",
+      "fields": {
+        "asociatieName": "Association name",
+        "asociatieNamePlaceholder": "Owners' Association ...",
+        "city": "City",
+        "cityPlaceholder": "Bucharest",
+        "adminName": "Administrator name",
+        "adminNamePlaceholder": "Full name",
+        "adminEmail": "Administrator email",
+        "adminEmailPlaceholder": "administrator@example.com"
+      },
+      "err": {
+        "required": "Required field",
+        "tooShort": "Too short",
+        "email": "Invalid email address"
+      },
+      "submit": "Provision",
+      "cancel": "Cancel",
+      "success": "Association “{{name}}” provisioned",
+      "liveNote": "Live provisioning creates the administrator's account through the platform's secure server (verified server-side).",
+      "demoNote": "In demo mode we generate a setup code you hand to the administrator to complete their account.",
+      "listTitle": "Associations on the platform",
+      "count_one": "{{count}} association",
+      "count_other": "{{count}} associations",
+      "empty": "No associations yet. Provision the first one to get started.",
+      "members_one": "{{count}} member",
+      "members_other": "{{count}} members",
+      "apartments_one": "{{count}} apartment",
+      "apartments_other": "{{count}} apartments",
+      "lastSignIn": "Last admin sign-in: {{date}}",
+      "neverSignedIn": "Administrator has not signed in yet",
+      "dormant": "Dormant",
+      "active": "Active",
+      "adminLabel": "Administrator",
+      "pendingSetup": "Setup pending",
+      "setupCodeLabel": "Setup code",
+      "provisionedOn": "Provisioned on {{date}}",
+      "resultTitle": "Association provisioned",
+      "resultBody": "Hand the administrator “{{name}}” the setup code below to complete their account.",
+      "copyCode": "Copy code",
+      "copied": "Code copied",
+      "copyFailed": "Could not copy the code",
+      "done": "Done"
     }
   }
 }

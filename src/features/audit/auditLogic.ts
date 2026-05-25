@@ -40,6 +40,8 @@ export const AUDIT_ACTIONS = [
   'apartment.updated',
   'apartment.deleted',
   'building.updated',
+  'asociatie.provisioned',
+  'admin.provisioned',
 ] as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
@@ -53,6 +55,8 @@ export const AUDIT_ENTITIES = [
   'announcement',
   'apartment',
   'building',
+  'asociatie',
+  'admin',
 ] as const;
 
 export type AuditEntity = (typeof AUDIT_ENTITIES)[number];

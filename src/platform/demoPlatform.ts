@@ -15,8 +15,9 @@ export interface PlatformAsociatieSummary {
   members: number;
   /** Apartments configured in the asociație's registry. */
   apartments: number;
-  /** ISO date of the most recent admin sign-in (drives the dormant signal). */
-  lastAdminSignInAt: string;
+  /** ISO date of the most recent admin sign-in, or null if the admin has never
+   *  signed in yet (a freshly provisioned asociație). Drives the dormant signal. */
+  lastAdminSignInAt: string | null;
 }
 
 /** The signed-in demo platform operator (a fictional SaaS owner account). */

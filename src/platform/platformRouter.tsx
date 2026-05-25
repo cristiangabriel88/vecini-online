@@ -7,6 +7,7 @@ import { PlatformLayout } from './PlatformLayout';
 
 const PlatformLoginPage = lazy(() => import('./PlatformLoginPage'));
 const PlatformHomePage = lazy(() => import('./PlatformHomePage'));
+const PlatformAsociatiiPage = lazy(() => import('./PlatformAsociatiiPage'));
 
 function S({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<SkeletonList rows={4} />}>{children}</Suspense>;
@@ -21,10 +22,13 @@ export const platformRouter = createBrowserRouter([
         <PlatformLayout />
       </RequirePlatformAdmin>
     ),
-    children: [{ index: true, element: <S><PlatformHomePage /></S> }],
+    children: [
+      { index: true, element: <S><PlatformHomePage /></S> },
+      { path: 'asociatii', element: <S><PlatformAsociatiiPage /></S> },
+    ],
   },
-  // The console pages (asociații, audit, errors, usage, impersonation, messenger)
-  // mount under /consola as they land (T94-T99). Until then any unknown path
+  // The remaining console pages (audit, errors, usage, impersonation, messenger)
+  // mount under /consola as they land (T95-T99). Until then any unknown path
   // returns to the overview rather than a dead end.
   { path: '*', element: <Navigate to="/consola" replace /> },
 ]);

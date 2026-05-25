@@ -2,6 +2,35 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## Superadmin provisioning is offline-local + audited into the new asociație's chain; live write deferred to T92 (T94)
+
+The first console page (asociații + admin provisioning) had to work fully
+offline, but the privileged act it performs — creating an asociație and the
+admin's auth account across tenants — cannot run in the browser (the client is
+never trusted with `super_admin`; see CLAUDE.md). Three choices reconciled that:
+
+- **Build the offline/local path now, defer the privileged live write to T92.**
+  Per the MVP split rule, `platformAsociatiiStore.provision` mutates a persisted
+  local store (seeded from the T93 demo dataset). Offline there is no auth
+  backend, so "provisioning the admin" mints a one-time **setup code** (the same
+  unambiguous `generateInviteCode` used for tenant invites, regenerated on
+  collision) that the operator hands to the new admin to complete sign-up. The
+  live path — a service-role Netlify function that re-verifies `super_admin`
+  server-side, creates the asociație + the admin's auth user, and the live
+  cross-tenant list read under T91 RLS — is queued as T92 / T120, not faked in
+  the client, so a live environment never gets a phantom local-only asociație.
+- **Audit the provisioning as the genesis of the new asociație's own chain.** A
+  provisioning event is recorded via `useAuditStore.record` against the *new*
+  asociație id (not a platform-global log), as two entries
+  (`asociatie.provisioned`, `admin.provisioned`) with the live operator (or the
+  demo operator offline) as actor. So it appears in both that asociație's T09
+  trail and the T95 cross-asociație viewer, and `recordAudit`'s active-asociație
+  resolution (which is null in the platform app) is deliberately bypassed.
+- **The operator provisions admins, never residents.** The page only creates an
+  asociație + its first admin; that admin onboards their own residents through
+  the existing invite lifecycle (T41/T42). This keeps the platform tier's blast
+  radius minimal and matches the F-helper spec.
+
 ## In-app AAL2 step-up on the security page + AAL re-resolved per navigation (T112)
 
 T102 re-gates an enrolled-but-AAL1 privileged session to `/app/securitate`, but

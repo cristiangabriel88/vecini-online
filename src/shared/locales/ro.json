@@ -2240,7 +2240,9 @@
       "apartment.created": "Apartament adăugat",
       "apartment.updated": "Apartament actualizat",
       "apartment.deleted": "Apartament șters",
-      "building.updated": "Date clădire actualizate"
+      "building.updated": "Date clădire actualizate",
+      "asociatie.provisioned": "Asociație provizionată",
+      "admin.provisioned": "Administrator provizionat"
     },
     "entity": {
       "feature": "Funcționalitate",
@@ -2249,7 +2251,9 @@
       "breach": "Incident",
       "announcement": "Anunț",
       "apartment": "Apartament",
-      "building": "Clădire"
+      "building": "Clădire",
+      "asociatie": "Asociație",
+      "admin": "Administrator"
     }
   },
   "chrome": {
@@ -2400,6 +2404,58 @@
         "title": "Mesaje cu administratorii",
         "desc": "Fir de asistență bidirecțional între administratorii asociațiilor și operatorii platformei."
       }
+    },
+    "asociatii": {
+      "title": "Asociații",
+      "subtitle": "Listează asociațiile platformei și provizionează una nouă cu primul ei administrator. Administratorul își înrolează apoi locatarii prin coduri de invitație.",
+      "provisionCta": "Provizionează asociație nouă",
+      "provisionTitle": "Provizionare asociație",
+      "provisionLead": "Creează asociația și provizionează contul primului administrator. Operatorul nu adaugă locatari; administratorul îi înrolează ulterior.",
+      "fields": {
+        "asociatieName": "Numele asociației",
+        "asociatieNamePlaceholder": "Asociația de Proprietari Str. ...",
+        "city": "Oraș",
+        "cityPlaceholder": "București",
+        "adminName": "Numele administratorului",
+        "adminNamePlaceholder": "Nume și prenume",
+        "adminEmail": "Email administrator",
+        "adminEmailPlaceholder": "administrator@exemplu.ro"
+      },
+      "err": {
+        "required": "Câmp obligatoriu",
+        "tooShort": "Prea scurt",
+        "email": "Adresă de email invalidă"
+      },
+      "submit": "Provizionează",
+      "cancel": "Renunță",
+      "success": "Asociația „{{name}}” a fost provizionată",
+      "liveNote": "Provizionarea live creează contul administratorului prin serverul securizat al platformei (verificat pe server).",
+      "demoNote": "În mod demonstrativ generăm un cod de configurare pe care îl predai administratorului pentru a-și finaliza contul.",
+      "listTitle": "Asociații pe platformă",
+      "count_one": "{{count}} asociație",
+      "count_few": "{{count}} asociații",
+      "count_other": "{{count}} de asociații",
+      "empty": "Nicio asociație încă. Provizionează prima asociație pentru a începe.",
+      "members_one": "{{count}} membru",
+      "members_few": "{{count}} membri",
+      "members_other": "{{count}} de membri",
+      "apartments_one": "{{count}} apartament",
+      "apartments_few": "{{count}} apartamente",
+      "apartments_other": "{{count}} de apartamente",
+      "lastSignIn": "Ultima conectare admin: {{date}}",
+      "neverSignedIn": "Administratorul nu s-a conectat încă",
+      "dormant": "Inactivă",
+      "active": "Activă",
+      "adminLabel": "Administrator",
+      "pendingSetup": "Configurare în așteptare",
+      "setupCodeLabel": "Cod de configurare",
+      "provisionedOn": "Provizionată la {{date}}",
+      "resultTitle": "Asociație provizionată",
+      "resultBody": "Predă administratorului „{{name}}” codul de configurare de mai jos pentru a-și finaliza contul.",
+      "copyCode": "Copiază codul",
+      "copied": "Cod copiat",
+      "copyFailed": "Nu am putut copia codul",
+      "done": "Gata"
     }
   }
 }
