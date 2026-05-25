@@ -6,6 +6,7 @@ import { FEATURES, FEATURE_CATEGORIES, categoryLabel, featureTitle, type Feature
 import { useAsociatieFlags } from '@/shared/features/featureStore';
 import { useThemeStore } from '@/shared/store/themeStore';
 import { useAuthStore } from '@/shared/store/authStore';
+import { isAdminRole } from '@/features/auth/hydrationLogic';
 import { DEMO_ASOCIATIE, DEMO_EMERGENCY } from '@/shared/demo/demoData';
 import { Icon } from '@/shared/components/Icon';
 import { Atmosphere } from '@/shared/components/Atmosphere';
@@ -71,6 +72,11 @@ function Sidebar() {
   const enabled = useEnabledFeatures();
   const navigate = useNavigate();
   const isActive = useActive();
+  // The administration group is only meaningful to management roles; a plain
+  // locatar (proprietar / chirias) never sees it, so each demo persona renders
+  // the chrome they would actually get.
+  const role = useAuthStore((s) => s.activeRole)();
+  const showAdmin = isAdminRole(role);
   const categories = Object.keys(FEATURE_CATEGORIES) as FeatureCategory[];
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(loadCollapsed);
   const toggleGroup = (key: string) =>
@@ -148,6 +154,7 @@ function Sidebar() {
         );
       })}
 
+      {showAdmin && (
       <div className="sidebar__group">
         <GroupHeader id="admin" label={t('chrome.admin')} />
         <div className="sidebar__collapse" data-collapsed={collapsed['admin'] ? 'true' : 'false'}>
@@ -203,6 +210,7 @@ function Sidebar() {
           </div>
         </div>
       </div>
+      )}
 
       <div style={{ flex: 1 }} />
       <div

@@ -16,11 +16,10 @@ import {
 } from 'lucide-react';
 import { useTintStore, type Tint } from '@/shared/store/tintStore';
 import { useAuthStore } from '@/shared/store/authStore';
+import { DEMO_CURRENT_USER_NAME } from '@/shared/demo/demoData';
 import { Modal } from '@/shared/components/Modal';
 import { cn } from '@/shared/lib/cn';
 
-/* Demo identity shown in the menu header. Real auth wires the profile later. */
-const USER_NAME = 'Andrei Popescu';
 const SUPPORT_EMAIL = 'contact@vecini.online';
 
 /* Accent tints offered in the menu. `swatch` is a vivid, readable
@@ -52,6 +51,12 @@ export function UserMenu() {
   const tint = useTintStore((s) => s.tint);
   const setTint = useTintStore((s) => s.setTint);
   const signOut = useAuthStore((s) => s.signOut);
+  // Reflect the active persona so each demo role (admin, superadmin, locatar)
+  // shows its own identity here rather than a fixed placeholder.
+  const profile = useAuthStore((s) => s.profile);
+  const role = useAuthStore((s) => s.activeRole)();
+  const userName = profile?.full_name?.trim() || DEMO_CURRENT_USER_NAME;
+  const roleLabel = role ? t(`chrome.userMenu.roleLabel.${role}`) : t('chrome.userMenu.role');
 
   const [open, setOpen] = useState(false);
   const [modal, setModal] = useState<InfoModal>(null);
@@ -126,8 +131,8 @@ export function UserMenu() {
           aria-label={t('chrome.userMenu.title')}
           onClick={() => setOpen((v) => !v)}
         >
-          <span className="avatar avatar--accent" title={USER_NAME}>
-            {initials(USER_NAME)}
+          <span className="avatar avatar--accent" title={userName}>
+            {initials(userName)}
           </span>
           <ChevronDown className="usermenu__caret" size={14} />
         </button>
@@ -135,11 +140,11 @@ export function UserMenu() {
         <div className="usermenu__panel" role="menu" aria-label={t('chrome.userMenu.title')}>
           {/* identity */}
           <div className="usermenu__head">
-            <span className="avatar avatar--lg avatar--accent">{initials(USER_NAME)}</span>
+            <span className="avatar avatar--lg avatar--accent">{initials(userName)}</span>
             <span className="usermenu__id">
               <span className="usermenu__greet">{t('chrome.userMenu.greeting')}</span>
-              <span className="usermenu__name">{USER_NAME}</span>
-              <span className="usermenu__role">{t('chrome.userMenu.role')}</span>
+              <span className="usermenu__name">{userName}</span>
+              <span className="usermenu__role">{roleLabel}</span>
             </span>
           </div>
 

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { ArrowUpRight, Building2, Globe, MailCheck, ShieldCheck } from 'lucide-react';
+import type { Role } from '@/shared/types/domain';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
 import { Card } from '@/shared/components/Card';
@@ -111,6 +112,9 @@ export default function LoginPage() {
   // TOTP / recovery-code challenge before the session is allowed through.
   const [pendingMfa, setPendingMfa] = useState<'demo' | 'live' | null>(null);
   const [mfaCode, setMfaCode] = useState('');
+  // The role a queued demo entry should preview as, carried across the optional
+  // demo TOTP challenge so the right experience opens once the code clears.
+  const [demoRole, setDemoRole] = useState<Role>('admin');
 
   const values = { email, password, confirmPassword };
   // Sign-up surfaces the full strength/breach policy via a live meter; sign-in
@@ -135,10 +139,13 @@ export default function LoginPage() {
     try {
       if (mode === 'signIn') {
         if (!isSupabaseConfigured) {
-          // Demo: gate entry behind the demo TOTP factor if one was enrolled.
+          // Demo: the email/password form enters as the admin persona; the role
+          // buttons below pick a different one. Gate behind the demo TOTP factor
+          // if one was enrolled.
+          setDemoRole('admin');
           if (await challengeRequired()) setPendingMfa('demo');
           else {
-            enterDemo();
+            enterDemo('admin');
             navigate('/app');
           }
           return;
@@ -199,7 +206,7 @@ export default function LoginPage() {
         toast.error(t(`auth.mfa.err.${mfaErrorKey(error)}`));
         return;
       }
-      if (pendingMfa === 'demo') enterDemo();
+      if (pendingMfa === 'demo') enterDemo(demoRole);
       setMfaCode('');
       setPendingMfa(null);
       navigate('/app');
@@ -208,10 +215,13 @@ export default function LoginPage() {
     }
   };
 
-  const enterDemoFlow = async () => {
+  const enterDemoAs = async (role: Role) => {
+    setDemoRole(role);
+    // Gate entry behind the demo TOTP factor if one was enrolled; the chosen
+    // role is preserved in `demoRole` and applied once the challenge clears.
     if (await challengeRequired()) setPendingMfa('demo');
     else {
-      enterDemo();
+      enterDemo(role);
       navigate('/app');
     }
   };
@@ -384,13 +394,37 @@ export default function LoginPage() {
             </div>
 
             {!isSupabaseConfigured && (
-              <Button
-                variant="secondary"
-                className="mt-3 w-full"
-                onClick={() => void enterDemoFlow()}
+              <div
+                className="mt-4 pt-4"
+                style={{ borderTop: '1px solid var(--border-subtle)' }}
               >
-                {t('auth.enterDemo')}
-              </Button>
+                <p className="mb-2 text-center text-xs font-medium uppercase tracking-wide text-muted">
+                  {t('auth.demoPreviewAs')}
+                </p>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    variant="secondary"
+                    className="w-full"
+                    onClick={() => void enterDemoAs('admin')}
+                  >
+                    {t('auth.demoRole.admin')}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    className="w-full"
+                    onClick={() => void enterDemoAs('super_admin')}
+                  >
+                    {t('auth.demoRole.superAdmin')}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    className="w-full"
+                    onClick={() => void enterDemoAs('proprietar')}
+                  >
+                    {t('auth.demoRole.locatar')}
+                  </Button>
+                </div>
+              </div>
             )}
           </>
         )}

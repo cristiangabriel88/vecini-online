@@ -4,6 +4,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import { AppLayout } from './AppLayout';
 import { RequireAuth } from './RequireAuth';
 import { RequireAsociatie } from './RequireAsociatie';
+import { RequireAdmin } from './RequireAdmin';
 import { SkeletonList } from '@/shared/components/Skeleton';
 
 const LoginPage = lazy(() => import('@/features/auth/LoginPage'));
@@ -196,16 +197,21 @@ export const router = createBrowserRouter([
       { path: 'notificari', element: <S><NotificationsPage /></S> },
       { path: 'confidentialitate', element: <S><PrivacySettingsPage /></S> },
       { path: 'datele-mele', element: <S><MyDataPage /></S> },
-      { path: 'admin/functionalitati', element: <S><FeaturesAdminPage /></S> },
-      { path: 'admin/apartamente', element: <S><ApartmentsPage /></S> },
-      { path: 'admin/apartamente/adauga', element: <S><ApartmentsBulkAddPage /></S> },
-      { path: 'admin/apartamente/:id', element: <S><ApartmentEditPage /></S> },
-      { path: 'admin/cladire', element: <S><BuildingSettingsPage /></S> },
-      { path: 'admin/invitatii', element: <S><InvitesAdminPage /></S> },
-      { path: 'admin/cereri-date', element: <S><DsrAdminPage /></S> },
-      { path: 'admin/prelucrare-date', element: <S><ProcessingRecordsPage /></S> },
-      { path: 'admin/incidente-date', element: <S><BreachAdminPage /></S> },
-      { path: 'admin/jurnal', element: <S><AuditLogPage /></S> },
+      {
+        element: <RequireAdmin />,
+        children: [
+          { path: 'admin/functionalitati', element: <S><FeaturesAdminPage /></S> },
+          { path: 'admin/apartamente', element: <S><ApartmentsPage /></S> },
+          { path: 'admin/apartamente/adauga', element: <S><ApartmentsBulkAddPage /></S> },
+          { path: 'admin/apartamente/:id', element: <S><ApartmentEditPage /></S> },
+          { path: 'admin/cladire', element: <S><BuildingSettingsPage /></S> },
+          { path: 'admin/invitatii', element: <S><InvitesAdminPage /></S> },
+          { path: 'admin/cereri-date', element: <S><DsrAdminPage /></S> },
+          { path: 'admin/prelucrare-date', element: <S><ProcessingRecordsPage /></S> },
+          { path: 'admin/incidente-date', element: <S><BreachAdminPage /></S> },
+          { path: 'admin/jurnal', element: <S><AuditLogPage /></S> },
+        ],
+      },
       { path: '*', element: <S><NotImplementedPage /></S> },
     ],
   },

@@ -55,6 +55,18 @@ export function pickActiveAsociatieId(
   return sorted[0]?.asociatie_id ?? null;
 }
 
+/**
+ * Roles allowed into the asociație-administration area (the "Admin" nav group
+ * and its pages). Mirrors the per-page guards (`['admin', 'presedinte']`) and
+ * adds `super_admin`, whose platform tier still administers any asociație.
+ */
+export const ADMIN_NAV_ROLES: readonly Role[] = ['super_admin', 'admin', 'presedinte'];
+
+/** True when the role may administer the asociație (so the Admin nav shows). */
+export function isAdminRole(role: Role | null): boolean {
+  return role !== null && ADMIN_NAV_ROLES.includes(role);
+}
+
 /** The user's role in a given asociație (from an active membership), or null. */
 export function roleFor(memberships: Membership[], asociatieId: string | null): Role | null {
   if (!asociatieId) return null;

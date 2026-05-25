@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { DEMO_MEMBERSHIP, demoTenantContext } from '@/features/auth/demoTenant';
+import {
+  DEMO_MEMBERSHIP,
+  demoMembershipForRole,
+  demoTenantContext,
+} from '@/features/auth/demoTenant';
 import { DEMO_ASOCIATIE, DEMO_CURRENT_USER_ID } from '@/shared/demo/demoData';
 import { hasNoActiveAsociatie, roleFor } from '@/features/auth/hydrationLogic';
 
@@ -27,5 +31,21 @@ describe('demoTenantContext', () => {
 
   it('exposes the seeded membership constant consistently', () => {
     expect(demoTenantContext().memberships[0]).toEqual(DEMO_MEMBERSHIP);
+  });
+
+  it('previews any requested role so the login screen can switch personas', () => {
+    for (const role of ['admin', 'super_admin', 'proprietar'] as const) {
+      const { currentAsociatieId, memberships } = demoTenantContext(role);
+      expect(memberships).toHaveLength(1);
+      expect(memberships[0].user_id).toBe(DEMO_CURRENT_USER_ID);
+      expect(roleFor(memberships, currentAsociatieId)).toBe(role);
+      expect(hasNoActiveAsociatie(memberships)).toBe(false);
+    }
+  });
+
+  it('builds a membership carrying a display title for the given role', () => {
+    const locatar = demoMembershipForRole('proprietar');
+    expect(locatar.role).toBe('proprietar');
+    expect(locatar.title).toBeTruthy();
   });
 });

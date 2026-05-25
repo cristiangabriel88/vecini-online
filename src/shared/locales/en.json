@@ -123,6 +123,12 @@
     "logout": "Sign out",
     "signUp": "Create account",
     "enterDemo": "Enter demo mode",
+    "demoPreviewAs": "Preview demo as",
+    "demoRole": {
+      "admin": "Administrator",
+      "superAdmin": "Superadmin",
+      "locatar": "Resident"
+    },
     "noAccount": "No account yet?",
     "haveAccount": "Already have an account?",
     "forgotLink": "Forgot your password?",
@@ -2272,6 +2278,15 @@
       "title": "Account menu",
       "greeting": "Welcome back",
       "role": "Association administrator",
+      "roleLabel": {
+        "super_admin": "Platform superadmin",
+        "admin": "Association administrator",
+        "presedinte": "President",
+        "comitet": "Committee member",
+        "cenzor": "Auditor",
+        "proprietar": "Owner",
+        "chirias": "Tenant"
+      },
       "settings": "Profile settings",
       "settingsDesc": "Personal details, association and preferences",
       "notifications": "Notifications",

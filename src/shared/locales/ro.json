@@ -123,6 +123,12 @@
     "logout": "Deconectare",
     "signUp": "Creează cont",
     "enterDemo": "Intră în modul demonstrativ",
+    "demoPreviewAs": "Vizualizează demo ca",
+    "demoRole": {
+      "admin": "Administrator",
+      "superAdmin": "Superadmin",
+      "locatar": "Locatar"
+    },
     "noAccount": "Nu ai cont?",
     "haveAccount": "Ai deja cont?",
     "forgotLink": "Ai uitat parola?",
@@ -2274,6 +2280,15 @@
       "title": "Meniu cont",
       "greeting": "Bine ai venit",
       "role": "Administrator asociație",
+      "roleLabel": {
+        "super_admin": "Superadmin platformă",
+        "admin": "Administrator asociație",
+        "presedinte": "Președinte",
+        "comitet": "Membru comitet",
+        "cenzor": "Cenzor",
+        "proprietar": "Proprietar",
+        "chirias": "Chiriaș"
+      },
       "settings": "Setări profil",
       "settingsDesc": "Date personale, asociație și preferințe",
       "notifications": "Notificări",

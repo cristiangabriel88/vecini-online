@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   activeMemberships,
   hasNoActiveAsociatie,
+  isAdminRole,
   mergeHydration,
   pickActiveAsociatieId,
   roleFor,
@@ -40,6 +41,24 @@ function membership(over: Partial<Membership>): Membership {
     ...over,
   };
 }
+
+describe('isAdminRole', () => {
+  it('admits the management roles into the admin area', () => {
+    for (const role of ['super_admin', 'admin', 'presedinte'] as const) {
+      expect(isAdminRole(role)).toBe(true);
+    }
+  });
+
+  it('keeps a plain locatar and committee/auditor roles out of the admin area', () => {
+    for (const role of ['comitet', 'cenzor', 'proprietar', 'chirias'] as const) {
+      expect(isAdminRole(role)).toBe(false);
+    }
+  });
+
+  it('treats a missing role as non-admin', () => {
+    expect(isAdminRole(null)).toBe(false);
+  });
+});
 
 describe('activeMemberships', () => {
   it('drops ended memberships', () => {

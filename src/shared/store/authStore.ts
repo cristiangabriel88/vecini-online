@@ -83,7 +83,12 @@ interface AuthState {
   signOut: () => Promise<void>;
   /** Revoke every session for this account everywhere (global sign-out). */
   signOutEverywhere: () => Promise<void>;
-  enterDemo: () => void;
+  /**
+   * Enter offline demo mode, optionally previewing the app as a specific role
+   * (defaults to `admin`). The login screen uses this to let a visitor inspect
+   * the admin, superadmin, and locatar experiences without a backend.
+   */
+  enterDemo: (role?: Role) => void;
 }
 
 // Monotonic token so a slow hydrate cannot overwrite the result of a newer one
@@ -330,12 +335,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
   },
 
-  enterDemo: () => {
+  enterDemo: (role = 'admin') => {
     // A demo login is recorded too, so the activity log is exercised offline.
     useSecurityStore.getState().log('login', null);
     // Seed local tenant context so demo mode has a real active asociație + role
     // to scope by (no backend to hydrate from).
-    const { currentAsociatieId, memberships } = demoTenantContext();
+    const { currentAsociatieId, memberships } = demoTenantContext(role);
     set({ demo: true, loading: false, currentAsociatieId, memberships });
   },
 }));

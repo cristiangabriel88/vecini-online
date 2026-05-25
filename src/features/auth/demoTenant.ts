@@ -1,32 +1,53 @@
-import type { Membership } from '@/shared/types/domain';
+import type { Membership, Role } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_CURRENT_USER_ID } from '@/shared/demo/demoData';
 
 /**
- * Offline tenant context for demo mode. Demo entry has no backend to hydrate
- * from, so the app needs a real active asociație + role to scope by and to
- * exercise the admin side of the MVP loop (publish, invite, toggle features).
- * The demo user is seeded as `admin` of `DEMO_ASOCIATIE` so a single offline
- * session can drive both the admin and resident halves of the loop.
+ * Display title seeded alongside each demo role so the chrome shows a sensible
+ * label. These mirror the Romanian role names used across the app.
  */
-export const DEMO_MEMBERSHIP: Membership = {
-  id: 'mem-demo',
-  user_id: DEMO_CURRENT_USER_ID,
-  asociatie_id: DEMO_ASOCIATIE.id,
-  role: 'admin',
-  title: 'Administrator',
-  joined_at: DEMO_ASOCIATIE.created_at,
-  ended_at: null,
+const DEMO_ROLE_TITLE: Record<Role, string> = {
+  super_admin: 'Superadmin platformă',
+  admin: 'Administrator',
+  presedinte: 'Președinte',
+  comitet: 'Comitet',
+  cenzor: 'Cenzor',
+  proprietar: 'Proprietar',
+  chirias: 'Chiriaș',
 };
+
+/**
+ * Build the single offline membership for a demo session in a given role. Demo
+ * entry has no backend to hydrate from, so the app needs a real active asociație
+ * + role to scope by; seeding the chosen role lets the login screen preview the
+ * app exactly as that user (admin, superadmin, or a plain locatar) would see it.
+ */
+export function demoMembershipForRole(role: Role): Membership {
+  return {
+    id: 'mem-demo',
+    user_id: DEMO_CURRENT_USER_ID,
+    asociatie_id: DEMO_ASOCIATIE.id,
+    role,
+    title: DEMO_ROLE_TITLE[role],
+    joined_at: DEMO_ASOCIATIE.created_at,
+    ended_at: null,
+  };
+}
+
+/**
+ * The default demo membership keeps the `admin` persona, so a single offline
+ * session can still drive both the admin and resident halves of the MVP loop.
+ */
+export const DEMO_MEMBERSHIP: Membership = demoMembershipForRole('admin');
 
 export interface TenantContext {
   currentAsociatieId: string | null;
   memberships: Membership[];
 }
 
-/** The seeded local tenant context applied when entering demo mode. */
-export function demoTenantContext(): TenantContext {
+/** The seeded local tenant context applied when entering demo mode as `role`. */
+export function demoTenantContext(role: Role = 'admin'): TenantContext {
   return {
     currentAsociatieId: DEMO_ASOCIATIE.id,
-    memberships: [DEMO_MEMBERSHIP],
+    memberships: [demoMembershipForRole(role)],
   };
 }
