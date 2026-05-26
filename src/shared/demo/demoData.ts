@@ -68,6 +68,7 @@ import type {
   EvacuationPlan,
   PetMarker,
 } from '@/shared/types/domain';
+import type { InviteCode } from '@/features/invites/inviteLogic';
 import { FEATURES } from '@/shared/features/registry';
 
 export const DEMO_ASOCIATIE: Asociatie = {
@@ -110,6 +111,32 @@ export const DEMO_APARTMENTS: Apartment[] = [
   { id: 'ap-3', asociatie_id: 'demo-asoc', scara: 'A', etaj: 2, numar_apartament: '9', suprafata_utila: 71.0, cota_parte_indiviza: 0.054, numar_persoane: 4, persons: [{ id: 'pe-3a', name: 'Georgescu Elena', role: 'proprietar', is_primary: true }], proprietar_principal_name: 'Georgescu Elena', is_active: true, notes: null, created_at: '', updated_at: '' },
   { id: 'ap-4', asociatie_id: 'demo-asoc', scara: 'A', etaj: 3, numar_apartament: '13', suprafata_utila: 54.2, cota_parte_indiviza: 0.041, numar_persoane: 1, persons: [{ id: 'pe-4a', name: 'Dumitrescu Vasile', role: 'proprietar', is_primary: true }], proprietar_principal_name: 'Dumitrescu Vasile', is_active: true, notes: null, created_at: '', updated_at: '' },
   { id: 'ap-5', asociatie_id: 'demo-asoc', scara: 'A', etaj: 4, numar_apartament: '17', suprafata_utila: 63.8, cota_parte_indiviza: 0.048, numar_persoane: 2, persons: [{ id: 'pe-5a', name: 'Stan Gabriela', role: 'chirias', is_primary: true }, { id: 'pe-5b', name: 'Stan Mihai', role: 'chirias', is_primary: false }], proprietar_principal_name: 'Stan Gabriela', is_active: true, notes: null, created_at: '', updated_at: '' },
+];
+
+/**
+ * Seed invite codes so the apartments surface can show both onboarding states
+ * offline: the code on Ap. 9 (`ap-3`) has been redeemed, so that apartment reads
+ * as "registered"; the others have no redeemed code and offer the invite action.
+ * Tokens/codes are fixed demo values (real ones are CSPRNG-minted at issue time).
+ */
+export const DEMO_INVITES: InviteCode[] = [
+  {
+    id: 'inv-demo-1',
+    asociatieId: 'demo-asoc',
+    code: 'GEOR2345',
+    token: 'a3f1c0d29b4e6705182a3b4c5d6e7f8091a2b3c4d5e6f70819a2b3c4d5e6f708',
+    role: 'proprietar',
+    apartmentId: 'ap-3',
+    expiresAt: null,
+    singleUse: true,
+    consumedAt: Date.parse('2026-05-22T09:30:00Z'),
+    consumedByUserId: 'u-georgescu',
+    revokedAt: null,
+    createdAt: Date.parse('2026-05-21T08:00:00Z'),
+    createdBy: 'u-admin',
+    inviteeName: 'Georgescu Elena',
+    inviteeEmail: 'elena.georgescu@example.ro',
+  },
 ];
 
 /** The resident the demo signs in as: Popescu Andrei, owner of Ap. 5 (`ap-2`),

@@ -79,6 +79,10 @@ export interface ApartmentPerson {
   name: string;
   role: 'proprietar' | 'chirias' | 'locator';
   is_primary: boolean;
+  /** Optional contact email the admin can record so this person can be invited
+   *  by email later. Lives in the embedded jsonb (absent on older records), so
+   *  no schema change is needed. */
+  email?: string | null;
 }
 
 export interface Apartment {

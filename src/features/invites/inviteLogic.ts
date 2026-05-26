@@ -41,6 +41,10 @@ export interface InviteCode {
   revokedAt: number | null;
   createdAt: number;
   createdBy: string | null;
+  /** Recipient the code was minted for, captured from the apartment surface so the
+   *  invite can later be delivered by email (T147). Null for standing codes. */
+  inviteeName: string | null;
+  inviteeEmail: string | null;
 }
 
 /** Roles an admin may grant via an invite code (founder/platform roles excluded). */
@@ -63,6 +67,9 @@ export interface CreateInviteInput {
   expiresAt?: number | null;
   singleUse?: boolean;
   createdBy?: string | null;
+  /** Optional recipient captured when inviting a specific apartment occupant. */
+  inviteeName?: string | null;
+  inviteeEmail?: string | null;
 }
 
 /** Common expiry presets (ms) offered by the admin surface. */
@@ -121,6 +128,8 @@ export function createInvite(
     revokedAt: null,
     createdAt: now,
     createdBy: input.createdBy ?? null,
+    inviteeName: input.inviteeName ?? null,
+    inviteeEmail: input.inviteeEmail ?? null,
   };
 }
 
@@ -167,6 +176,21 @@ export function validateInvite(
 /** True when a code can still be redeemed right now. */
 export function isRedeemable(invite: InviteCode | undefined, now: number = Date.now()): boolean {
   return validateInvite(invite, now) === 'ok';
+}
+
+/**
+ * Whether an apartment has an account holder yet, derived from the invite trail:
+ * true when at least one (non-revoked) code linked to the apartment has been
+ * redeemed. This is the offline signal the apartment surface uses for the
+ * "registered" status until live account-to-apartment linking lands.
+ */
+export function isApartmentRegistered(apartmentId: string, invites: InviteCode[]): boolean {
+  return invites.some(
+    (invite) =>
+      invite.apartmentId === apartmentId &&
+      invite.revokedAt === null &&
+      invite.consumedAt !== null,
+  );
 }
 
 /**

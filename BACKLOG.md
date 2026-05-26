@@ -98,6 +98,9 @@ Keep the queue sorted with the highest priority on top. When two tasks share a p
 
 > Sorted by priority, highest on top. `make progress` takes the topmost `⬜` whose prerequisites are met. Mark `✅` when the Definition of Done is fully met.
 
+### ⬜ T147 — [P1] Invitation email delivery: bilingual templates + send function
+The apartment edit page now captures an invitee email and mints an invite, but the "Trimite pe email" action only toasts that delivery is pending (`apartments.emailQueued`, an honest stub). Implement real delivery: a bilingual (RO/EN) invitation email template carrying the onboarding link (`buildInviteLink`) keyed off the recipient's locale, a Netlify function that sends it via the planned Resend infra (`_shared/resend.ts`, shared with T142), persistence of `invitee_name`/`invitee_email` (migration `20260526000002_invite_invitee_contact.sql` already added) plus a `sent`/`delivered` marker, and wiring both the apartment-surface "Trimite pe email" button and the invites surface to call it (replacing the stub toast). No secrets/PII in logs. Prereq: the single-apartment form + `invitee_email` capture (just shipped). Live email infra/keys overlap with T142.
+
 ### ⬜ T90 — [P1] Invite + setup-link QR via a shared QR component
 Onboarding links (T123) should be scannable. Add `qrcode.react` and a shared, reusable QR component that renders a QR of the **redeem/setup link** with a one-tap download as PNG, used on both `InvitesAdminPage` (each issued locatar invite) and the superadmin `PlatformAsociatiiPage` setup-link handoff. The link builders already exist from T123 (`buildInviteLink`/`buildSetupLink` over `buildOnboardingLink`); this task only renders their output as a QR + PNG download. Bilingual RO/EN; premium-feel. Prereq: T123. (Bumped P2->P1 and widened from invite-only when the onboarding flow was reviewed; the old T90 was "invite QR on the invite admin surface".)
 

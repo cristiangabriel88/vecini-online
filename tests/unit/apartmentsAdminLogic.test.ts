@@ -176,7 +176,18 @@ describe('apartmentsLogic — newPerson', () => {
     expect(p.name).toBe('');
     expect(p.role).toBe('chirias');
     expect(p.is_primary).toBe(false);
+    expect(p.email).toBeNull();
     expect(p.id).toMatch(/^pe-/);
     expect(newPerson().id).not.toBe(p.id);
+  });
+
+  it('trims a person email and stores blank as null when building an apartment', () => {
+    const persons = [
+      { ...newPerson('proprietar'), name: 'Named', email: '  maria@example.ro  ' },
+      { ...newPerson('locator'), name: 'Other', email: '   ' },
+    ];
+    const a = newApartment({ ...filled, numar_persoane: '' }, 'asoc-1', persons);
+    expect(a.persons[0].email).toBe('maria@example.ro');
+    expect(a.persons[1].email).toBeNull();
   });
 });

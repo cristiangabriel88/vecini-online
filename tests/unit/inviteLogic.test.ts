@@ -11,6 +11,7 @@ import {
   expiryFromPreset,
   findByCode,
   findByToken,
+  isApartmentRegistered,
   isRedeemable,
   onboardingExpiry,
   revokeInvite,
@@ -34,6 +35,8 @@ function make(overrides: Partial<InviteCode> = {}): InviteCode {
     revokedAt: null,
     createdAt: NOW,
     createdBy: null,
+    inviteeName: null,
+    inviteeEmail: null,
     ...overrides,
   };
 }
@@ -77,6 +80,19 @@ describe('createInvite', () => {
     expect(invite.expiresAt).toBe(NOW + 1000);
     expect(invite.singleUse).toBe(false);
     expect(invite.createdBy).toBe('u-admin');
+  });
+
+  it('carries the recipient when inviting a specific occupant, null otherwise', () => {
+    const withRecipient = createInvite(
+      { asociatieId: 'asoc-1', inviteeName: 'Ionescu Maria', inviteeEmail: 'maria@example.ro' },
+      [],
+      NOW,
+    );
+    expect(withRecipient.inviteeName).toBe('Ionescu Maria');
+    expect(withRecipient.inviteeEmail).toBe('maria@example.ro');
+    const standing = createInvite({ asociatieId: 'asoc-1' }, [], NOW);
+    expect(standing.inviteeName).toBeNull();
+    expect(standing.inviteeEmail).toBeNull();
   });
 
   it('regenerates on collision so codes stay unique within the store', () => {
@@ -146,6 +162,24 @@ describe('consumeInvite / revokeInvite', () => {
     expect(revoked.revokedAt).toBe(NOW);
     expect(original.revokedAt).toBeNull();
     expect(validateInvite(revoked, NOW)).toBe('revoked');
+  });
+});
+
+describe('isApartmentRegistered', () => {
+  it('is true once a code linked to the apartment has been redeemed', () => {
+    const invites = [make({ apartmentId: 'ap-1', consumedAt: NOW })];
+    expect(isApartmentRegistered('ap-1', invites)).toBe(true);
+  });
+
+  it('is false for an open, revoked, or other-apartment code', () => {
+    const invites = [
+      make({ id: 'a', apartmentId: 'ap-1' }), // never consumed
+      make({ id: 'b', apartmentId: 'ap-1', consumedAt: NOW, revokedAt: NOW }), // consumed then revoked
+      make({ id: 'c', apartmentId: 'ap-2', consumedAt: NOW }), // different apartment
+    ];
+    expect(isApartmentRegistered('ap-1', invites)).toBe(false);
+    expect(isApartmentRegistered('ap-9', invites)).toBe(false);
+    expect(isApartmentRegistered('ap-1', [])).toBe(false);
   });
 });
 

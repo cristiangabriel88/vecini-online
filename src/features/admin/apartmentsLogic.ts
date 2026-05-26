@@ -136,7 +136,7 @@ export function isBlankInput(input: ApartmentInput): boolean {
 
 /** A fresh named occupant for the person-list editor. */
 export function newPerson(role: ApartmentPerson['role'] = 'locator'): ApartmentPerson {
-  return { id: `pe-${crypto.randomUUID()}`, name: '', role, is_primary: false };
+  return { id: `pe-${crypto.randomUUID()}`, name: '', role, is_primary: false, email: null };
 }
 
 /** The fields shared by create and update, derived from a validated input.
@@ -160,7 +160,7 @@ function inputToFields(
   const cota = parseDecimal(input.cota_parte_indiviza);
   const explicitCount = parseDecimal(input.numar_persoane);
   const cleanPersons = persons
-    .map((p) => ({ ...p, name: p.name.trim() }))
+    .map((p) => ({ ...p, name: p.name.trim(), email: p.email?.trim() || null }))
     .filter((p) => p.name !== '');
   return {
     scara: input.scara.trim() || null,

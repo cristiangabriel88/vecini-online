@@ -1,10 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Copy, KeyRound, Link2, Ticket, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
+import { Input } from '@/shared/components/Input';
 import { Select } from '@/shared/components/Select';
 import { Switch } from '@/shared/components/Switch';
 import { Badge } from '@/shared/components/Badge';
@@ -14,7 +16,7 @@ import { env } from '@/shared/lib/env';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useInviteStore } from '@/shared/store/inviteStore';
 import { recordAudit } from '@/shared/store/auditStore';
-import { DEMO_APARTMENTS } from '@/shared/demo/demoData';
+import { useAsociatieApartments } from '@/features/admin/apartmentsStore';
 import {
   type ExpiryPreset,
   type InviteStatus,
@@ -24,6 +26,16 @@ import {
   validateInvite,
 } from '@/features/invites/inviteLogic';
 import type { Role } from '@/shared/types/domain';
+
+/** Prefill carried in router state when the apartment surface jumps here to
+ *  invite a specific occupant (optionally auto-issuing the code). */
+interface InvitePrefill {
+  apartmentId?: string;
+  role?: Role;
+  inviteeName?: string;
+  inviteeEmail?: string;
+  autoIssue?: boolean;
+}
 
 const EXPIRY_PRESETS: ExpiryPreset[] = ['24h', '7d', '30d', '90d', 'never'];
 
@@ -37,6 +49,8 @@ const STATUS_TONE: Record<InviteStatus, 'success' | 'warning' | 'neutral' | 'dan
 
 export default function InvitesAdminPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
   const userId = useAuthStore((s) => s.session?.user?.id ?? null);
   const invites = useInviteStore((s) => s.invites);
@@ -45,13 +59,49 @@ export default function InvitesAdminPage() {
 
   const [role, setRole] = useState<Role>('proprietar');
   const [apartmentId, setApartmentId] = useState('');
+  const [inviteeName, setInviteeName] = useState('');
+  const [inviteeEmail, setInviteeEmail] = useState('');
   const [expiry, setExpiry] = useState<ExpiryPreset>('30d');
   const [singleUse, setSingleUse] = useState(true);
 
-  const apartments = useMemo(
-    () => DEMO_APARTMENTS.filter((a) => a.asociatie_id === asociatieId),
-    [asociatieId],
-  );
+  const apartments = useAsociatieApartments();
+
+  // Apply a prefill handed over from the apartment surface exactly once, and
+  // auto-issue the code when asked so the change is "saved" without an extra
+  // click. The router state is then cleared so a refresh does not re-mint.
+  const prefillApplied = useRef(false);
+  useEffect(() => {
+    if (prefillApplied.current) return;
+    const prefill = (location.state as { prefill?: InvitePrefill } | null)?.prefill;
+    if (!prefill || !asociatieId) return;
+    prefillApplied.current = true;
+    if (prefill.role) setRole(prefill.role);
+    setApartmentId(prefill.apartmentId ?? '');
+    setInviteeName(prefill.inviteeName ?? '');
+    setInviteeEmail(prefill.inviteeEmail ?? '');
+    if (prefill.autoIssue) {
+      const invite = issue({
+        asociatieId,
+        role: prefill.role ?? 'proprietar',
+        apartmentId: prefill.apartmentId || null,
+        expiresAt: expiryFromPreset('30d'),
+        singleUse: true,
+        createdBy: userId,
+        inviteeName: prefill.inviteeName ?? null,
+        inviteeEmail: prefill.inviteeEmail ?? null,
+      });
+      recordAudit({
+        action: 'invite.issued',
+        entity: 'invite',
+        entity_label: invite.code,
+        before: null,
+        after: invite.role,
+      });
+      toast.success(t('invites.autoIssued', { code: invite.code }));
+    }
+    navigate('.', { replace: true, state: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state, asociatieId]);
 
   // Re-derive (and re-sort, newest first) from the full store on every change.
   const list = useMemo(
@@ -79,6 +129,8 @@ export default function InvitesAdminPage() {
       expiresAt: expiryFromPreset(expiry),
       singleUse,
       createdBy: userId,
+      inviteeName: inviteeName.trim() || null,
+      inviteeEmail: inviteeEmail.trim() || null,
     });
     recordAudit({
       action: 'invite.issued',
@@ -146,6 +198,17 @@ export default function InvitesAdminPage() {
               </option>
             ))}
           </Select>
+          <Input
+            label={t('invites.inviteeName')}
+            value={inviteeName}
+            onChange={(e) => setInviteeName(e.target.value)}
+          />
+          <Input
+            type="email"
+            label={t('invites.inviteeEmail')}
+            value={inviteeEmail}
+            onChange={(e) => setInviteeEmail(e.target.value)}
+          />
           <Select
             label={t('invites.expiry')}
             value={expiry}

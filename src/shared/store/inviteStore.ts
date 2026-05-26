@@ -11,6 +11,7 @@ import {
   revokeInvite,
   validateInvite,
 } from '@/features/invites/inviteLogic';
+import { DEMO_INVITES } from '@/shared/demo/demoData';
 
 interface ConsumeResult {
   status: InviteStatus;
@@ -65,7 +66,9 @@ function consumeMatched(
 export const useInviteStore = create<InviteState>()(
   persist(
     (set, get) => ({
-      invites: [],
+      // Seeded from demo so the offline app shows both onboarding states; a
+      // persisted store (returning user) replaces this on rehydrate.
+      invites: [...DEMO_INVITES],
 
       issue: (input) => {
         const existing = get().invites.map((i) => i.code);
