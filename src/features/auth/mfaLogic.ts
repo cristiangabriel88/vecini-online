@@ -273,6 +273,16 @@ export interface MfaEnforcementInput {
    * AAL; only a resolved `false` (enrolled but still at AAL1) re-gates the shell.
    */
   aalSatisfied?: boolean;
+  /**
+   * Whether this session passed an app-defined second factor this session (the
+   * email or Telegram one-time-code channels, T139+). Native Supabase MFA only
+   * grants AAL2 for TOTP/phone, so these channels cannot move `aalSatisfied`;
+   * instead a server-verified, session-bound `app_2fa_at` claim records that the
+   * session passed one. A resolved `true` here satisfies the gate exactly like
+   * `aalSatisfied`, so a user whose only second factor is email/Telegram is not
+   * trapped on the security page. Optional: omitted leaves the axis inert.
+   */
+  app2faSatisfied?: boolean;
   /** The current in-app location. */
   pathname: string;
   /** Where to steer to; defaults to the security page. */
@@ -299,8 +309,9 @@ export interface MfaEnforcementInput {
  * - the enrolment status is not yet known (avoids steering on a flash of null),
  * - the role is not privileged (a resident is never gated), or
  * - the session is already on the security page (so enrolling/recovering is
- *   reachable), or a verified factor is enrolled AND the AAL2 challenge is
- *   satisfied (or its status has not resolved yet).
+ *   reachable), or a verified factor is enrolled AND the second factor is
+ *   satisfied this session (native AAL2, or an app-defined email/Telegram
+ *   channel via `app2faSatisfied`; or neither status has resolved yet).
  *
  * Returns the path to redirect to, or null when the current location is allowed.
  */
@@ -315,8 +326,11 @@ export function mfaEnforcementRedirect(input: MfaEnforcementInput): string | nul
   if (input.pathname === securityPath) return null;
   // Not enrolled at all: must set up a second factor before reaching the shell.
   if (!input.enrolled) return securityPath;
-  // Enrolled but this session has not passed the AAL2 challenge: re-gate it.
-  if (input.aalSatisfied === false) return securityPath;
+  // Enrolled but this session has passed no second factor: re-gate it. A session
+  // counts as having passed when either the native AAL2 challenge is satisfied
+  // (TOTP/phone) or an app-defined channel was verified (email/Telegram). Only a
+  // resolved failure on both axes re-gates, so an unresolved status never steers.
+  if (input.aalSatisfied === false && input.app2faSatisfied !== true) return securityPath;
   return null;
 }
 
@@ -325,17 +339,30 @@ export type MfaErrorKey =
   | 'invalidCode'
   | 'recoveryLiveUnavailable'
   | 'notEnrolled'
+  | 'expiredCode'
+  | 'noChannel'
+  | 'deliveryFailed'
+  | 'channelLocked'
   | 'generic';
 
 /**
  * Map an internal code or opaque Supabase MFA error onto a stable bilingual key,
  * so the UI copy never leaks raw backend text. Checked most-specific first.
+ *
+ * The delivered-code channels (email/Telegram, T139+) add: `expired-code` (the
+ * one-time code's window lapsed), `no-channel` (the channel is not enabled, e.g.
+ * Telegram is not linked), `delivery-failed` (the email/Telegram send did not go
+ * through), and `channel-locked` (too many wrong codes on this channel).
  */
 export function mfaErrorKey(error: string | null | undefined): MfaErrorKey {
   if (!error) return 'generic';
   const e = error.toLowerCase();
   if (e.includes('recovery-live-unavailable')) return 'recoveryLiveUnavailable';
   if (e.includes('not-enrolled')) return 'notEnrolled';
+  if (e.includes('expired')) return 'expiredCode';
+  if (e.includes('no-channel')) return 'noChannel';
+  if (e.includes('delivery')) return 'deliveryFailed';
+  if (e.includes('channel-locked')) return 'channelLocked';
   if (e.includes('invalid')) return 'invalidCode';
   return 'generic';
 }

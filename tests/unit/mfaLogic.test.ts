@@ -11,6 +11,7 @@ import {
   hashRecoveryCode,
   hotp,
   isValidTotpFormat,
+  mfaEnforcementRedirect,
   mfaErrorKey,
   normalizeRecoveryCode,
   requiresMfa,
@@ -166,5 +167,38 @@ describe('mfaErrorKey', () => {
     expect(mfaErrorKey('not-enrolled')).toBe('notEnrolled');
     expect(mfaErrorKey('boom')).toBe('generic');
     expect(mfaErrorKey(null)).toBe('generic');
+  });
+
+  it('maps the delivered-channel error codes', () => {
+    expect(mfaErrorKey('expired-code')).toBe('expiredCode');
+    expect(mfaErrorKey('no-channel')).toBe('noChannel');
+    expect(mfaErrorKey('delivery-failed')).toBe('deliveryFailed');
+    expect(mfaErrorKey('channel-locked')).toBe('channelLocked');
+  });
+});
+
+describe('mfaEnforcementRedirect — app-defined second factor (email/Telegram)', () => {
+  const base = {
+    supabaseConfigured: true,
+    loaded: true,
+    role: 'admin' as const,
+    enrolled: true,
+    pathname: '/app/anunturi',
+  };
+
+  it('lets an enrolled session through once an app channel is satisfied even at AAL1', () => {
+    expect(mfaEnforcementRedirect({ ...base, aalSatisfied: false, app2faSatisfied: true })).toBeNull();
+  });
+
+  it('still re-gates an enrolled session that passed neither native AAL2 nor an app channel', () => {
+    expect(mfaEnforcementRedirect({ ...base, aalSatisfied: false, app2faSatisfied: false })).toBe(
+      '/app/securitate',
+    );
+    expect(mfaEnforcementRedirect({ ...base, aalSatisfied: false })).toBe('/app/securitate');
+  });
+
+  it('never steers on an unresolved app-channel status (axis stays opt-in)', () => {
+    expect(mfaEnforcementRedirect({ ...base, aalSatisfied: true, app2faSatisfied: undefined })).toBeNull();
+    expect(mfaEnforcementRedirect({ ...base })).toBeNull();
   });
 });

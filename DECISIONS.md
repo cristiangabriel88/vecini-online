@@ -2,6 +2,62 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## Easier second-factor channels (email + Telegram) and how they elevate a session (T139+)
+
+Authenticator-app TOTP (T02) is mandatory for privileged roles, but many of the
+people forced into it — elderly committee members (presedinte/comitet/cenzor) and
+non-technical residents — do not have an authenticator app. We add two lower-
+friction second-factor channels available to everyone, with TOTP kept as the
+gold standard:
+
+- **Email** carries BOTH a 6-digit code AND a click-to-confirm link in one message.
+- **Telegram** delivers a 6-digit code to the resident's already-linked account.
+- **SMS is deliberately out of scope** (avoids the Twilio per-message cost); the
+  `TWILIO_*` env vars stay unused.
+
+**The load-bearing constraint:** Supabase native MFA grants real session `AAL2`
+only for `totp`/`phone` factor types. Email and Telegram are NOT native Supabase
+factors, so they cannot move the JWT's native `aal` claim from the client (the
+deferred recovery-code login, T29, hits the same wall). They must be verified by
+a service-role Netlify function, and the "this session passed a second factor"
+signal must be tamper-proof and checkable server-side.
+
+- **Mechanism: a Supabase Custom Access Token Auth Hook injects an `app_2fa_at`
+  (epoch) + `app_2fa_channel` claim**, sourced from a service-role-only
+  `session_elevations` table keyed by the session id. The verify function writes
+  the elevation row; the client then `refreshSession()`s to pick up the claim.
+  Both the client gate AND sensitive server functions trust `auth.jwt()`. Rejected:
+  an `app_metadata` update (account-wide and sticky, not session-bound) and an
+  app-only sessionStorage flag (forgeable, protects nothing server-side; kept only
+  as the demo-mode equivalent).
+- **Enforcement stays pure.** `mfaEnforcementRedirect` gains an optional
+  `app2faSatisfied` axis (T139): an enrolled session passes when the native AAL2
+  challenge is satisfied OR an app channel was verified this session, so a user
+  whose only second factor is email/Telegram is not trapped on the security page.
+  The axis is opt-in (a resolved failure on both axes re-gates; an unresolved
+  status never steers).
+- **Honest threat tiers (also in `SECURITY.md`).** TOTP remains strongest because
+  it elevates the real `aal` that MFA-aware RLS understands natively. Email and
+  Telegram OTP protect against password-only compromise (reuse, phishing, leaked
+  DB) where the attacker does not also control the inbox / Telegram; they do NOT
+  protect against a compromised mailbox or real-time code relay. Telegram is
+  stronger than email in practice (separate device/app). They materially beat
+  password-only and are the right trade for non-technical users.
+- **Email link cross-device caveat.** The elevation is bound to a `session_id`, so
+  the link only elevates the session in the browser that opens it. The email
+  therefore always carries the typed code as the universal cross-device fallback;
+  the confirm page explains this when it detects no matching pending session.
+- **Demo mode does it fully offline** with the real OTP crypto (`otpChannelLogic`),
+  exactly as TOTP/recovery do today: codes are minted, hashed, expired and
+  throttled locally, the demo surfaces the code on screen, and no network is used.
+
+Build order (T139 pure logic -> T140 offline UI -> T141 migrations + hook -> T142
+service-role functions -> T143 live wiring -> T144 server attempt-limit parity).
+T141/T142 establish the same "service-role function verifies an app-managed secret,
+then elevates the session" primitive that T29 (live recovery-code login) needs, so
+T29 should reuse the `session_elevations` + hook mechanism rather than inventing a
+second one.
+
 ## Onboarding links built in the platform console use a dedicated resident base URL (T133)
 
 The superadmin console (`src/platform/*`) is a separate build on its own

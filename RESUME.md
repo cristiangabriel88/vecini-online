@@ -19,8 +19,25 @@ under `docs/`, despite references to the contrary). The product is
 > Finished tasks' full done-notes are archived in `COMPLETED.md` (newest first);
 > §0 below stays the dated chronological summary.
 
-## 0. Current status (updated 2026-05-26, T133 resident-app base URL)
+## 0. Current status (updated 2026-05-26, T139 easier-2FA foundation)
 
+- **2026-05-26 — T139 (P1) Pure OTP-channel logic + `app2faSatisfied` enforcement
+  axis (foundation for email/Telegram 2FA).** User request: add easier second
+  factors (email code + click-to-confirm link, Telegram code) for non-technical
+  users who lack an authenticator app, keeping TOTP as the gold standard. The
+  constraint: Supabase grants real AAL2 only for `totp`/`phone`, so email/Telegram
+  are server-verified and the session is elevated via a session-bound `app_2fa_at`
+  JWT claim (Custom Access Token Hook). This task ships the backend-free
+  foundation: new pure `src/features/auth/otpChannelLogic.ts` (unbiased numeric
+  OTP, salted SHA-256 hash + constant-time verify, confirm-token, expiry/cooldown
+  clocks, channel taxonomy, email/Telegram masking) and extended `mfaLogic`
+  (`mfaEnforcementRedirect` gains an opt-in `app2faSatisfied` axis so an
+  email/Telegram-only user is not trapped on the security page; four new
+  `mfaErrorKey`s). New `otpChannelLogic.test.ts` + extended `mfaLogic.test.ts`.
+  Decision in `DECISIONS.md`. `npm run lint`/`typecheck`/`test` (127 files /
+  983 tests)/`build` all green. Queued the follow-ups T140 (offline UI), T141
+  (migrations + hook), T142 (service-role functions), T143 (live wiring), T144
+  (server attempt-limit parity); noted T29 should reuse the same elevation primitive.
 - **2026-05-26 — T133 (P1) Resident-app base URL for onboarding links built in
   the platform console.** The superadmin console is a separate build on its own
   subdomain, so `env.appUrl` resolves to the platform origin there and a setup
