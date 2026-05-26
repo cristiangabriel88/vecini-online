@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { env, isSupabaseConfigured } from './env';
+import { rememberStorage } from '@/features/auth/sessionPersistence';
 
 /**
  * Singleton Supabase client. When credentials are absent (e.g. local preview
@@ -15,6 +16,10 @@ export const supabase: SupabaseClient = createClient(
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
+      // Route the session to sessionStorage by default (cleared on browser close)
+      // and to localStorage only when the resident chose "remember me" (T: secure
+      // session defaults). See sessionPersistence.ts.
+      storage: rememberStorage,
       // PKCE is the more secure browser flow: the authorization code is bound to
       // a one-time verifier this client holds, so an intercepted code (e.g. from
       // an email link) cannot be exchanged for a session elsewhere (T03).

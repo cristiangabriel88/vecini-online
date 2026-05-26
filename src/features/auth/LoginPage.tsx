@@ -7,6 +7,8 @@ import type { Role } from '@/shared/types/domain';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
 import { Card } from '@/shared/components/Card';
+import { Checkbox } from '@/shared/components/Checkbox';
+import { setRemembered } from './sessionPersistence';
 import { Atmosphere } from '@/shared/components/Atmosphere';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useMfaStore } from '@/shared/store/mfaStore';
@@ -136,6 +138,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  // Off by default (the secure default): the session is dropped when the browser
+  // closes unless the resident opts into a persistent, "remembered" session.
+  const [remember, setRemember] = useState(false);
   // After sign-up or password-reset request we swap the form for a confirmation
   // panel rather than navigating, so the resident sees the next step clearly.
   const [sent, setSent] = useState<'verify' | 'reset' | null>(null);
@@ -172,7 +177,8 @@ export default function LoginPage() {
         if (!isSupabaseConfigured) {
           // Demo: the email/password form enters as the admin persona; the role
           // buttons below pick a different one. Gate behind the demo TOTP factor
-          // if one was enrolled.
+          // if one was enrolled. Honour "remember me" so idle behaviour matches.
+          setRemembered(remember);
           setDemoRole('admin');
           if (await challengeRequired()) setPendingMfa('demo');
           else {
@@ -181,7 +187,7 @@ export default function LoginPage() {
           }
           return;
         }
-        const { error, lockedMs } = await signIn(email, password);
+        const { error, lockedMs } = await signIn(email, password, remember);
         if (lockedMs > 0) {
           toast.error(t('auth.lockout', { minutes: lockoutMinutes(lockedMs) }));
           return;
@@ -247,6 +253,7 @@ export default function LoginPage() {
   };
 
   const enterDemoAs = async (role: Role) => {
+    setRemembered(remember);
     setDemoRole(role);
     // Gate entry behind the demo TOTP factor if one was enrolled; the chosen
     // role is preserved in `demoRole` and applied once the challenge clears.
@@ -373,6 +380,9 @@ export default function LoginPage() {
                 />
               )}
               {assessment && <PasswordStrength assessment={assessment} />}
+              {mode === 'signIn' && (
+                <Checkbox checked={remember} onChange={setRemember} label={t('auth.rememberMe')} />
+              )}
               {mode === 'signUp' && (
                 <Input
                   label={t('auth.confirmPassword')}

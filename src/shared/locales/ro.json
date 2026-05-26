@@ -121,6 +121,8 @@
     "passwordHint": "Minimum 10 caractere, cu litere și cifre sau simboluri.",
     "login": "Intră în cont",
     "logout": "Deconectare",
+    "rememberMe": "Ține-mă minte pe acest dispozitiv",
+    "idleSignedOut": "Te-am deconectat din motive de securitate după o perioadă de inactivitate.",
     "signUp": "Creează cont",
     "enterDemo": "Intră în modul demonstrativ",
     "demoPreviewAs": "Vizualizează demo ca",

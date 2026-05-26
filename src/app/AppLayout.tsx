@@ -17,6 +17,7 @@ import { UserMenu } from '@/shared/components/UserMenu';
 import { AssistantWidget } from '@/features/assistant/AssistantWidget';
 import { FeatureRouteGuard } from './FeatureRouteGuard';
 import { useMfaEnforcement } from './useMfaEnforcement';
+import { useIdleTimeout } from './useIdleTimeout';
 import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
 import { cn } from '@/shared/lib/cn';
 
@@ -541,6 +542,7 @@ function Footer() {
 export function AppLayout() {
   const { pathname } = useLocation();
   useMfaEnforcement();
+  useIdleTimeout();
   return (
     <div className="shell">
       <Atmosphere />

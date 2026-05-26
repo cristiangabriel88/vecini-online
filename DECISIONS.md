@@ -1216,3 +1216,18 @@ The audit trail records state changes across features (actor, time, before/after
   `24h` preset was added to `EXPIRY_PRESETS_MS` (top of the list) so the admin
   surface can still issue it explicitly, while `ONBOARDING_LINK_TTL_MS` /
   `onboardingExpiry` pin the provisioning setup link to 24h.
+- **Session persistence defaults to "browser-close"; "remember me" opts into a
+  30-day persistent session; non-remembered sessions get a 30-min idle timeout.**
+  The Supabase client previously kept every session in localStorage forever (no
+  idle timeout), too sticky for an app holding financial + GDPR data on shared
+  admin devices. A single `rememberStorage` adapter (`sessionPersistence.ts`,
+  fixed at client creation) now routes the session to sessionStorage by default
+  (cleared on browser close) and to localStorage only when the login checkbox is
+  ticked, stamped for a 30-day absolute cap enforced in `authStore.init`. A
+  `useIdleTimeout` hook (mounted in `AppLayout` beside `useMfaEnforcement`) signs
+  out non-remembered sessions after 30 min of inactivity; remembered devices rely
+  on the absolute cap instead. The superadmin console is always non-remembered
+  (sessionStorage), the stricter default for a privileged surface. Existing
+  localStorage sessions are not force-logged-out: reads consult both stores, so
+  they stay signed in and migrate to sessionStorage on their next token refresh
+  (the safer outcome).

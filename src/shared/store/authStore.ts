@@ -5,6 +5,7 @@ import { env } from '@/shared/lib/env';
 import type { Membership, Role, UserProfile } from '@/shared/types/domain';
 import { mergeHydration, roleFor, sortByPrivilege } from '@/features/auth/hydrationLogic';
 import { demoTenantContext } from '@/features/auth/demoTenant';
+import { rememberExpired, setRemembered } from '@/features/auth/sessionPersistence';
 import { buildFounderMembership, newLocalAsociatieId } from '@/features/onboarding/onboardingLogic';
 import {
   type InviteStatus,
@@ -83,7 +84,13 @@ interface AuthState {
    * replay-safe RPC under RLS (T55).
    */
   joinByInvite: (code: string) => JoinResult;
-  signIn: (email: string, password: string) => Promise<SignInResult>;
+  /**
+   * Sign in. `remember` decides session persistence: `true` keeps the session in
+   * localStorage (survives a browser restart, 30-day cap), `false` keeps it in
+   * sessionStorage (cleared on close, idle-timeout enforced). See
+   * `sessionPersistence.ts`.
+   */
+  signIn: (email: string, password: string, remember: boolean) => Promise<SignInResult>;
   signUp: (email: string, password: string) => Promise<SignUpResult>;
   resendVerification: (email: string) => Promise<AuthResult>;
   requestPasswordReset: (email: string) => Promise<AuthResult>;
@@ -117,6 +124,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   init: async () => {
     if (!isSupabaseConfigured) {
+      set({ loading: false });
+      return;
+    }
+    // Enforce the 30-day absolute cap on remembered sessions: drop a session that
+    // has outlived it before restoring, so the resident must re-authenticate.
+    if (rememberExpired()) {
+      await supabase.auth.signOut();
+      setRemembered(false);
       set({ loading: false });
       return;
     }
@@ -237,9 +252,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     return { status: 'ok', asociatieId: consumed.invite.asociatieId };
   },
 
-  signIn: async (email, password) => {
+  signIn: async (email, password, remember) => {
     const sec = useSecurityStore.getState();
     if (!isSupabaseConfigured) {
+      setRemembered(remember);
       get().enterDemo();
       return { error: null, lockedMs: 0 };
     }
@@ -249,6 +265,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       sec.log('loginLocked', email);
       return { error: 'locked', lockedMs: preLock };
     }
+    // Record the choice before the session is written so the storage adapter
+    // routes it into the right backing store (local vs session storage).
+    setRemembered(remember);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       const lockedMs = sec.registerFailure(email);
@@ -319,6 +338,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signOut: async () => {
     const email = get().session?.user?.email ?? null;
     if (isSupabaseConfigured) await supabase.auth.signOut();
+    setRemembered(false); // reset to the secure default for the next sign-in
     useSecurityStore.getState().log('logout', email);
     hydrateSeq++; // invalidate any in-flight hydrate for the old session
     set({
@@ -339,6 +359,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // `global` scope revokes refresh tokens for every session of this account,
     // so a session on another device or a stolen token is invalidated too.
     if (isSupabaseConfigured) await supabase.auth.signOut({ scope: 'global' });
+    setRemembered(false); // reset to the secure default for the next sign-in
     useSecurityStore.getState().log('logoutEverywhere', email);
     hydrateSeq++; // invalidate any in-flight hydrate for the old session
     set({

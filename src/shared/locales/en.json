@@ -121,6 +121,8 @@
     "passwordHint": "At least 10 characters, with letters and digits or symbols.",
     "login": "Sign in",
     "logout": "Sign out",
+    "rememberMe": "Keep me signed in on this device",
+    "idleSignedOut": "You were signed out for security after a period of inactivity.",
     "signUp": "Create account",
     "enterDemo": "Enter demo mode",
     "demoPreviewAs": "Preview demo as",

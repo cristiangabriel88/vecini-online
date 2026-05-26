@@ -65,7 +65,10 @@ export default function PlatformLoginPage() {
     if (!isValidEmail(email) || !password) return;
     setLoading(true);
     try {
-      const { error, lockedMs } = await signIn(email, password);
+      // A privileged platform session is never "remembered": it lives in
+      // sessionStorage and ends when the browser closes, the stricter default
+      // for the superadmin console.
+      const { error, lockedMs } = await signIn(email, password, false);
       if (lockedMs > 0) {
         toast.error(t('auth.lockout', { minutes: lockoutMinutes(lockedMs) }));
         return;
