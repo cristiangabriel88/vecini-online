@@ -108,7 +108,13 @@
     "errorRef": "Cod de referință",
     "retry": "Reîncearcă",
     "notImplemented": "Această funcționalitate este înregistrată, dar pagina nu este încă disponibilă în această versiune.",
-    "featureDisabled": "Această funcționalitate nu este activată pentru asociația ta."
+    "featureDisabled": "Această funcționalitate nu este activată pentru asociația ta.",
+    "featureDisabledHint": "Doar administratorul asociației poate activa acest modul.",
+    "requestFeature": "Cere activarea",
+    "enableFeature": "Activează modulul",
+    "requestFeatureConfirm": "Administratorul a fost anunțat că ai nevoie de acest modul.",
+    "requestFeatureToast": "Am trimis administratorului cererea ta de activare.",
+    "requestFeatureAlreadyToast": "Ai cerut deja activarea acestui modul."
   },
   "auth": {
     "loginTitle": "Autentificare administrator",
@@ -765,7 +771,7 @@
     "emailFailed": "Nu am putut trimite invitația pe email. Încearcă din nou.",
     "deleteLabel": "Șterge {{label}}",
     "deleteTitle": "Șterge apartamentul",
-    "deleteConfirm": "Sigur ștergi {{label}}? Acțiunea nu poate fi anulată.",
+    "deleteConfirm": "Ștergi definitiv {{label}}? Această acțiune este permanentă și nu mai poate fi anulată.",
     "notFoundTitle": "Apartament inexistent",
     "notFoundBody": "Apartamentul căutat nu există sau a fost șters.",
     "monthlyFund": "Fond lunar estimat la 0,80 lei/m²: {{amount}}",

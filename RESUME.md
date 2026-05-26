@@ -19,8 +19,22 @@ under `docs/`, despite references to the contrary). The product is
 > Finished tasks' full done-notes are archived in `COMPLETED.md` (newest first);
 > §0 below stays the dated chronological summary.
 
-## 0. Current status (updated 2026-05-26, T147 invitation email delivery)
+## 0. Current status (updated 2026-05-26, T150 locked-feature request channel)
 
+- **2026-05-26 - T150 (P2) Locked-feature "ask the admin" request channel.** A
+  resident reaching a module the asociație has not enabled now meets a premium
+  `LockedFeatureNotice` (new `src/app/LockedFeatureNotice.tsx`, replacing the bare
+  `EmptyState` in `FeatureRouteGuard`) with a "Cere activarea"/"Request activation"
+  CTA that records a dedup-per-(asociație, module, resident) request and settles
+  into a confirmed state. New pure `featureRequestLogic.ts`
+  (`newFeatureRequest`/`hasRequested`/`addRequest`) + persisted
+  `featureRequestStore.ts` (offline-first, best-effort mirror to `feature_requests`).
+  New RLS migration `20260526000004_feature_requests.sql` (tenant-scoped, self
+  file/read/withdraw, admin read/clear, no update, unique per resident+module).
+  Also reworded the apartment `deleteConfirm` to a clearer permanent-deletion
+  phrasing (RO+EN). New `featureRequestLogic.test.ts` + `featureRequestsRls.test.ts`.
+  `lint`/`typecheck`/`test` (132 files / 1031 tests)/`build` all green. Queued T151
+  (admin surface to triage the `feature_requests` queue) P2.
 - **2026-05-26 — T147 (P1) Invitation email delivery.** Both the apartment edit
   surface ("Trimite pe email") and the invites surface now deliver an invitation
   by email instead of an "coming soon" stub. New pure `src/shared/lib/inviteEmail.ts`

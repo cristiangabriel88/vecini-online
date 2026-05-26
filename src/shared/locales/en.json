@@ -108,7 +108,13 @@
     "errorRef": "Reference code",
     "retry": "Try again",
     "notImplemented": "This feature is registered but its page is not available in this build.",
-    "featureDisabled": "This feature is not enabled for your association."
+    "featureDisabled": "This feature is not enabled for your association.",
+    "featureDisabledHint": "Only your association's admin can enable this module.",
+    "requestFeature": "Request activation",
+    "enableFeature": "Enable this module",
+    "requestFeatureConfirm": "The admin has been notified that you need this module.",
+    "requestFeatureToast": "We have sent your activation request to the admin.",
+    "requestFeatureAlreadyToast": "You have already requested this module."
   },
   "auth": {
     "loginTitle": "Administrator login",
@@ -765,7 +771,7 @@
     "emailFailed": "Could not send the invitation email. Please try again.",
     "deleteLabel": "Delete {{label}}",
     "deleteTitle": "Delete apartment",
-    "deleteConfirm": "Delete {{label}}? This cannot be undone.",
+    "deleteConfirm": "Permanently delete {{label}}? This action is permanent and cannot be undone.",
     "notFoundTitle": "Apartment not found",
     "notFoundBody": "The apartment you are looking for does not exist or was deleted.",
     "monthlyFund": "Estimated monthly fund at 0.80 lei/m²: {{amount}}",

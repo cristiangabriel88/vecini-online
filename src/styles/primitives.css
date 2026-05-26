@@ -385,6 +385,125 @@
   margin-top: var(--space-2);
 }
 
+/* ── LockedFeatureNotice (T150) ────────────────────────────
+   The face a resident meets at a module the asociație has not enabled. Not a
+   dead end: a calm, premium panel that explains the lock and offers to notify
+   the admin. Children rise on load in a short stagger; the lock medallion sits
+   in a soft, slowly breathing accent halo. */
+.locked-feature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-3);
+  max-width: 30rem;
+  margin: clamp(var(--space-8), 8vh, var(--space-16)) auto 0;
+  padding: var(--space-6);
+}
+.locked-feature > * {
+  animation: locked-rise 560ms var(--ease-out) both;
+}
+.locked-feature__medallion { animation-delay: 0ms; }
+.locked-feature__key { animation-delay: 70ms; }
+.locked-feature__title { animation-delay: 110ms; }
+.locked-feature__body { animation-delay: 150ms; }
+.locked-feature__hint { animation-delay: 190ms; }
+.locked-feature__actions { animation-delay: 240ms; }
+
+.locked-feature__medallion {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-2xl);
+  color: var(--accent-600);
+  background: linear-gradient(160deg, var(--accent-50), var(--bg-elevated));
+  border: 1px solid var(--accent-200);
+  box-shadow: var(--shadow-sm), inset 0 1px 0 0 oklch(100% 0 0 / 0.5);
+  margin-bottom: var(--space-2);
+}
+.locked-feature__halo {
+  position: absolute;
+  inset: -10px;
+  border-radius: inherit;
+  background: radial-gradient(circle at center, var(--ring), transparent 68%);
+  opacity: 0.55;
+  z-index: -1;
+  animation: locked-halo 4.2s var(--ease) infinite;
+}
+
+.locked-feature__key {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--accent-700);
+  background: var(--accent-50);
+  border: 1px solid var(--accent-200);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+}
+.locked-feature__title {
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  font-weight: 500;
+  letter-spacing: -0.014em;
+  color: var(--text-primary);
+  margin: 0;
+}
+.locked-feature__body {
+  font-size: var(--text-md);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+  max-width: 34ch;
+  margin: 0;
+}
+.locked-feature__hint {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  max-width: 36ch;
+  margin: 0;
+}
+.locked-feature__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: center;
+  align-items: center;
+  margin-top: var(--space-4);
+}
+.locked-feature__sent {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 40px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--accent-700);
+  background: var(--accent-50);
+  border: 1px solid var(--accent-200);
+  animation: locked-rise 420ms var(--ease-spring) both;
+}
+.locked-feature__sent svg { color: var(--accent-600); }
+
+@keyframes locked-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes locked-halo {
+  0%, 100% { opacity: 0.4; transform: scale(0.96); }
+  50% { opacity: 0.7; transform: scale(1.04); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .locked-feature > *,
+  .locked-feature__sent { animation: none; }
+  .locked-feature__halo { animation: none; opacity: 0.5; }
+}
+
 /* ── Modal ─────────────────────────────────────────────── */
 .modal-overlay {
   position: fixed;
