@@ -35,6 +35,9 @@ export default function BuildingSettingsPage() {
     address: asociatie?.address ?? '',
     cui: asociatie?.cui ?? '',
     registration_number: asociatie?.registration_number ?? '',
+    iban: asociatie?.iban ?? '',
+    contact_phone: asociatie?.contact_phone ?? '',
+    contact_email: asociatie?.contact_email ?? '',
   }));
   const [mode, setMode] = useState<EntranceMode>(initialEntrances.mode);
   const [first, setFirst] = useState(initialEntrances.first);
@@ -65,6 +68,9 @@ export default function BuildingSettingsPage() {
       address: form.address.trim(),
       cui: form.cui.trim() || null,
       registration_number: form.registration_number.trim() || null,
+      iban: form.iban.trim() || null,
+      contact_phone: form.contact_phone.trim() || null,
+      contact_email: form.contact_email.trim() || null,
       settings: { ...asociatie.settings, scari: preview },
     });
     toast.success(t('building.saved'));
@@ -96,6 +102,25 @@ export default function BuildingSettingsPage() {
               label={t('building.regNumber')}
               value={form.registration_number}
               onChange={(e) => set('registration_number', e.target.value)}
+            />
+          </div>
+          <Input
+            label={t('building.iban')}
+            value={form.iban}
+            onChange={(e) => set('iban', e.target.value)}
+          />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Input
+              label={t('building.contactPhone')}
+              type="tel"
+              value={form.contact_phone}
+              onChange={(e) => set('contact_phone', e.target.value)}
+            />
+            <Input
+              label={t('building.contactEmail')}
+              type="email"
+              value={form.contact_email}
+              onChange={(e) => set('contact_email', e.target.value)}
             />
           </div>
 

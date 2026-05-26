@@ -14,7 +14,17 @@ import { useAuthStore } from '@/shared/store/authStore';
 
 /** The admin-editable subset of an asociație profile. */
 export type AsociatieProfilePatch = Partial<
-  Pick<Asociatie, 'name' | 'address' | 'cui' | 'registration_number' | 'settings'>
+  Pick<
+    Asociatie,
+    | 'name'
+    | 'address'
+    | 'cui'
+    | 'registration_number'
+    | 'iban'
+    | 'contact_phone'
+    | 'contact_email'
+    | 'settings'
+  >
 >;
 
 type ProfileById = Record<string, AsociatieProfilePatch>;
@@ -65,6 +75,9 @@ function baseAsociatie(asociatieId: string, localName: string | undefined): Asoc
     address: '',
     cui: null,
     registration_number: null,
+    iban: null,
+    contact_phone: null,
+    contact_email: null,
     country: 'RO',
     locale: 'ro',
     timezone: 'Europe/Bucharest',

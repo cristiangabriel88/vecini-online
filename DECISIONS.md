@@ -2,6 +2,28 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## Asociație identity captured at provisioning (T122)
+
+Superadmin provisioning now captures the asociație's full identity up front
+(address, fiscal id CUI/CIF, official registration number, IBAN, contact phone +
+email) alongside the required core (asociație name + city, admin name + email).
+
+- **Identity fields are optional, not required.** An operator may not have every
+  number to hand when creating the asociație, and the admin can complete them
+  later in building settings (field parity). A blank identity field is accepted; a
+  filled one is format-checked so a typo is caught before it reaches the live path.
+- **Format-only validation, no checksums.** IBAN is validated structurally (2-letter
+  country + 2 check digits + 11-30 alphanumerics, 15-34 total) and stored normalised
+  (no spaces, upper-case), not mod-97-verified, so a valid foreign account is never
+  rejected. CUI accepts an optional `RO` prefix then 2-10 digits; phone accepts the
+  usual separators with 7-15 digits.
+- **Two stores, no offline cross-sync.** The platform console (separate app/origin)
+  carries the identity on its `PlatformAsociatieSummary`; the main-app `asociatieStore`
+  carries it for the admin to edit. They do not sync offline (separate origins, per
+  the superadmin-isolation non-negotiable); the live write path (T92/T120) is the
+  single source once a backend persists both through the `asociatii` columns added in
+  `20260525000003_asociatie_identity.sql`.
+
 ## Onboarding flow: secure tokenized links, account-on-redemption, 24h expiry, inbox notice
 
 The end-to-end onboarding/provisioning data flow was reviewed with the user and

@@ -18,6 +18,12 @@ export interface Asociatie {
   address: string;
   cui: string | null;
   registration_number: string | null;
+  /** Bank account (IBAN) the asociație collects payments into. */
+  iban: string | null;
+  /** Public contact phone for the asociație. */
+  contact_phone: string | null;
+  /** Public contact email for the asociație. */
+  contact_email: string | null;
   country: string;
   locale: Locale;
   timezone: string;

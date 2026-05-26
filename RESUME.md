@@ -17,8 +17,22 @@ under `docs/`, despite references to the contrary). The product is
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-26, onboarding/provisioning data-flow audit + tasks)
+## 0. Current status (updated 2026-05-26, T122 full asociație identity at provisioning)
 
+- **2026-05-26 — T122 (P1) Full asociație identity at superadmin provisioning.**
+  Provisioning now captures the asociație's identity up front: address, CUI/CIF,
+  registration number, IBAN, contact phone + email (alongside the required core).
+  Added `iban`/`contact_phone`/`contact_email` to the `Asociatie` type + an
+  additive migration `20260525000003_asociatie_identity.sql`. Extended the pure
+  provisioning logic (`ProvisionInputDraft`/`ProvisionInput` + validation) with
+  optional-but-format-checked identity fields and new exported validators
+  (`isValidIban`/`normalizeIban`, `isValidCui`, `isValidPhone`); the provisioning
+  form gained the six inputs and each console card renders the identity. For
+  field parity the admin's `BuildingSettingsPage` gained matching IBAN + contact
+  inputs. Demo seeds carry real RO sample values. Bilingual RO/EN, decision
+  recorded in `DECISIONS.md`. `npm run lint`/`typecheck`/`test` (121 files / 910
+  tests)/`build` all green. Surfaced T131 (format-validate identity in building
+  settings too) and T132 (echo identity in the provisioning result modal).
 - **2026-05-26 — Onboarding/provisioning data-flow audit (docs + backlog).**
   Reviewed the full path with the user (superadmin provisions asociație + first
   admin -> admin onboards via a secure link and sets a password -> admin invites

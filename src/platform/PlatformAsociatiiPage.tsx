@@ -1,7 +1,20 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { Building2, Copy, Home as HomeIcon, KeyRound, Plus, UserCog, Users } from 'lucide-react';
+import {
+  Building2,
+  Copy,
+  Hash,
+  Home as HomeIcon,
+  KeyRound,
+  Landmark,
+  Mail,
+  MapPin,
+  Phone,
+  Plus,
+  UserCog,
+  Users,
+} from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
@@ -135,6 +148,56 @@ export default function PlatformAsociatiiPage() {
                     : t('platform.asociatii.neverSignedIn')}
                 </p>
 
+                {(a.address || a.cui || a.iban || a.contactPhone || a.contactEmail) && (
+                  <dl className="platform-asoc-card__identity">
+                    {a.address && (
+                      <div className="platform-asoc-identity-row">
+                        <dt>
+                          <MapPin size={13} aria-hidden="true" />
+                          {t('platform.asociatii.fields.address')}
+                        </dt>
+                        <dd>{a.address}</dd>
+                      </div>
+                    )}
+                    {a.cui && (
+                      <div className="platform-asoc-identity-row">
+                        <dt>
+                          <Hash size={13} aria-hidden="true" />
+                          {t('platform.asociatii.fields.cui')}
+                        </dt>
+                        <dd>{a.cui}</dd>
+                      </div>
+                    )}
+                    {a.iban && (
+                      <div className="platform-asoc-identity-row">
+                        <dt>
+                          <Landmark size={13} aria-hidden="true" />
+                          {t('platform.asociatii.fields.iban')}
+                        </dt>
+                        <dd>{a.iban}</dd>
+                      </div>
+                    )}
+                    {a.contactPhone && (
+                      <div className="platform-asoc-identity-row">
+                        <dt>
+                          <Phone size={13} aria-hidden="true" />
+                          {t('platform.asociatii.fields.contactPhone')}
+                        </dt>
+                        <dd>{a.contactPhone}</dd>
+                      </div>
+                    )}
+                    {a.contactEmail && (
+                      <div className="platform-asoc-identity-row">
+                        <dt>
+                          <Mail size={13} aria-hidden="true" />
+                          {t('platform.asociatii.fields.contactEmail')}
+                        </dt>
+                        <dd>{a.contactEmail}</dd>
+                      </div>
+                    )}
+                  </dl>
+                )}
+
                 {prov && (
                   <div className="platform-asoc-card__admin">
                     <div className="platform-asoc-card__admin-head">
@@ -208,6 +271,55 @@ export default function PlatformAsociatiiPage() {
             onChange={set('city')}
             error={fieldError('city')}
           />
+          <Input
+            label={t('platform.asociatii.fields.address')}
+            placeholder={t('platform.asociatii.fields.addressPlaceholder')}
+            value={draft.address}
+            onChange={set('address')}
+            error={fieldError('address')}
+          />
+          <div className="platform-asoc-form__row">
+            <Input
+              label={t('platform.asociatii.fields.cui')}
+              placeholder={t('platform.asociatii.fields.cuiPlaceholder')}
+              value={draft.cui}
+              onChange={set('cui')}
+              error={fieldError('cui')}
+            />
+            <Input
+              label={t('platform.asociatii.fields.registrationNumber')}
+              placeholder={t('platform.asociatii.fields.registrationNumberPlaceholder')}
+              value={draft.registrationNumber}
+              onChange={set('registrationNumber')}
+              error={fieldError('registrationNumber')}
+            />
+          </div>
+          <Input
+            label={t('platform.asociatii.fields.iban')}
+            placeholder={t('platform.asociatii.fields.ibanPlaceholder')}
+            value={draft.iban}
+            onChange={set('iban')}
+            error={fieldError('iban')}
+          />
+          <div className="platform-asoc-form__row">
+            <Input
+              label={t('platform.asociatii.fields.contactPhone')}
+              type="tel"
+              placeholder={t('platform.asociatii.fields.contactPhonePlaceholder')}
+              value={draft.contactPhone}
+              onChange={set('contactPhone')}
+              error={fieldError('contactPhone')}
+            />
+            <Input
+              label={t('platform.asociatii.fields.contactEmail')}
+              type="email"
+              autoComplete="off"
+              placeholder={t('platform.asociatii.fields.contactEmailPlaceholder')}
+              value={draft.contactEmail}
+              onChange={set('contactEmail')}
+              error={fieldError('contactEmail')}
+            />
+          </div>
           <Input
             label={t('platform.asociatii.fields.adminName')}
             placeholder={t('platform.asociatii.fields.adminNamePlaceholder')}

@@ -4,7 +4,11 @@ import {
   daysSince,
   DORMANT_AFTER_DAYS,
   isDormant,
+  isValidCui,
+  isValidIban,
+  isValidPhone,
   newPlatformAsociatieId,
+  normalizeIban,
   provisionAsociatie,
   sortAsociatii,
   validateProvisionInput,
@@ -21,23 +25,35 @@ import { DEMO_PLATFORM_ASOCIATII, type PlatformAsociatieSummary } from '@/platfo
 const validInput: ProvisionInput = {
   asociatieName: 'Asociația Test Bloc 1',
   city: 'Brașov',
+  address: 'Str. Lungă nr. 4, Brașov',
+  cui: '12345678',
+  registrationNumber: '4521/2019',
+  iban: 'RO49AAAA1B31007593840000',
+  contactPhone: '+40 21 555 0123',
+  contactEmail: 'contact@exemplu.ro',
   adminName: 'Ionescu Maria',
   adminEmail: 'maria@exemplu.ro',
 };
 
-describe('validateProvisionInput (T94)', () => {
-  it('accepts a complete request and returns the trimmed value', () => {
+describe('validateProvisionInput (T94/T122)', () => {
+  it('accepts a complete request and returns the trimmed, normalised value', () => {
     const { errors, value } = validateProvisionInput({
       asociatieName: '  Asociația Test Bloc 1  ',
       city: ' Brașov ',
+      address: ' Str. Lungă nr. 4, Brașov ',
+      cui: ' 12345678 ',
+      registrationNumber: ' 4521/2019 ',
+      iban: ' ro49 aaaa 1b31 0075 9384 0000 ',
+      contactPhone: ' +40 21 555 0123 ',
+      contactEmail: ' contact@exemplu.ro ',
       adminName: ' Ionescu Maria ',
       adminEmail: ' maria@exemplu.ro ',
     });
     expect(errors).toEqual({});
-    expect(value).toEqual(validInput);
+    expect(value).toEqual(validInput); // IBAN upper-cased and de-spaced
   });
 
-  it('flags every empty field as required', () => {
+  it('flags every required core field but leaves the optional identity blank', () => {
     const { errors, value } = validateProvisionInput(blankProvisionInput());
     expect(errors).toEqual({
       asociatieName: 'required',
@@ -48,8 +64,21 @@ describe('validateProvisionInput (T94)', () => {
     expect(value).toBeNull();
   });
 
+  it('accepts a request with the identity fields left empty', () => {
+    const { errors, value } = validateProvisionInput({
+      ...blankProvisionInput(),
+      asociatieName: 'Asociația Test Bloc 1',
+      city: 'Brașov',
+      adminName: 'Ionescu Maria',
+      adminEmail: 'maria@exemplu.ro',
+    });
+    expect(errors).toEqual({});
+    expect(value).toMatchObject({ address: '', cui: '', iban: '', contactPhone: '', contactEmail: '' });
+  });
+
   it('flags too-short names and an invalid email', () => {
     const { errors } = validateProvisionInput({
+      ...blankProvisionInput(),
       asociatieName: 'AB',
       city: 'B',
       adminName: 'I',
@@ -59,6 +88,48 @@ describe('validateProvisionInput (T94)', () => {
     expect(errors.city).toBe('tooShort');
     expect(errors.adminName).toBe('tooShort');
     expect(errors.adminEmail).toBe('email');
+  });
+
+  it('flags a malformed CUI, IBAN, phone and contact email when filled', () => {
+    const { errors, value } = validateProvisionInput({
+      ...blankProvisionInput(),
+      asociatieName: 'Asociația Test Bloc 1',
+      city: 'Brașov',
+      adminName: 'Ionescu Maria',
+      adminEmail: 'maria@exemplu.ro',
+      cui: 'AB12',
+      iban: 'RO00',
+      contactPhone: 'abc',
+      contactEmail: 'nope',
+    });
+    expect(errors.cui).toBe('cui');
+    expect(errors.iban).toBe('iban');
+    expect(errors.contactPhone).toBe('phone');
+    expect(errors.contactEmail).toBe('email');
+    expect(value).toBeNull();
+  });
+});
+
+describe('identity field validators (T122)', () => {
+  it('normalises and validates IBANs', () => {
+    expect(normalizeIban(' ro49 aaaa 1b31 0075 9384 0000 ')).toBe('RO49AAAA1B31007593840000');
+    expect(isValidIban('RO49 AAAA 1B31 0075 9384 0000')).toBe(true);
+    expect(isValidIban('RO00')).toBe(false);
+    expect(isValidIban('1234567890123456')).toBe(false);
+  });
+
+  it('validates Romanian fiscal codes', () => {
+    expect(isValidCui('12345678')).toBe(true);
+    expect(isValidCui('RO12345678')).toBe(true);
+    expect(isValidCui('AB12')).toBe(false);
+    expect(isValidCui('1')).toBe(false);
+  });
+
+  it('validates contact phone numbers', () => {
+    expect(isValidPhone('+40 21 555 0123')).toBe(true);
+    expect(isValidPhone('0212223344')).toBe(true);
+    expect(isValidPhone('123')).toBe(false);
+    expect(isValidPhone('abc')).toBe(false);
   });
 });
 
@@ -74,6 +145,16 @@ describe('provisionAsociatie (T94)', () => {
     expect(admin.name).toBe(validInput.adminName);
     expect(admin.email).toBe(validInput.adminEmail);
     expect(admin.setupCode).toMatch(/^[A-Z2-9]{8}$/);
+  });
+
+  it('carries the asociație identity onto the summary', () => {
+    const { asociatie } = provisionAsociatie(validInput);
+    expect(asociatie.address).toBe(validInput.address);
+    expect(asociatie.cui).toBe(validInput.cui);
+    expect(asociatie.registrationNumber).toBe(validInput.registrationNumber);
+    expect(asociatie.iban).toBe(validInput.iban);
+    expect(asociatie.contactPhone).toBe(validInput.contactPhone);
+    expect(asociatie.contactEmail).toBe(validInput.contactEmail);
   });
 
   it('regenerates the setup code when it collides with an existing one', () => {

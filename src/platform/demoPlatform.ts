@@ -18,6 +18,20 @@ export interface PlatformAsociatieSummary {
   /** ISO date of the most recent admin sign-in, or null if the admin has never
    *  signed in yet (a freshly provisioned asociație). Drives the dormant signal. */
   lastAdminSignInAt: string | null;
+  /** Asociație identity captured at provisioning (T122). Optional: an operator may
+   *  provision with only the core fields and the admin completes them later in
+   *  building settings. Empty string when not captured. */
+  address?: string;
+  /** Fiscal code (CUI/CIF). */
+  cui?: string;
+  /** Official registration number. */
+  registrationNumber?: string;
+  /** Bank account (IBAN) the asociație collects into. */
+  iban?: string;
+  /** Public contact phone. */
+  contactPhone?: string;
+  /** Public contact email. */
+  contactEmail?: string;
 }
 
 /** The signed-in demo platform operator (a fictional SaaS owner account). */
@@ -35,6 +49,12 @@ export const DEMO_PLATFORM_ASOCIATII: PlatformAsociatieSummary[] = [
     members: 42,
     apartments: DEMO_APARTMENTS.length,
     lastAdminSignInAt: '2026-05-24T19:30:00Z',
+    address: 'Str. Aleea Teilor nr. 12, Sector 4, București',
+    cui: '12345678',
+    registrationNumber: '4521/2019',
+    iban: 'RO49AAAA1B31007593840000',
+    contactPhone: '+40 21 555 0123',
+    contactEmail: 'contact@bloc12.ro',
   },
   {
     id: 'demo-asoc-2',
@@ -43,6 +63,12 @@ export const DEMO_PLATFORM_ASOCIATII: PlatformAsociatieSummary[] = [
     members: 28,
     apartments: 24,
     lastAdminSignInAt: '2026-05-22T08:10:00Z',
+    address: 'Aleea Crinului nr. 7, Cluj-Napoca',
+    cui: '23456789',
+    registrationNumber: '1187/2020',
+    iban: 'RO12BTRL0130120100000001',
+    contactPhone: '+40 264 555 210',
+    contactEmail: 'contact@bloc7crinului.ro',
   },
   {
     id: 'demo-asoc-3',
@@ -51,6 +77,12 @@ export const DEMO_PLATFORM_ASOCIATII: PlatformAsociatieSummary[] = [
     members: 16,
     apartments: 18,
     lastAdminSignInAt: '2026-04-30T14:05:00Z',
+    address: 'Str. Mihai Viteazul nr. 3, Timișoara',
+    cui: '34567890',
+    registrationNumber: '902/2018',
+    iban: 'RO98RNCB0072000000010001',
+    contactPhone: '+40 256 555 330',
+    contactEmail: 'contact@mihaiviteazul3.ro',
   },
 ];
 
