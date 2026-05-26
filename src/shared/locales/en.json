@@ -781,6 +781,7 @@
     "monthlyFund": "Estimated monthly fund at 0.80 lei/m²: {{amount}}",
     "codesGenerated": "{{count}} codes generated (e.g. {{code}})",
     "generateCodes": "Generate invite codes",
+    "downloadTemplate": "Download .csv template",
     "empty": "No apartments imported. Use the import step in setup."
   },
   "building": {

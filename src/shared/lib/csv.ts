@@ -22,6 +22,21 @@ function num(v: string | undefined): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+/**
+ * Generate the UTF-8 CSV template for the apartment bulk-import.
+ * Header: scara,numar_apartament,name,email,numar_persoane,proprietar,opt_in
+ * Returns a CRLF-delimited string suitable for a Blob download.
+ */
+export function generateApartmentsCsvTemplate(): string {
+  const header = 'scara,numar_apartament,name,email,numar_persoane,proprietar,opt_in';
+  const rows = [
+    'A,1,Ionescu Maria,maria.ionescu@exemplu.ro,2,true,true',
+    'A,2,Popescu Ion,ion.popescu@exemplu.ro,3,true,true',
+    'B,3,Dumitrescu Elena,,1,false,false',
+  ];
+  return [header, ...rows].join('\r\n');
+}
+
 /** Parse an apartment-list CSV into typed rows, collecting per-row errors. */
 export function parseApartmentsCsv(text: string): ImportResult {
   const parsed = Papa.parse<Record<string, string>>(text.trim(), {

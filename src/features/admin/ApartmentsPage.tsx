@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { KeyRound, Pencil, Plus, Trash2, Building2 } from 'lucide-react';
+import { Download, KeyRound, Pencil, Plus, Trash2, Building2 } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
@@ -10,6 +10,7 @@ import { EmptyState } from '@/shared/components/EmptyState';
 import { Modal } from '@/shared/components/Modal';
 import { formatLei } from '@/shared/lib/format';
 import { generateInviteCode } from '@/shared/lib/inviteCode';
+import { generateApartmentsCsvTemplate } from '@/shared/lib/csv';
 import { useAuthStore } from '@/shared/store/authStore';
 import type { Apartment } from '@/shared/types/domain';
 import { apartmentShortLabel } from '@/features/apartment/apartmentLogic';
@@ -29,6 +30,17 @@ export default function ApartmentsPage() {
     if (asociatieId) void hydrateApartments(asociatieId);
   }, [asociatieId]);
 
+  const handleDownloadTemplate = () => {
+    const csv = generateApartmentsCsvTemplate();
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'sablon-apartamente.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const confirmDelete = () => {
     if (!asociatieId || !pendingDelete) return;
     deleteApartment(asociatieId, pendingDelete);
@@ -47,6 +59,9 @@ export default function ApartmentsPage() {
               <Button variant="secondary" onClick={() => navigate('/app/admin/cladire')}>
                 <Building2 className="h-4 w-4" /> {t('building.title')}
               </Button>
+              <Button variant="secondary" onClick={handleDownloadTemplate}>
+                <Download className="h-4 w-4" /> {t('apartments.downloadTemplate')}
+              </Button>
               <Button onClick={() => navigate('/app/admin/apartamente/adauga')}>
                 <Plus className="h-4 w-4" /> {t('apartments.addApartments')}
               </Button>
@@ -63,6 +78,9 @@ export default function ApartmentsPage() {
             <div className="flex flex-wrap justify-center gap-2">
               <Button onClick={() => navigate('/app/admin/apartamente/adauga')}>
                 <Plus className="h-4 w-4" /> {t('apartments.addApartments')}
+              </Button>
+              <Button variant="secondary" onClick={handleDownloadTemplate}>
+                <Download className="h-4 w-4" /> {t('apartments.downloadTemplate')}
               </Button>
               <Button variant="secondary" onClick={() => navigate('/app/admin/cladire')}>
                 <Building2 className="h-4 w-4" /> {t('apartments.configureBuilding')}

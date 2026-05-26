@@ -781,6 +781,7 @@
     "monthlyFund": "Fond lunar estimat la 0,80 lei/m²: {{amount}}",
     "codesGenerated": "{{count}} coduri generate (ex: {{code}})",
     "generateCodes": "Generează coduri de invitație",
+    "downloadTemplate": "Descarcă șablon .csv",
     "empty": "Niciun apartament importat. Folosește pasul de import din configurare."
   },
   "building": {
