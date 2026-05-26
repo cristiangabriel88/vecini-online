@@ -114,7 +114,9 @@
     "enableFeature": "Enable this module",
     "requestFeatureConfirm": "The admin has been notified that you need this module.",
     "requestFeatureToast": "We have sent your activation request to the admin.",
-    "requestFeatureAlreadyToast": "You have already requested this module."
+    "requestFeatureAlreadyToast": "You have already requested this module.",
+    "downloadQr": "Download PNG",
+    "qrCodeAlt": "QR code for {{label}}"
   },
   "auth": {
     "loginTitle": "Administrator login",
@@ -849,7 +851,9 @@
     "neverExpires": "Never expires",
     "consumedOn": "Used on {{date}}",
     "empty": "No codes issued yet. Generate the first one above.",
-    "noAsociatie": "Select an active association first."
+    "noAsociatie": "Select an active association first.",
+    "showQr": "Show QR",
+    "hideQr": "Hide QR"
   },
   "visitors": {
     "title": "Observed visitors",

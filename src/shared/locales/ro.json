@@ -114,7 +114,9 @@
     "enableFeature": "Activează modulul",
     "requestFeatureConfirm": "Administratorul a fost anunțat că ai nevoie de acest modul.",
     "requestFeatureToast": "Am trimis administratorului cererea ta de activare.",
-    "requestFeatureAlreadyToast": "Ai cerut deja activarea acestui modul."
+    "requestFeatureAlreadyToast": "Ai cerut deja activarea acestui modul.",
+    "downloadQr": "Descarcă PNG",
+    "qrCodeAlt": "Cod QR pentru {{label}}"
   },
   "auth": {
     "loginTitle": "Autentificare administrator",
@@ -849,7 +851,9 @@
     "neverExpires": "Nu expiră",
     "consumedOn": "Folosit pe {{date}}",
     "empty": "Niciun cod emis încă. Generează primul cod de mai sus.",
-    "noAsociatie": "Selectează mai întâi o asociație activă."
+    "noAsociatie": "Selectează mai întâi o asociație activă.",
+    "showQr": "Afișează QR",
+    "hideQr": "Ascunde QR"
   },
   "visitors": {
     "title": "Vizitatori observați",

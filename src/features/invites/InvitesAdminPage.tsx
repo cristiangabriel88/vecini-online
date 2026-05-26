@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { KeyRound, Link2, Mail, Ticket, Trash2 } from 'lucide-react';
+import { KeyRound, Link2, Mail, QrCode as QrCodeIcon, Ticket, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
@@ -11,6 +11,7 @@ import { Select } from '@/shared/components/Select';
 import { Switch } from '@/shared/components/Switch';
 import { Badge } from '@/shared/components/Badge';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { QrCode } from '@/shared/components/QrCode';
 import { formatDate } from '@/shared/lib/format';
 import { env } from '@/shared/lib/env';
 import { useAuthStore } from '@/shared/store/authStore';
@@ -66,6 +67,8 @@ export default function InvitesAdminPage() {
   const [inviteeEmail, setInviteeEmail] = useState('');
   const [expiry, setExpiry] = useState<ExpiryPreset>('30d');
   const [singleUse, setSingleUse] = useState(true);
+  /** Set of invite IDs whose QR panel is currently open. */
+  const [openQrs, setOpenQrs] = useState<Set<string>>(() => new Set());
 
   const apartments = useAsociatieApartments();
 
@@ -185,6 +188,15 @@ export default function InvitesAdminPage() {
     }
   };
 
+  const toggleQr = (id: string) => {
+    setOpenQrs((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
   const apartmentLabel = (id: string | null) => {
     if (!id) return null;
     const apt = apartments.find((a) => a.id === id);
@@ -288,6 +300,15 @@ export default function InvitesAdminPage() {
                     >
                       <Link2 className="h-4 w-4" /> {t('invites.copyLink')}
                     </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleQr(invite.id)}
+                      aria-expanded={openQrs.has(invite.id)}
+                    >
+                      <QrCodeIcon className="h-4 w-4" />
+                      {openQrs.has(invite.id) ? t('invites.hideQr') : t('invites.showQr')}
+                    </Button>
                     {status === 'ok' && canEmailInvite(invite) && (
                       <Button variant="ghost" size="sm" onClick={() => onSendEmail(invite)}>
                         <Mail className="h-4 w-4" />{' '}
@@ -313,6 +334,11 @@ export default function InvitesAdminPage() {
                   {invite.emailSentAt !== null &&
                     ` · ${t('invites.emailSentOn', { date: formatDate(invite.emailSentAt) })}`}
                 </p>
+                {openQrs.has(invite.id) && (
+                  <div className="mt-3">
+                    <QrCode value={link} label={invite.code} />
+                  </div>
+                )}
               </Card>
             );
           })}

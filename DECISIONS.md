@@ -2,6 +2,26 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## QR code component: library and surface choice (T90)
+
+- **Used the existing `qrcode` package instead of adding `qrcode.react`.** The
+  `qrcode` library is already in `dependencies` (added in T153 for the Netlify
+  invite-email function). Writing a small React wrapper around `QRCode.toDataURL`
+  avoids adding another dependency for functionality we already have. The wrapper
+  is `src/shared/components/QrCode.tsx` + `src/shared/lib/qr.ts`.
+- **QR is shown only on `InvitesAdminPage`, not `PlatformAsociatiiPage`.** The
+  original T90 scope included the superadmin setup-link handoff on
+  `PlatformAsociatiiPage`, but T152 deliberately removed all setup links and codes
+  from that page (they live exclusively in the invitation email). T153 already
+  embeds the setup-link QR in the admin invite email template, so there is no
+  in-UI link to QR-ify on the platform console. The QR component is wired only to
+  locatar invite links on `InvitesAdminPage`, where the admin wants to share a
+  physical/scannable link with a resident.
+- **Download uses a programmatically created `<a>` element, not a `<a>` ref.**
+  `document.createElement('a'); a.download = ...; a.click()` is the standard
+  pattern for triggering a file download from a data URL without needing a DOM
+  anchor in the component tree.
+
 ## Invitation email delivery (T147)
 
 - **The bilingual email template is a pure, app-independent module
