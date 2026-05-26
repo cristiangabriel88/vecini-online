@@ -37,6 +37,27 @@ import {
  * asociație survives a reload in the local loop.
  */
 
+/**
+ * A pending admin invitation created by the "Add Association" page (T152).
+ * Unlike an old-style `AdminProvisionRecord`, this has no asociatie yet -- the
+ * administrator enters the asociație's identity during the onboarding wizard
+ * (T154) after accepting the invite.
+ */
+export interface PendingAdminInvite {
+  /** Unique id for this invite (UUID). */
+  id: string;
+  adminName: string;
+  adminEmail: string;
+  /** Opaque 64-hex token that backs the secure setup link (T123). */
+  setupToken: string;
+  /** Epoch ms the setup link expires (24h from invite). */
+  expiresAt: number;
+  /** ISO instant the invite was created. */
+  invitedAt: string;
+  /** Epoch ms the invitation email was marked as sent; null while unsent. */
+  emailSentAt: number | null;
+}
+
 /** The admin a platform operator provisioned for an asociație (offline record). */
 export interface AdminProvisionRecord {
   asociatieId: string;
@@ -66,8 +87,23 @@ interface PlatformAsociatiiState {
   asociatii: PlatformAsociatieSummary[];
   /** Provisioned-admin records keyed by asociație id. */
   provisions: Record<string, AdminProvisionRecord>;
+  /**
+   * Pending admin invitations sent from the new "Add Association" page (T152).
+   * Each invite has no asociație yet -- the admin enters the asociație identity
+   * during the onboarding wizard (T154) after accepting.
+   */
+  pendingInvites: PendingAdminInvite[];
   /** Provision a new asociație + its first admin (offline path). */
   provision: (input: ProvisionInput) => ProvisionResult;
+  /**
+   * Create a pending admin invite (T152 new simplified flow). The operator
+   * supplies only the admin's name and email; the invite token backs the setup
+   * link emailed to the admin. The asociație identity is entered by the admin
+   * during the onboarding wizard. No asociație row is created at this point.
+   */
+  inviteAdmin: (adminName: string, adminEmail: string) => PendingAdminInvite;
+  /** Stamp `emailSentAt` once the invitation email was successfully dispatched. */
+  markAdminEmailSent: (inviteId: string) => void;
   /**
    * Consume an admin setup token (from the secure link) or its short fallback
    * code, single-use and replay-safe: it re-validates inside the state update so
@@ -92,6 +128,7 @@ export const usePlatformAsociatiiStore = create<PlatformAsociatiiState>()(
     (set, get) => ({
       asociatii: sortAsociatii(DEMO_PLATFORM_ASOCIATII),
       provisions: {},
+      pendingInvites: [],
 
       provision: (input) => {
         const existingCodes = Object.values(get().provisions).map((p) => p.setupCode);
@@ -144,6 +181,30 @@ export const usePlatformAsociatiiStore = create<PlatformAsociatiiState>()(
         return result;
       },
 
+      inviteAdmin: (adminName, adminEmail) => {
+        const now = Date.now();
+        const invite: PendingAdminInvite = {
+          id: crypto.randomUUID(),
+          adminName,
+          adminEmail,
+          setupToken: generateInviteToken(),
+          expiresAt: now + ONBOARDING_LINK_TTL_MS,
+          invitedAt: new Date().toISOString(),
+          emailSentAt: null,
+        };
+        set((s) => ({ pendingInvites: [...s.pendingInvites, invite] }));
+        return invite;
+      },
+
+      markAdminEmailSent: (inviteId) => {
+        const now = Date.now();
+        set((s) => ({
+          pendingInvites: s.pendingInvites.map((inv) =>
+            inv.id === inviteId ? { ...inv, emailSentAt: now } : inv,
+          ),
+        }));
+      },
+
       consumeSetup: (value) => {
         const token = normalizeInviteToken(value);
         const code = normalizeInviteCode(value);
@@ -177,26 +238,30 @@ export const usePlatformAsociatiiStore = create<PlatformAsociatiiState>()(
     }),
     {
       name: 'vecini.platform.asociatii',
-      version: 3,
+      version: 4,
       // v2 (T123) added the secure setup link's token + 24h expiry; v3 (T124)
-      // added the single-use `redeemedAt`. Backfill any older record so an old
-      // handoff still resolves a link and reads as not-yet-redeemed.
+      // added the single-use `redeemedAt`; v4 (T152) added `pendingInvites`.
       migrate: (persisted, version) => {
         const state = persisted as PlatformAsociatiiState;
-        if (version >= 3 || !state?.provisions) return state;
-        const now = Date.now();
-        const provisions = Object.fromEntries(
-          Object.entries(state.provisions).map(([id, p]) => [
-            id,
-            {
-              ...p,
-              setupToken: p.setupToken ?? generateInviteToken(),
-              expiresAt: p.expiresAt ?? now + ONBOARDING_LINK_TTL_MS,
-              redeemedAt: p.redeemedAt ?? null,
-            },
-          ]),
-        );
-        return { ...state, provisions };
+        // v2/v3: backfill provision records
+        if (version < 3 && state?.provisions) {
+          const now = Date.now();
+          const provisions = Object.fromEntries(
+            Object.entries(state.provisions).map(([id, p]) => [
+              id,
+              {
+                ...p,
+                setupToken: p.setupToken ?? generateInviteToken(),
+                expiresAt: p.expiresAt ?? now + ONBOARDING_LINK_TTL_MS,
+                redeemedAt: p.redeemedAt ?? null,
+              },
+            ]),
+          );
+          return { ...state, provisions, pendingInvites: state.pendingInvites ?? [] };
+        }
+        // v4: ensure pendingInvites exists
+        if (version < 4) return { ...state, pendingInvites: state.pendingInvites ?? [] };
+        return state;
       },
     },
   ),

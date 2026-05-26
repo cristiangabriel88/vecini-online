@@ -240,6 +240,46 @@ export function provisionAsociatie(
   };
 }
 
+/**
+ * The minimal draft for the "Add Association" invitation form (T152). The
+ * operator supplies only the admin's name and email; the admin fills in all
+ * asociație identity fields themselves during the onboarding wizard (T154).
+ */
+export interface AdminInviteDraft {
+  adminName: string;
+  adminEmail: string;
+}
+
+export type AdminInviteFieldError = 'required' | 'tooShort' | 'email';
+export type AdminInviteErrors = Partial<Record<keyof AdminInviteDraft, AdminInviteFieldError>>;
+
+export interface AdminInviteValidation {
+  errors: AdminInviteErrors;
+  /** The trimmed, valid draft when there are no errors; null otherwise. */
+  value: AdminInviteDraft | null;
+}
+
+/** An empty draft for the admin invite form. */
+export function blankAdminInvite(): AdminInviteDraft {
+  return { adminName: '', adminEmail: '' };
+}
+
+/**
+ * Validate and trim an admin invite draft. Admin name must be >= 2 chars;
+ * admin email must pass the shared `isValidEmail` check.
+ */
+export function validateAdminInvite(draft: AdminInviteDraft): AdminInviteValidation {
+  const adminName = draft.adminName.trim();
+  const adminEmail = draft.adminEmail.trim();
+  const errors: AdminInviteErrors = {};
+  if (!adminName) errors.adminName = 'required';
+  else if (adminName.length < 2) errors.adminName = 'tooShort';
+  if (!adminEmail) errors.adminEmail = 'required';
+  else if (!isValidEmail(adminEmail)) errors.adminEmail = 'email';
+  const value = Object.keys(errors).length === 0 ? { adminName, adminEmail } : null;
+  return { errors, value };
+}
+
 /** Sort asociații by display name (Romanian collation). Does not mutate the input. */
 export function sortAsociatii(rows: PlatformAsociatieSummary[]): PlatformAsociatieSummary[] {
   return [...rows].sort((a, b) => a.name.localeCompare(b.name, 'ro'));

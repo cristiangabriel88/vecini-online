@@ -1,14 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import toast from 'react-hot-toast';
 import {
   Building2,
-  Copy,
+  Clock,
   Hash,
   Home as HomeIcon,
-  KeyRound,
   Landmark,
-  Link2,
   Mail,
   MapPin,
   Phone,
@@ -18,72 +15,32 @@ import {
 } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Button } from '@/shared/components/Button';
-import { Input } from '@/shared/components/Input';
-import { Modal } from '@/shared/components/Modal';
 import { Badge } from '@/shared/components/Badge';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { formatDate } from '@/shared/lib/format';
-import { isSupabaseConfigured } from '@/shared/lib/supabase';
-import { env } from '@/shared/lib/env';
-import { setupLinkFor, usePlatformAsociatiiStore } from './platformAsociatiiStore';
-import {
-  blankProvisionInput,
-  buildSetupLink,
-  isDormant,
-  validateProvisionInput,
-  type ProvisionInputDraft,
-  type ProvisionResult,
-} from './platformProvisioningLogic';
+import { usePlatformAsociatiiStore } from './platformAsociatiiStore';
+import { isDormant } from './platformProvisioningLogic';
 
 /**
- * Superadmin console: asociații + admin provisioning (T94). The first console
- * page — list every asociație on the platform and provision a new one with its
- * first administrator. The operator provisions admins; the admin then onboards
- * their own residents through the invite lifecycle (T41/T42). Offline this drives
- * the local platform store; the live privileged write is the T92 server function.
+ * Superadmin console: asociații list page (T94, updated T152).
+ *
+ * Lists every asociație on the platform. The "Add association" button navigates
+ * to the dedicated `/consola/asociatii/adauga` page (T152) where the operator
+ * enters only the new administrator's name and email and sends the invite email.
+ * A "Pending invitations" section shows invites that have been sent but where
+ * the admin has not yet completed onboarding.
+ *
+ * Setup codes and setup links are no longer shown in the platform UI (T152);
+ * the setup link lives exclusively in the invitation email (T153 admin template).
  */
 export default function PlatformAsociatiiPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const asociatii = usePlatformAsociatiiStore((s) => s.asociatii);
   const provisions = usePlatformAsociatiiStore((s) => s.provisions);
-  const provision = usePlatformAsociatiiStore((s) => s.provision);
+  const pendingInvites = usePlatformAsociatiiStore((s) => s.pendingInvites);
 
-  const [formOpen, setFormOpen] = useState(false);
-  const [draft, setDraft] = useState<ProvisionInputDraft>(blankProvisionInput());
-  const [touched, setTouched] = useState(false);
-  const [result, setResult] = useState<ProvisionResult | null>(null);
-
-  const { errors, value } = useMemo(() => validateProvisionInput(draft), [draft]);
-
-  const openForm = () => {
-    setDraft(blankProvisionInput());
-    setTouched(false);
-    setFormOpen(true);
-  };
-
-  const submit = () => {
-    setTouched(true);
-    if (!value) return;
-    const provisioned = provision(value);
-    setFormOpen(false);
-    setResult(provisioned);
-    toast.success(t('platform.asociatii.success', { name: provisioned.asociatie.name }));
-  };
-
-  const copyCode = async (text: string, message: string = t('platform.asociatii.copied')) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success(message);
-    } catch {
-      toast.error(t('platform.asociatii.copyFailed'));
-    }
-  };
-
-  const set = (key: keyof ProvisionInputDraft) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setDraft((d) => ({ ...d, [key]: e.target.value }));
-
-  const fieldError = (key: keyof ProvisionInputDraft) =>
-    touched && errors[key] ? t(`platform.asociatii.err.${errors[key]}`) : undefined;
+  const openAddPage = () => navigate('/consola/asociatii/adauga');
 
   return (
     <div>
@@ -91,12 +48,39 @@ export default function PlatformAsociatiiPage() {
         title={t('platform.asociatii.title')}
         subtitle={t('platform.asociatii.subtitle')}
         action={
-          <Button onClick={openForm}>
+          <Button onClick={openAddPage}>
             <Plus className="h-4 w-4" /> {t('platform.asociatii.provisionCta')}
           </Button>
         }
       />
 
+      {/* ── Pending invitations ─────────────────────────────────────────── */}
+      {pendingInvites.length > 0 && (
+        <section className="platform-asoc-pending" aria-label={t('platform.asociatii.pendingInvitesTitle')}>
+          <h2 className="platform-overview__sectionhead">
+            {t('platform.asociatii.pendingInvitesTitle')}
+          </h2>
+          <div className="platform-asoc-pending-list">
+            {pendingInvites.map((inv) => (
+              <div key={inv.id} className="platform-asoc-pending-card">
+                <span className="platform-asoc-pending-card__icon" aria-hidden="true">
+                  <Clock size={15} />
+                </span>
+                <div className="platform-asoc-pending-card__body">
+                  <span className="platform-asoc-pending-card__name">{inv.adminName}</span>
+                  <span className="platform-asoc-pending-card__email">{inv.adminEmail}</span>
+                  <span className="platform-asoc-pending-card__date">
+                    {t('platform.asociatii.invitedOn', { date: formatDate(inv.invitedAt) })}
+                  </span>
+                </div>
+                <Badge tone="warning">{t('platform.asociatii.pendingSetup')}</Badge>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── Asociații list ─────────────────────────────────────────────── */}
       <div className="platform-asoc-listhead">
         <h2 className="platform-overview__sectionhead">{t('platform.asociatii.listTitle')}</h2>
         <span className="platform-asoc-count">
@@ -109,7 +93,7 @@ export default function PlatformAsociatiiPage() {
           icon={<Building2 size={22} />}
           body={t('platform.asociatii.empty')}
           action={
-            <Button onClick={openForm}>
+            <Button onClick={openAddPage}>
               <Plus className="h-4 w-4" /> {t('platform.asociatii.provisionCta')}
             </Button>
           }
@@ -201,7 +185,10 @@ export default function PlatformAsociatiiPage() {
                   </dl>
                 )}
 
-                {prov && (
+                {/* Admin info (old provisioning records): name/email + badge only.
+                    Setup codes and links are no longer shown in the UI (T152);
+                    they live in the emailed invitation (T153 template). */}
+                {prov && !prov.redeemedAt && (
                   <div className="platform-asoc-card__admin">
                     <div className="platform-asoc-card__admin-head">
                       <span className="platform-asoc-card__admin-icon" aria-hidden="true">
@@ -216,48 +203,6 @@ export default function PlatformAsociatiiPage() {
                       </div>
                       <Badge tone="warning">{t('platform.asociatii.pendingSetup')}</Badge>
                     </div>
-                    <div className="platform-asoc-card__code">
-                      <span className="platform-asoc-card__code-label">
-                        <KeyRound size={13} aria-hidden="true" />
-                        {t('platform.asociatii.setupCodeLabel')}
-                      </span>
-                      <code className="platform-asoc-card__code-value">{prov.setupCode}</code>
-                      <button
-                        type="button"
-                        className="iconbtn"
-                        onClick={() => void copyCode(prov.setupCode)}
-                        aria-label={t('platform.asociatii.copyCode')}
-                        title={t('platform.asociatii.copyCode')}
-                      >
-                        <Copy size={15} />
-                      </button>
-                    </div>
-                    <div className="platform-asoc-card__code">
-                      <span className="platform-asoc-card__code-label">
-                        <Link2 size={13} aria-hidden="true" />
-                        {t('platform.asociatii.setupLinkLabel')}
-                      </span>
-                      <code className="platform-asoc-card__code-value platform-asoc-card__code-value--link">
-                        {setupLinkFor(prov, env.residentAppUrl)}
-                      </code>
-                      <button
-                        type="button"
-                        className="iconbtn"
-                        onClick={() =>
-                          void copyCode(
-                            setupLinkFor(prov, env.residentAppUrl),
-                            t('platform.asociatii.linkCopied'),
-                          )
-                        }
-                        aria-label={t('platform.asociatii.copyLink')}
-                        title={t('platform.asociatii.copyLink')}
-                      >
-                        <Copy size={15} />
-                      </button>
-                    </div>
-                    <p className="platform-asoc-card__linkhint">
-                      {t('platform.asociatii.linkExpiry', { date: formatDate(prov.expiresAt) })}
-                    </p>
                     <p className="platform-asoc-card__provisioned">
                       {t('platform.asociatii.provisionedOn', { date: formatDate(prov.provisionedAt) })}
                     </p>
@@ -268,161 +213,6 @@ export default function PlatformAsociatiiPage() {
           })}
         </div>
       )}
-
-      <Modal
-        open={formOpen}
-        onClose={() => setFormOpen(false)}
-        title={t('platform.asociatii.provisionTitle')}
-        footer={
-          <>
-            <Button variant="ghost" onClick={() => setFormOpen(false)}>
-              {t('platform.asociatii.cancel')}
-            </Button>
-            <Button onClick={submit} disabled={touched && !value}>
-              <UserCog className="h-4 w-4" /> {t('platform.asociatii.submit')}
-            </Button>
-          </>
-        }
-      >
-        <p className="platform-asoc-form__lead">{t('platform.asociatii.provisionLead')}</p>
-        <div className="platform-asoc-form">
-          <Input
-            label={t('platform.asociatii.fields.asociatieName')}
-            placeholder={t('platform.asociatii.fields.asociatieNamePlaceholder')}
-            value={draft.asociatieName}
-            onChange={set('asociatieName')}
-            error={fieldError('asociatieName')}
-          />
-          <Input
-            label={t('platform.asociatii.fields.city')}
-            placeholder={t('platform.asociatii.fields.cityPlaceholder')}
-            value={draft.city}
-            onChange={set('city')}
-            error={fieldError('city')}
-          />
-          <Input
-            label={t('platform.asociatii.fields.address')}
-            placeholder={t('platform.asociatii.fields.addressPlaceholder')}
-            value={draft.address}
-            onChange={set('address')}
-            error={fieldError('address')}
-          />
-          <div className="platform-asoc-form__row">
-            <Input
-              label={t('platform.asociatii.fields.cui')}
-              placeholder={t('platform.asociatii.fields.cuiPlaceholder')}
-              value={draft.cui}
-              onChange={set('cui')}
-              error={fieldError('cui')}
-            />
-            <Input
-              label={t('platform.asociatii.fields.registrationNumber')}
-              placeholder={t('platform.asociatii.fields.registrationNumberPlaceholder')}
-              value={draft.registrationNumber}
-              onChange={set('registrationNumber')}
-              error={fieldError('registrationNumber')}
-            />
-          </div>
-          <Input
-            label={t('platform.asociatii.fields.iban')}
-            placeholder={t('platform.asociatii.fields.ibanPlaceholder')}
-            value={draft.iban}
-            onChange={set('iban')}
-            error={fieldError('iban')}
-          />
-          <div className="platform-asoc-form__row">
-            <Input
-              label={t('platform.asociatii.fields.contactPhone')}
-              type="tel"
-              placeholder={t('platform.asociatii.fields.contactPhonePlaceholder')}
-              value={draft.contactPhone}
-              onChange={set('contactPhone')}
-              error={fieldError('contactPhone')}
-            />
-            <Input
-              label={t('platform.asociatii.fields.contactEmail')}
-              type="email"
-              autoComplete="off"
-              placeholder={t('platform.asociatii.fields.contactEmailPlaceholder')}
-              value={draft.contactEmail}
-              onChange={set('contactEmail')}
-              error={fieldError('contactEmail')}
-            />
-          </div>
-          <Input
-            label={t('platform.asociatii.fields.adminName')}
-            placeholder={t('platform.asociatii.fields.adminNamePlaceholder')}
-            value={draft.adminName}
-            onChange={set('adminName')}
-            error={fieldError('adminName')}
-          />
-          <Input
-            label={t('platform.asociatii.fields.adminEmail')}
-            type="email"
-            autoComplete="off"
-            placeholder={t('platform.asociatii.fields.adminEmailPlaceholder')}
-            value={draft.adminEmail}
-            onChange={set('adminEmail')}
-            error={fieldError('adminEmail')}
-          />
-        </div>
-        <p className="platform-asoc-form__note">
-          {isSupabaseConfigured
-            ? t('platform.asociatii.liveNote')
-            : t('platform.asociatii.demoNote')}
-        </p>
-      </Modal>
-
-      <Modal
-        open={result !== null}
-        onClose={() => setResult(null)}
-        title={t('platform.asociatii.resultTitle')}
-        footer={
-          <Button onClick={() => setResult(null)}>{t('platform.asociatii.done')}</Button>
-        }
-      >
-        {result && (
-          <div className="platform-asoc-result">
-            <p className="platform-asoc-result__name">{result.asociatie.name}</p>
-            <p className="platform-asoc-result__body">
-              {t('platform.asociatii.resultBody', { name: result.admin.name })}
-            </p>
-            <div className="platform-asoc-card__code">
-              <span className="platform-asoc-card__code-label">
-                <KeyRound size={13} aria-hidden="true" />
-                {t('platform.asociatii.setupCodeLabel')}
-              </span>
-              <code className="platform-asoc-card__code-value">{result.admin.setupCode}</code>
-            </div>
-            <Button variant="ghost" onClick={() => void copyCode(result.admin.setupCode)}>
-              <Copy className="h-4 w-4" /> {t('platform.asociatii.copyCode')}
-            </Button>
-            <div className="platform-asoc-card__code">
-              <span className="platform-asoc-card__code-label">
-                <Link2 size={13} aria-hidden="true" />
-                {t('platform.asociatii.setupLinkLabel')}
-              </span>
-              <code className="platform-asoc-card__code-value platform-asoc-card__code-value--link">
-                {buildSetupLink(result.admin, env.residentAppUrl)}
-              </code>
-            </div>
-            <Button
-              variant="ghost"
-              onClick={() =>
-                void copyCode(
-                  buildSetupLink(result.admin, env.residentAppUrl),
-                  t('platform.asociatii.linkCopied'),
-                )
-              }
-            >
-              <Link2 className="h-4 w-4" /> {t('platform.asociatii.copyLink')}
-            </Button>
-            <p className="platform-asoc-result__linkhint">
-              {t('platform.asociatii.linkExpiry', { date: formatDate(result.admin.expiresAt) })}
-            </p>
-          </div>
-        )}
-      </Modal>
     </div>
   );
 }

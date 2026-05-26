@@ -676,6 +676,163 @@
   line-height: 1.5;
 }
 
+/* ── "Add Association" page (T152) ───────────────────────────────────────── */
+.platform-add-asoc {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.platform-add-asoc__back {
+  margin-bottom: calc(-1 * var(--space-2));
+}
+
+.platform-add-asoc__back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 140ms ease;
+}
+
+.platform-add-asoc__back-link:hover {
+  color: var(--text-primary);
+}
+
+.platform-add-asoc__card {
+  max-width: 480px;
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.platform-add-asoc__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.platform-add-asoc__form-note {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.platform-add-asoc__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Success state */
+.platform-add-asoc__success {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  max-width: 500px;
+  padding: var(--space-7) var(--space-6);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  animation: platform-fade 320ms ease both;
+}
+
+.platform-add-asoc__success-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  color: var(--success, #22c55e);
+  background: color-mix(in oklab, var(--success, #22c55e) 12%, transparent);
+}
+
+.platform-add-asoc__success-title {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.35;
+}
+
+.platform-add-asoc__success-note {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.platform-add-asoc__success-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* ── Pending invitations section (T152) ──────────────────────────────────── */
+.platform-asoc-pending {
+  margin-bottom: var(--space-6);
+}
+
+.platform-asoc-pending-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.platform-asoc-pending-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--bg-sunken);
+  border: 1px solid var(--border-subtle);
+}
+
+.platform-asoc-pending-card__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.platform-asoc-pending-card__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.platform-asoc-pending-card__name {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.platform-asoc-pending-card__email {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  word-break: break-all;
+}
+
+.platform-asoc-pending-card__date {
+  font-size: var(--text-2xs, 10px);
+  color: var(--text-faint);
+  margin-top: 2px;
+}
+
 @media (max-width: 860px) {
   .platform-shell {
     grid-template-columns: 1fr;

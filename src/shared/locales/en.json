@@ -2487,7 +2487,7 @@
     "asociatii": {
       "title": "Associations",
       "subtitle": "List the platform's associations and provision a new one with its first administrator. The admin then onboards their residents through invite codes.",
-      "provisionCta": "Provision new association",
+      "provisionCta": "Add association",
       "provisionTitle": "Provision association",
       "provisionLead": "Create the association and provision its first administrator's account. The operator does not add residents; the admin onboards them afterwards.",
       "fields": {
@@ -2545,12 +2545,30 @@
       "copyLink": "Copy link",
       "linkCopied": "Link copied",
       "provisionedOn": "Provisioned on {{date}}",
-      "resultTitle": "Association provisioned",
-      "resultBody": "Hand the administrator “{{name}}” the setup link below (or the code as a fallback) to complete their account.",
-      "copyCode": "Copy code",
-      "copied": "Code copied",
-      "copyFailed": "Could not copy",
-      "done": "Done"
+      "pendingInvitesTitle": "Pending invitations",
+      "pendingInvitesEmpty": "No invitations sent yet.",
+      "invitedOn": "Invited on {{date}}"
+    },
+    "addAsociatie": {
+      "title": "Add new association",
+      "subtitle": "Enter the administrator name and email address. They will receive an email with a setup link valid for 24 hours.",
+      "adminName": "Administrator name",
+      "adminNamePlaceholder": "Full name",
+      "adminEmail": "Administrator email",
+      "adminEmailPlaceholder": "administrator@example.com",
+      "formNote": "The administrator fills in the association details (name, address, tax ID, etc.) in the onboarding wizard after accepting the invitation.",
+      "submit": "Send invitation",
+      "back": "Back to associations list",
+      "sent": "Invitation sent to {{email}}",
+      "sentNoteDemo": "Demo mode - in the live app, the administrator receives the email with the setup link (valid for 24 hours).",
+      "sentNoteLive": "The administrator has received the email with the setup link (valid for 24 hours).",
+      "anotherOne": "Send another invitation",
+      "backToList": "View associations list",
+      "err": {
+        "required": "Required field",
+        "tooShort": "Too short (minimum 2 characters)",
+        "email": "Invalid email address"
+      }
     }
   }
 }

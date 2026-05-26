@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
+  blankAdminInvite,
   blankProvisionInput,
   buildSetupLink,
   daysSince,
@@ -12,6 +13,7 @@ import {
   normalizeIban,
   provisionAsociatie,
   sortAsociatii,
+  validateAdminInvite,
   validateProvisionInput,
   type ProvisionInput,
 } from '@/platform/platformProvisioningLogic';
@@ -216,11 +218,79 @@ describe('dormant signal (T94)', () => {
   });
 });
 
+describe('validateAdminInvite (T152)', () => {
+  it('accepts a valid draft and returns trimmed values', () => {
+    const { errors, value } = validateAdminInvite({
+      adminName: '  Ionescu Maria  ',
+      adminEmail: '  maria@exemplu.ro  ',
+    });
+    expect(errors).toEqual({});
+    expect(value).toEqual({ adminName: 'Ionescu Maria', adminEmail: 'maria@exemplu.ro' });
+  });
+
+  it('flags blank fields as required', () => {
+    const { errors, value } = validateAdminInvite(blankAdminInvite());
+    expect(errors).toEqual({ adminName: 'required', adminEmail: 'required' });
+    expect(value).toBeNull();
+  });
+
+  it('flags a single-character name as tooShort', () => {
+    const { errors } = validateAdminInvite({ adminName: 'I', adminEmail: 'i@e.com' });
+    expect(errors.adminName).toBe('tooShort');
+    expect(errors.adminEmail).toBeUndefined();
+  });
+
+  it('flags a malformed email', () => {
+    const { errors } = validateAdminInvite({ adminName: 'Ionescu Maria', adminEmail: 'not-an-email' });
+    expect(errors.adminEmail).toBe('email');
+    expect(errors.adminName).toBeUndefined();
+  });
+});
+
+describe('platformAsociatiiStore.inviteAdmin (T152)', () => {
+  beforeEach(() => {
+    usePlatformAsociatiiStore.setState({
+      asociatii: sortAsociatii(DEMO_PLATFORM_ASOCIATII),
+      provisions: {},
+      pendingInvites: [],
+    });
+  });
+
+  it('creates a pending invite with a 64-hex token and 24h expiry', () => {
+    const before = Date.now();
+    const invite = usePlatformAsociatiiStore.getState().inviteAdmin('Ionescu Maria', 'maria@e.ro');
+    expect(invite.id).toMatch(/^[0-9a-f-]{36}$/);
+    expect(invite.adminName).toBe('Ionescu Maria');
+    expect(invite.adminEmail).toBe('maria@e.ro');
+    expect(invite.setupToken).toMatch(/^[0-9a-f]{64}$/);
+    expect(invite.expiresAt).toBeGreaterThanOrEqual(before + ONBOARDING_LINK_TTL_MS);
+    expect(invite.emailSentAt).toBeNull();
+  });
+
+  it('appends to pendingInvites and leaves other state untouched', () => {
+    const before = usePlatformAsociatiiStore.getState().asociatii.length;
+    usePlatformAsociatiiStore.getState().inviteAdmin('AB', 'ab@e.ro');
+    const state = usePlatformAsociatiiStore.getState();
+    expect(state.pendingInvites).toHaveLength(1);
+    expect(state.asociatii).toHaveLength(before); // list unchanged
+  });
+
+  it('markAdminEmailSent stamps emailSentAt on the right invite', () => {
+    usePlatformAsociatiiStore.getState().inviteAdmin('A', 'a@a.ro');
+    const id = usePlatformAsociatiiStore.getState().pendingInvites[0].id;
+    usePlatformAsociatiiStore.getState().markAdminEmailSent(id);
+    const inv = usePlatformAsociatiiStore.getState().pendingInvites[0];
+    expect(inv.emailSentAt).not.toBeNull();
+    expect(inv.emailSentAt).toBeGreaterThan(0);
+  });
+});
+
 describe('platformAsociatiiStore.provision (T94)', () => {
   beforeEach(() => {
     usePlatformAsociatiiStore.setState({
       asociatii: sortAsociatii(DEMO_PLATFORM_ASOCIATII),
       provisions: {},
+      pendingInvites: [],
     });
   });
 

@@ -2550,12 +2550,30 @@
       "copyLink": "Copiază linkul",
       "linkCopied": "Link copiat",
       "provisionedOn": "Provizionată la {{date}}",
-      "resultTitle": "Asociație provizionată",
-      "resultBody": "Predă administratorului „{{name}}” linkul de configurare de mai jos (sau codul ca alternativă) pentru a-și finaliza contul.",
-      "copyCode": "Copiază codul",
-      "copied": "Cod copiat",
-      "copyFailed": "Nu am putut copia",
-      "done": "Gata"
+      "pendingInvitesTitle": "Invitații în așteptare",
+      "pendingInvitesEmpty": "Nicio invitație trimisă încă.",
+      "invitedOn": "Invitat la {{date}}"
+    },
+    "addAsociatie": {
+      "title": "Adaugă asociație nouă",
+      "subtitle": "Introdu numele și adresa de email ale administratorului. Acesta va primi un email cu un link de configurare valid 24 de ore.",
+      "adminName": "Numele administratorului",
+      "adminNamePlaceholder": "Nume și prenume",
+      "adminEmail": "Email administrator",
+      "adminEmailPlaceholder": "administrator@exemplu.ro",
+      "formNote": "Administratorul va completa datele asociației (nume, adresă, CUI etc.) în wizard-ul de onboarding după ce acceptă invitația.",
+      "submit": "Trimite invitație",
+      "back": "Înapoi la lista de asociații",
+      "sent": "Invitație trimisă la {{email}}",
+      "sentNoteDemo": "Mod demonstrativ - în aplicația live, administratorul primește emailul cu link-ul de configurare (valabil 24 de ore).",
+      "sentNoteLive": "Administratorul a primit emailul cu link-ul de configurare (valabil 24 de ore).",
+      "anotherOne": "Trimite altă invitație",
+      "backToList": "Vezi lista de asociații",
+      "err": {
+        "required": "Câmp obligatoriu",
+        "tooShort": "Prea scurt (minim 2 caractere)",
+        "email": "Adresă de email invalidă"
+      }
     }
   }
 }
