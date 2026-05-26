@@ -2,6 +2,34 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## Invitation email delivery (T147)
+
+- **The bilingual email template is a pure, app-independent module
+  (`src/shared/lib/inviteEmail.ts`), not i18next.** The Netlify `invite-email`
+  function must render the same copy the client would, but it cannot pull in
+  i18next/React under esbuild. So the RO/EN strings live in one dependency-free
+  builder (mirroring the Telegram reply builders in `telegramStart.ts`),
+  importable by both the client (offline preview/demo) and the function. The
+  email is keyed off the recipient's locale, resolved live from `users.locale`
+  and offline from the inviter's UI language.
+- **Delivery is dual-mode and simulated offline.** `inviteEmailApi.sendInviteEmail`
+  branches on `isSupabaseConfigured` like `apartmentsApi`: offline it resolves
+  `ok` without any network (there is no mailbox in demo) and the caller stamps the
+  invite as sent, so the UI reflects the action exactly as it will live; live it
+  POSTs to the function. This keeps the whole flow working and testable with no
+  backend, per the MVP rules.
+- **The send marker is split `emailSentAt` (offline + live) vs `emailDeliveredAt`
+  (live-only).** "Sent" is what the dispatching side knows; "delivered" is a fact
+  only the provider can confirm via a webhook, so the delivered column stays null
+  offline and is wired by the separate Resend delivery webhook (T149).
+- **The `invite-email` function ships the delivery half but not yet caller
+  authorization.** Resend infra (`_shared/resend.ts`) is shared with T142, which
+  introduces the service-role + bearer-auth foundation. Rather than invent a
+  second auth mechanism here, the function returns 503 until Resend is configured
+  and the caller-authorization gate (verify the caller is an admin of the target
+  asociație; resolve the recipient server-side, not from the client) is queued as
+  T148 so the endpoint is never deployed as an open relay.
+
 ## Account-creation-on-redemption landing (T124)
 
 - **One landing serves both onboarding kinds.** A single `AccountSetupPage`

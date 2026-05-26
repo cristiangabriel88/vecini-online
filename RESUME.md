@@ -19,8 +19,23 @@ under `docs/`, despite references to the contrary). The product is
 > Finished tasks' full done-notes are archived in `COMPLETED.md` (newest first);
 > §0 below stays the dated chronological summary.
 
-## 0. Current status (updated 2026-05-26, T124 account-creation-on-redemption)
+## 0. Current status (updated 2026-05-26, T147 invitation email delivery)
 
+- **2026-05-26 — T147 (P1) Invitation email delivery.** Both the apartment edit
+  surface ("Trimite pe email") and the invites surface now deliver an invitation
+  by email instead of an "coming soon" stub. New pure `src/shared/lib/inviteEmail.ts`
+  (`buildInviteEmail`/`resolveEmailLocale`) renders a bilingual RO/EN email (subject
+  + text + HTML, escaped, CTA button + copyable link) keyed off the recipient's
+  locale, importable by both the client and the Netlify function. `InviteCode` gained
+  `emailSentAt`/`emailDeliveredAt` + `markInviteEmailSent`/`canEmailInvite`;
+  `inviteStore.markEmailSent`. Dual-mode `inviteEmailApi.sendInviteEmail` simulates
+  offline, POSTs to the new `invite-email` Netlify function live, which sends via the
+  new `_shared/resend.ts` (`sendEmail` over Resend, no PII logged). New audit action
+  `invite.email_sent`; migration `20260526000003_invite_email_delivery.sql` adds the
+  two delivery columns. New `inviteEmail.test.ts` + extended `inviteLogic.test.ts`.
+  `lint`/`typecheck`/`test` (130 files / 1019 tests)/`build` all green. Queued T148
+  (authorize the function caller, no open relay) P1, T149 (Resend delivery webhook
+  -> `emailDeliveredAt`) P2.
 - **2026-05-26 — T124 (P1) Account-creation-on-redemption landing.** New shared
   bilingual `AccountSetupPage` at `/configurare-cont` replaces the code-only
   `JoinAsociatiePage` (deleted): an invitee arriving by onboarding deep link

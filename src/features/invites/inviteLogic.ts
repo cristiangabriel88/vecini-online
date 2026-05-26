@@ -45,6 +45,13 @@ export interface InviteCode {
    *  invite can later be delivered by email (T147). Null for standing codes. */
   inviteeName: string | null;
   inviteeEmail: string | null;
+  /** When the invitation email was dispatched (epoch ms), or null if never sent.
+   *  Offline this is stamped the moment delivery is triggered; live it is set on
+   *  a confirmed send by the `invite-email` function (T147). */
+  emailSentAt: number | null;
+  /** When the provider confirmed delivery (epoch ms), or null. Set only on the
+   *  live path from a Resend delivery webhook; always null offline. */
+  emailDeliveredAt: number | null;
 }
 
 /** Roles an admin may grant via an invite code (founder/platform roles excluded). */
@@ -130,7 +137,19 @@ export function createInvite(
     createdBy: input.createdBy ?? null,
     inviteeName: input.inviteeName ?? null,
     inviteeEmail: input.inviteeEmail ?? null,
+    emailSentAt: null,
+    emailDeliveredAt: null,
   };
+}
+
+/** Return a copy of the code marked as having had its invitation email sent. */
+export function markInviteEmailSent(invite: InviteCode, now: number = Date.now()): InviteCode {
+  return { ...invite, emailSentAt: now };
+}
+
+/** Whether the invite has a recipient address it can be emailed to. */
+export function canEmailInvite(invite: InviteCode): boolean {
+  return Boolean(invite.inviteeEmail && invite.inviteeEmail.trim());
 }
 
 /** Look up a code by its (user-entered) value, normalising the input first. */

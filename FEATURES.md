@@ -733,7 +733,12 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
   short code, which stays the manual-entry fallback. The superadmin provisioning
   setup code likewise gets a 24h-expiry secure setup link, built from
   `VITE_RESIDENT_APP_URL` (falling back to `VITE_APP_URL`, T133) so a link minted
-  on the platform subdomain still targets the resident/admin origin.
+  on the platform subdomain still targets the resident/admin origin. An admin can
+  now **deliver an invitation by email** (T147): both the apartment edit surface
+  ("Trimite pe email") and the invites surface send a bilingual (RO/EN) email
+  carrying the onboarding link, keyed off the recipient's locale, stamping the
+  invite as sent (`emailSentAt`); offline the dispatch is simulated, live it goes
+  through the Resend-backed `invite-email` Netlify function.
 - **Planned (BACKLOG T90), QR:** render a scannable **QR of the secure redeem
   link** (already built by `buildInviteLink`/`buildSetupLink`) next to each issued
   code, with a one-tap PNG download, so an admin can print or share it. Uses

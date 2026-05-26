@@ -6,6 +6,7 @@ import {
   ONBOARDING_LINK_TTL_MS,
   buildInviteLink,
   buildMembershipFromInvite,
+  canEmailInvite,
   consumeInvite,
   createInvite,
   expiryFromPreset,
@@ -13,6 +14,7 @@ import {
   findByToken,
   isApartmentRegistered,
   isRedeemable,
+  markInviteEmailSent,
   onboardingExpiry,
   revokeInvite,
   validateInvite,
@@ -37,6 +39,8 @@ function make(overrides: Partial<InviteCode> = {}): InviteCode {
     createdBy: null,
     inviteeName: null,
     inviteeEmail: null,
+    emailSentAt: null,
+    emailDeliveredAt: null,
     ...overrides,
   };
 }
@@ -51,6 +55,8 @@ describe('createInvite', () => {
     expect(invite.singleUse).toBe(true);
     expect(invite.consumedAt).toBeNull();
     expect(invite.revokedAt).toBeNull();
+    expect(invite.emailSentAt).toBeNull();
+    expect(invite.emailDeliveredAt).toBeNull();
     expect(invite.createdAt).toBe(NOW);
     expect(invite.code).toMatch(/^[A-Z2-9]{8}$/);
     expect(invite.token).toMatch(/^[0-9a-f]{64}$/);
@@ -162,6 +168,23 @@ describe('consumeInvite / revokeInvite', () => {
     expect(revoked.revokedAt).toBe(NOW);
     expect(original.revokedAt).toBeNull();
     expect(validateInvite(revoked, NOW)).toBe('revoked');
+  });
+});
+
+describe('markInviteEmailSent / canEmailInvite', () => {
+  it('stamps the send time without mutating the original', () => {
+    const original = make();
+    const sent = markInviteEmailSent(original, NOW);
+    expect(sent.emailSentAt).toBe(NOW);
+    expect(original.emailSentAt).toBeNull();
+    // Delivery is a separate (live-only) signal and stays untouched.
+    expect(sent.emailDeliveredAt).toBeNull();
+  });
+
+  it('reports whether a recipient address is present', () => {
+    expect(canEmailInvite(make({ inviteeEmail: 'a@b.ro' }))).toBe(true);
+    expect(canEmailInvite(make({ inviteeEmail: '  ' }))).toBe(false);
+    expect(canEmailInvite(make({ inviteeEmail: null }))).toBe(false);
   });
 });
 

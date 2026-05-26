@@ -11,11 +11,14 @@ import { Select } from '@/shared/components/Select';
 import { Switch } from '@/shared/components/Switch';
 import { Badge } from '@/shared/components/Badge';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { env } from '@/shared/lib/env';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useInviteStore } from '@/shared/store/inviteStore';
 import { recordAudit } from '@/shared/store/auditStore';
 import { isValidEmail } from '@/features/auth/authLogic';
 import { isApartmentRegistered } from '@/features/invites/inviteLogic';
+import { sendInviteEmail } from '@/features/invites/inviteEmailApi';
+import { useCurrentAsociatie } from '@/features/admin/asociatieStore';
 import type { Apartment, ApartmentPerson } from '@/shared/types/domain';
 import { apartmentShortLabel } from '@/features/apartment/apartmentLogic';
 import { useApartment } from './apartmentsStore';
@@ -39,15 +42,17 @@ import { EntranceField } from './EntranceField';
  * actions to invite them (jump to the codes page, or capture an email).
  */
 export default function ApartmentFormPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEdit = Boolean(id);
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
   const userId = useAuthStore((s) => s.session?.user?.id ?? null);
+  const asociatieName = useCurrentAsociatie()?.name;
   const apartment = useApartment(id);
   const invites = useInviteStore((s) => s.invites);
   const issue = useInviteStore((s) => s.issue);
+  const markEmailSent = useInviteStore((s) => s.markEmailSent);
 
   const [input, setInput] = useState<ApartmentInput>(() =>
     // Drop the stored count so the occupant total always derives from the person
@@ -138,8 +143,10 @@ export default function ApartmentFormPage() {
     });
   };
 
-  // Capture the email on the occupant, mint the invite now; real delivery is T147.
-  const onSendByEmail = () => {
+  // Capture the email on the occupant, mint the invite, then deliver it: offline
+  // this simulates the send and stamps the invite; live it calls the Resend-backed
+  // `invite-email` function (T147).
+  const onSendByEmail = async () => {
     if (!apartment || !asociatieId) return;
     if (!isValidEmail(contactEmail)) {
       toast.error(t('apartments.emailInvalid'));
@@ -163,7 +170,25 @@ export default function ApartmentFormPage() {
       before: null,
       after: invite.role,
     });
-    toast.success(t('apartments.emailQueued'));
+    const result = await sendInviteEmail({
+      invite,
+      asociatieName: asociatieName ?? '',
+      baseUrl: env.appUrl,
+      locale: i18n.language,
+    });
+    if (!result.ok) {
+      toast.error(t('apartments.emailFailed'));
+      return;
+    }
+    markEmailSent(invite.id);
+    recordAudit({
+      action: 'invite.email_sent',
+      entity: 'invite',
+      entity_label: invite.code,
+      before: null,
+      after: null,
+    });
+    toast.success(t('apartments.emailSent', { email: contactEmail.trim() }));
   };
 
   const statusBlock =

@@ -31,6 +31,7 @@ export const AUDIT_ACTIONS = [
   'feature.disabled',
   'invite.issued',
   'invite.revoked',
+  'invite.email_sent',
   'dsr.completed',
   'dsr.rejected',
   'breach.recorded',

@@ -136,6 +136,8 @@ export const DEMO_INVITES: InviteCode[] = [
     createdBy: 'u-admin',
     inviteeName: 'Georgescu Elena',
     inviteeEmail: 'elena.georgescu@example.ro',
+    emailSentAt: Date.parse('2026-05-21T08:01:00Z'),
+    emailDeliveredAt: null,
   },
 ];
 

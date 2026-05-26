@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { Copy, KeyRound, Link2, Ticket, Trash2 } from 'lucide-react';
+import { Copy, KeyRound, Link2, Mail, Ticket, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
@@ -17,14 +17,17 @@ import { useAuthStore } from '@/shared/store/authStore';
 import { useInviteStore } from '@/shared/store/inviteStore';
 import { recordAudit } from '@/shared/store/auditStore';
 import { useAsociatieApartments } from '@/features/admin/apartmentsStore';
+import { useCurrentAsociatie } from '@/features/admin/asociatieStore';
 import {
   type ExpiryPreset,
   type InviteStatus,
   INVITABLE_ROLES,
   buildInviteLink,
+  canEmailInvite,
   expiryFromPreset,
   validateInvite,
 } from '@/features/invites/inviteLogic';
+import { sendInviteEmail } from '@/features/invites/inviteEmailApi';
 import type { Role } from '@/shared/types/domain';
 
 /** Prefill carried in router state when the apartment surface jumps here to
@@ -48,14 +51,16 @@ const STATUS_TONE: Record<InviteStatus, 'success' | 'warning' | 'neutral' | 'dan
 };
 
 export default function InvitesAdminPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
   const userId = useAuthStore((s) => s.session?.user?.id ?? null);
+  const asociatieName = useCurrentAsociatie()?.name;
   const invites = useInviteStore((s) => s.invites);
   const issue = useInviteStore((s) => s.issue);
   const revoke = useInviteStore((s) => s.revoke);
+  const markEmailSent = useInviteStore((s) => s.markEmailSent);
 
   const [role, setRole] = useState<Role>('proprietar');
   const [apartmentId, setApartmentId] = useState('');
@@ -151,6 +156,28 @@ export default function InvitesAdminPage() {
       before: 'ok',
       after: 'revoked',
     });
+  };
+
+  const onSendEmail = async (invite: (typeof list)[number]) => {
+    const result = await sendInviteEmail({
+      invite,
+      asociatieName: asociatieName ?? '',
+      baseUrl: env.appUrl,
+      locale: i18n.language,
+    });
+    if (!result.ok) {
+      toast.error(t('invites.emailFailed'));
+      return;
+    }
+    markEmailSent(invite.id);
+    recordAudit({
+      action: 'invite.email_sent',
+      entity: 'invite',
+      entity_label: invite.code,
+      before: null,
+      after: null,
+    });
+    toast.success(t('invites.emailSent', { email: invite.inviteeEmail ?? '' }));
   };
 
   const copy = async (text: string, message: string) => {
@@ -275,6 +302,12 @@ export default function InvitesAdminPage() {
                     >
                       <Link2 className="h-4 w-4" /> {t('invites.copyLink')}
                     </Button>
+                    {status === 'ok' && canEmailInvite(invite) && (
+                      <Button variant="ghost" size="sm" onClick={() => onSendEmail(invite)}>
+                        <Mail className="h-4 w-4" />{' '}
+                        {invite.emailSentAt ? t('invites.resendEmail') : t('invites.sendEmail')}
+                      </Button>
+                    )}
                     {status === 'ok' && (
                       <Button variant="danger" size="sm" onClick={() => onRevoke(invite.id, invite.code)}>
                         <Trash2 className="h-4 w-4" /> {t('invites.revoke')}
@@ -291,6 +324,8 @@ export default function InvitesAdminPage() {
                     : t('invites.expiresOn', { date: formatDate(invite.expiresAt) })}
                   {invite.consumedAt !== null &&
                     ` · ${t('invites.consumedOn', { date: formatDate(invite.consumedAt) })}`}
+                  {invite.emailSentAt !== null &&
+                    ` · ${t('invites.emailSentOn', { date: formatDate(invite.emailSentAt) })}`}
                 </p>
               </Card>
             );
