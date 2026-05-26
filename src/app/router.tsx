@@ -6,7 +6,7 @@ import { RequireAuth } from './RequireAuth';
 import { RequireAsociatie } from './RequireAsociatie';
 import { RequireAdmin } from './RequireAdmin';
 import { RequireSuperAdmin } from './RequireSuperAdmin';
-import { SkeletonList } from '@/shared/components/Skeleton';
+import { RouteFallback } from '@/shared/components/RouteFallback';
 
 const LoginPage = lazy(() => import('@/features/auth/LoginPage'));
 const ResetPasswordPage = lazy(() => import('@/features/auth/ResetPasswordPage'));
@@ -105,7 +105,7 @@ const FeatureHubPage = lazy(() =>
 );
 
 function S({ children }: { children: React.ReactNode }) {
-  return <Suspense fallback={<SkeletonList rows={4} />}>{children}</Suspense>;
+  return <Suspense fallback={<RouteFallback />}>{children}</Suspense>;
 }
 
 export const router = createBrowserRouter([

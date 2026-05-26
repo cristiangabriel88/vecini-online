@@ -319,6 +319,98 @@
   text-decoration: underline;
 }
 
+/* Login top-right cluster — theme disc + language pill grouped as one unit so
+   they read as a single control, floating above the Atmosphere backdrop. */
+.login-controls {
+  position: absolute;
+  top: var(--space-5);
+  right: var(--space-5);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Inside the cluster the language pill is laid out by flex, not pinned. The
+   standalone .login-lang (platform login) keeps its own absolute positioning. */
+.login-controls .login-lang {
+  position: static;
+  top: auto;
+  right: auto;
+  z-index: auto;
+}
+
+/* Dark-mode toggle — a glassy disc echoing the language pill, with sun and moon
+   icons that crossfade and rotate past each other as the theme flips. */
+.login-theme {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: oklch(from var(--bg-elevated) l c h / 0.78);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(12px) saturate(1.4);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  color: var(--text-muted);
+  transition:
+    color 200ms var(--ease-out),
+    border-color 200ms var(--ease-out),
+    transform 340ms var(--ease-spring);
+}
+
+.login-theme:hover {
+  color: var(--primary);
+  border-color: oklch(from var(--primary) l c h / 0.4);
+}
+
+.login-theme:active {
+  transform: scale(0.94);
+}
+
+.login-theme:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.login-theme__icons {
+  position: relative;
+  width: 16px;
+  height: 16px;
+}
+
+.login-theme__icon {
+  position: absolute;
+  inset: 0;
+  transition:
+    opacity 320ms var(--ease-out),
+    transform 420ms var(--ease-spring);
+}
+
+/* Light theme shows the moon (tap to go dark); dark shows the sun. */
+.login-theme__sun {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.5);
+}
+
+.login-theme__moon {
+  opacity: 1;
+  transform: rotate(0) scale(1);
+}
+
+.login-theme[data-theme='dark'] .login-theme__sun {
+  opacity: 1;
+  transform: rotate(0) scale(1);
+}
+
+.login-theme[data-theme='dark'] .login-theme__moon {
+  opacity: 0;
+  transform: rotate(90deg) scale(0.5);
+}
+
 /* Login language toggle — a refined RO/EN segmented pill pinned top-right,
    glassy over the Atmosphere backdrop, with a spring-tracked sliding thumb. */
 .login-lang {

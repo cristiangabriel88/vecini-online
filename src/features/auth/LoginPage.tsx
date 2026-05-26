@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { ArrowUpRight, Building2, Globe, MailCheck, ShieldCheck } from 'lucide-react';
+import { ArrowUpRight, Building2, Globe, MailCheck, Moon, ShieldCheck, Sun } from 'lucide-react';
 import type { Role } from '@/shared/types/domain';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
@@ -10,6 +10,7 @@ import { Card } from '@/shared/components/Card';
 import { Atmosphere } from '@/shared/components/Atmosphere';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useMfaStore } from '@/shared/store/mfaStore';
+import { useThemeStore } from '@/shared/store/themeStore';
 import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import { mfaErrorKey } from './mfaLogic';
 import { type AuthMode, canSubmit, isValidEmail, mapAuthError } from './authLogic';
@@ -86,6 +87,36 @@ function LangToggle() {
         </button>
       </div>
     </div>
+  );
+}
+
+/**
+ * A glassy dark-mode disc that pairs with the language pill in the top-right
+ * cluster. The persisted theme is applied to the document root, so flipping it
+ * here also re-skins the legal pages reached from the footer. The sun and moon
+ * crossfade and rotate past each other as the theme switches, and we show the
+ * destination icon (moon while light, sun while dark) the way the in-app topbar
+ * does.
+ */
+function ThemeToggle() {
+  const { t } = useTranslation();
+  const theme = useThemeStore((s) => s.theme);
+  const toggle = useThemeStore((s) => s.toggle);
+  return (
+    <button
+      type="button"
+      className="login-theme"
+      data-theme={theme}
+      onClick={toggle}
+      aria-label={t('chrome.toggleTheme')}
+      title={t('chrome.toggleTheme')}
+      aria-pressed={theme === 'dark'}
+    >
+      <span className="login-theme__icons" aria-hidden="true">
+        <Moon className="login-theme__icon login-theme__moon" size={16} />
+        <Sun className="login-theme__icon login-theme__sun" size={16} />
+      </span>
+    </button>
   );
 }
 
@@ -238,7 +269,10 @@ export default function LoginPage() {
   return (
     <div className="relative z-[1] flex min-h-screen flex-col items-center justify-center px-4">
       <Atmosphere />
-      <LangToggle />
+      <div className="login-controls">
+        <ThemeToggle />
+        <LangToggle />
+      </div>
       <div className="mb-7 flex flex-col items-center text-center">
         <div
           className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl text-white"

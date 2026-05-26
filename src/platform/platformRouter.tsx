@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
-import { SkeletonList } from '@/shared/components/Skeleton';
+import { RouteFallback } from '@/shared/components/RouteFallback';
 import { RequirePlatformAdmin } from './RequirePlatformAdmin';
 import { PlatformLayout } from './PlatformLayout';
 
@@ -10,7 +10,7 @@ const PlatformHomePage = lazy(() => import('./PlatformHomePage'));
 const PlatformAsociatiiPage = lazy(() => import('./PlatformAsociatiiPage'));
 
 function S({ children }: { children: React.ReactNode }) {
-  return <Suspense fallback={<SkeletonList rows={4} />}>{children}</Suspense>;
+  return <Suspense fallback={<RouteFallback />}>{children}</Suspense>;
 }
 
 export const platformRouter = createBrowserRouter([

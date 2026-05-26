@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Building2, Globe } from 'lucide-react';
+import { ArrowLeft, Building2, Globe, Moon, Sun } from 'lucide-react';
 import { Atmosphere } from '@/shared/components/Atmosphere';
+import { useThemeStore } from '@/shared/store/themeStore';
 import type { LegalDoc, Lang } from './legalContent';
 
 /** Shared chrome + prose renderer for the public legal pages. */
@@ -10,6 +11,8 @@ export function LegalDocPage({ build }: { build: (lang: Lang) => LegalDoc }) {
   const lang: Lang = i18n.language.startsWith('en') ? 'en' : 'ro';
   const doc = build(lang);
   const toggleLang = () => void i18n.changeLanguage(lang === 'en' ? 'ro' : 'en');
+  const theme = useThemeStore((s) => s.theme);
+  const toggleTheme = useThemeStore((s) => s.toggle);
 
   return (
     <div className="relative z-[1] min-h-screen">
@@ -24,6 +27,16 @@ export function LegalDocPage({ build }: { build: (lang: Lang) => LegalDoc }) {
           </span>
         </Link>
         <div className="legal-topbar__actions">
+          <button
+            type="button"
+            className="iconbtn"
+            onClick={toggleTheme}
+            aria-label={t('chrome.toggleTheme')}
+            title={t('chrome.toggleTheme')}
+            aria-pressed={theme === 'dark'}
+          >
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
           <button type="button" className="iconbtn" onClick={toggleLang} aria-label={t('chrome.language')}>
             <Globe size={18} />
             <span style={{ fontSize: 11, fontWeight: 600, marginLeft: 3, textTransform: 'uppercase' }}>{lang}</span>
