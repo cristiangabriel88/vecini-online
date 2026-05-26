@@ -335,6 +335,25 @@
     "createPrompt": "Tu administrezi asociația?",
     "createLink": "Creează o asociație nouă"
   },
+  "setup": {
+    "title": "Creează-ți contul",
+    "subtitle": "Alege o parolă ca să îți activezi accesul în asociație.",
+    "contextInvite": "Ai o invitație validă în asociație.",
+    "contextSetup": "Vei deveni administrator al asociației {{asociatie}}.",
+    "roleLine": "Rol: {{role}}",
+    "roleAdmin": "Administrator",
+    "codeLabel": "Cod de invitație sau de configurare",
+    "codeHint": "Folosește codul primit de la administrator dacă nu ai un link.",
+    "submit": "Creează contul",
+    "success": "Cont creat. Bine ai venit!",
+    "err_email": "Adresă de email invalidă.",
+    "err_expired": "Linkul a expirat. Cere unul nou.",
+    "err_used": "Linkul a fost deja folosit. Cere unul nou.",
+    "err_revoked": "Codul a fost revocat. Cere unul nou.",
+    "err_unknown": "Link sau cod invalid. Verifică-l și încearcă din nou.",
+    "createPrompt": "Tu administrezi asociația?",
+    "createLink": "Creează o asociație nouă"
+  },
   "features": {
     "title": "Funcționalități",
     "subtitle": "Activează sau dezactivează funcționalitățile asociației. Cele dezactivate dispar pentru locatari.",

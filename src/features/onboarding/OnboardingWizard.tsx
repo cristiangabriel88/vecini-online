@@ -87,7 +87,7 @@ export default function OnboardingWizard() {
             </div>
             <p className="border-t border-border pt-4 text-sm text-muted">
               {t('onboarding.haveCode')}{' '}
-              <Link to="/onboarding/alatura" className="auth-link">
+              <Link to="/configurare-cont" className="auth-link">
                 {t('onboarding.joinLink')}
               </Link>
             </p>

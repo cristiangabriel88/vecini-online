@@ -147,19 +147,46 @@ test('T42: resident joins an asociație with an issued invite code', async ({ pa
   await page.getByRole('button', { name: /Generează codul/i }).click();
   const code = (await page.locator('code').first().innerText()).trim();
   expect(code).toMatch(/^[A-Z2-9]{8}$/);
-  // Redeem it from the join screen.
-  await page.goto('/onboarding/alatura');
+  // Redeem it from the account-creation landing (T124): enter the code as the
+  // manual fallback, set a password, and submit.
+  await page.goto('/configurare-cont');
   await page.getByLabel(/Cod de invitație/i).fill(code);
-  await page.getByRole('button', { name: /Alătură-mă/i }).click();
+  await page.getByLabel('Email').fill('vecin.nou@example.com');
+  await page.getByLabel('Parolă', { exact: true }).fill('Munte-Albastru-91');
+  await page.getByLabel(/Confirmă parola/i).fill('Munte-Albastru-91');
+  await page.getByRole('button', { name: /Creează contul/i }).click();
   await expect(page).toHaveURL(/\/app$/);
 });
 
-test('T42: an invalid invite code is rejected with a clear message', async ({ page }) => {
+test('T42/T124: an invalid invite code is rejected with a clear message', async ({ page }) => {
   await enterDemo(page);
-  await page.goto('/onboarding/alatura');
+  await page.goto('/configurare-cont');
   await page.getByLabel(/Cod de invitație/i).fill('NOPE2345');
-  await page.getByRole('button', { name: /Alătură-mă/i }).click();
-  await expect(page.getByText(/Cod invalid/i)).toBeVisible();
+  await expect(page.getByText(/Link sau cod invalid/i)).toBeVisible();
+});
+
+test('T124: an onboarding link opens the account-creation landing and is single-use', async ({ page }) => {
+  await enterDemo(page);
+  // Admin issues an invite; its onboarding deep link is rendered on the card.
+  await page.goto('/app/admin/invitatii');
+  await page.getByRole('button', { name: /Generează codul/i }).click();
+  const link = (await page.locator('p.break-all').first().innerText()).trim();
+  expect(link).toContain('/configurare-cont?token=');
+  const target = new URL(link).pathname + new URL(link).search;
+
+  // Open the link as a fresh visitor (a full navigation resets the in-memory
+  // session; the issued invite persists in local storage).
+  await page.goto(target);
+  await expect(page.getByText(/invitație validă|valid invitation/i)).toBeVisible();
+  await page.getByLabel('Email').fill('vecin.link@example.com');
+  await page.getByLabel('Parolă', { exact: true }).fill('Munte-Albastru-91');
+  await page.getByLabel(/Confirmă parola/i).fill('Munte-Albastru-91');
+  await page.getByRole('button', { name: /Creează contul/i }).click();
+  await expect(page).toHaveURL(/\/(app|bun-venit)/);
+
+  // Reusing the same link is rejected: the token is now spent.
+  await page.goto(target);
+  await expect(page.getByText(/deja folosit/i)).toBeVisible();
 });
 
 test('F47: admin can add an energy reading', async ({ page }) => {
@@ -502,9 +529,12 @@ test('T54: the full MVP loop works end-to-end in demo mode', async ({ page }) =>
   await page.getByRole('button', { name: /Generează codul/i }).click();
   const code = (await page.locator('code').first().innerText()).trim();
   expect(code).toMatch(/^[A-Z2-9]{8}$/);
-  await page.goto('/onboarding/alatura');
+  await page.goto('/configurare-cont');
   await page.getByLabel(/Cod de invitație/i).fill(code);
-  await page.getByRole('button', { name: /Alătură-mă/i }).click();
+  await page.getByLabel('Email').fill('bucla.mvp@example.com');
+  await page.getByLabel('Parolă', { exact: true }).fill('Munte-Albastru-91');
+  await page.getByLabel(/Confirmă parola/i).fill('Munte-Albastru-91');
+  await page.getByRole('button', { name: /Creează contul/i }).click();
   await expect(page).toHaveURL(/\/app$/);
 
   // 4. An enabled module loads.

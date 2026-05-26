@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { lazy, Suspense } from 'react';
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate, useLocation } from 'react-router-dom';
 import { AppLayout } from './AppLayout';
 import { RequireAuth } from './RequireAuth';
 import { RequireAsociatie } from './RequireAsociatie';
@@ -19,7 +19,7 @@ const ConsumerRightsPage = lazy(() => import('@/features/legal/ConsumerRightsPag
 const PrivacySettingsPage = lazy(() => import('@/features/legal/PrivacySettingsPage'));
 const ProcessingRecordsPage = lazy(() => import('@/features/legal/ProcessingRecordsPage'));
 const OnboardingWizard = lazy(() => import('@/features/onboarding/OnboardingWizard'));
-const JoinAsociatiePage = lazy(() => import('@/features/onboarding/JoinAsociatiePage'));
+const AccountSetupPage = lazy(() => import('@/features/onboarding/AccountSetupPage'));
 const WelcomePage = lazy(() => import('@/features/welcome/WelcomePage'));
 const AppHome = lazy(() => import('./AppHome'));
 const SuperAdminHomePage = lazy(() => import('@/features/superadmin/SuperAdminHomePage'));
@@ -110,6 +110,16 @@ function S({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<RouteFallback />}>{children}</Suspense>;
 }
 
+/**
+ * Redirect the legacy onboarding-join path to the account-creation landing
+ * (T124), preserving the `?token=` query so a link minted before the route moved
+ * still resolves to the right place.
+ */
+function LegacyJoinRedirect() {
+  const { search } = useLocation();
+  return <Navigate to={`/configurare-cont${search}`} replace />;
+}
+
 export const router = createBrowserRouter([
   { path: '/', element: <S><LoginPage /></S> },
   { path: '/reset-parola', element: <S><ResetPasswordPage /></S> },
@@ -118,7 +128,8 @@ export const router = createBrowserRouter([
   { path: '/cookies', element: <S><CookiePolicyPage /></S> },
   { path: '/protectia-consumatorului', element: <S><ConsumerRightsPage /></S> },
   { path: '/onboarding', element: <S><OnboardingWizard /></S> },
-  { path: '/onboarding/alatura', element: <S><JoinAsociatiePage /></S> },
+  { path: '/configurare-cont', element: <S><AccountSetupPage /></S> },
+  { path: '/onboarding/alatura', element: <LegacyJoinRedirect /> },
   {
     path: '/bun-venit',
     element: (

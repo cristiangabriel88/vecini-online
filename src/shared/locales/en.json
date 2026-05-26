@@ -335,6 +335,25 @@
     "createPrompt": "Are you the administrator?",
     "createLink": "Create a new association"
   },
+  "setup": {
+    "title": "Create your account",
+    "subtitle": "Choose a password to activate your access to the association.",
+    "contextInvite": "You have a valid invitation to the association.",
+    "contextSetup": "You will become the administrator of {{asociatie}}.",
+    "roleLine": "Role: {{role}}",
+    "roleAdmin": "Administrator",
+    "codeLabel": "Invite or setup code",
+    "codeHint": "Use the code your administrator gave you if you do not have a link.",
+    "submit": "Create account",
+    "success": "Account created. Welcome!",
+    "err_email": "Invalid email address.",
+    "err_expired": "This link has expired. Ask for a new one.",
+    "err_used": "This link has already been used. Ask for a new one.",
+    "err_revoked": "This code has been revoked. Ask for a new one.",
+    "err_unknown": "Invalid link or code. Check it and try again.",
+    "createPrompt": "Are you the administrator?",
+    "createLink": "Create a new association"
+  },
   "features": {
     "title": "Features",
     "subtitle": "Enable or disable association features. Disabled ones disappear for residents.",

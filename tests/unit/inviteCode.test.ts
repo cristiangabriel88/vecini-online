@@ -75,13 +75,13 @@ describe('inviteToken', () => {
 describe('buildOnboardingLink', () => {
   it('joins base URL, redeem path and url-encoded token', () => {
     expect(buildOnboardingLink('https://app.vecini.online', 'abc123')).toBe(
-      'https://app.vecini.online/onboarding/alatura?token=abc123',
+      'https://app.vecini.online/configurare-cont?token=abc123',
     );
   });
 
   it('strips trailing slashes from the base URL', () => {
     expect(buildOnboardingLink('https://app.vecini.online///', 'tok')).toBe(
-      'https://app.vecini.online/onboarding/alatura?token=tok',
+      'https://app.vecini.online/configurare-cont?token=tok',
     );
   });
 });

@@ -58,14 +58,15 @@ export function normalizeInviteToken(token: string): string {
 }
 
 /**
- * The app path an onboarding deep link resolves to. The redeem/account-creation
- * landing that consumes the token is built in T124; until then the link carries
- * the token to the existing join entry, where the manual code remains the
- * fallback. Kept as a single constant so both link builders (the locatar invite
- * link in `inviteLogic` and the admin setup link in `platformProvisioningLogic`)
- * stay in sync and T124 can move the route in one place.
+ * The app path an onboarding deep link resolves to: the account-creation-on-
+ * redemption landing (T124), which reads the `?token=` query param, lets the
+ * invitee set a password and consumes the token. Kept as a single constant so
+ * both link builders (the locatar invite link in `inviteLogic` and the admin
+ * setup link in `platformProvisioningLogic`) stay in sync. The legacy
+ * `/onboarding/alatura` route redirects here so links minted before T124 still
+ * resolve.
  */
-export const ONBOARDING_REDEEM_PATH = '/onboarding/alatura';
+export const ONBOARDING_REDEEM_PATH = '/configurare-cont';
 
 /**
  * Build an absolute onboarding deep link from a base URL (callers pass

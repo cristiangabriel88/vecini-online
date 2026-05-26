@@ -2,6 +2,46 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## Account-creation-on-redemption landing (T124)
+
+- **One landing serves both onboarding kinds.** A single `AccountSetupPage`
+  (`/configurare-cont`) handles the locatar invite link and the admin setup link
+  rather than two pages. The pure `resolveOnboarding(value, invites, provisions)`
+  checks the invite lifecycle first, then the platform setup provisions, and
+  returns a `{kind, status, asociatieId, asociatieName, role}` descriptor — so the
+  page is link-source-agnostic and the manual short code works as a fallback for
+  both.
+- **The redeem-path constant moved in exactly one place.** `ONBOARDING_REDEEM_PATH`
+  went from `/onboarding/alatura` to `/configurare-cont` in `inviteCode.ts`, so
+  every built link (locatar invite + admin setup) follows automatically. The old
+  route is kept as a query-preserving `<Navigate>` redirect so any link minted
+  before the move still resolves.
+- **Offline, account creation establishes the demo session and discards the
+  credentials.** There is no auth backend offline, so on submit the membership is
+  linked to the demo user id and `demo: true` is set so the new invitee lands in
+  `/app`; the entered email/password are not persisted. Real account creation
+  (writing the `users` row, hashing the password server-side) is the live path
+  T55. The password step still runs the full `passwordPolicy` for parity. Seeding
+  a minimal offline profile (display name + email) is queued as T146.
+- **The admin-setup-by-token offline path reads the platform store; live it is
+  server-mediated.** Resolving an admin setup token offline reads
+  `platformAsociatiiStore` (already in the resident bundle via the in-app
+  superadmin preview). In the live separate-origin deployment the platform
+  provisions are not on the resident origin, so the live admin-setup redemption
+  (create the auth account + stamp the `admin` membership) runs in the T92
+  service-role function, not the browser — consistent with the never-trust-a-
+  client-role non-negotiable.
+- **Single-use is enforced with the same replay-safe pattern on both sides.**
+  `inviteStore.consumeByToken` (existing) and the new
+  `platformAsociatiiStore.consumeSetup` both re-validate inside the state update,
+  so a setup link or invite cannot be double-spent under a race; the provision
+  record gained a `redeemedAt` stamp (persist bumped to v3 with a backfilling
+  migrate).
+- **The password strength meter was extracted, not duplicated.** `LoginPage`'s
+  inline `PasswordStrength` became the shared `PasswordStrengthMeter` component
+  used by both the sign-up form and the setup landing, so the policy surface stays
+  identical wherever a password is set.
+
 ## Easier second-factor channels (email + Telegram) and how they elevate a session (T139+)
 
 Authenticator-app TOTP (T02) is mandatory for privileged roles, but many of the

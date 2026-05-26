@@ -207,14 +207,14 @@ describe('buildInviteLink', () => {
   it('builds an absolute onboarding deep link carrying the token', () => {
     const invite = make({ token: 'f'.repeat(64) });
     expect(buildInviteLink(invite, 'https://app.vecini.online')).toBe(
-      `https://app.vecini.online/onboarding/alatura?token=${'f'.repeat(64)}`,
+      `https://app.vecini.online/configurare-cont?token=${'f'.repeat(64)}`,
     );
   });
 
   it('does not double the slash when the base URL has a trailing one', () => {
     const invite = make({ token: 'f'.repeat(64) });
     expect(buildInviteLink(invite, 'https://app.vecini.online/')).toBe(
-      `https://app.vecini.online/onboarding/alatura?token=${'f'.repeat(64)}`,
+      `https://app.vecini.online/configurare-cont?token=${'f'.repeat(64)}`,
     );
   });
 });

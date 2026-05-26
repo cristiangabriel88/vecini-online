@@ -14,8 +14,12 @@ import {
   type ProvisionInput,
   type ProvisionResult,
 } from './platformProvisioningLogic';
-import { ONBOARDING_LINK_TTL_MS } from '@/features/invites/inviteLogic';
-import { generateInviteToken } from '@/shared/lib/inviteCode';
+import { ONBOARDING_LINK_TTL_MS, type InviteStatus } from '@/features/invites/inviteLogic';
+import { generateInviteToken, normalizeInviteCode, normalizeInviteToken } from '@/shared/lib/inviteCode';
+import {
+  type SetupProvisionLike,
+  setupProvisionStatus,
+} from '@/features/onboarding/accountSetupLogic';
 
 /**
  * Platform asociații + admin provisioning store (T94), offline/local path.
@@ -44,8 +48,17 @@ export interface AdminProvisionRecord {
   setupToken: string;
   /** Epoch ms the setup link/code expires (24h from provisioning, T123). */
   expiresAt: number;
+  /** Epoch ms the admin redeemed the setup link/code (single-use), or null (T124). */
+  redeemedAt: number | null;
   /** ISO instant the provisioning happened. */
   provisionedAt: string;
+}
+
+/** The outcome of consuming a setup token/code: status + the activated asociație. */
+export interface ConsumeSetupResult {
+  status: InviteStatus;
+  asociatieId: string | null;
+  asociatieName: string | null;
 }
 
 interface PlatformAsociatiiState {
@@ -55,6 +68,14 @@ interface PlatformAsociatiiState {
   provisions: Record<string, AdminProvisionRecord>;
   /** Provision a new asociație + its first admin (offline path). */
   provision: (input: ProvisionInput) => ProvisionResult;
+  /**
+   * Consume an admin setup token (from the secure link) or its short fallback
+   * code, single-use and replay-safe: it re-validates inside the state update so
+   * a setup link cannot be redeemed twice under a race (T124). The membership
+   * activation is the caller's concern (`authStore.activateProvisionedAdmin`).
+   * The live cross-tenant equivalent runs in the T92 service-role function.
+   */
+  consumeSetup: (value: string) => ConsumeSetupResult;
 }
 
 /** Resolve the acting operator: the live session user, or the demo operator. */
@@ -114,6 +135,7 @@ export const usePlatformAsociatiiStore = create<PlatformAsociatiiState>()(
               setupCode: result.admin.setupCode,
               setupToken: result.admin.setupToken,
               expiresAt: result.admin.expiresAt,
+              redeemedAt: null,
               provisionedAt,
             },
           },
@@ -121,16 +143,47 @@ export const usePlatformAsociatiiStore = create<PlatformAsociatiiState>()(
 
         return result;
       },
+
+      consumeSetup: (value) => {
+        const token = normalizeInviteToken(value);
+        const code = normalizeInviteCode(value);
+        const match = (p: AdminProvisionRecord) =>
+          p.setupToken === token || (code.length > 0 && p.setupCode === code);
+        const entry = Object.entries(get().provisions).find(([, p]) => match(p));
+        if (!entry) return { status: 'unknown', asociatieId: null, asociatieName: null };
+        const [id] = entry;
+
+        // Re-validate inside the update so a single-use setup link cannot be
+        // redeemed twice under a race (mirrors the invite store's `consumeMatched`).
+        let result: ConsumeSetupResult = { status: 'unknown', asociatieId: null, asociatieName: null };
+        set((s) => {
+          const current = s.provisions[id];
+          const status = current ? setupProvisionStatus(toSetupLike(current, '')) : 'unknown';
+          if (status !== 'ok' || !current) {
+            result = { status, asociatieId: null, asociatieName: null };
+            return s;
+          }
+          const name = s.asociatii.find((a) => a.id === current.asociatieId)?.name ?? current.name;
+          result = { status: 'ok', asociatieId: current.asociatieId, asociatieName: name };
+          return {
+            provisions: {
+              ...s.provisions,
+              [id]: { ...current, redeemedAt: Date.now() },
+            },
+          };
+        });
+        return result;
+      },
     }),
     {
       name: 'vecini.platform.asociatii',
-      version: 2,
-      // v2 (T123) added the secure setup link's token + 24h expiry to each
-      // provision record. Backfill any pre-T123 record with a fresh token and a
-      // 24h window from migration time so an old handoff still resolves a link.
+      version: 3,
+      // v2 (T123) added the secure setup link's token + 24h expiry; v3 (T124)
+      // added the single-use `redeemedAt`. Backfill any older record so an old
+      // handoff still resolves a link and reads as not-yet-redeemed.
       migrate: (persisted, version) => {
         const state = persisted as PlatformAsociatiiState;
-        if (version >= 2 || !state?.provisions) return state;
+        if (version >= 3 || !state?.provisions) return state;
         const now = Date.now();
         const provisions = Object.fromEntries(
           Object.entries(state.provisions).map(([id, p]) => [
@@ -139,6 +192,7 @@ export const usePlatformAsociatiiStore = create<PlatformAsociatiiState>()(
               ...p,
               setupToken: p.setupToken ?? generateInviteToken(),
               expiresAt: p.expiresAt ?? now + ONBOARDING_LINK_TTL_MS,
+              redeemedAt: p.redeemedAt ?? null,
             },
           ]),
         );
@@ -147,6 +201,32 @@ export const usePlatformAsociatiiStore = create<PlatformAsociatiiState>()(
     },
   ),
 );
+
+/** Map a stored provision record into the store-agnostic onboarding shape (T124). */
+function toSetupLike(record: AdminProvisionRecord, asociatieName: string): SetupProvisionLike {
+  return {
+    asociatieId: record.asociatieId,
+    asociatieName,
+    setupToken: record.setupToken,
+    setupCode: record.setupCode,
+    expiresAt: record.expiresAt,
+    redeemedAt: record.redeemedAt ?? null,
+  };
+}
+
+/**
+ * The setup provisions as the resident-side onboarding landing consumes them
+ * (T124): each carries the asociație's display name, resolved from the summary
+ * list, so the landing can name the asociație the new admin is setting up.
+ */
+export function setupProvisionLinks(
+  provisions: Record<string, AdminProvisionRecord>,
+  asociatii: PlatformAsociatieSummary[],
+): SetupProvisionLike[] {
+  return Object.values(provisions).map((p) =>
+    toSetupLike(p, asociatii.find((a) => a.id === p.asociatieId)?.name ?? p.name),
+  );
+}
 
 /**
  * The secure setup link for a provisioned admin record. Callers on the platform

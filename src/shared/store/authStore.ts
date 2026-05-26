@@ -11,6 +11,7 @@ import {
   type InviteStatus,
   buildMembershipFromInvite,
   findByCode,
+  findByToken,
   validateInvite,
 } from '@/features/invites/inviteLogic';
 import { DEMO_CURRENT_USER_ID } from '@/shared/demo/demoData';
@@ -84,6 +85,23 @@ interface AuthState {
    * replay-safe RPC under RLS (T55).
    */
   joinByInvite: (code: string) => JoinResult;
+  /**
+   * Account-creation-on-redemption, locatar invite path (T124). Resolve an
+   * onboarding value (the opaque link token, or the manual code as a fallback)
+   * against the invite store, consume it once (replay-safe) and link the granted
+   * membership, selecting the asociație. Offline it also establishes the demo
+   * session so a brand-new invitee lands in the app without a backend; live
+   * account creation under RLS is T55. Returns the validation status.
+   */
+  redeemInvite: (value: string) => JoinResult;
+  /**
+   * Account-creation-on-redemption, admin setup path (T124). After the platform
+   * store has consumed the one-time setup token (replay-safe), link the new admin
+   * as founder of the provisioned asociație, record its name for the chrome and
+   * select it. Offline it establishes the demo session so the admin lands in the
+   * app; the live cross-tenant equivalent runs in the T92 service-role function.
+   */
+  activateProvisionedAdmin: (asociatieId: string, name: string) => void;
   /**
    * Sign in. `remember` decides session persistence: `true` keeps the session in
    * localStorage (survives a browser restart, 30-day cap), `false` keeps it in
@@ -250,6 +268,58 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       currentAsociatieId: consumed.invite.asociatieId,
     });
     return { status: 'ok', asociatieId: consumed.invite.asociatieId };
+  },
+
+  redeemInvite: (value) => {
+    const userId = get().session?.user?.id ?? DEMO_CURRENT_USER_ID;
+    const invites = useInviteStore.getState();
+    // The link carries the opaque token; the manual fallback carries the code.
+    const byToken = findByToken(invites.invites, value);
+    const target = byToken ?? findByCode(invites.invites, value);
+    const status = validateInvite(target);
+    if (status !== 'ok' || !target) return { status, asociatieId: null };
+    // Offline a brand-new invitee has no session, so establish the demo session
+    // here (live account creation under RLS is T55). A no-op when live.
+    const sessionPatch = isSupabaseConfigured ? {} : { demo: true, loading: false };
+    const alreadyMember = get().memberships.some(
+      (m) => m.asociatie_id === target.asociatieId && m.ended_at === null,
+    );
+    if (alreadyMember) {
+      set({ currentAsociatieId: target.asociatieId, ...sessionPatch });
+      return { status: 'ok', asociatieId: target.asociatieId };
+    }
+    // Consume atomically by the same key we matched on, so a single-use
+    // token/code cannot be double-spent under a race, then link membership.
+    const consumed = byToken ? invites.consumeByToken(value, userId) : invites.consume(value, userId);
+    if (consumed.status !== 'ok' || !consumed.invite) {
+      return { status: consumed.status, asociatieId: null };
+    }
+    const membership = buildMembershipFromInvite(userId, consumed.invite);
+    set({
+      memberships: sortByPrivilege([...get().memberships, membership]),
+      currentAsociatieId: consumed.invite.asociatieId,
+      ...sessionPatch,
+    });
+    return { status: 'ok', asociatieId: consumed.invite.asociatieId };
+  },
+
+  activateProvisionedAdmin: (asociatieId, name) => {
+    const userId = get().session?.user?.id ?? DEMO_CURRENT_USER_ID;
+    const sessionPatch = isSupabaseConfigured ? {} : { demo: true, loading: false };
+    if (get().memberships.some((m) => m.asociatie_id === asociatieId && m.ended_at === null)) {
+      set({ currentAsociatieId: asociatieId, ...sessionPatch });
+      return;
+    }
+    const membership = buildFounderMembership(userId, asociatieId);
+    const known = get().localAsociatii.some((a) => a.id === asociatieId);
+    set({
+      memberships: sortByPrivilege([...get().memberships, membership]),
+      currentAsociatieId: asociatieId,
+      localAsociatii: known
+        ? get().localAsociatii
+        : [...get().localAsociatii, { id: asociatieId, name: name.trim() }],
+      ...sessionPatch,
+    });
   },
 
   signIn: async (email, password, remember) => {

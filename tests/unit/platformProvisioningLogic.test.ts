@@ -159,7 +159,7 @@ describe('provisionAsociatie (T94)', () => {
   it('builds an absolute setup deep link carrying the setup token (T123)', () => {
     const { admin } = provisionAsociatie(validInput);
     expect(buildSetupLink(admin, 'https://app.vecini.online')).toBe(
-      `https://app.vecini.online/onboarding/alatura?token=${admin.setupToken}`,
+      `https://app.vecini.online/configurare-cont?token=${admin.setupToken}`,
     );
   });
 

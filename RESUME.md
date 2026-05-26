@@ -19,7 +19,26 @@ under `docs/`, despite references to the contrary). The product is
 > Finished tasks' full done-notes are archived in `COMPLETED.md` (newest first);
 > §0 below stays the dated chronological summary.
 
-## 0. Current status (updated 2026-05-26, T139 easier-2FA foundation)
+## 0. Current status (updated 2026-05-26, T124 account-creation-on-redemption)
+
+- **2026-05-26 — T124 (P1) Account-creation-on-redemption landing.** New shared
+  bilingual `AccountSetupPage` at `/configurare-cont` replaces the code-only
+  `JoinAsociatiePage` (deleted): an invitee arriving by onboarding deep link
+  (`?token=`) or the short fallback code sets a password twice, and on submit the
+  matching token/code is consumed once (single-use, 24h, replay-safe) and the
+  membership is activated offline — `admin` for an admin setup link, the code's
+  role for a locatar invite — landing them in `/app`. New pure
+  `accountSetupLogic.ts` (`resolveOnboarding` token-or-code for both kinds,
+  `setupProvisionStatus`, `evaluateAccountForm`); `authStore.redeemInvite` +
+  `activateProvisionedAdmin`; `platformAsociatiiStore.consumeSetup` (replay-safe)
+  + `redeemedAt` (persist v3) + `setupProvisionLinks`. `ONBOARDING_REDEEM_PATH`
+  moved to `/configurare-cont` in one place; legacy `/onboarding/alatura`
+  redirects (query-preserving). `PasswordStrengthMeter` extracted to a shared
+  component used by `LoginPage` + the new page. Bilingual `setup.*`. New
+  `accountSetupLogic.test.ts` + `accountRedemption.test.ts`; smoke E2E rewired +
+  a T124 happy-path. `lint`/`typecheck`/`test` (131 files / 1007 tests)/`build`
+  all green. Decision in `DECISIONS.md`. Queued T145 (remove dead `join.*` keys),
+  T146 (offline display-name + minimal profile); T136 prerequisite now met.
 
 - **2026-05-26 — T139 (P1) Pure OTP-channel logic + `app2faSatisfied` enforcement
   axis (foundation for email/Telegram 2FA).** User request: add easier second

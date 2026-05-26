@@ -16,41 +16,12 @@ import { useThemeStore } from '@/shared/store/themeStore';
 import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import { mfaErrorKey } from './mfaLogic';
 import { type AuthMode, canSubmit, isValidEmail, mapAuthError } from './authLogic';
-import { type PasswordAssessment, evaluatePassword } from './passwordPolicy';
+import { evaluatePassword } from './passwordPolicy';
+import { PasswordStrengthMeter } from './PasswordStrengthMeter';
 
 /** Round a remaining-lockout duration up to whole minutes for the message. */
 function lockoutMinutes(ms: number): number {
   return Math.max(1, Math.ceil(ms / 60_000));
-}
-
-/** A compact strength meter + first-issue hint shown while choosing a password. */
-function PasswordStrength({ assessment }: { assessment: PasswordAssessment }) {
-  const { t } = useTranslation();
-  const tone =
-    assessment.strength === 'weak'
-      ? 'var(--danger)'
-      : assessment.strength === 'fair'
-        ? 'var(--warning)'
-        : 'var(--success, var(--primary))';
-  const issue = assessment.issues[0];
-  return (
-    <div className="space-y-1" aria-live="polite">
-      <div className="flex gap-1" aria-hidden="true">
-        {[0, 1, 2, 3].map((i) => (
-          <span
-            key={i}
-            className="h-1 flex-1 rounded-full transition-colors"
-            style={{ background: i < assessment.score ? tone : 'var(--bg-sunken)' }}
-          />
-        ))}
-      </div>
-      <p className="text-xs" style={{ color: issue ? 'var(--danger)' : 'var(--text-muted)' }}>
-        {issue
-          ? t(`auth.pwd.${issue}`)
-          : `${t('auth.pwd.strength')}: ${t(`auth.pwd.${assessment.strength}`)}`}
-      </p>
-    </div>
-  );
 }
 
 /**
@@ -379,7 +350,7 @@ export default function LoginPage() {
                   required
                 />
               )}
-              {assessment && <PasswordStrength assessment={assessment} />}
+              {assessment && <PasswordStrengthMeter assessment={assessment} />}
               {mode === 'signIn' && (
                 <Checkbox checked={remember} onChange={setRemember} label={t('auth.rememberMe')} />
               )}
