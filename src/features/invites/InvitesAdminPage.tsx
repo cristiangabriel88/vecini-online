@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { Copy, KeyRound, Ticket, Trash2 } from 'lucide-react';
+import { Copy, KeyRound, Link2, Ticket, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
@@ -10,6 +10,7 @@ import { Switch } from '@/shared/components/Switch';
 import { Badge } from '@/shared/components/Badge';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { formatDate } from '@/shared/lib/format';
+import { env } from '@/shared/lib/env';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useInviteStore } from '@/shared/store/inviteStore';
 import { recordAudit } from '@/shared/store/auditStore';
@@ -18,12 +19,13 @@ import {
   type ExpiryPreset,
   type InviteStatus,
   INVITABLE_ROLES,
+  buildInviteLink,
   expiryFromPreset,
   validateInvite,
 } from '@/features/invites/inviteLogic';
 import type { Role } from '@/shared/types/domain';
 
-const EXPIRY_PRESETS: ExpiryPreset[] = ['7d', '30d', '90d', 'never'];
+const EXPIRY_PRESETS: ExpiryPreset[] = ['24h', '7d', '30d', '90d', 'never'];
 
 const STATUS_TONE: Record<InviteStatus, 'success' | 'warning' | 'neutral' | 'danger'> = {
   ok: 'success',
@@ -99,10 +101,10 @@ export default function InvitesAdminPage() {
     });
   };
 
-  const copy = async (code: string) => {
+  const copy = async (text: string, message: string) => {
     try {
-      await navigator.clipboard.writeText(code);
-      toast.success(t('invites.copied'));
+      await navigator.clipboard.writeText(text);
+      toast.success(message);
     } catch {
       toast.error(t('invites.copyFailed'));
     }
@@ -180,6 +182,7 @@ export default function InvitesAdminPage() {
         <div className="space-y-3">
           {list.map((invite) => {
             const status = validateInvite(invite);
+            const link = buildInviteLink(invite, env.appUrl);
             return (
               <Card key={invite.id}>
                 <div className="flex flex-wrap items-center gap-3">
@@ -195,8 +198,19 @@ export default function InvitesAdminPage() {
                     <Badge tone="neutral">{t('invites.reusable')}</Badge>
                   )}
                   <div className="ml-auto flex gap-2">
-                    <Button variant="ghost" size="sm" onClick={() => copy(invite.code)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copy(invite.code, t('invites.copied'))}
+                    >
                       <Copy className="h-4 w-4" /> {t('invites.copy')}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copy(link, t('invites.linkCopied'))}
+                    >
+                      <Link2 className="h-4 w-4" /> {t('invites.copyLink')}
                     </Button>
                     {status === 'ok' && (
                       <Button variant="danger" size="sm" onClick={() => onRevoke(invite.id, invite.code)}>
@@ -205,6 +219,7 @@ export default function InvitesAdminPage() {
                     )}
                   </div>
                 </div>
+                <p className="mt-2 break-all font-mono text-xs text-muted">{link}</p>
                 <p className="mt-2 text-sm text-muted">
                   {t('invites.createdOn', { date: formatDate(invite.createdAt) })}
                   {' · '}

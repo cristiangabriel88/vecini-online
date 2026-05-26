@@ -8,6 +8,7 @@ import {
   Home as HomeIcon,
   KeyRound,
   Landmark,
+  Link2,
   Mail,
   MapPin,
   Phone,
@@ -23,9 +24,11 @@ import { Badge } from '@/shared/components/Badge';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { formatDate } from '@/shared/lib/format';
 import { isSupabaseConfigured } from '@/shared/lib/supabase';
-import { usePlatformAsociatiiStore } from './platformAsociatiiStore';
+import { env } from '@/shared/lib/env';
+import { setupLinkFor, usePlatformAsociatiiStore } from './platformAsociatiiStore';
 import {
   blankProvisionInput,
+  buildSetupLink,
   isDormant,
   validateProvisionInput,
   type ProvisionInputDraft,
@@ -67,10 +70,10 @@ export default function PlatformAsociatiiPage() {
     toast.success(t('platform.asociatii.success', { name: provisioned.asociatie.name }));
   };
 
-  const copyCode = async (code: string) => {
+  const copyCode = async (text: string, message: string = t('platform.asociatii.copied')) => {
     try {
-      await navigator.clipboard.writeText(code);
-      toast.success(t('platform.asociatii.copied'));
+      await navigator.clipboard.writeText(text);
+      toast.success(message);
     } catch {
       toast.error(t('platform.asociatii.copyFailed'));
     }
@@ -229,6 +232,32 @@ export default function PlatformAsociatiiPage() {
                         <Copy size={15} />
                       </button>
                     </div>
+                    <div className="platform-asoc-card__code">
+                      <span className="platform-asoc-card__code-label">
+                        <Link2 size={13} aria-hidden="true" />
+                        {t('platform.asociatii.setupLinkLabel')}
+                      </span>
+                      <code className="platform-asoc-card__code-value platform-asoc-card__code-value--link">
+                        {setupLinkFor(prov, env.appUrl)}
+                      </code>
+                      <button
+                        type="button"
+                        className="iconbtn"
+                        onClick={() =>
+                          void copyCode(
+                            setupLinkFor(prov, env.appUrl),
+                            t('platform.asociatii.linkCopied'),
+                          )
+                        }
+                        aria-label={t('platform.asociatii.copyLink')}
+                        title={t('platform.asociatii.copyLink')}
+                      >
+                        <Copy size={15} />
+                      </button>
+                    </div>
+                    <p className="platform-asoc-card__linkhint">
+                      {t('platform.asociatii.linkExpiry', { date: formatDate(prov.expiresAt) })}
+                    </p>
                     <p className="platform-asoc-card__provisioned">
                       {t('platform.asociatii.provisionedOn', { date: formatDate(prov.provisionedAt) })}
                     </p>
@@ -368,6 +397,29 @@ export default function PlatformAsociatiiPage() {
             <Button variant="ghost" onClick={() => void copyCode(result.admin.setupCode)}>
               <Copy className="h-4 w-4" /> {t('platform.asociatii.copyCode')}
             </Button>
+            <div className="platform-asoc-card__code">
+              <span className="platform-asoc-card__code-label">
+                <Link2 size={13} aria-hidden="true" />
+                {t('platform.asociatii.setupLinkLabel')}
+              </span>
+              <code className="platform-asoc-card__code-value platform-asoc-card__code-value--link">
+                {buildSetupLink(result.admin, env.appUrl)}
+              </code>
+            </div>
+            <Button
+              variant="ghost"
+              onClick={() =>
+                void copyCode(
+                  buildSetupLink(result.admin, env.appUrl),
+                  t('platform.asociatii.linkCopied'),
+                )
+              }
+            >
+              <Link2 className="h-4 w-4" /> {t('platform.asociatii.copyLink')}
+            </Button>
+            <p className="platform-asoc-result__linkhint">
+              {t('platform.asociatii.linkExpiry', { date: formatDate(result.admin.expiresAt) })}
+            </p>
           </div>
         )}
       </Modal>

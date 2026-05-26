@@ -17,8 +17,22 @@ under `docs/`, despite references to the contrary). The product is
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-26, T122 full asociație identity at provisioning)
+## 0. Current status (updated 2026-05-26, T123 secure tokenized onboarding links)
 
+- **2026-05-26 - T123 (P1) Secure tokenized onboarding links.** Onboarding now
+  hands out a secure deep link, not just a short code. New shared-lib primitives
+  (`generateInviteToken`, 256-bit CSPRNG, 64-hex; `isValidInviteToken`/
+  `normalizeInviteToken`; `buildOnboardingLink`; `ONBOARDING_REDEEM_PATH`). The
+  `InviteCode` model carries a `token`; `EXPIRY_PRESETS_MS` gained a `24h` preset
+  with `ONBOARDING_LINK_TTL_MS`/`onboardingExpiry`; `findByToken` + `buildInviteLink`
+  added; the store gained a replay-safe `consumeByToken`. Superadmin provisioning
+  mints a `setupToken` + 24h `expiresAt` and a `buildSetupLink`; the platform store
+  persists them (v2 + backfilling migrate). The invites admin surface and the
+  provisioning card/result modal render the copyable secure link (the short code
+  stays the manual fallback). Bilingual RO/EN, decision in `DECISIONS.md`.
+  `npm run lint`/`typecheck`/`test` (123 files / 928 tests)/`build` all green.
+  Surfaced T133 (resident-app base URL for links built in the platform console);
+  token-aware redemption folds into T124, QR into T90, hashing-at-rest into T128.
 - **2026-05-26 — T122 (P1) Full asociație identity at superadmin provisioning.**
   Provisioning now captures the asociație's identity up front: address, CUI/CIF,
   registration number, IBAN, contact phone + email (alongside the required core).

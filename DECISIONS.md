@@ -1156,3 +1156,32 @@ The audit trail records state changes across features (actor, time, before/after
   it to the `apartments` table best-effort and hydrates reads back into the store
   on mount. This matches the existing `auditStore` mirroring strategy and avoids
   introducing react-query as the only consumer in the app.
+
+## T123 - Secure tokenized onboarding links (opaque token + 24h, code as fallback)
+
+- **Token is a 256-bit CSPRNG value rendered as 64 lower-case hex, generated
+  client-side for the offline path.** Hex (not base64url) keeps the token
+  trivially URL-safe and unambiguous, and `crypto.getRandomValues` gives real
+  entropy. The short 8-char `generateInviteCode` value is kept as the manual-entry
+  fallback so a resident without the link can still type a code. Storing a hash of
+  the token at rest (the link carrying the only plaintext) is the live concern
+  T128, not this offline task.
+- **One `ONBOARDING_REDEEM_PATH` constant + one `buildOnboardingLink` builder in
+  `src/shared/lib/inviteCode.ts`; the two domain builders wrap it.**
+  `buildInviteLink` (locatar) lives in `inviteLogic` and `buildSetupLink` (admin)
+  in `platformProvisioningLogic`, each a thin wrapper, so link rules live in one
+  place and T124 can move the route target once. The path currently points at the
+  existing working join route `/onboarding/alatura`; nothing consumes the `?token=`
+  param until T124 builds the redeem landing, so a handed-out link must be paired
+  with the manual code in the interim. Chosen over pointing at a not-yet-existing
+  `/configurare-cont` so the demo never ships a dangling link.
+- **Builders take `baseUrl` as an explicit param (callers pass `env.appUrl`),
+  keeping the logic pure and unit-testable.** This also surfaced that the platform
+  console origin differs from the resident app origin (queued as T133): the param
+  shape lets the caller swap in a resident-app base URL without touching the pure
+  builder.
+- **Onboarding links are fixed to 24h; standing admin invites may pick longer.**
+  A 24h window limits the blast radius of a leaked setup/onboarding link. The
+  `24h` preset was added to `EXPIRY_PRESETS_MS` (top of the list) so the admin
+  surface can still issue it explicitly, while `ONBOARDING_LINK_TTL_MS` /
+  `onboardingExpiry` pin the provisioning setup link to 24h.

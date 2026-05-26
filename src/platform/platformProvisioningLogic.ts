@@ -1,5 +1,10 @@
 import { isValidEmail } from '@/features/auth/authLogic';
-import { generateInviteCode } from '@/shared/lib/inviteCode';
+import {
+  buildOnboardingLink,
+  generateInviteCode,
+  generateInviteToken,
+} from '@/shared/lib/inviteCode';
+import { ONBOARDING_LINK_TTL_MS } from '@/features/invites/inviteLogic';
 import type { PlatformAsociatieSummary } from './demoPlatform';
 
 /**
@@ -173,8 +178,21 @@ export function newPlatformAsociatieId(): string {
 export interface ProvisionedAdmin {
   name: string;
   email: string;
-  /** One-time setup code the operator hands to the new admin (offline path). */
+  /** One-time setup code the operator hands to the new admin (manual fallback). */
   setupCode: string;
+  /** Opaque high-entropy token backing the secure setup link (T123). */
+  setupToken: string;
+  /** Epoch ms the setup link/code expires (24h from provisioning, T123). */
+  expiresAt: number;
+}
+
+/**
+ * Build the admin setup deep link for a provisioned admin: an absolute URL
+ * carrying the opaque setup token (T123). `baseUrl` is the app origin (callers
+ * pass `env.appUrl`). Pure wrapper over the shared `buildOnboardingLink`.
+ */
+export function buildSetupLink(admin: ProvisionedAdmin, baseUrl: string): string {
+  return buildOnboardingLink(baseUrl, admin.setupToken);
 }
 
 export interface ProvisionResult {
@@ -192,6 +210,7 @@ export function provisionAsociatie(
   value: ProvisionInput,
   existingCodes: Iterable<string> = [],
   rng: () => number = Math.random,
+  now: number = Date.now(),
 ): ProvisionResult {
   const taken = new Set(existingCodes);
   let setupCode = generateInviteCode(rng);
@@ -211,7 +230,13 @@ export function provisionAsociatie(
       contactPhone: value.contactPhone,
       contactEmail: value.contactEmail,
     },
-    admin: { name: value.adminName, email: value.adminEmail, setupCode },
+    admin: {
+      name: value.adminName,
+      email: value.adminEmail,
+      setupCode,
+      setupToken: generateInviteToken(),
+      expiresAt: now + ONBOARDING_LINK_TTL_MS,
+    },
   };
 }
 

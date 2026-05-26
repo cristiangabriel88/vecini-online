@@ -7,6 +7,7 @@ import {
   consumeInvite,
   createInvite,
   findByCode,
+  findByToken,
   revokeInvite,
   validateInvite,
 } from '@/features/invites/inviteLogic';
@@ -31,8 +32,34 @@ interface InviteState {
    * caller's concern (T42), not this store's.
    */
   consume: (code: string, userId: string) => ConsumeResult;
+  /**
+   * Same atomic, replay-safe consumption as `consume`, but matched by the opaque
+   * onboarding-link token rather than the short code (T123). The redeem-by-link
+   * landing (T124) builds on this.
+   */
+  consumeByToken: (token: string, userId: string) => ConsumeResult;
   /** Codes issued for one asociație, newest first. */
   forAsociatie: (asociatieId: string) => InviteCode[];
+}
+
+/**
+ * Atomically validate and consume an already-matched code. Re-validates the
+ * match inside the state update so a single-use code cannot be double-spent
+ * under a race, regardless of whether it was looked up by code or by token.
+ */
+function consumeMatched(
+  target: InviteCode | undefined,
+  userId: string,
+  get: () => InviteState,
+  set: (partial: Partial<InviteState>) => void,
+): ConsumeResult {
+  const status = validateInvite(target);
+  if (status !== 'ok' || !target) return { status, invite: null };
+  const consumed = consumeInvite(target, userId);
+  set({
+    invites: get().invites.map((invite) => (invite.id === target.id ? consumed : invite)),
+  });
+  return { status: 'ok', invite: consumed };
 }
 
 export const useInviteStore = create<InviteState>()(
@@ -54,16 +81,11 @@ export const useInviteStore = create<InviteState>()(
           ),
         }),
 
-      consume: (code, userId) => {
-        const target = findByCode(get().invites, code);
-        const status = validateInvite(target);
-        if (status !== 'ok' || !target) return { status, invite: null };
-        const consumed = consumeInvite(target, userId);
-        set({
-          invites: get().invites.map((invite) => (invite.id === target.id ? consumed : invite)),
-        });
-        return { status: 'ok', invite: consumed };
-      },
+      consume: (code, userId) =>
+        consumeMatched(findByCode(get().invites, code), userId, get, set),
+
+      consumeByToken: (token, userId) =>
+        consumeMatched(findByToken(get().invites, token), userId, get, set),
 
       forAsociatie: (asociatieId) =>
         get()

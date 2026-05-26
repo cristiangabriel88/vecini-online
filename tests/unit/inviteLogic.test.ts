@@ -3,12 +3,16 @@ import {
   type InviteCode,
   EXPIRY_PRESETS_MS,
   INVITABLE_ROLES,
+  ONBOARDING_LINK_TTL_MS,
+  buildInviteLink,
   buildMembershipFromInvite,
   consumeInvite,
   createInvite,
   expiryFromPreset,
   findByCode,
+  findByToken,
   isRedeemable,
+  onboardingExpiry,
   revokeInvite,
   validateInvite,
 } from '@/features/invites/inviteLogic';
@@ -20,6 +24,7 @@ function make(overrides: Partial<InviteCode> = {}): InviteCode {
     id: 'inv-1',
     asociatieId: 'asoc-1',
     code: 'ABCD2345',
+    token: 'a'.repeat(64),
     role: 'proprietar',
     apartmentId: null,
     expiresAt: null,
@@ -45,6 +50,13 @@ describe('createInvite', () => {
     expect(invite.revokedAt).toBeNull();
     expect(invite.createdAt).toBe(NOW);
     expect(invite.code).toMatch(/^[A-Z2-9]{8}$/);
+    expect(invite.token).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it('mints a distinct high-entropy token per code', () => {
+    const a = createInvite({ asociatieId: 'asoc-1' }, [], NOW);
+    const b = createInvite({ asociatieId: 'asoc-1' }, [], NOW);
+    expect(a.token).not.toBe(b.token);
   });
 
   it('carries the supplied role, apartment, expiry, single-use flag and creator', () => {
@@ -153,8 +165,57 @@ describe('findByCode', () => {
 describe('expiryFromPreset', () => {
   it('resolves presets to absolute instants and never to null', () => {
     expect(expiryFromPreset('never', NOW)).toBeNull();
+    expect(expiryFromPreset('24h', NOW)).toBe(NOW + EXPIRY_PRESETS_MS['24h']);
     expect(expiryFromPreset('7d', NOW)).toBe(NOW + EXPIRY_PRESETS_MS['7d']);
     expect(expiryFromPreset('30d', NOW)).toBe(NOW + EXPIRY_PRESETS_MS['30d']);
+  });
+
+  it('exposes a 24h preset equal to one day in ms', () => {
+    expect(EXPIRY_PRESETS_MS['24h']).toBe(24 * 60 * 60 * 1000);
+    expect(ONBOARDING_LINK_TTL_MS).toBe(EXPIRY_PRESETS_MS['24h']);
+  });
+});
+
+describe('onboardingExpiry', () => {
+  it('expires an onboarding link 24h from now', () => {
+    expect(onboardingExpiry(NOW)).toBe(NOW + ONBOARDING_LINK_TTL_MS);
+    // The window is live (not yet expired) at issue time, and expired a tick past.
+    expect(validateInvite(make({ expiresAt: onboardingExpiry(NOW) }), NOW)).toBe('ok');
+    expect(validateInvite(make({ expiresAt: onboardingExpiry(NOW) }), onboardingExpiry(NOW))).toBe(
+      'expired',
+    );
+  });
+});
+
+describe('findByToken', () => {
+  const invites = [
+    make({ id: 'inv-1', token: 'a'.repeat(64) }),
+    make({ id: 'inv-2', token: 'b'.repeat(64) }),
+  ];
+
+  it('finds a code by token, normalising case and surrounding whitespace', () => {
+    expect(findByToken(invites, `  ${'B'.repeat(64)}  `)?.id).toBe('inv-2');
+  });
+
+  it('returns undefined for a blank or unmatched token', () => {
+    expect(findByToken(invites, '')).toBeUndefined();
+    expect(findByToken(invites, 'c'.repeat(64))).toBeUndefined();
+  });
+});
+
+describe('buildInviteLink', () => {
+  it('builds an absolute onboarding deep link carrying the token', () => {
+    const invite = make({ token: 'f'.repeat(64) });
+    expect(buildInviteLink(invite, 'https://app.vecini.online')).toBe(
+      `https://app.vecini.online/onboarding/alatura?token=${'f'.repeat(64)}`,
+    );
+  });
+
+  it('does not double the slash when the base URL has a trailing one', () => {
+    const invite = make({ token: 'f'.repeat(64) });
+    expect(buildInviteLink(invite, 'https://app.vecini.online/')).toBe(
+      `https://app.vecini.online/onboarding/alatura?token=${'f'.repeat(64)}`,
+    );
   });
 });
 

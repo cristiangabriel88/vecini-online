@@ -8,11 +8,14 @@ import {
   type PlatformAsociatieSummary,
 } from './demoPlatform';
 import {
+  buildSetupLink,
   provisionAsociatie,
   sortAsociatii,
   type ProvisionInput,
   type ProvisionResult,
 } from './platformProvisioningLogic';
+import { ONBOARDING_LINK_TTL_MS } from '@/features/invites/inviteLogic';
+import { generateInviteToken } from '@/shared/lib/inviteCode';
 
 /**
  * Platform asociații + admin provisioning store (T94), offline/local path.
@@ -35,8 +38,12 @@ export interface AdminProvisionRecord {
   asociatieId: string;
   name: string;
   email: string;
-  /** One-time setup code handed to the admin to complete sign-up (offline). */
+  /** One-time setup code handed to the admin to complete sign-up (manual fallback). */
   setupCode: string;
+  /** Opaque token backing the secure setup link (T123). */
+  setupToken: string;
+  /** Epoch ms the setup link/code expires (24h from provisioning, T123). */
+  expiresAt: number;
   /** ISO instant the provisioning happened. */
   provisionedAt: string;
 }
@@ -105,6 +112,8 @@ export const usePlatformAsociatiiStore = create<PlatformAsociatiiState>()(
               name: result.admin.name,
               email: result.admin.email,
               setupCode: result.admin.setupCode,
+              setupToken: result.admin.setupToken,
+              expiresAt: result.admin.expiresAt,
               provisionedAt,
             },
           },
@@ -113,6 +122,36 @@ export const usePlatformAsociatiiStore = create<PlatformAsociatiiState>()(
         return result;
       },
     }),
-    { name: 'vecini.platform.asociatii', version: 1 },
+    {
+      name: 'vecini.platform.asociatii',
+      version: 2,
+      // v2 (T123) added the secure setup link's token + 24h expiry to each
+      // provision record. Backfill any pre-T123 record with a fresh token and a
+      // 24h window from migration time so an old handoff still resolves a link.
+      migrate: (persisted, version) => {
+        const state = persisted as PlatformAsociatiiState;
+        if (version >= 2 || !state?.provisions) return state;
+        const now = Date.now();
+        const provisions = Object.fromEntries(
+          Object.entries(state.provisions).map(([id, p]) => [
+            id,
+            {
+              ...p,
+              setupToken: p.setupToken ?? generateInviteToken(),
+              expiresAt: p.expiresAt ?? now + ONBOARDING_LINK_TTL_MS,
+            },
+          ]),
+        );
+        return { ...state, provisions };
+      },
+    },
   ),
 );
+
+/** The secure setup link for a provisioned admin record (callers pass `env.appUrl`). */
+export function setupLinkFor(record: AdminProvisionRecord, baseUrl: string): string {
+  return buildSetupLink(
+    { name: record.name, email: record.email, setupCode: record.setupCode, setupToken: record.setupToken, expiresAt: record.expiresAt },
+    baseUrl,
+  );
+}

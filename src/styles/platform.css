@@ -584,7 +584,22 @@
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
 }
+/* The setup link is long; let it wrap and shrink rather than overflow the card. */
+.platform-asoc-card__code-value--link {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--text-xs);
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
 .platform-asoc-card__provisioned {
+  margin: 0;
+  font-size: var(--text-2xs, 10px);
+  color: var(--text-faint);
+}
+.platform-asoc-card__linkhint,
+.platform-asoc-result__linkhint {
   margin: 0;
   font-size: var(--text-2xs, 10px);
   color: var(--text-faint);

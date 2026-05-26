@@ -1,5 +1,11 @@
 import type { Membership, Role } from '@/shared/types/domain';
-import { generateInviteCode, normalizeInviteCode } from '@/shared/lib/inviteCode';
+import {
+  buildOnboardingLink,
+  generateInviteCode,
+  generateInviteToken,
+  normalizeInviteCode,
+  normalizeInviteToken,
+} from '@/shared/lib/inviteCode';
 
 /**
  * One asociație invite code and its full lifecycle state. The shape mirrors the
@@ -12,6 +18,13 @@ export interface InviteCode {
   id: string;
   asociatieId: string;
   code: string;
+  /**
+   * Opaque high-entropy token carried by the onboarding deep link (T123). The
+   * short `code` above stays as a manual-entry fallback; the token is the
+   * primary, unguessable identifier the link resolves against. Hashing it at
+   * rest on the live backend is the separate concern T128.
+   */
+  token: string;
   /** Role granted to whoever joins with this code. */
   role: Role;
   /** Apartment this code pre-links the joiner to, or null for none. */
@@ -54,6 +67,7 @@ export interface CreateInviteInput {
 
 /** Common expiry presets (ms) offered by the admin surface. */
 export const EXPIRY_PRESETS_MS = {
+  '24h': 24 * 60 * 60 * 1000,
   '7d': 7 * 24 * 60 * 60 * 1000,
   '30d': 30 * 24 * 60 * 60 * 1000,
   '90d': 90 * 24 * 60 * 60 * 1000,
@@ -61,9 +75,21 @@ export const EXPIRY_PRESETS_MS = {
 
 export type ExpiryPreset = keyof typeof EXPIRY_PRESETS_MS | 'never';
 
+/**
+ * Onboarding links (the admin setup link and the locatar invite link) are fixed
+ * to a tight 24h window so a leaked link is short-lived (T123). Apartment-less
+ * standing invites issued from the admin surface may still pick a longer preset.
+ */
+export const ONBOARDING_LINK_TTL_MS = EXPIRY_PRESETS_MS['24h'];
+
 /** Resolve an expiry preset to an absolute epoch-ms instant (null = never). */
 export function expiryFromPreset(preset: ExpiryPreset, now: number = Date.now()): number | null {
   return preset === 'never' ? null : now + EXPIRY_PRESETS_MS[preset];
+}
+
+/** Absolute expiry for an onboarding link issued now (24h from `now`). */
+export function onboardingExpiry(now: number = Date.now()): number {
+  return now + ONBOARDING_LINK_TTL_MS;
 }
 
 /**
@@ -85,6 +111,7 @@ export function createInvite(
     id: `inv-${crypto.randomUUID()}`,
     asociatieId: input.asociatieId,
     code,
+    token: generateInviteToken(),
     role: input.role ?? 'proprietar',
     apartmentId: input.apartmentId ?? null,
     expiresAt: input.expiresAt ?? null,
@@ -102,6 +129,23 @@ export function findByCode(invites: InviteCode[], code: string): InviteCode | un
   const normalised = normalizeInviteCode(code);
   if (!normalised) return undefined;
   return invites.find((invite) => invite.code === normalised);
+}
+
+/** Look up a code by the opaque token carried in an onboarding link's query. */
+export function findByToken(invites: InviteCode[], token: string): InviteCode | undefined {
+  const normalised = normalizeInviteToken(token);
+  if (!normalised) return undefined;
+  return invites.find((invite) => invite.token === normalised);
+}
+
+/**
+ * Build the locatar invite deep link for a code: an absolute URL carrying the
+ * code's opaque token (T123). `baseUrl` is the app origin (callers pass
+ * `env.appUrl`). Pure wrapper over the shared `buildOnboardingLink` so the
+ * link-building rules live in one place.
+ */
+export function buildInviteLink(invite: InviteCode, baseUrl: string): string {
+  return buildOnboardingLink(baseUrl, invite.token);
 }
 
 /**

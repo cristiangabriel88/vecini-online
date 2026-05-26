@@ -725,18 +725,25 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
 - **Audience:** admin / comitet (issue); anyone with a code (redeem)
 - **Description:** The onboarding plumbing that lets an admin grow their asociație.
   From `/app/admin/invitatii` an admin issues invite codes scoped to the active
-  asociație (granted role, optional apartment link, expiry preset, single-use
-  flag), lists / copies / revokes them; a resident redeems one at
-  `/onboarding/alatura` to join with the granted role. The codes/links are shown
-  as copyable text today.
-- **Planned (BACKLOG T90) — QR:** render a scannable **QR of the invite redeem
-  link** (the `/onboarding/alatura` deep link carrying the code, built from
-  `VITE_APP_URL`) next to each issued code, with a one-tap PNG download, so an
-  admin can print or share it. Uses `qrcode.react`.
+  asociație (granted role, optional apartment link, expiry preset incl. a **24h**
+  option, single-use flag), lists / copies / revokes them; a resident redeems one
+  at `/onboarding/alatura` to join with the granted role. Each code now also
+  carries an **opaque high-entropy token** (T123) and a **secure deep link**
+  (`/onboarding/alatura?token=...`, built from `VITE_APP_URL`) shown alongside the
+  short code, which stays the manual-entry fallback. The superadmin provisioning
+  setup code likewise gets a 24h-expiry secure setup link.
+- **Planned (BACKLOG T90), QR:** render a scannable **QR of the secure redeem
+  link** (already built by `buildInviteLink`/`buildSetupLink`) next to each issued
+  code, with a one-tap PNG download, so an admin can print or share it. Uses
+  `qrcode.react`. **Planned (T124):** the link target reads the `?token=` param
+  and redeems via `consumeByToken` on a password-setting landing. **Planned
+  (T128):** tokens stored hashed at rest on the live path.
 - **Files:** `src/features/invites/{inviteLogic.ts,InvitesAdminPage.tsx}`,
-  `src/features/invites/JoinAsociatiePage.tsx`, `src/shared/store/inviteStore.ts`,
-  `src/shared/lib/inviteCode.ts`, `invites.*`/`join.*` locale keys (RO/EN),
-  `/invitatii` + `/alatura` bot commands, `invite_codes` table (RLS admin-manage).
+  `src/features/invites/JoinAsociatiePage.tsx`, `src/shared/store/inviteStore.ts`
+  (`consumeByToken`), `src/shared/lib/inviteCode.ts` (`generateInviteToken`,
+  `buildOnboardingLink`), `src/platform/platformProvisioningLogic.ts`
+  (`buildSetupLink`), `invites.*`/`join.*` locale keys (RO/EN), `/invitatii` +
+  `/alatura` bot commands, `invite_codes` table (RLS admin-manage).
 
 ### Platform / Superadmin tier (planned — BACKLOG T20 → T91-T100)
 - **Audience:** platform operators only (`super_admin`, ~2 accounts) — strictly separated from any tenant admin.

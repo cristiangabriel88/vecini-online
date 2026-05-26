@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   blankProvisionInput,
+  buildSetupLink,
   daysSince,
   DORMANT_AFTER_DAYS,
   isDormant,
@@ -14,6 +15,7 @@ import {
   validateProvisionInput,
   type ProvisionInput,
 } from '@/platform/platformProvisioningLogic';
+import { ONBOARDING_LINK_TTL_MS } from '@/features/invites/inviteLogic';
 import { usePlatformAsociatiiStore } from '@/platform/platformAsociatiiStore';
 import { useAuditStore } from '@/shared/store/auditStore';
 import { DEMO_PLATFORM_ASOCIATII, type PlatformAsociatieSummary } from '@/platform/demoPlatform';
@@ -145,6 +147,20 @@ describe('provisionAsociatie (T94)', () => {
     expect(admin.name).toBe(validInput.adminName);
     expect(admin.email).toBe(validInput.adminEmail);
     expect(admin.setupCode).toMatch(/^[A-Z2-9]{8}$/);
+  });
+
+  it('mints a secure setup token + 24h expiry alongside the fallback code (T123)', () => {
+    const now = 1_700_000_000_000;
+    const { admin } = provisionAsociatie(validInput, [], Math.random, now);
+    expect(admin.setupToken).toMatch(/^[0-9a-f]{64}$/);
+    expect(admin.expiresAt).toBe(now + ONBOARDING_LINK_TTL_MS);
+  });
+
+  it('builds an absolute setup deep link carrying the setup token (T123)', () => {
+    const { admin } = provisionAsociatie(validInput);
+    expect(buildSetupLink(admin, 'https://app.vecini.online')).toBe(
+      `https://app.vecini.online/onboarding/alatura?token=${admin.setupToken}`,
+    );
   });
 
   it('carries the asociație identity onto the summary', () => {
