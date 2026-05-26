@@ -45,4 +45,15 @@ describe('visibleEntries', () => {
     const visible = new Set(visibleEntries(KNOWLEDGE_BASE, 'proprietar', flags).map((e) => e.id));
     expect(visible.has('F17')).toBe(false);
   });
+
+  it('treats an empty (un-hydrated) flag map as all-modules-available, not none', () => {
+    // Production reality before live flag hydration (T56): a real association's
+    // flags are absent, so the map is empty. The assistant must still answer
+    // about features rather than collapse to only the curated concepts.
+    const visible = new Set(visibleEntries(KNOWLEDGE_BASE, 'proprietar', {}).map((e) => e.id));
+    expect(visible.has('F17')).toBe(true);
+    expect(visible.has('F09')).toBe(true);
+    // Audience/role filtering still applies even when flags are absent.
+    for (const key of COMITET_ONLY) expect(visible.has(key)).toBe(false);
+  });
 });

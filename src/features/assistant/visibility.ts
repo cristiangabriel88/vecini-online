@@ -34,14 +34,24 @@ export function rolesToBuckets(role: Role | null | undefined): Set<FeatureAudien
   }
 }
 
-/** A single entry is visible if its feature flag is on AND the role may see it. */
+/** A single entry is visible if the role may see it AND, when the association
+ *  has a flag configuration, its feature flag is on.
+ *
+ *  `flagsConfigured` distinguishes "this association explicitly enabled some
+ *  modules and disabled others" from "we have no flag configuration at all yet"
+ *  (e.g. a real association whose flags have not been hydrated from the backend,
+ *  which in production leaves the map empty). In the un-configured case we do
+ *  NOT hide every feature, otherwise the assistant collapses to a handful of
+ *  generic answers and looks broken; we still apply audience/role filtering, so
+ *  nothing privileged ever leaks. */
 export function isEntryVisible(
   entry: KbEntry,
   buckets: Set<FeatureAudience>,
   flags: Record<string, boolean>,
+  flagsConfigured: boolean,
 ): boolean {
-  // Feature entries must be enabled for the association.
-  if (entry.featureKey && !flags[entry.featureKey]) return false;
+  // Feature entries must be enabled, but only once the association's flags exist.
+  if (entry.featureKey && flagsConfigured && !flags[entry.featureKey]) return false;
   return entry.audience.some((a) => buckets.has(a));
 }
 
@@ -52,5 +62,8 @@ export function visibleEntries(
   flags: Record<string, boolean>,
 ): KbEntry[] {
   const buckets = rolesToBuckets(role);
-  return entries.filter((e) => isEntryVisible(e, buckets, flags));
+  // An empty map means no modules have been configured/hydrated for this
+  // association; treat all implemented features as available rather than none.
+  const flagsConfigured = Object.keys(flags).length > 0;
+  return entries.filter((e) => isEntryVisible(e, buckets, flags, flagsConfigured));
 }
