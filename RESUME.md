@@ -12,10 +12,12 @@ under `docs/`, despite references to the contrary). The product is
 
 ---
 
-> **Next work is driven by `BACKLOG.md`** (the ordered task queue) via the
+> **Next work is driven by `BACKLOG.md`** (the protocol + open `⬜` queue) via the
 > autonomous `make progress` protocol in `CLAUDE.md`. Trigger it by typing
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
+> Finished tasks' full done-notes are archived in `COMPLETED.md` (newest first);
+> §0 below stays the dated chronological summary.
 
 ## 0. Current status (updated 2026-05-26, T133 resident-app base URL)
 
