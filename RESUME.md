@@ -19,7 +19,11 @@ under `docs/`, despite references to the contrary). The product is
 > Finished tasks' full done-notes are archived in `COMPLETED.md` (newest first);
 > §0 below stays the dated chronological summary.
 
-## 0. Current status (updated 2026-05-26, T150 locked-feature request channel)
+## 0. Current status (updated 2026-05-26, MVP presentation flow planned — T152-T157 queued)
+
+- **2026-05-26 — MVP presentation flow defined.** Added 6 new P1 tasks (T157, T153, T152, T154, T155, T156) at the top of the backlog priority queue to wire the full live-demo flow end-to-end: superadmin sends admin invite by email (dedicated page, T152; polished HTML+QR template, T153) → admin onboards via wizard → lands on Apartamente (T154) → downloads CSV template and imports apartment list with auto-invite for opt-in residents (T155, T156). Short alphanumeric code UI removed from all surfaces (T157); invite flow is `?token=` deep link only. T116 elevated P2→P1 (prerequisite for T156); T136 removed (absorbed into T154); T132 removed (old modal obsolete). Open tasks: T157, T148, T153, T152, T154, T116, T155, T156 (MVP priority), then T90, T126, T140, T141, ... (existing P1 queue).
+
+## 0a. Previous status (2026-05-26, T150 locked-feature request channel)
 
 - **2026-05-26 - T150 (P2) Locked-feature "ask the admin" request channel.** A
   resident reaching a module the asociație has not enabled now meets a premium

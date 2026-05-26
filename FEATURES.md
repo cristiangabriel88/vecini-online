@@ -721,36 +721,49 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
   recovery codes → challenged at next sign-in). Live recovery-code login needs a
   server routine (BACKLOG T29). See DECISIONS.md.
 
-### Invite codes & QR (onboarding) ✅ (QR planned)
-- **Audience:** admin / comitet (issue); anyone with a code (redeem)
-- **Description:** The onboarding plumbing that lets an admin grow their asociație.
-  From `/app/admin/invitatii` an admin issues invite codes scoped to the active
-  asociație (granted role, optional apartment link, expiry preset incl. a **24h**
-  option, single-use flag), lists / copies / revokes them; a resident redeems one
-  at `/onboarding/alatura` to join with the granted role. Each code now also
-  carries an **opaque high-entropy token** (T123) and a **secure deep link**
-  (`/onboarding/alatura?token=...`, built from `VITE_APP_URL`) shown alongside the
-  short code, which stays the manual-entry fallback. The superadmin provisioning
-  setup code likewise gets a 24h-expiry secure setup link, built from
-  `VITE_RESIDENT_APP_URL` (falling back to `VITE_APP_URL`, T133) so a link minted
-  on the platform subdomain still targets the resident/admin origin. An admin can
-  now **deliver an invitation by email** (T147): both the apartment edit surface
+### Invite codes & QR (onboarding) ✅
+- **Audience:** admin / comitet (issue); anyone with a token link (redeem)
+- **Description:** The onboarding plumbing that lets an admin grow their asociatie.
+  From `/app/admin/invitatii` an admin issues invites scoped to the active
+  asociatie (granted role, optional apartment link, 24h expiry, single-use flag),
+  lists / copies / revokes them; a resident redeems via the secure `?token=` deep
+  link in the invite email. Each invite carries an **opaque high-entropy token**
+  (T123) and a **secure deep link** (`/configurare-cont?token=...`, built from
+  `VITE_APP_URL`). The superadmin provisioning setup link likewise carries a 24h
+  token, built from `VITE_RESIDENT_APP_URL` (falling back to `VITE_APP_URL`, T133)
+  so a link minted on the platform subdomain targets the resident/admin origin. An
+  admin **delivers invitations by email** (T147): both the apartment edit surface
   ("Trimite pe email") and the invites surface send a bilingual (RO/EN) email
   carrying the onboarding link, keyed off the recipient's locale, stamping the
   invite as sent (`emailSentAt`); offline the dispatch is simulated, live it goes
   through the Resend-backed `invite-email` Netlify function.
-- **Planned (BACKLOG T90), QR:** render a scannable **QR of the secure redeem
-  link** (already built by `buildInviteLink`/`buildSetupLink`) next to each issued
-  code, with a one-tap PNG download, so an admin can print or share it. Uses
-  `qrcode.react`. **Planned (T124):** the link target reads the `?token=` param
-  and redeems via `consumeByToken` on a password-setting landing. **Planned
-  (T128):** tokens stored hashed at rest on the live path.
+- **MVP change (T157):** Short alphanumeric codes removed from UI. `InvitesAdminPage`
+  no longer shows the code chip or "Copiaza codul" button. `AccountSetupPage` no
+  longer has a code-entry text field — token-URL only. The `code` field still
+  exists in DB and logic for backward compatibility, just not surfaced to users.
+- **MVP change (T152-T153):** Superadmin provisioning is now email-only (admin
+  name + email → polished bilingual HTML email with "[Accept Invitation]" CTA
+  button and an **embedded QR code** of the setup link, generated server-side by
+  the `qrcode` package in the Netlify function). The superadmin no longer fills in
+  asociatie identity fields or sees a setup code. The admin fills in asociatie
+  details during onboarding (T154).
+- **MVP change (T154):** After account setup, an admin (kind = 'setup') is
+  redirected to `OnboardingWizard` (enters asociatie name, address, CUI, etc.) then
+  lands on the Apartamente page. A resident (kind = 'invite') still lands on `/app`.
+- **MVP additions (T155-T156):** `ApartmentsPage` gains a "Descarca sablon .csv"
+  button (downloadable 7-column template) and an "Import lista" button that parses
+  the filled CSV, creates apartments + persons entries, and automatically sends
+  invite emails to all `opt_in = true` rows with an email address.
+- **Planned (BACKLOG T90), UI QR:** also render a scannable QR inside
+  `InvitesAdminPage` for each issued invite (in addition to the QR already in the
+  email from T153). Uses `qrcode.react`. **Planned (T128):** tokens stored hashed
+  at rest on the live path.
 - **Files:** `src/features/invites/{inviteLogic.ts,InvitesAdminPage.tsx}`,
-  `src/features/invites/JoinAsociatiePage.tsx`, `src/shared/store/inviteStore.ts`
-  (`consumeByToken`), `src/shared/lib/inviteCode.ts` (`generateInviteToken`,
-  `buildOnboardingLink`), `src/platform/platformProvisioningLogic.ts`
-  (`buildSetupLink`), `invites.*`/`join.*` locale keys (RO/EN), `/invitatii` +
-  `/alatura` bot commands, `invite_codes` table (RLS admin-manage).
+  `src/shared/store/inviteStore.ts` (`consumeByToken`), `src/shared/lib/inviteCode.ts`
+  (`generateInviteToken`, `buildOnboardingLink`), `src/shared/lib/csv.ts`
+  (import/template), `src/platform/platformProvisioningLogic.ts` (`buildSetupLink`),
+  `netlify/functions/invite-email.ts` (bilingual HTML + QR), `invites.*` locale
+  keys (RO/EN), `/invitatii` bot command, `invite_codes` table (RLS admin-manage).
 
 ### Platform / Superadmin tier (planned — BACKLOG T20 → T91-T100)
 - **Audience:** platform operators only (`super_admin`, ~2 accounts) — strictly separated from any tenant admin.
