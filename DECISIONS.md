@@ -2,6 +2,37 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## Superadmin routing is a server-authoritative flag, not a tenant role (T134)
+
+A platform superadmin must land in the platform console, never be pushed through
+association onboarding, and never need a (fake) association membership to be routed
+there. The routing signal is a server-authoritative `isPlatformSuperAdmin` flag on
+`authStore`, separate from the tenant `memberships`/`activeRole`.
+
+- **`is_super_admin()` decides, the client does not.** `hydrate()` resolves the
+  RPC alongside the profile/membership reads; any error resolves to `false`, so a
+  failed or unavailable check never grants the superadmin surface (mirrors
+  `platformAuthStore.verify`). Offline, `enterDemo(role)` sets the flag from the
+  previewed role. The flag is cleared on every sign-out / `SIGNED_OUT`.
+- **No fake membership.** The previous in-app superadmin surface keyed off
+  `activeRole() === 'super_admin'`, which only worked in demo because demo seeded a
+  `super_admin` membership in `DEMO_ASOCIATIE` — the exact anti-pattern to avoid
+  (and at odds with T111, which removes `super_admin` from the membership role
+  enum). `demoTenantContext('super_admin')` now seeds **no membership**, so the
+  demo superadmin matches the live member-less reality and the routing is proven to
+  work without one.
+- **Routing only, not authority.** The flag decides *where the app sends the
+  operator*; it is never the security boundary. Cross-tenant reads and privileged
+  writes stay gated by database RLS (`is_super_admin()` policies, T91) and
+  service-role re-checks (T92/T98). A tampered client flag would change navigation
+  but grant no data access.
+- **In-app preview now, separate origin later.** The superadmin is routed to the
+  in-app `/app/platforma` preview, which works for demo + the single-build dev
+  path. The live separate-origin redirect to the dedicated platform subdomain is
+  deferred to T135 (behind a configured `VITE_PLATFORM_URL`), so demo and dev are
+  unchanged. The pure `resolveAsociatieRoute({ isPlatformSuperAdmin,
+  hasActiveMembership })` keeps the decision matrix testable without rendering.
+
 ## Asociație identity captured at provisioning (T122)
 
 Superadmin provisioning now captures the asociație's full identity up front

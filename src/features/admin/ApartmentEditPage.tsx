@@ -33,7 +33,9 @@ export default function ApartmentEditPage() {
   const apartment = useApartment(id);
 
   const [input, setInput] = useState<ApartmentInput | null>(() =>
-    apartment ? apartmentToInput(apartment) : null,
+    // Drop the stored count so the occupant total always derives from the
+    // person list below (see inputToFields).
+    apartment ? { ...apartmentToInput(apartment), numar_persoane: '' } : null,
   );
   const [persons, setPersons] = useState<ApartmentPerson[]>(() => apartment?.persons ?? []);
   const [active, setActive] = useState<boolean>(() => apartment?.is_active ?? true);
@@ -128,14 +130,6 @@ export default function ApartmentEditPage() {
             hint={t('apartments.shareFieldHint')}
             onChange={(e) => setField('cota_parte_indiviza', e.target.value)}
           />
-          <Input
-            type="number"
-            label={t('apartments.personsCount')}
-            value={input.numar_persoane}
-            error={errors.numar_persoane ? t('apartments.invalidField') : undefined}
-            hint={t('apartments.personsCountHint')}
-            onChange={(e) => setField('numar_persoane', e.target.value)}
-          />
         </div>
         <div className="mt-4">
           <Textarea
@@ -148,7 +142,14 @@ export default function ApartmentEditPage() {
 
       <Card className="mb-4">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-base font-semibold">{t('apartments.persons')}</h2>
+          <div className="flex items-baseline gap-2">
+            <h2 className="text-base font-semibold">{t('apartments.persons')}</h2>
+            <span className="text-sm text-muted">
+              {t('apartments.personsTotal', {
+                count: persons.filter((p) => p.name.trim() !== '').length,
+              })}
+            </span>
+          </div>
           <Button
             variant="secondary"
             size="sm"

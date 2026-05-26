@@ -400,17 +400,9 @@ export default function LoginPage() {
 
             <div className="mt-4 space-y-1 text-center text-sm">
               {mode === 'signIn' && (
-                <>
-                  <button type="button" className="auth-link" onClick={() => switchMode('forgot')}>
-                    {t('auth.forgotLink')}
-                  </button>
-                  <p className="text-muted">
-                    {t('auth.noAccount')}{' '}
-                    <button type="button" className="auth-link" onClick={() => switchMode('signUp')}>
-                      {t('auth.signUp')}
-                    </button>
-                  </p>
-                </>
+                <button type="button" className="auth-link" onClick={() => switchMode('forgot')}>
+                  {t('auth.forgotLink')}
+                </button>
               )}
               {mode === 'signUp' && (
                 <p className="text-muted">

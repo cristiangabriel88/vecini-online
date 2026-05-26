@@ -33,14 +33,23 @@ describe('demoTenantContext', () => {
     expect(demoTenantContext().memberships[0]).toEqual(DEMO_MEMBERSHIP);
   });
 
-  it('previews any requested role so the login screen can switch personas', () => {
-    for (const role of ['admin', 'super_admin', 'proprietar'] as const) {
+  it('previews any tenant role so the login screen can switch personas', () => {
+    for (const role of ['admin', 'proprietar'] as const) {
       const { currentAsociatieId, memberships } = demoTenantContext(role);
       expect(memberships).toHaveLength(1);
       expect(memberships[0].user_id).toBe(DEMO_CURRENT_USER_ID);
       expect(roleFor(memberships, currentAsociatieId)).toBe(role);
       expect(hasNoActiveAsociatie(memberships)).toBe(false);
     }
+  });
+
+  it('gives the platform superadmin NO association membership (authority is the platform flag, not a tenant role)', () => {
+    const { currentAsociatieId, memberships } = demoTenantContext('super_admin');
+    expect(memberships).toHaveLength(0);
+    expect(currentAsociatieId).toBeNull();
+    // The member-less superadmin is exactly the state the live path produces, so
+    // the routing must work without a (fake) membership.
+    expect(hasNoActiveAsociatie(memberships)).toBe(true);
   });
 
   it('builds a membership carrying a display title for the given role', () => {

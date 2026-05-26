@@ -17,8 +17,27 @@ under `docs/`, despite references to the contrary). The product is
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-26, T123 secure tokenized onboarding links)
+## 0. Current status (updated 2026-05-26, T134 superadmin routing)
 
+- **2026-05-26 — T134 (P1) Route a platform superadmin to the console, never
+  through association onboarding.** A live platform superadmin exists only in
+  `platform_admins` (not in `memberships`), so the main app hydrated them with no
+  membership and `RequireAsociatie` bounced them to `/onboarding`; the in-app
+  superadmin surface keyed off `activeRole() === 'super_admin'`, which only worked
+  in demo because demo seeded a (fake) `super_admin` membership. Added a
+  server-authoritative `isPlatformSuperAdmin` flag to `authStore` (`hydrate()`
+  resolves `supabase.rpc('is_super_admin')` alongside profile/memberships, error →
+  false; `enterDemo(role)` sets it from the role; cleared on sign-out). New pure,
+  unit-tested `resolveAsociatieRoute` + `SUPERADMIN_HOME_PATH` in `hydrationLogic`
+  (superadmin → console with or without a membership; only a member-less
+  non-superadmin → onboarding). `RequireAsociatie`/`AppHome`/`RequireSuperAdmin`/
+  `AppLayout` nav all read the flag; `demoTenantContext('super_admin')` now seeds
+  **no membership**, matching the live member-less reality (no fake membership).
+  The privileged boundary stays DB RLS + service-role re-checks; the flag only
+  decides routing. Decision recorded in `DECISIONS.md`.
+  `npm run lint`/`typecheck`/`test` (122 files / 934 tests)/`build` all green.
+  Surfaced T135 (live cross-origin redirect to the platform subdomain) and T136
+  (distinct admin-setup vs resident-onboarding completion signals).
 - **2026-05-26 - T123 (P1) Secure tokenized onboarding links.** Onboarding now
   hands out a secure deep link, not just a short code. New shared-lib primitives
   (`generateInviteToken`, 256-bit CSPRNG, 64-hex; `isValidInviteToken`/

@@ -46,6 +46,14 @@ interface AuthState {
   memberships: Membership[];
   /** The asociație whose data the app is currently scoped to (null = none yet). */
   currentAsociatieId: string | null;
+  /**
+   * Server-authoritative platform-superadmin status (`is_super_admin()` live, the
+   * demo role offline). It is **not** a tenant membership role, so a superadmin is
+   * recognised without (and never needs) an association membership. The real
+   * privileged boundary stays the database RLS + service-role re-checks; this flag
+   * only decides where the app routes the operator.
+   */
+  isPlatformSuperAdmin: boolean;
   /** Asociații created locally this session (offline path); name kept for display (T59). */
   localAsociatii: { id: string; name: string }[];
   loading: boolean;
@@ -100,6 +108,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   profile: null,
   memberships: [],
   currentAsociatieId: null,
+  isPlatformSuperAdmin: false,
   localAsociatii: [],
   loading: true,
   hydrating: false,
@@ -125,6 +134,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           profile: null,
           memberships: [],
           currentAsociatieId: null,
+          isPlatformSuperAdmin: false,
           localAsociatii: [],
           hydrating: false,
           recovery: false,
@@ -142,18 +152,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const seq = ++hydrateSeq;
     set({ hydrating: true });
     try {
-      // Both reads run under RLS: a user sees only their own profile row and only
-      // memberships scoped to them. The demo seed stays the offline fallback.
-      const [profileRes, membershipRes] = await Promise.all([
+      // The reads run under RLS: a user sees only their own profile row and only
+      // memberships scoped to them. `is_super_admin()` resolves the caller against
+      // the platform_admins roster (SECURITY DEFINER, T91) — server-authoritative,
+      // so the client never asserts the platform role itself. The demo seed stays
+      // the offline fallback.
+      const [profileRes, membershipRes, superAdminRes] = await Promise.all([
         supabase.from('users').select('*').eq('id', userId).maybeSingle(),
         supabase.from('memberships').select('*').eq('user_id', userId).is('ended_at', null),
+        supabase.rpc('is_super_admin'),
       ]);
       // Drop stale results: a newer hydrate began, or the session changed/ended
       // while these reads were in flight. The owning call applies the state.
       if (seq !== hydrateSeq || get().session?.user?.id !== userId) return;
       const prev = get();
-      set(
-        mergeHydration(
+      set({
+        ...mergeHydration(
           {
             profile: prev.profile,
             memberships: prev.memberships,
@@ -162,7 +176,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           profileRes,
           membershipRes,
         ),
-      );
+        // Any error is treated as "not a superadmin" so a failed check never grants
+        // the platform surface.
+        isPlatformSuperAdmin: superAdminRes.error ? false : Boolean(superAdminRes.data),
+      });
     } finally {
       // Only the latest in-flight hydrate owns the flag; a stale one must not
       // flip it off while a newer read is still running.
@@ -309,6 +326,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       profile: null,
       memberships: [],
       currentAsociatieId: null,
+      isPlatformSuperAdmin: false,
       localAsociatii: [],
       hydrating: false,
       demo: false,
@@ -328,6 +346,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       profile: null,
       memberships: [],
       currentAsociatieId: null,
+      isPlatformSuperAdmin: false,
       localAsociatii: [],
       hydrating: false,
       demo: false,
@@ -339,8 +358,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // A demo login is recorded too, so the activity log is exercised offline.
     useSecurityStore.getState().log('login', null);
     // Seed local tenant context so demo mode has a real active asociație + role
-    // to scope by (no backend to hydrate from).
+    // to scope by (no backend to hydrate from). The superadmin preview carries no
+    // membership — its authority is the platform flag, not a tenant role.
     const { currentAsociatieId, memberships } = demoTenantContext(role);
-    set({ demo: true, loading: false, currentAsociatieId, memberships });
+    set({
+      demo: true,
+      loading: false,
+      currentAsociatieId,
+      memberships,
+      isPlatformSuperAdmin: role === 'super_admin',
+    });
   },
 }));

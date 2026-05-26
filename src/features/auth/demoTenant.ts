@@ -46,6 +46,13 @@ export interface TenantContext {
 
 /** The seeded local tenant context applied when entering demo mode as `role`. */
 export function demoTenantContext(role: Role = 'admin'): TenantContext {
+  // A platform superadmin is not an association member — their authority lives in
+  // `platform_admins` (server-side), surfaced as `authStore.isPlatformSuperAdmin`.
+  // So the superadmin preview carries no membership, proving the superadmin path
+  // works without a (fake) association membership, exactly as it must live.
+  if (role === 'super_admin') {
+    return { currentAsociatieId: null, memberships: [] };
+  }
   return {
     currentAsociatieId: DEMO_ASOCIATIE.id,
     memberships: [demoMembershipForRole(role)],

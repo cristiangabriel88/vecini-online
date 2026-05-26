@@ -81,6 +81,36 @@ export function hasNoActiveAsociatie(memberships: Membership[]): boolean {
   return activeMemberships(memberships).length === 0;
 }
 
+/** Where a platform superadmin lands inside the app shell (the console home). */
+export const SUPERADMIN_HOME_PATH = '/app/platforma';
+
+/**
+ * Where a fully-hydrated, authenticated (or demo) session belongs once it reaches
+ * the app shell. Kept as a pure decision so the route components stay declarative
+ * and the whole matrix is unit-testable without rendering:
+ * - `superadmin` — a platform superadmin (server-authoritative `is_super_admin()`,
+ *   never a tenant role) belongs in the platform console. This wins **with or
+ *   without** an association membership, so a superadmin is never sent through
+ *   association onboarding and never needs a (fake) membership to be routed.
+ * - `onboarding` — an ordinary authenticated user with no active membership is
+ *   sent to create or join an association.
+ * - `app` — an association member reaches the ordinary app.
+ */
+export type AsociatieRoute = 'superadmin' | 'onboarding' | 'app';
+
+export interface AsociatieRouteInput {
+  /** Server-authoritative platform-superadmin status (never a tenant role). */
+  isPlatformSuperAdmin: boolean;
+  /** Whether the user holds at least one active association membership. */
+  hasActiveMembership: boolean;
+}
+
+export function resolveAsociatieRoute(input: AsociatieRouteInput): AsociatieRoute {
+  if (input.isPlatformSuperAdmin) return 'superadmin';
+  if (!input.hasActiveMembership) return 'onboarding';
+  return 'app';
+}
+
 /** The slice of auth state derived from the backend reads. */
 export interface HydrationState {
   profile: UserProfile | null;

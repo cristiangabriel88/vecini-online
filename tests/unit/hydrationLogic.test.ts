@@ -5,6 +5,7 @@ import {
   isAdminRole,
   mergeHydration,
   pickActiveAsociatieId,
+  resolveAsociatieRoute,
   roleFor,
   sortByPrivilege,
   type HydrationState,
@@ -155,6 +156,40 @@ describe('hasNoActiveAsociatie', () => {
 
   it('is false with at least one active membership', () => {
     expect(hasNoActiveAsociatie([membership({})])).toBe(false);
+  });
+});
+
+describe('resolveAsociatieRoute', () => {
+  it('routes a platform superadmin to the console with NO membership (no fake membership needed)', () => {
+    expect(
+      resolveAsociatieRoute({ isPlatformSuperAdmin: true, hasActiveMembership: false }),
+    ).toBe('superadmin');
+  });
+
+  it('still routes a superadmin to the console even when they also hold a membership', () => {
+    expect(
+      resolveAsociatieRoute({ isPlatformSuperAdmin: true, hasActiveMembership: true }),
+    ).toBe('superadmin');
+  });
+
+  it('sends a member-less, non-superadmin user to onboarding (join/create)', () => {
+    expect(
+      resolveAsociatieRoute({ isPlatformSuperAdmin: false, hasActiveMembership: false }),
+    ).toBe('onboarding');
+  });
+
+  it('lets an association member into the app', () => {
+    expect(
+      resolveAsociatieRoute({ isPlatformSuperAdmin: false, hasActiveMembership: true }),
+    ).toBe('app');
+  });
+
+  it('never sends a superadmin to onboarding (the bug this guards against)', () => {
+    for (const hasActiveMembership of [true, false]) {
+      expect(
+        resolveAsociatieRoute({ isPlatformSuperAdmin: true, hasActiveMembership }),
+      ).not.toBe('onboarding');
+    }
   });
 });
 

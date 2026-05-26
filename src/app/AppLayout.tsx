@@ -7,7 +7,10 @@ import { useAsociatieFlags } from '@/shared/features/featureStore';
 import { useThemeStore } from '@/shared/store/themeStore';
 import { useAuthStore } from '@/shared/store/authStore';
 import { isAdminRole } from '@/features/auth/hydrationLogic';
-import { DEMO_ASOCIATIE, DEMO_EMERGENCY } from '@/shared/demo/demoData';
+import { DEMO_EMERGENCY } from '@/shared/demo/demoData';
+import { useCurrentAsociatie } from '@/features/admin/asociatieStore';
+import { scariList } from '@/features/admin/buildingLogic';
+import { useProfileStore, useMyIdentity } from '@/features/profile/profileStore';
 import { Icon } from '@/shared/components/Icon';
 import { Atmosphere } from '@/shared/components/Atmosphere';
 import { UserMenu } from '@/shared/components/UserMenu';
@@ -87,6 +90,7 @@ function Sidebar() {
   // locatar (proprietar / chirias) never sees it, so each demo persona renders
   // the chrome they would actually get.
   const role = useAuthStore((s) => s.activeRole)();
+  const isPlatformSuperAdmin = useAuthStore((s) => s.isPlatformSuperAdmin);
   const showAdmin = isAdminRole(role);
   const categories = Object.keys(FEATURE_CATEGORIES) as FeatureCategory[];
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(loadCollapsed);
@@ -131,9 +135,9 @@ function Sidebar() {
   );
 
   // A platform superadmin sees the console nav (overview + asociații, plus the
-  // upcoming sections) instead of the resident/admin nav, so the persona renders
+  // upcoming sections) instead of the resident/admin nav, so the operator renders
   // its own experience inside the shared app chrome.
-  if (role === 'super_admin') {
+  if (isPlatformSuperAdmin) {
     return (
       <aside className="sidebar" aria-label={t('chrome.primaryNav')}>
         <div className="sidebar__group">
@@ -323,11 +327,11 @@ function BottomNav() {
   const flags = useAsociatieFlags();
   const isActive = useActive();
   const { pathname } = useLocation();
-  const role = useAuthStore((s) => s.activeRole)();
-  // The superadmin persona's mobile nav mirrors its console (overview, asociații,
+  const isPlatformSuperAdmin = useAuthStore((s) => s.isPlatformSuperAdmin);
+  // The superadmin's mobile nav mirrors its console (overview, asociații,
   // profile) rather than the resident shortcuts.
   const items =
-    role === 'super_admin'
+    isPlatformSuperAdmin
       ? [
           { to: '/app/platforma', label: t('platform.sections.overview.title'), icon: LayoutDashboard, active: pathname === '/app/platforma' },
           { to: '/app/platforma/asociatii', label: t('platform.sections.asociatii.title'), icon: Building2, active: isActive('platforma/asociatii') },
@@ -367,6 +371,24 @@ function Topbar() {
   const lang = i18n.language.startsWith('en') ? 'en' : 'ro';
   const toggleLang = () => void i18n.changeLanguage(lang === 'en' ? 'ro' : 'en');
 
+  // Show the active asociație's real identity, not a hardcoded demo string: its
+  // name on the primary line, and the scara below. A resident sees their own
+  // apartment's entrance (from their profile); failing that we fall back to the
+  // building's configured entrances (the admin/whole-building view), then to the
+  // generic "owners' association" label so the line is never empty.
+  const asociatie = useCurrentAsociatie();
+  const asociatieName = asociatie?.name?.trim() || t('chrome.ownersAssociation');
+  const { userId } = useMyIdentity();
+  const myScara = useProfileStore((s) => s.byUser[userId]?.scara ?? '').trim();
+  const scari = scariList(asociatie?.settings);
+  const scaraLabel = myScara
+    ? t('chrome.scaraOne', { scara: myScara })
+    : scari.length === 0
+      ? t('chrome.ownersAssociation')
+      : scari.length === 1
+        ? t('chrome.scaraOne', { scara: scari[0] })
+        : t('chrome.scaraMany', { list: scari.join(', ') });
+
   return (
     <header className="topbar">
       <div className="topbar__brand">
@@ -396,13 +418,13 @@ function Topbar() {
       <div className="topbar__sep" />
 
       <button className="topbar__workspace" aria-haspopup="menu">
-        <Avatar name={DEMO_ASOCIATIE.name} accent />
+        <Avatar name={asociatieName} accent />
         <span className="topbar__workspace-label">
           <span style={{ display: 'block', fontWeight: 500, color: 'var(--text-primary)', fontSize: 13, lineHeight: 1.2 }}>
-            {DEMO_ASOCIATIE.name}
+            {asociatieName}
           </span>
           <span style={{ display: 'block', fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.2, marginTop: 1 }}>
-            {t('chrome.ownersAssociation')}
+            {scaraLabel}
           </span>
         </span>
         <ChevronDown size={14} style={{ color: 'var(--text-faint)', flexShrink: 0 }} />
