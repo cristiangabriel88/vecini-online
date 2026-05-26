@@ -2,6 +2,32 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## Onboarding flow: secure tokenized links, account-on-redemption, 24h expiry, inbox notice
+
+The end-to-end onboarding/provisioning data flow was reviewed with the user and
+documented in `ONBOARDING_FLOW.md`. Four choices fix how a new asociație and its
+people get in (queued as T122-T128, with T90/T92/T55 widened):
+
+- **D1 - Invite delivery: secure link + QR, short code as fallback.** Both the
+  superadmin setup link and the admin's locatar invites carry an opaque
+  high-entropy token in the URL (hashed at rest in the live path, T128); the QR
+  encodes that link. The existing short 8-char `generateInviteCode` value stays as
+  a manual-entry fallback, so a mangled link never blocks onboarding.
+- **D2 - Account created on redemption.** The invitee is not pre-created
+  server-side. They open the link, enter their email and set a password twice
+  (reusing `passwordPolicy.ts`); the account + membership are created at that
+  point. This keeps the superadmin/admin flows free of pre-issuing auth users and
+  matches the user's "set password twice" requirement for both admin and locatar.
+- **D3 - Onboarding links expire in 24h (fixed).** Admin-setup and locatar-invite
+  links are hard-fixed to 24h, single-use. A `24h` preset is also added to the
+  general invite expiry options (`EXPIRY_PRESETS_MS`, alongside 7d/30d/90d/never).
+  (The user initially said 6h, then revised to 24h fixed.)
+- **D4 - Admin notified via a real in-app inbox.** The unused `notifications` table
+  is built out into a per-user inbox (replacing the `NotificationsPage` stub); when
+  a locatar redeems an invite, a "locatar joined" notification is emitted to the
+  asociație's admin(s). Chosen over reusing F04 private messaging (which is support
+  chat, not system events) so the inbox is reusable for future event types.
+
 ## In-app superadmin preview persona vs the separate-origin production console
 
 The login page's demo section previews the app "as" admin / superadmin / locatar.

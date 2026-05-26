@@ -18,8 +18,25 @@ accurate for architecture/data/feature specs.
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-25, T94 superadmin asociații + admin provisioning)
+## 0. Current status (updated 2026-05-26, onboarding/provisioning data-flow audit + tasks)
 
+- **2026-05-26 — Onboarding/provisioning data-flow audit (docs + backlog).**
+  Reviewed the full path with the user (superadmin provisions asociație + first
+  admin -> admin onboards via a secure link and sets a password -> admin invites
+  locatari -> locatar onboards and the admin is notified) and documented the
+  canonical flow in a new `ONBOARDING_FLOW.md` (actors, the four stages, the
+  token/security model, the demo-vs-live split, and a stage->file->task map).
+  Four decisions recorded in `DECISIONS.md`: secure opaque token link + QR with
+  the short code as a manual fallback (D1); account created on redemption with a
+  "set password twice" landing (D2); onboarding links fixed at 24h + a 24h preset
+  (D3); a real in-app notifications inbox emitting a "locatar joined" notice to
+  the admin (D4). Queued the work as P1 tasks T122 (full asociație identity at
+  provisioning), T123 (secure tokenized links + 24h), T124 (account-on-redemption
+  landing page), T90 (repurposed/bumped: shared invite + setup-link QR), T126
+  (notifications inbox + joined notice), plus P2 live-activation T127
+  (notifications fan-out) and T128 (hash tokens at rest); widened T92 and T55 to
+  cover the full identity fields, the hashed 24h token, and account creation on
+  redemption. Docs-only change; pipeline unaffected.
 - **2026-05-25 — T94 (P2) Superadmin console: asociații + admin provisioning.**
   The first console page (`/consola/asociatii`) lists every asociație
   (members/apartments counts, active/dormant signal, last-admin-sign-in) and
