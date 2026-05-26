@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import {
@@ -11,6 +11,10 @@ import {
   Smartphone,
   LogOut,
   History,
+  Mail,
+  Send,
+  MessageCircle,
+  CheckCircle2,
 } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
@@ -20,9 +24,11 @@ import { Modal } from '@/shared/components/Modal';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useMfaStore } from '@/shared/store/mfaStore';
 import { useSecurityStore } from '@/shared/store/securityStore';
+import { useTelegramLinkStore } from '@/shared/store/telegramLinkStore';
 import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import { formatDateTime } from '@/shared/lib/format';
 import { isValidTotpFormat, mfaErrorKey, requiresMfa } from './mfaLogic';
+import { maskEmail, maskTelegram, type MfaChannel } from './otpChannelLogic';
 
 /** Round a remaining-lockout duration up to whole minutes for the message. */
 function lockoutMinutes(ms: number): number {
@@ -64,7 +70,12 @@ export default function SecurityPage() {
     clearRecoveryCodes,
     challengeRequired,
     verifyChallenge,
+    demoEnabledChannels,
+    enableChannel,
+    disableChannel,
   } = useMfaStore();
+
+  const telegramLinks = useTelegramLinkStore((s) => s.links);
 
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
@@ -107,6 +118,37 @@ export default function SecurityPage() {
   const mustEnrol = requiresMfa(role) && !enrolled;
 
   const fail = (error: string) => toast.error(t(`auth.mfa.err.${mfaErrorKey(error)}`));
+
+  // OTP channel helpers (T140)
+  const currentUserId = profile?.id ?? session?.user?.id ?? 'demo-user';
+
+  /** Whether the current user has a linked Telegram account. */
+  const myTelegramLink = telegramLinks.find((l) => l.userId === currentUserId) ?? null;
+
+  const handleEnableChannel = (channel: MfaChannel) => {
+    if (channel === 'email') {
+      const hint = maskEmail(account);
+      enableChannel('email', hint);
+      toast.success(t('auth.mfa.channels.enabledToast', { channel: t('auth.mfa.channels.emailLabel') }));
+    } else if (channel === 'telegram') {
+      if (!myTelegramLink) {
+        toast.error(t('auth.mfa.channels.telegramNotLinked'));
+        return;
+      }
+      const handle = myTelegramLink.username ?? myTelegramLink.firstName ?? '';
+      const hint = maskTelegram(handle);
+      enableChannel('telegram', hint);
+      toast.success(t('auth.mfa.channels.enabledToast', { channel: t('auth.mfa.channels.telegramLabel') }));
+    }
+  };
+
+  const handleDisableChannel = (channel: MfaChannel) => {
+    disableChannel(channel);
+    toast.success(t('auth.mfa.channels.disabledToast'));
+  };
+
+  const emailEnabled = Boolean(demoEnabledChannels['email']);
+  const telegramEnabled = Boolean(demoEnabledChannels['telegram']);
 
   const onBegin = async () => {
     setBusy(true);
@@ -355,6 +397,80 @@ export default function SecurityPage() {
                 </Button>
               )}
             </div>
+          </Card>
+        )}
+
+        {/* Second-factor channels (T140): email + Telegram OTP. */}
+        {!draft && !recoveryCodes && (
+          <Card title={t('auth.mfa.channels.title')}>
+            <p className="text-sm text-muted">{t('auth.mfa.channels.body')}</p>
+            <ul className="mt-4 divide-y divide-[var(--border)]">
+              {/* Email channel */}
+              <li className="flex items-center gap-3 py-3">
+                <span
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+                  style={{
+                    background: emailEnabled ? 'var(--success-soft, var(--primary-soft))' : 'var(--bg-sunken)',
+                    color: emailEnabled ? 'var(--success, var(--primary))' : 'var(--text-muted)',
+                  }}
+                >
+                  {emailEnabled ? <CheckCircle2 className="h-4 w-4" /> : <Mail className="h-4 w-4" />}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium">{t('auth.mfa.channels.emailLabel')}</p>
+                  {emailEnabled && demoEnabledChannels['email'] && (
+                    <p className="text-xs text-muted">{demoEnabledChannels['email'].targetHint}</p>
+                  )}
+                </div>
+                <Button
+                  variant={emailEnabled ? 'danger' : 'secondary'}
+                  className="shrink-0 text-sm"
+                  onClick={() =>
+                    emailEnabled ? handleDisableChannel('email') : handleEnableChannel('email')
+                  }
+                >
+                  {emailEnabled ? t('auth.mfa.channels.disable') : t('auth.mfa.channels.enable')}
+                </Button>
+              </li>
+
+              {/* Telegram channel */}
+              <li className="flex items-center gap-3 py-3">
+                <span
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+                  style={{
+                    background: telegramEnabled ? 'var(--success-soft, var(--primary-soft))' : 'var(--bg-sunken)',
+                    color: telegramEnabled ? 'var(--success, var(--primary))' : 'var(--text-muted)',
+                  }}
+                >
+                  {telegramEnabled ? <CheckCircle2 className="h-4 w-4" /> : <Send className="h-4 w-4" />}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium">{t('auth.mfa.channels.telegramLabel')}</p>
+                  {telegramEnabled && demoEnabledChannels['telegram'] && (
+                    <p className="text-xs text-muted">{demoEnabledChannels['telegram'].targetHint}</p>
+                  )}
+                  {!telegramEnabled && !myTelegramLink && (
+                    <p className="text-xs text-muted">
+                      {t('auth.mfa.channels.telegramLinkHint')}{' '}
+                      <Link to="/app/profil" className="auth-link text-xs">
+                        <MessageCircle className="mr-0.5 inline h-3 w-3" />
+                        {t('auth.mfa.channels.telegramLinkAction')}
+                      </Link>
+                    </p>
+                  )}
+                </div>
+                <Button
+                  variant={telegramEnabled ? 'danger' : 'secondary'}
+                  className="shrink-0 text-sm"
+                  disabled={!telegramEnabled && !myTelegramLink}
+                  onClick={() =>
+                    telegramEnabled ? handleDisableChannel('telegram') : handleEnableChannel('telegram')
+                  }
+                >
+                  {telegramEnabled ? t('auth.mfa.channels.disable') : t('auth.mfa.channels.enable')}
+                </Button>
+              </li>
+            </ul>
           </Card>
         )}
 

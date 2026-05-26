@@ -12,6 +12,7 @@ import { RouteFallback } from '@/shared/components/RouteFallback';
 const LoginPage = lazy(() => import('@/features/auth/LoginPage'));
 const ResetPasswordPage = lazy(() => import('@/features/auth/ResetPasswordPage'));
 const SecurityPage = lazy(() => import('@/features/auth/SecurityPage'));
+const Confirm2faPage = lazy(() => import('@/features/auth/Confirm2faPage'));
 const PrivacyPolicyPage = lazy(() => import('@/features/legal/PrivacyPolicyPage'));
 const TermsPage = lazy(() => import('@/features/legal/TermsPage'));
 const CookiePolicyPage = lazy(() => import('@/features/legal/CookiePolicyPage'));
@@ -128,6 +129,7 @@ export const router = createBrowserRouter([
   { path: '/protectia-consumatorului', element: <S><ConsumerRightsPage /></S> },
   { path: '/onboarding', element: <S><OnboardingWizard /></S> },
   { path: '/configurare-cont', element: <S><AccountSetupPage /></S> },
+  { path: '/confirma-2fa', element: <S><Confirm2faPage /></S> },
   { path: '/onboarding/alatura', element: <LegacyJoinRedirect /> },
   {
     path: '/bun-venit',

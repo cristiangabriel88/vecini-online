@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { ArrowUpRight, Building2, Globe, MailCheck, Moon, ShieldCheck, Sun } from 'lucide-react';
+import { ArrowUpRight, Building2, Globe, Mail, MailCheck, Moon, Send, ShieldCheck, Smartphone, Sun } from 'lucide-react';
 import type { Role } from '@/shared/types/domain';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
@@ -18,6 +18,7 @@ import { mfaErrorKey } from './mfaLogic';
 import { type AuthMode, canSubmit, isValidEmail, mapAuthError } from './authLogic';
 import { evaluatePassword } from './passwordPolicy';
 import { PasswordStrengthMeter } from './PasswordStrengthMeter';
+import { type MfaChannel, isValidOtpFormat } from './otpChannelLogic';
 
 /** Round a remaining-lockout duration up to whole minutes for the message. */
 function lockoutMinutes(ms: number): number {
@@ -103,6 +104,11 @@ export default function LoginPage() {
   const enterDemo = useAuthStore((s) => s.enterDemo);
   const challengeRequired = useMfaStore((s) => s.challengeRequired);
   const verifyChallenge = useMfaStore((s) => s.verifyChallenge);
+  const enabledChannels = useMfaStore((s) => s.enabledChannels);
+  const requestOtp = useMfaStore((s) => s.requestOtp);
+  const verifyOtp = useMfaStore((s) => s.verifyOtp);
+  const setPendingDemoRole = useMfaStore((s) => s.setPendingDemoRole);
+  const demoEnabledChannels = useMfaStore((s) => s.demoEnabledChannels);
 
   const [mode, setMode] = useState<AuthMode>('signIn');
   const [email, setEmail] = useState('');
@@ -122,6 +128,47 @@ export default function LoginPage() {
   // The role a queued demo entry should preview as, carried across the optional
   // demo TOTP challenge so the right experience opens once the code clears.
   const [demoRole, setDemoRole] = useState<Role>('admin');
+
+  // OTP channel challenge state (T140).
+  // `selectedChannel` is the channel the user chose; null = picker shown.
+  const [selectedChannel, setSelectedChannel] = useState<MfaChannel | null>(null);
+  // Whether the OTP code has been sent for the selected channel.
+  const [otpSent, setOtpSent] = useState(false);
+  // The demo code displayed on-screen (demo affordance only; never stored in state).
+  const [demoCode, setDemoCode] = useState<string | null>(null);
+  // The confirm-link token for the email channel demo affordance.
+  const [demoConfirmToken, setDemoConfirmToken] = useState<string | null>(null);
+  // Remaining resend cooldown in seconds.
+  const [resendCountdown, setResendCountdown] = useState(0);
+  const resendTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Tick down the resend countdown every second.
+  const startResendTimer = useCallback((remainingMs: number) => {
+    setResendCountdown(Math.ceil(remainingMs / 1000));
+    if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+    resendTimerRef.current = setInterval(() => {
+      setResendCountdown((prev) => {
+        if (prev <= 1) {
+          if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+    };
+  }, []);
+
+  // When the channel picker is shown, auto-select the channel if only one is available.
+  useEffect(() => {
+    if (!pendingMfa || selectedChannel !== null) return;
+    const channels = enabledChannels();
+    if (channels.length === 1) setSelectedChannel(channels[0]);
+  }, [pendingMfa, selectedChannel, enabledChannels]);
 
   const values = { email, password, confirmPassword };
   // Sign-up surfaces the full strength/breach policy via a live meter; sign-in
@@ -147,12 +194,14 @@ export default function LoginPage() {
       if (mode === 'signIn') {
         if (!isSupabaseConfigured) {
           // Demo: the email/password form enters as the admin persona; the role
-          // buttons below pick a different one. Gate behind the demo TOTP factor
-          // if one was enrolled. Honour "remember me" so idle behaviour matches.
+          // buttons below pick a different one. Gate behind the demo second factor
+          // if one was enrolled/enabled. Honour "remember me" so idle behaviour matches.
           setRemembered(remember);
           setDemoRole('admin');
-          if (await challengeRequired()) setPendingMfa('demo');
-          else {
+          if (await challengeRequired()) {
+            setPendingDemoRole('admin');
+            setPendingMfa('demo');
+          } else {
             enterDemo('admin');
             navigate('/app');
           }
@@ -199,11 +248,42 @@ export default function LoginPage() {
     else toast.success(t('auth.verifyResent'));
   };
 
+  const completeChallenge = (role: Role) => {
+    if (pendingMfa === 'demo') enterDemo(role);
+    setMfaCode('');
+    setPendingMfa(null);
+    setSelectedChannel(null);
+    setOtpSent(false);
+    setDemoCode(null);
+    setDemoConfirmToken(null);
+    if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+    navigate('/app');
+  };
+
   const submitChallenge = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!mfaCode.trim()) return;
     setLoading(true);
     try {
+      // For delivered-code channels (email / telegram) use verifyOtp;
+      // for TOTP / recovery codes use verifyChallenge.
+      const channel = selectedChannel;
+      if (channel === 'email' || channel === 'telegram') {
+        const { error, lockedMs } = await verifyOtp(channel, mfaCode);
+        if (lockedMs > 0) {
+          toast.error(t('auth.mfaLockout', { minutes: lockoutMinutes(lockedMs) }));
+          setMfaCode('');
+          return;
+        }
+        if (error) {
+          toast.error(t(`auth.mfa.err.${mfaErrorKey(error)}`));
+          return;
+        }
+        setPendingDemoRole(null);
+        completeChallenge(demoRole);
+        return;
+      }
+      // TOTP / recovery-code path (channel === 'totp' or no channel selected).
       const { error, lockedMs } = await verifyChallenge(mfaCode);
       if (lockedMs > 0) {
         toast.error(t('auth.mfaLockout', { minutes: lockoutMinutes(lockedMs) }));
@@ -214,10 +294,54 @@ export default function LoginPage() {
         toast.error(t(`auth.mfa.err.${mfaErrorKey(error)}`));
         return;
       }
-      if (pendingMfa === 'demo') enterDemo(demoRole);
-      setMfaCode('');
-      setPendingMfa(null);
-      navigate('/app');
+      completeChallenge(demoRole);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSendOtp = async () => {
+    const channel = selectedChannel;
+    if (!channel || (channel !== 'email' && channel !== 'telegram')) return;
+    setLoading(true);
+    try {
+      const result = await requestOtp(channel);
+      if (result.cooldownMs > 0) {
+        startResendTimer(result.cooldownMs);
+        return;
+      }
+      if (result.error) {
+        toast.error(t(`auth.mfa.err.${mfaErrorKey(result.error)}`));
+        return;
+      }
+      setOtpSent(true);
+      setDemoCode(result.demoCode ?? null);
+      setDemoConfirmToken(result.demoConfirmToken ?? null);
+      startResendTimer(60_000); // OTP_RESEND_COOLDOWN_MS
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    const channel = selectedChannel;
+    if (!channel || (channel !== 'email' && channel !== 'telegram')) return;
+    if (resendCountdown > 0) return;
+    setLoading(true);
+    try {
+      const result = await requestOtp(channel);
+      if (result.cooldownMs > 0) {
+        startResendTimer(result.cooldownMs);
+        return;
+      }
+      if (result.error) {
+        toast.error(t(`auth.mfa.err.${mfaErrorKey(result.error)}`));
+        return;
+      }
+      setDemoCode(result.demoCode ?? null);
+      setDemoConfirmToken(result.demoConfirmToken ?? null);
+      startResendTimer(60_000);
+      toast.success(t('auth.mfa.channels.resent'));
     } finally {
       setLoading(false);
     }
@@ -226,10 +350,11 @@ export default function LoginPage() {
   const enterDemoAs = async (role: Role) => {
     setRemembered(remember);
     setDemoRole(role);
-    // Gate entry behind the demo TOTP factor if one was enrolled; the chosen
-    // role is preserved in `demoRole` and applied once the challenge clears.
-    if (await challengeRequired()) setPendingMfa('demo');
-    else {
+    // Gate entry behind the demo second factor if one is enrolled/enabled.
+    if (await challengeRequired()) {
+      setPendingDemoRole(role);
+      setPendingMfa('demo');
+    } else {
       enterDemo(role);
       navigate('/app');
     }
@@ -239,6 +364,12 @@ export default function LoginPage() {
     setPendingMfa(null);
     setMfaCode('');
     setPassword('');
+    setSelectedChannel(null);
+    setOtpSent(false);
+    setDemoCode(null);
+    setDemoConfirmToken(null);
+    setPendingDemoRole(null);
+    if (resendTimerRef.current) clearInterval(resendTimerRef.current);
   };
 
   const titleKey =
@@ -272,31 +403,171 @@ export default function LoginPage() {
 
       <Card className="w-full max-w-sm">
         {pendingMfa ? (
-          <form onSubmit={submitChallenge} className="space-y-4">
+          <div className="space-y-4">
             <div className="flex flex-col items-center text-center">
               <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <ShieldCheck className="h-6 w-6" />
               </div>
               <h2 className="text-lg font-semibold">{t('auth.mfa.challengeTitle')}</h2>
-              <p className="mt-1 text-sm text-muted">{t('auth.mfa.challengeBody')}</p>
+              <p className="mt-1 text-sm text-muted">
+                {selectedChannel === 'email'
+                  ? t('auth.mfa.channels.emailChallengeBody', {
+                      hint: demoEnabledChannels['email']?.targetHint ?? '',
+                    })
+                  : selectedChannel === 'telegram'
+                    ? t('auth.mfa.channels.telegramChallengeBody', {
+                        hint: demoEnabledChannels['telegram']?.targetHint ?? '',
+                      })
+                    : t('auth.mfa.challengeBody')}
+              </p>
             </div>
-            <Input
-              label={t('auth.mfa.codeLabel')}
-              inputMode="text"
-              autoComplete="one-time-code"
-              autoFocus
-              value={mfaCode}
-              onChange={(e) => setMfaCode(e.target.value)}
-              hint={t('auth.mfa.challengeHint')}
-              required
-            />
-            <Button type="submit" className="w-full" loading={loading} disabled={!mfaCode.trim()}>
-              {t('auth.mfa.verify')}
-            </Button>
+
+            {/* Channel picker: shown when multiple channels available and none chosen. */}
+            {!selectedChannel && (
+              <div className="space-y-2">
+                <p className="text-center text-xs font-medium uppercase tracking-wide text-muted">
+                  {t('auth.mfa.channels.choosePicker')}
+                </p>
+                {enabledChannels().map((ch) => (
+                  <button
+                    key={ch}
+                    type="button"
+                    className="flex w-full items-center gap-3 rounded-lg border border-[var(--border)] bg-[var(--bg-card)] px-4 py-3 text-left text-sm transition-colors hover:border-primary hover:bg-primary/5"
+                    onClick={() => setSelectedChannel(ch)}
+                  >
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      {ch === 'email' ? (
+                        <Mail className="h-4 w-4" />
+                      ) : ch === 'telegram' ? (
+                        <Send className="h-4 w-4" />
+                      ) : (
+                        <Smartphone className="h-4 w-4" />
+                      )}
+                    </span>
+                    <span className="font-medium">
+                      {ch === 'email'
+                        ? t('auth.mfa.channels.emailLabel')
+                        : ch === 'telegram'
+                          ? t('auth.mfa.channels.telegramLabel')
+                          : t('auth.mfa.channels.totpLabel')}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* TOTP / recovery-code input (existing flow). */}
+            {selectedChannel === 'totp' && (
+              <form onSubmit={submitChallenge} className="space-y-3">
+                <Input
+                  label={t('auth.mfa.codeLabel')}
+                  inputMode="text"
+                  autoComplete="one-time-code"
+                  autoFocus
+                  value={mfaCode}
+                  onChange={(e) => setMfaCode(e.target.value)}
+                  hint={t('auth.mfa.challengeHint')}
+                  required
+                />
+                <Button type="submit" className="w-full" loading={loading} disabled={!mfaCode.trim()}>
+                  {t('auth.mfa.verify')}
+                </Button>
+              </form>
+            )}
+
+            {/* Email / Telegram OTP: "Send code" button shown before the code is sent. */}
+            {(selectedChannel === 'email' || selectedChannel === 'telegram') && !otpSent && (
+              <Button
+                className="w-full"
+                loading={loading}
+                onClick={() => void handleSendOtp()}
+              >
+                {selectedChannel === 'email'
+                  ? t('auth.mfa.channels.sendEmail')
+                  : t('auth.mfa.channels.sendTelegram')}
+              </Button>
+            )}
+
+            {/* Email / Telegram OTP: code input after the code is sent. */}
+            {(selectedChannel === 'email' || selectedChannel === 'telegram') && otpSent && (
+              <form onSubmit={submitChallenge} className="space-y-3">
+                {/* Demo affordance: show the one-time code on-screen. */}
+                {demoCode && (
+                  <div className="rounded-lg border border-warning/30 bg-warning/8 px-4 py-3">
+                    <p className="text-xs font-medium text-warning">{t('auth.mfa.channels.demoNotice')}</p>
+                    <p
+                      className="iv-mono mt-1 text-center text-2xl font-bold tracking-[0.3em] text-text"
+                      aria-label={t('auth.mfa.channels.demoCodeAriaLabel')}
+                    >
+                      {demoCode}
+                    </p>
+                    {demoConfirmToken && selectedChannel === 'email' && (
+                      <p className="mt-2 text-center text-xs text-muted">
+                        {t('auth.mfa.channels.orClickLink')}{' '}
+                        <Link
+                          to={`/confirma-2fa?token=${encodeURIComponent(demoConfirmToken)}&channel=${selectedChannel}`}
+                          className="auth-link text-xs"
+                        >
+                          {t('auth.mfa.channels.confirmLinkLabel')}
+                        </Link>
+                      </p>
+                    )}
+                  </div>
+                )}
+                <Input
+                  label={t('auth.mfa.channels.otpLabel')}
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  autoFocus
+                  value={mfaCode}
+                  maxLength={6}
+                  onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
+                  hint={t('auth.mfa.channels.otpHint')}
+                  required
+                />
+                <Button
+                  type="submit"
+                  className="w-full"
+                  loading={loading}
+                  disabled={!isValidOtpFormat(mfaCode)}
+                >
+                  {t('auth.mfa.verify')}
+                </Button>
+                <button
+                  type="button"
+                  className="auth-link block w-full text-center text-sm"
+                  disabled={resendCountdown > 0 || loading}
+                  onClick={() => void handleResendOtp()}
+                >
+                  {resendCountdown > 0
+                    ? t('auth.mfa.channels.resendIn', { seconds: resendCountdown })
+                    : t('auth.mfa.channels.resend')}
+                </button>
+              </form>
+            )}
+
+            {/* "Use a different channel" back link when a channel is already selected. */}
+            {selectedChannel && enabledChannels().length > 1 && (
+              <button
+                type="button"
+                className="auth-link block w-full text-center text-sm"
+                onClick={() => {
+                  setSelectedChannel(null);
+                  setOtpSent(false);
+                  setDemoCode(null);
+                  setDemoConfirmToken(null);
+                  setMfaCode('');
+                  if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+                }}
+              >
+                {t('auth.mfa.channels.changeChannel')}
+              </button>
+            )}
+
             <button type="button" className="auth-link block w-full text-center" onClick={cancelChallenge}>
               {t('auth.backToSignIn')}
             </button>
-          </form>
+          </div>
         ) : sent ? (
           <div className="space-y-3 text-center">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">

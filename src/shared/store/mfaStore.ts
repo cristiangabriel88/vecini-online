@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import type { Role } from '@/shared/types/domain';
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import {
   buildOtpAuthUri,
@@ -13,6 +14,20 @@ import {
   verifyTotp,
   type Aal,
 } from '@/features/auth/mfaLogic';
+import {
+  type MfaChannel,
+  generateNumericOtp,
+  generateOtpSalt,
+  hashOtp,
+  verifyOtpHash,
+  generateConfirmToken,
+  hashConfirmToken,
+  otpExpiresAt,
+  otpChallengeExpired,
+  resendCooldownRemainingMs,
+  isDeliveredChannel,
+  OTP_TTL_MS,
+} from '@/features/auth/otpChannelLogic';
 import {
   type ThrottleState,
   emptyThrottle,
@@ -47,6 +62,29 @@ export interface EnrollmentDraft {
   qrSvg: string | null;
 }
 
+/**
+ * A persisted OTP channel registration. The `targetHint` is the privacy-safe
+ * masked display (e.g. `an***@gmail.com`, `@a***`) shown to the user when they
+ * are prompted to choose a second-factor channel.
+ */
+export interface OtpChannelInfo {
+  targetHint: string;
+}
+
+/**
+ * An active demo OTP challenge for a delivered-code channel. Stored without the
+ * plaintext code or token -- only their salted hashes -- so recovering the
+ * plaintext from persisted state is not possible. The challenge is NOT persisted;
+ * it resets on reload, forcing the user to request a fresh code each session.
+ */
+export interface DemoOtpChallenge {
+  codeHash: string;
+  salt: string;
+  expiresAtMs: number;
+  confirmTokenHash: string;
+  consumed: boolean;
+}
+
 interface MfaState {
   /** True once the live/demo enrolment status has been resolved at least once. */
   loaded: boolean;
@@ -73,6 +111,44 @@ interface MfaState {
    */
   challengeThrottle: ThrottleState;
 
+  // --- OTP channel state (T140) ---
+
+  /**
+   * Demo: enabled delivered-code channels and their privacy-safe target hints.
+   * Persisted so enrolled channels survive page reloads. Live path reads from
+   * the `mfa_channels` table (T143).
+   */
+  demoEnabledChannels: Partial<Record<string, OtpChannelInfo>>;
+
+  /**
+   * Active OTP challenges, keyed by channel. NOT persisted: a challenge expires
+   * with the tab; the user must request a fresh code after a reload.
+   */
+  demoOtpChallenges: Partial<Record<string, DemoOtpChallenge>>;
+
+  /**
+   * Epoch-ms of the last code request per channel (persisted so the 60 s
+   * resend cooldown survives a reload).
+   */
+  demoResendAt: Partial<Record<string, number>>;
+
+  /**
+   * Per-channel brute-force throttle state (persisted so a lockout survives a
+   * reload, mirroring `challengeThrottle`). Separate from `challengeThrottle`
+   * so a TOTP lockout does not spill into the email/Telegram OTP budget and
+   * vice versa.
+   */
+  otpThrottles: Partial<Record<string, ThrottleState>>;
+
+  /**
+   * Transient: the demo role a pending login was entered with. Set when the
+   * user enters the demo and a second-factor challenge is triggered so that
+   * `Confirm2faPage` (the confirm-link landing) can call `enterDemo(role)` if
+   * the token is verified there instead of on the login page. Never persisted.
+   */
+  pendingDemoRole: Role | null;
+
+  // Actions -- TOTP / recovery (unchanged from T02/T31)
   load: () => Promise<void>;
   beginEnroll: (account: string) => Promise<OpResult>;
   confirmEnroll: (code: string) => Promise<OpResult>;
@@ -80,12 +156,64 @@ interface MfaState {
   disable: () => Promise<OpResult>;
   regenerateRecoveryCodes: () => Promise<OpResult>;
   clearRecoveryCodes: () => void;
-  /** Whether the freshly signed-in session must still pass a TOTP challenge. */
+  /** Whether the freshly signed-in session must still pass any second-factor challenge. */
   challengeRequired: () => Promise<boolean>;
   /** Verify a login-time challenge with either a TOTP code or a recovery code. */
   verifyChallenge: (code: string) => Promise<ChallengeResult>;
   /** Remaining challenge lockout in ms (0 when a code may be submitted). */
   challengeLockMs: () => number;
+
+  // Actions -- OTP channels (T140)
+  /** Load the current channel registration status (demo reads local state; live reads DB). */
+  loadChannels: () => Promise<void>;
+  /**
+   * Enable a delivered-code channel. The `targetHint` is the masked display
+   * (e.g. `maskEmail(email)` or `maskTelegram(handle)`) — never the raw address.
+   */
+  enableChannel: (channel: MfaChannel, targetHint: string) => void;
+  /** Disable a delivered-code channel and clear any pending challenge for it. */
+  disableChannel: (channel: MfaChannel) => void;
+  /**
+   * Request a one-time code for the given channel. In demo mode, mints the code
+   * and hash in-memory and returns the plaintext `demoCode` + `demoConfirmToken`
+   * for the UI to display as a demo affordance (never stored in state).
+   *
+   * Returns `cooldownMs > 0` when the channel is still in cooldown (no new
+   * challenge is minted; the caller should show the countdown). Returns an
+   * `error` string when the channel is not enabled or the input is invalid.
+   */
+  requestOtp: (
+    channel: MfaChannel,
+    now?: number,
+  ) => Promise<{
+    error: string | null;
+    demoCode?: string;
+    demoConfirmToken?: string;
+    cooldownMs: number;
+  }>;
+  /**
+   * Verify a one-time code for a delivered channel. Returns the same shape as
+   * `verifyChallenge` (error + lockedMs) so callers handle both uniformly.
+   */
+  verifyOtp: (channel: MfaChannel, code: string, now?: number) => Promise<ChallengeResult>;
+  /**
+   * Verify a confirm-link token for a delivered channel (the `/confirma-2fa`
+   * landing). Returns the same shape as `verifyChallenge`.
+   */
+  verifyConfirmToken: (
+    channel: MfaChannel,
+    token: string,
+    now?: number,
+  ) => Promise<ChallengeResult>;
+  /** Remaining resend cooldown in ms for a delivered channel (0 when a request may be sent). */
+  otpResendCooldownMs: (channel: MfaChannel, now?: number) => number;
+  /**
+   * All channels that currently have a second factor active: TOTP when enrolled
+   * + any enabled delivered channels. Drives the channel picker at sign-in.
+   */
+  enabledChannels: () => MfaChannel[];
+  /** Set the transient pending demo role for the confirm-link flow. */
+  setPendingDemoRole: (role: Role | null) => void;
 }
 
 /** Resolve the verified TOTP factor id for the signed-in user (live only). */
@@ -106,6 +234,14 @@ async function storeLiveRecoveryHashes(hashes: string[]): Promise<void> {
     .insert(hashes.map((code_hash) => ({ user_id: userId, code_hash })));
 }
 
+/** Read the per-channel throttle, defaulting to an empty one. */
+function getOtpThrottle(
+  throttles: Partial<Record<string, ThrottleState>>,
+  channel: string,
+): ThrottleState {
+  return throttles[channel] ?? emptyThrottle();
+}
+
 export const useMfaStore = create<MfaState>()(
   persist(
     (set, get) => ({
@@ -116,6 +252,13 @@ export const useMfaStore = create<MfaState>()(
       demoSecret: null,
       demoRecoveryHashes: [],
       challengeThrottle: emptyThrottle(),
+
+      // OTP channel initial state
+      demoEnabledChannels: {},
+      demoOtpChallenges: {},
+      demoResendAt: {},
+      otpThrottles: {},
+      pendingDemoRole: null,
 
       load: async () => {
         if (!isSupabaseConfigured) {
@@ -259,7 +402,12 @@ export const useMfaStore = create<MfaState>()(
       clearRecoveryCodes: () => set({ recoveryCodes: null }),
 
       challengeRequired: async () => {
-        if (!isSupabaseConfigured) return get().demoSecret != null;
+        if (!isSupabaseConfigured) {
+          // A challenge is required when TOTP is enrolled OR any delivered channel is enabled.
+          const hasTotp = get().demoSecret != null;
+          const hasChannel = Object.keys(get().demoEnabledChannels).length > 0;
+          return hasTotp || hasChannel;
+        }
         const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
         return challengeNeeded(
           (data?.currentLevel as Aal) ?? null,
@@ -334,17 +482,175 @@ export const useMfaStore = create<MfaState>()(
       },
 
       challengeLockMs: () => remainingLockMs(get().challengeThrottle, Date.now()),
+
+      // --- OTP channel actions (T140) ---
+
+      loadChannels: async () => {
+        // Demo: already in state (persisted). Live (T143): read from mfa_channels.
+        // Nothing to do in demo beyond confirming channels are available in state.
+        if (isSupabaseConfigured) {
+          // Live path wired in T143; no-op here so calling loadChannels() is safe.
+        }
+      },
+
+      enableChannel: (channel, targetHint) => {
+        if (!isDeliveredChannel(channel)) return;
+        set((s) => ({
+          demoEnabledChannels: {
+            ...s.demoEnabledChannels,
+            [channel]: { targetHint },
+          },
+        }));
+      },
+
+      disableChannel: (channel) => {
+        set((s) => {
+          const channels = { ...s.demoEnabledChannels };
+          delete channels[channel];
+          const challenges = { ...s.demoOtpChallenges };
+          delete challenges[channel];
+          return { demoEnabledChannels: channels, demoOtpChallenges: challenges };
+        });
+      },
+
+      requestOtp: async (channel, now = Date.now()) => {
+        if (!isDeliveredChannel(channel)) {
+          return { error: 'no-channel', cooldownMs: 0 };
+        }
+        const channelInfo = get().demoEnabledChannels[channel];
+        if (!channelInfo) {
+          return { error: 'no-channel', cooldownMs: 0 };
+        }
+
+        // Enforce the resend cooldown.
+        const lastSent = get().demoResendAt[channel] ?? 0;
+        const cooldownMs = resendCooldownRemainingMs(lastSent, now);
+        if (cooldownMs > 0) {
+          return { error: null, cooldownMs };
+        }
+
+        // Mint the code and its salted hash — store only the hash.
+        const code = generateNumericOtp();
+        const salt = generateOtpSalt();
+        const codeHash = await hashOtp(code, salt);
+        const confirmToken = generateConfirmToken();
+        const confirmTokenHash = await hashConfirmToken(confirmToken);
+        const expiresAtMs = otpExpiresAt(now, OTP_TTL_MS);
+
+        set((s) => ({
+          demoOtpChallenges: {
+            ...s.demoOtpChallenges,
+            [channel]: { codeHash, salt, expiresAtMs, confirmTokenHash, consumed: false },
+          },
+          demoResendAt: { ...s.demoResendAt, [channel]: now },
+        }));
+
+        // The plaintext code and token are returned for the UI demo affordance
+        // and the confirm-link URL. They are never stored in state.
+        return { error: null, demoCode: code, demoConfirmToken: confirmToken, cooldownMs: 0 };
+      },
+
+      verifyOtp: async (channel, code, now = Date.now()) => {
+        const sec = useSecurityStore.getState();
+        const throttle = getOtpThrottle(get().otpThrottles, channel);
+
+        const preLock = remainingLockMs(throttle, now);
+        if (preLock > 0) {
+          sec.log('mfaChallengeLocked');
+          return { error: 'channel-locked', lockedMs: preLock };
+        }
+
+        const challenge = get().demoOtpChallenges[channel];
+        if (!challenge) {
+          return { error: 'no-channel', lockedMs: 0 };
+        }
+        if (challenge.consumed) {
+          return { error: 'no-channel', lockedMs: 0 };
+        }
+        if (otpChallengeExpired(challenge.expiresAtMs, now)) {
+          return { error: 'expired-code', lockedMs: 0 };
+        }
+
+        const matched = await verifyOtpHash(challenge.codeHash, challenge.salt, code);
+        if (matched) {
+          // Consume the challenge and clear the throttle.
+          set((s) => ({
+            demoOtpChallenges: {
+              ...s.demoOtpChallenges,
+              [channel]: { ...challenge, consumed: true },
+            },
+            otpThrottles: { ...s.otpThrottles, [channel]: throttleOk() },
+          }));
+          return { error: null, lockedMs: 0 };
+        }
+
+        // Wrong code: increment per-channel throttle.
+        const next = throttleFail(throttle, now);
+        set((s) => ({ otpThrottles: { ...s.otpThrottles, [channel]: next } }));
+        const lockedMs = remainingLockMs(next, now);
+        sec.log(lockedMs > 0 ? 'mfaChallengeLocked' : 'mfaChallengeFailed');
+        return { error: 'invalid-code', lockedMs };
+      },
+
+      verifyConfirmToken: async (channel, token, now = Date.now()) => {
+        const challenge = get().demoOtpChallenges[channel];
+        if (!challenge) {
+          return { error: 'no-channel', lockedMs: 0 };
+        }
+        if (challenge.consumed) {
+          return { error: 'no-channel', lockedMs: 0 };
+        }
+        if (otpChallengeExpired(challenge.expiresAtMs, now)) {
+          return { error: 'expired-code', lockedMs: 0 };
+        }
+
+        const tokenHash = await hashConfirmToken(token);
+        const matched = tokenHash === challenge.confirmTokenHash;
+        if (matched) {
+          set((s) => ({
+            demoOtpChallenges: {
+              ...s.demoOtpChallenges,
+              [channel]: { ...challenge, consumed: true },
+            },
+          }));
+          return { error: null, lockedMs: 0 };
+        }
+        // A wrong confirm token is not the same threat model as a brute-forced
+        // code (the token space is 256-bit), so we don't throttle here.
+        return { error: 'invalid-code', lockedMs: 0 };
+      },
+
+      otpResendCooldownMs: (channel, now = Date.now()) => {
+        const lastSent = get().demoResendAt[channel] ?? 0;
+        return resendCooldownRemainingMs(lastSent, now);
+      },
+
+      enabledChannels: () => {
+        const channels: MfaChannel[] = [];
+        if (get().demoSecret != null) channels.push('totp');
+        const enabled = get().demoEnabledChannels;
+        if (enabled['email']) channels.push('email');
+        if (enabled['telegram']) channels.push('telegram');
+        return channels;
+      },
+
+      setPendingDemoRole: (role) => set({ pendingDemoRole: role }),
     }),
     {
       name: 'vecini.mfa',
-      // Only the demo enrolment + the challenge lockout survive reloads. Live
-      // state is read from Supabase on load(); plaintext recovery codes and
-      // drafts are never stored. Persisting the throttle keeps a temporary
-      // challenge lockout from being reset by a simple page reload.
+      // Only the demo enrolment + the challenge lockout + OTP channel registrations
+      // survive reloads. Live state is read from Supabase on load(); plaintext
+      // recovery codes and drafts are never stored. Persisting the throttle keeps a
+      // temporary challenge lockout from being reset by a simple page reload.
+      // OTP challenges are NOT persisted -- they expire with the tab so the user
+      // must request a fresh code each session (prevents replaying old challenges).
       partialize: (s) => ({
         demoSecret: s.demoSecret,
         demoRecoveryHashes: s.demoRecoveryHashes,
         challengeThrottle: s.challengeThrottle,
+        demoEnabledChannels: s.demoEnabledChannels,
+        demoResendAt: s.demoResendAt,
+        otpThrottles: s.otpThrottles,
       }),
     },
   ),
