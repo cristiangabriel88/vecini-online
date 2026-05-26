@@ -116,16 +116,16 @@ export function WelcomeCarousel({
                 <div className="welcome-motif" aria-hidden="true">
                   <span className="welcome-motif__halo" />
                   <span className="welcome-motif__chip welcome-motif__chip--a">
-                    <ChipA className="h-5 w-5" />
+                    <ChipA className="h-6 w-6" />
                   </span>
                   <span className="welcome-motif__chip welcome-motif__chip--b">
-                    <ChipB className="h-5 w-5" />
+                    <ChipB className="h-6 w-6" />
                   </span>
                   <span className="welcome-motif__chip welcome-motif__chip--c">
-                    <ChipC className="h-5 w-5" />
+                    <ChipC className="h-6 w-6" />
                   </span>
                   <span className="welcome-motif__core">
-                    <Core className="h-9 w-9" />
+                    <Core className="h-11 w-11" />
                   </span>
                 </div>
                 <h1 className="welcome-slide__title">{t(`welcome.${slide.key}Title`)}</h1>
