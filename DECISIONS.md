@@ -2,6 +2,41 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## Anonymous messages are anonymous at the database layer, not just the UI (T137)
+
+F05 stored `anonymous_messages.sender_user_id` "for abuse prevention but hidden
+from the comitet at the app layer", yet the table carried the standard
+`apply_standard_rls` policies — so "members read" let every co-member SELECT the
+sender, and "comitet write" (for all) gave the comitet the same blanket read. The
+sender is real PII (the GDPR art. 15 export keys off it), so the anonymity was
+cosmetic. This is the same false-anonymity class fixed for survey/poll/ranking
+rows in T38, and it is fixed the same way.
+
+- **Drop the blanket policies; keep the sender self-scoped.** The kept access path
+  is the `owner manage` policy (`sender_user_id = auth.uid() and is_member`), which
+  is exactly what lets a resident submit, withdraw, and export their own anonymous
+  messages — and nobody else's.
+- **The comitet gets no direct table policy at all.** They cannot read
+  `sender_user_id` by any query (not even via `update ... returning`, which RLS
+  subjects to the absent SELECT policy). They work through two `security definer`
+  functions instead, mirroring the T38 tally-function pattern:
+  `anonymous_messages_for_comitet(asociatie)` returns the inbox **without** the
+  sender column, and `set_anonymous_message_status(id, status)` flips only the
+  status column (body and identity can never be rewritten through it). Both gate on
+  `has_role(..., array['admin','presedinte','comitet'])` for the message's own
+  asociație and carry a fixed `search_path = public`.
+- **Why functions over a column-masked view or a comitet UPDATE policy.** RLS is
+  row-level, not column-level, so any direct comitet read/update policy would
+  expose the sender (a view still needs the underlying SELECT, and `update ...
+  returning` leaks). A definer function is the only auditable way to give the
+  comitet the body+status it needs while making the sender unreachable. Chosen for
+  consistency with T38 and least privilege.
+- **App impact: none today, documented for live.** The F05 store is offline-only
+  (no live Supabase read), so nothing breaks. When the live read/triage path is
+  wired, it must call the two functions rather than selecting/updating the table
+  directly (the same live-activation note T38 carries). Guarded by
+  `tests/unit/anonymousMessagePrivacyRls.test.ts`.
+
 ## Superadmin routing is a server-authoritative flag, not a tenant role (T134)
 
 A platform superadmin must land in the platform console, never be pushed through

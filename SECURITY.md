@@ -67,12 +67,33 @@ MFA secrets, financial/vote records (integrity), and tenant isolation itself.
   is immutable; the composite primary key enforces one-per-apartment (T34).
 - No policy uses `using (true)` or omits tenant scoping.
 
+**Within-tenant privacy** (a member of the right asociație still must not see
+another member's private data): the blanket "members read" is dropped on the
+sensitive tables and replaced with least-privilege policies plus attribution-free
+`security definer` functions.
+- Anonymous messages (`anonymous_messages`, F05) — the sender reads/manages only
+  their own rows (`owner manage`); the comitet has **no** direct table policy and
+  triages through `anonymous_messages_for_comitet(asociatie)` (returns the inbox
+  **without** `sender_user_id`) and `set_anonymous_message_status(id, status)`
+  (flips only the status column). The sender is never exposed at the database
+  layer, not merely hidden in the UI (T137).
+- Individual survey/poll/ranking rows (`survey_responses`, `votes`,
+  `priority_rankings`) — a respondent reads only their own row; results are served
+  as counts via `survey_tally` / `poll_tally` / `priority_ranking_turnout`; comitet
+  attribution is limited to non-anonymous surveys (T38).
+- Private admin threads (`private_threads`, `private_messages`, F04) — only the
+  resident party and the building's admins/presedinti can read a thread
+  (`20260525000002_private_threads_inbox.sql`).
+
 Regression guards run offline in CI:
 `tests/unit/voteSignatureRls.test.ts` (T34) and
 `tests/unit/rlsTenantIsolation.test.ts` (T04) parse the migration SQL and fail
 if a tenant table loses its scoping or a vote/signature table gains a mutation
-policy. A table-by-table coverage guard is queued as T35; live cross-tenant
-tests against a provisioned Postgres are queued as T08.
+policy; `tests/unit/rlsCoverage.test.ts` (T35) asserts every `public` table is
+RLS-enabled; `tests/unit/responsePrivacyRls.test.ts` (T38) and
+`tests/unit/anonymousMessagePrivacyRls.test.ts` (T137) lock in the within-tenant
+privacy shape. Live cross-tenant tests against a provisioned Postgres are queued
+as T08.
 
 ### Authentication and session
 
@@ -147,4 +168,5 @@ These are deliberate, queued follow-ups rather than accepted risks:
 - Live cross-tenant isolation tests against real Postgres — T08; static
   RLS-coverage guard — T35.
 
-Last reviewed: 2026-05-22 (T04 RLS & tenant-isolation security audit).
+Last reviewed: 2026-05-26 (T137 anonymous-message within-tenant privacy; prior
+T04 RLS & tenant-isolation audit 2026-05-22).
