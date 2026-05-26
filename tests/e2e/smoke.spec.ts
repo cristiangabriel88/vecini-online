@@ -607,6 +607,31 @@ test('T11 (F66): resident edits their profile and adds a custom field', async ({
   await expect(page.getByText('Hobby')).toBeVisible();
 });
 
+test('T126: admin sees a "joined" notification after a resident redeems an invite', async ({ page }) => {
+  await enterDemo(page);
+  // Admin issues an invite code with a known invitee name so the notification
+  // body is predictable.
+  await page.goto('/app/admin/invitatii');
+  await page.getByRole('button', { name: /Generează codul/i }).click();
+  const code = (await page.locator('code').first().innerText()).trim();
+  expect(code).toMatch(/^[A-Z2-9]{8}$/);
+  // Resident redeems the code via the account-creation landing.
+  await page.goto('/configurare-cont');
+  await page.getByLabel(/Cod de invitație/i).fill(code);
+  await page.getByLabel('Email').fill('nou.t126@example.com');
+  await page.getByLabel('Parolă', { exact: true }).fill('Munte-Albastru-91');
+  await page.getByLabel(/Confirmă parola/i).fill('Munte-Albastru-91');
+  await page.getByRole('button', { name: /Creează contul/i }).click();
+  await expect(page).toHaveURL(/\/app$/);
+  // Navigate to the notifications inbox — the admin's bell should now have a
+  // badge and the inbox should list the "joined" event.
+  await page.goto('/app/notificari');
+  await expect(page.getByRole('heading', { name: /Notificări/i })).toBeVisible();
+  // The membership.joined notice appears (the invitee name may vary since the
+  // code is freshly issued with no inviteeName; the role is "proprietar").
+  await expect(page.getByText(/s-a alăturat/i).first()).toBeVisible();
+});
+
 test('home page has no critical accessibility violations', async ({ page }) => {
   await enterDemo(page);
   const results = await new AxeBuilder({ page })

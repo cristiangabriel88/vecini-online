@@ -16,6 +16,7 @@ import {
 } from '@/features/invites/inviteLogic';
 import { DEMO_CURRENT_USER_ID } from '@/shared/demo/demoData';
 import { useInviteStore } from './inviteStore';
+import { useNotificationStore } from './notificationStore';
 import { useSecurityStore } from './securityStore';
 
 /** Where Supabase sends the resident after they click the password-reset link. */
@@ -300,6 +301,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       currentAsociatieId: consumed.invite.asociatieId,
       ...sessionPatch,
     });
+    // Notify the invite issuer (admin) that a new member joined (T126).
+    // We only notify when there is a known issuer; the notification is purely
+    // informational and never blocks the join flow.
+    if (consumed.invite.createdBy) {
+      useNotificationStore.getState().emitMembershipJoined({
+        recipientUserId: consumed.invite.createdBy,
+        asociatieId: consumed.invite.asociatieId,
+        memberName: consumed.invite.inviteeName,
+        memberRole: consumed.invite.role,
+        now: Date.now(),
+      });
+    }
     return { status: 'ok', asociatieId: consumed.invite.asociatieId };
   },
 

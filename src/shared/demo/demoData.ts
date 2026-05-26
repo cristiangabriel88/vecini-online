@@ -69,6 +69,7 @@ import type {
   PetMarker,
 } from '@/shared/types/domain';
 import type { InviteCode } from '@/features/invites/inviteLogic';
+import type { AppNotification } from '@/features/notifications/notificationLogic';
 import { FEATURES } from '@/shared/features/registry';
 
 export const DEMO_ASOCIATIE: Asociatie = {
@@ -138,6 +139,42 @@ export const DEMO_INVITES: InviteCode[] = [
     inviteeEmail: 'elena.georgescu@example.ro',
     emailSentAt: Date.parse('2026-05-21T08:01:00Z'),
     emailDeliveredAt: null,
+  },
+];
+
+/**
+ * Demo notifications for the admin persona (T126). The `membership.joined`
+ * entry reflects Georgescu Elena redeeming her invite on 2026-05-22.
+ * All notifications are addressed to `DEMO_CURRENT_USER_ID` because every
+ * demo persona shares the same user id (`'u-res'`), so they are visible
+ * regardless of the role the demo entry uses.
+ */
+export const DEMO_NOTIFICATIONS: AppNotification[] = [
+  {
+    id: 'notif-demo-1',
+    userId: 'u-res',
+    asociatieId: 'demo-asoc',
+    kind: 'membership.joined',
+    title: '',
+    body: '',
+    link: '/app/admin/invitatii',
+    priority: 'normal',
+    readAt: null,
+    createdAt: Date.parse('2026-05-22T09:31:00Z'),
+    data: { name: 'Georgescu Elena', role: 'proprietar' },
+  },
+  {
+    id: 'notif-demo-2',
+    userId: 'u-res',
+    asociatieId: 'demo-asoc',
+    kind: 'announcement.published',
+    title: 'Întrerupere apă caldă — 25 mai',
+    body: 'Anunț publicat de administrator.',
+    link: '/app/anunturi',
+    priority: 'normal',
+    readAt: Date.parse('2026-05-20T10:05:00Z'),
+    createdAt: Date.parse('2026-05-20T10:00:00Z'),
+    data: {},
   },
 ];
 

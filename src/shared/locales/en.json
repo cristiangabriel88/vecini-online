@@ -410,7 +410,17 @@
     "quorumNotMet": "quorum not met"
   },
   "notifications": {
-    "empty": "You have no new notifications. You'll be notified about announcements, polls, and issues."
+    "empty": "You have no new notifications. You'll be notified about announcements, polls, and issues.",
+    "markAllRead": "Mark all as read",
+    "unreadCount": "{{count}} unread",
+    "justNow": "just now",
+    "minutesAgo": "{{count}} min ago",
+    "hoursAgo": "{{count}} hr ago",
+    "daysAgo": "{{count}} days ago",
+    "membershipJoined": "{{name}} joined",
+    "membershipJoinedBody": "{{name}} ({{role}}) accepted your invitation.",
+    "anonymousMember": "A resident",
+    "announcementPublished": "New announcement published"
   },
   "tickets": {
     "title": "Issues",

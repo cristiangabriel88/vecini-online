@@ -11,6 +11,7 @@ import { DEMO_EMERGENCY } from '@/shared/demo/demoData';
 import { useCurrentAsociatie } from '@/features/admin/asociatieStore';
 import { scariList } from '@/features/admin/buildingLogic';
 import { useProfileStore, useMyIdentity } from '@/features/profile/profileStore';
+import { useNotificationStore } from '@/shared/store/notificationStore';
 import { Icon } from '@/shared/components/Icon';
 import { Atmosphere } from '@/shared/components/Atmosphere';
 import { UserMenu } from '@/shared/components/UserMenu';
@@ -381,6 +382,8 @@ function Topbar() {
   const asociatieName = asociatie?.name?.trim() || t('chrome.ownersAssociation');
   const { userId } = useMyIdentity();
   const myScara = useProfileStore((s) => s.byUser[userId]?.scara ?? '').trim();
+  const currentAsociatieId = useAuthStore((s) => s.currentAsociatieId) ?? '';
+  const notifUnread = useNotificationStore((s) => s.unreadCount(userId, currentAsociatieId));
   const scari = scariList(asociatie?.settings);
   const scaraLabel = myScara
     ? t('chrome.scaraOne', { scara: myScara })
@@ -470,7 +473,11 @@ function Topbar() {
           aria-label={t('nav.notifications')}
         >
           <Bell size={18} />
-          <span className="iconbtn__dot" />
+          {notifUnread > 0 && (
+            <span className="iconbtn__badge" aria-label={t('notifications.unreadCount', { count: notifUnread })}>
+              {notifUnread > 9 ? '9+' : notifUnread}
+            </span>
+          )}
         </button>
         <UserMenu />
       </div>

@@ -410,7 +410,17 @@
     "quorumNotMet": "cvorum neîntrunit"
   },
   "notifications": {
-    "empty": "Nu ai notificări noi. Vei primi notificări pentru anunțuri, voturi și sesizări."
+    "empty": "Nu ai notificări noi. Vei primi notificări pentru anunțuri, voturi și sesizări.",
+    "markAllRead": "Marchează tot ca citit",
+    "unreadCount": "{{count}} necitite",
+    "justNow": "acum",
+    "minutesAgo": "acum {{count}} min",
+    "hoursAgo": "acum {{count}} ore",
+    "daysAgo": "acum {{count}} zile",
+    "membershipJoined": "{{name}} s-a alăturat",
+    "membershipJoinedBody": "{{name}} ({{role}}) a acceptat invitația.",
+    "anonymousMember": "Un locatar",
+    "announcementPublished": "Anunț nou publicat"
   },
   "tickets": {
     "title": "Sesizări",
