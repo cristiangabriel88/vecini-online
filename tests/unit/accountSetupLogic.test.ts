@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   type SetupProvisionLike,
   evaluateAccountForm,
+  postSetupRoute,
   resolveOnboarding,
   setupProvisionStatus,
 } from '@/features/onboarding/accountSetupLogic';
@@ -91,6 +92,16 @@ describe('resolveOnboarding', () => {
 
   it('returns null when nothing matches', () => {
     expect(resolveOnboarding('f'.repeat(64), [], [setup()], NOW)).toBeNull();
+  });
+});
+
+describe('postSetupRoute', () => {
+  it('returns /onboarding for a setup token so the admin configures their asociatie', () => {
+    expect(postSetupRoute('setup')).toBe('/onboarding');
+  });
+
+  it('returns /app for an invite token so the resident lands directly in the app', () => {
+    expect(postSetupRoute('invite')).toBe('/app');
   });
 });
 

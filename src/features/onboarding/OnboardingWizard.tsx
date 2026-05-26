@@ -8,7 +8,6 @@ import { Card } from '@/shared/components/Card';
 import { Input, Textarea } from '@/shared/components/Input';
 import { Switch } from '@/shared/components/Switch';
 import { Badge } from '@/shared/components/Badge';
-import { parseApartmentsCsv, type ApartmentImportRow } from '@/shared/lib/csv';
 import {
   FEATURE_CATEGORIES,
   FEATURES,
@@ -20,7 +19,15 @@ import {
 import { useFeatureStore } from '@/shared/features/featureStore';
 import { useAuthStore } from '@/shared/store/authStore';
 
-const STEPS = ['profile', 'import', 'features', 'branding', 'invite'] as const;
+/**
+ * Three-step wizard that an admin lands on after accepting their setup link
+ * (T154). Steps: Profile -> Features -> Branding. On finish the asociatie is
+ * created locally and the admin is sent directly to the Apartments page so they
+ * can import their apartment list (T155/T156). The CSV-import step that used to
+ * live here has moved to ApartmentsPage; the bulk-invite step has moved to
+ * InvitesAdminPage.
+ */
+const STEPS = ['profile', 'features', 'branding'] as const;
 
 export default function OnboardingWizard() {
   const { t } = useTranslation();
@@ -30,35 +37,26 @@ export default function OnboardingWizard() {
 
   const [step, setStep] = useState(0);
   const [profile, setProfile] = useState({ name: '', address: '', cui: '', regNumber: '' });
-  const [rows, setRows] = useState<ApartmentImportRow[]>([]);
-  const [csvError, setCsvError] = useState('');
   const [selected, setSelected] = useState<Record<string, boolean>>(
     Object.fromEntries(RECOMMENDED_FEATURES.map((k) => [k, true])),
   );
   const [branding, setBranding] = useState({ color: '#2563eb', welcome: '' });
-  const [invites, setInvites] = useState('');
-
-  const onCsv = async (file: File) => {
-    const text = await file.text();
-    const res = parseApartmentsCsv(text);
-    setRows(res.rows);
-    setCsvError(res.errors.length ? res.errors.join('; ') : '');
-    if (res.rows.length) toast.success(t('onboarding.csvParsed', { count: res.rows.length }));
-  };
 
   const finish = () => {
-    // Create the asociație locally (founder becomes its admin and it is selected
+    // Create the asociatie locally (founder becomes its admin and it is selected
     // as active), so the user clears the RequireAsociatie gate and lands in a
     // real tenant context. Live persistence is a separate activation step (T55).
     const asociatieId = createLocalAsociatie(profile.name);
-    // Scope the chosen feature set to the new asociație so its flags are its own.
+    // Scope the chosen feature set to the new asociatie so its flags are its own.
     setAll(asociatieId, selected);
     toast.success(t('onboarding.finishHint'));
-    navigate('/app');
+    // Land the admin directly on the Apartments page so they can import their
+    // apartment list and send invite emails without extra navigation.
+    navigate('/app/admin/apartamente');
   };
 
   const canNext =
-    step === 0 ? profile.name.trim() && profile.address.trim() : true;
+    step === 0 ? profile.name.trim().length > 0 && profile.address.trim().length > 0 : true;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
@@ -79,11 +77,27 @@ export default function OnboardingWizard() {
         {step === 0 && (
           <div className="space-y-4">
             <h2 className="text-lg font-semibold">{t('onboarding.profile')}</h2>
-            <Input label={t('onboarding.name')} value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} />
-            <Input label={t('onboarding.address')} value={profile.address} onChange={(e) => setProfile({ ...profile, address: e.target.value })} />
+            <Input
+              label={t('onboarding.name')}
+              value={profile.name}
+              onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+            />
+            <Input
+              label={t('onboarding.address')}
+              value={profile.address}
+              onChange={(e) => setProfile({ ...profile, address: e.target.value })}
+            />
             <div className="grid gap-4 sm:grid-cols-2">
-              <Input label={t('onboarding.cui')} value={profile.cui} onChange={(e) => setProfile({ ...profile, cui: e.target.value })} />
-              <Input label={t('onboarding.regNumber')} value={profile.regNumber} onChange={(e) => setProfile({ ...profile, regNumber: e.target.value })} />
+              <Input
+                label={t('onboarding.cui')}
+                value={profile.cui}
+                onChange={(e) => setProfile({ ...profile, cui: e.target.value })}
+              />
+              <Input
+                label={t('onboarding.regNumber')}
+                value={profile.regNumber}
+                onChange={(e) => setProfile({ ...profile, regNumber: e.target.value })}
+              />
             </div>
             <p className="border-t border-border pt-4 text-sm text-muted">
               {t('onboarding.haveCode')}{' '}
@@ -95,24 +109,6 @@ export default function OnboardingWizard() {
         )}
 
         {step === 1 && (
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold">{t('onboarding.import')}</h2>
-            <p className="text-sm text-muted">{t('onboarding.csvHelp')}</p>
-            <input
-              type="file"
-              accept=".csv,text/csv"
-              aria-label={t('onboarding.import')}
-              onChange={(e) => e.target.files?.[0] && onCsv(e.target.files[0])}
-              className="block w-full text-sm"
-            />
-            {csvError && <p className="text-sm text-danger">{csvError}</p>}
-            {rows.length > 0 && (
-              <p className="text-sm text-success">{t('onboarding.csvParsed', { count: rows.length })}</p>
-            )}
-          </div>
-        )}
-
-        {step === 2 && (
           <div className="space-y-5">
             <h2 className="text-lg font-semibold">{t('onboarding.features')}</h2>
             <p className="text-sm text-muted">{t('onboarding.selectFeatures')}</p>
@@ -141,7 +137,7 @@ export default function OnboardingWizard() {
           </div>
         )}
 
-        {step === 3 && (
+        {step === 2 && (
           <div className="space-y-4">
             <h2 className="text-lg font-semibold">{t('onboarding.branding')}</h2>
             <div>
@@ -160,18 +156,6 @@ export default function OnboardingWizard() {
               label={t('onboarding.welcomeMessage')}
               value={branding.welcome}
               onChange={(e) => setBranding({ ...branding, welcome: e.target.value })}
-            />
-          </div>
-        )}
-
-        {step === 4 && (
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold">{t('onboarding.invite')}</h2>
-            <Textarea
-              label={t('onboarding.inviteEmails')}
-              value={invites}
-              onChange={(e) => setInvites(e.target.value)}
-              placeholder={'comitet@exemplu.ro\npresedinte@exemplu.ro'}
             />
           </div>
         )}

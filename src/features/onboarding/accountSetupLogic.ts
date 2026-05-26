@@ -136,6 +136,21 @@ export interface AccountFormResult {
 }
 
 /**
+ * Returns the post-setup navigation target for a successfully consumed
+ * onboarding token.
+ *
+ * - `'setup'` tokens (admin provisioning links) redirect to the onboarding
+ *   wizard so the admin configures their asociatie before landing in the app.
+ * - `'invite'` tokens (locatar invites) land directly in the app.
+ *
+ * Extracted as a pure function so the branching rule is unit-testable
+ * independently of the React page.
+ */
+export function postSetupRoute(kind: OnboardingKind): string {
+  return kind === 'setup' ? '/onboarding' : '/app';
+}
+
+/**
  * Evaluate the account-creation form: a valid email, a password that clears the
  * full policy (`passwordPolicy.evaluatePassword`), and a matching confirmation.
  * Pure so the page's submit gate is unit-testable.

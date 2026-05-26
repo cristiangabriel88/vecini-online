@@ -304,7 +304,7 @@
     "primaryColor": "Culoare principală",
     "welcomeMessage": "Mesaj de bun-venit",
     "inviteEmails": "Adresele de email ale membrilor comitetului (una pe linie)",
-    "finishHint": "După finalizare poți genera codurile de invitație pentru locatari.",
+    "finishHint": "Asociația a fost configurată. Puteți importa lista de apartamente și trimite invitații.",
     "haveCode": "Ai primit un cod de invitație?",
     "joinLink": "Alătură-te unei asociații existente"
   },

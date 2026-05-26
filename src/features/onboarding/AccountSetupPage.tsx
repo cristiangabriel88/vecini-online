@@ -16,6 +16,7 @@ import {
 import {
   type ResolvedOnboarding,
   evaluateAccountForm,
+  postSetupRoute,
   resolveOnboarding,
 } from './accountSetupLogic';
 
@@ -115,7 +116,7 @@ export default function AccountSetupPage() {
         activateProvisionedAdmin(result.asociatieId, result.asociatieName ?? resolved.asociatieName ?? '');
       }
       toast.success(t('setup.success'));
-      navigate('/app');
+      navigate(postSetupRoute(resolved.kind));
     } finally {
       setSubmitting(false);
     }

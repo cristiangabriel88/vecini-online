@@ -304,7 +304,7 @@
     "primaryColor": "Primary color",
     "welcomeMessage": "Welcome message",
     "inviteEmails": "Committee member emails (one per line)",
-    "finishHint": "After finishing you can generate invite codes for residents.",
+    "finishHint": "Association configured. You can now import your apartment list and send invite emails.",
     "haveCode": "Got an invite code?",
     "joinLink": "Join an existing association"
   },
