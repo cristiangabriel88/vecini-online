@@ -148,7 +148,11 @@ export const usePlatformAsociatiiStore = create<PlatformAsociatiiState>()(
   ),
 );
 
-/** The secure setup link for a provisioned admin record (callers pass `env.appUrl`). */
+/**
+ * The secure setup link for a provisioned admin record. Callers on the platform
+ * console pass `env.residentAppUrl` so the handed-off link targets the
+ * resident/admin origin, not the platform subdomain it was minted on (T133).
+ */
 export function setupLinkFor(record: AdminProvisionRecord, baseUrl: string): string {
   return buildSetupLink(
     { name: record.name, email: record.email, setupCode: record.setupCode, setupToken: record.setupToken, expiresAt: record.expiresAt },

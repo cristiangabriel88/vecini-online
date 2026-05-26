@@ -238,14 +238,14 @@ export default function PlatformAsociatiiPage() {
                         {t('platform.asociatii.setupLinkLabel')}
                       </span>
                       <code className="platform-asoc-card__code-value platform-asoc-card__code-value--link">
-                        {setupLinkFor(prov, env.appUrl)}
+                        {setupLinkFor(prov, env.residentAppUrl)}
                       </code>
                       <button
                         type="button"
                         className="iconbtn"
                         onClick={() =>
                           void copyCode(
-                            setupLinkFor(prov, env.appUrl),
+                            setupLinkFor(prov, env.residentAppUrl),
                             t('platform.asociatii.linkCopied'),
                           )
                         }
@@ -403,14 +403,14 @@ export default function PlatformAsociatiiPage() {
                 {t('platform.asociatii.setupLinkLabel')}
               </span>
               <code className="platform-asoc-card__code-value platform-asoc-card__code-value--link">
-                {buildSetupLink(result.admin, env.appUrl)}
+                {buildSetupLink(result.admin, env.residentAppUrl)}
               </code>
             </div>
             <Button
               variant="ghost"
               onClick={() =>
                 void copyCode(
-                  buildSetupLink(result.admin, env.appUrl),
+                  buildSetupLink(result.admin, env.residentAppUrl),
                   t('platform.asociatii.linkCopied'),
                 )
               }

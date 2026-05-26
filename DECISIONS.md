@@ -2,6 +2,27 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## Onboarding links built in the platform console use a dedicated resident base URL (T133)
+
+The superadmin console (`src/platform/*`) is a separate build on its own
+subdomain, so `env.appUrl` (`VITE_APP_URL` ?? `window.location.origin`) resolves
+to the **platform** origin there. A setup link minted in the console with
+`env.appUrl` would therefore point residents at the wrong host.
+
+- **Add `env.residentAppUrl` with the chain `VITE_RESIDENT_APP_URL` → `VITE_APP_URL`
+  → `window.location.origin`.** The platform build sets `VITE_RESIDENT_APP_URL` to
+  the resident/admin origin; the single-origin dev/demo build leaves it unset and
+  falls back to the existing `appUrl`, so nothing changes there.
+- **Keep the link builders pure.** `buildSetupLink`/`setupLinkFor`/`buildOnboardingLink`
+  still take the base URL as a param; only the caller's source changed
+  (`PlatformAsociatiiPage` now passes `env.residentAppUrl`). The fallback chain
+  lives in a pure, unit-tested `resolveResidentAppUrl(residentUrl, appUrl)` (a blank
+  or whitespace resident URL falls back, so an empty env var never yields a broken
+  base).
+- **`InvitesAdminPage` stays on `env.appUrl`.** An admin issues invite codes from
+  inside `/app` on the resident/admin origin, where `appUrl` is already the right
+  host; only the cross-origin platform console needed the dedicated base.
+
 ## Anonymous messages are anonymous at the database layer, not just the UI (T137)
 
 F05 stored `anonymous_messages.sender_user_id` "for abuse prevention but hidden

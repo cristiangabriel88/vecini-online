@@ -731,7 +731,9 @@ toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
   carries an **opaque high-entropy token** (T123) and a **secure deep link**
   (`/onboarding/alatura?token=...`, built from `VITE_APP_URL`) shown alongside the
   short code, which stays the manual-entry fallback. The superadmin provisioning
-  setup code likewise gets a 24h-expiry secure setup link.
+  setup code likewise gets a 24h-expiry secure setup link, built from
+  `VITE_RESIDENT_APP_URL` (falling back to `VITE_APP_URL`, T133) so a link minted
+  on the platform subdomain still targets the resident/admin origin.
 - **Planned (BACKLOG T90), QR:** render a scannable **QR of the secure redeem
   link** (already built by `buildInviteLink`/`buildSetupLink`) next to each issued
   code, with a one-tap PNG download, so an admin can print or share it. Uses

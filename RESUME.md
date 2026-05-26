@@ -17,8 +17,21 @@ under `docs/`, despite references to the contrary). The product is
 > `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
 > unattended, Git Bash). Section 4 below is historical context, not the live queue.
 
-## 0. Current status (updated 2026-05-26, T134 superadmin routing)
+## 0. Current status (updated 2026-05-26, T133 resident-app base URL)
 
+- **2026-05-26 — T133 (P1) Resident-app base URL for onboarding links built in
+  the platform console.** The superadmin console is a separate build on its own
+  subdomain, so `env.appUrl` resolves to the platform origin there and a setup
+  link minted in the console pointed residents at the wrong host. Added
+  `env.residentAppUrl` resolving `VITE_RESIDENT_APP_URL` → `VITE_APP_URL` →
+  `window.location.origin` via a new pure, unit-tested `resolveResidentAppUrl`;
+  declared `VITE_RESIDENT_APP_URL` in `vite-env.d.ts` and documented it in
+  `.env.example`. The four setup-link builders in `PlatformAsociatiiPage` now pass
+  `env.residentAppUrl`; the builders stay pure (only the caller's source changed).
+  `InvitesAdminPage` stays on `appUrl` (it runs on the resident origin). Decision
+  in `DECISIONS.md`. `npm run lint`/`typecheck`/`test` (126 files / 964 tests)/
+  `build` all green. No new tasks surfaced; the live cross-origin redirect of the
+  superadmin is the separate queued T135.
 - **2026-05-26 — T134 (P1) Route a platform superadmin to the console, never
   through association onboarding.** A live platform superadmin exists only in
   `platform_admins` (not in `memberships`), so the main app hydrated them with no
