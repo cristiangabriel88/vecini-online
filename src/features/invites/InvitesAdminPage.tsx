@@ -17,7 +17,6 @@ import { useAuthStore } from '@/shared/store/authStore';
 import { useInviteStore } from '@/shared/store/inviteStore';
 import { recordAudit } from '@/shared/store/auditStore';
 import { useAsociatieApartments } from '@/features/admin/apartmentsStore';
-import { useCurrentAsociatie } from '@/features/admin/asociatieStore';
 import {
   type ExpiryPreset,
   type InviteStatus,
@@ -56,7 +55,6 @@ export default function InvitesAdminPage() {
   const location = useLocation();
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
   const userId = useAuthStore((s) => s.session?.user?.id ?? null);
-  const asociatieName = useCurrentAsociatie()?.name;
   const invites = useInviteStore((s) => s.invites);
   const issue = useInviteStore((s) => s.issue);
   const revoke = useInviteStore((s) => s.revoke);
@@ -161,8 +159,6 @@ export default function InvitesAdminPage() {
   const onSendEmail = async (invite: (typeof list)[number]) => {
     const result = await sendInviteEmail({
       invite,
-      asociatieName: asociatieName ?? '',
-      baseUrl: env.appUrl,
       locale: i18n.language,
     });
     if (!result.ok) {

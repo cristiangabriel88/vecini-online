@@ -11,14 +11,12 @@ import { Select } from '@/shared/components/Select';
 import { Switch } from '@/shared/components/Switch';
 import { Badge } from '@/shared/components/Badge';
 import { EmptyState } from '@/shared/components/EmptyState';
-import { env } from '@/shared/lib/env';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useInviteStore } from '@/shared/store/inviteStore';
 import { recordAudit } from '@/shared/store/auditStore';
 import { isValidEmail } from '@/features/auth/authLogic';
 import { isApartmentRegistered } from '@/features/invites/inviteLogic';
 import { sendInviteEmail } from '@/features/invites/inviteEmailApi';
-import { useCurrentAsociatie } from '@/features/admin/asociatieStore';
 import type { Apartment, ApartmentPerson } from '@/shared/types/domain';
 import { apartmentShortLabel } from '@/features/apartment/apartmentLogic';
 import { useApartment } from './apartmentsStore';
@@ -48,7 +46,6 @@ export default function ApartmentFormPage() {
   const isEdit = Boolean(id);
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
   const userId = useAuthStore((s) => s.session?.user?.id ?? null);
-  const asociatieName = useCurrentAsociatie()?.name;
   const apartment = useApartment(id);
   const invites = useInviteStore((s) => s.invites);
   const issue = useInviteStore((s) => s.issue);
@@ -176,8 +173,6 @@ export default function ApartmentFormPage() {
     });
     const result = await sendInviteEmail({
       invite,
-      asociatieName: asociatieName ?? '',
-      baseUrl: env.appUrl,
       locale: i18n.language,
     });
     if (!result.ok) {
