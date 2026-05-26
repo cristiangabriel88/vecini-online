@@ -85,7 +85,7 @@ export const DEMO_ASOCIATIE: Asociatie = {
   timezone: 'Europe/Bucharest',
   currency: 'RON',
   branding: { primary_color: '#2563eb', welcome_message: 'Bine ai venit în comunitatea blocului nostru!' },
-  settings: {},
+  settings: { scari: ['A', 'B'] },
   created_at: '2024-01-15T08:00:00Z',
   updated_at: '2026-05-01T08:00:00Z',
   deleted_at: null,

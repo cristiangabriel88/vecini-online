@@ -724,7 +724,7 @@
     "empty": "Niciun apartament importat. Folosește pasul de import din configurare."
   },
   "building": {
-    "title": "Configurarea clădirii",
+    "title": "Configurarea asociației",
     "subtitle": "Datele asociației de proprietari: denumire, adresă, identificare fiscală, cont bancar și contact.",
     "name": "Denumirea asociației",
     "address": "Adresă",
@@ -2273,7 +2273,7 @@
     "admin": "Administrare",
     "features": "Funcționalități",
     "apartments": "Apartamente",
-    "building": "Clădire",
+    "building": "Configurarea asociației",
     "invites": "Coduri de invitație",
     "dataRequests": "Cereri date personale",
     "processing": "Prelucrarea datelor (DPA)",

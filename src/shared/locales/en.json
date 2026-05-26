@@ -724,7 +724,7 @@
     "empty": "No apartments imported. Use the import step in setup."
   },
   "building": {
-    "title": "Building setup",
+    "title": "Association configuration",
     "subtitle": "The owners' association details: name, address, tax identifiers, bank account and contact.",
     "name": "Association name",
     "address": "Address",
@@ -2271,7 +2271,7 @@
     "admin": "Administration",
     "features": "Features",
     "apartments": "Apartments",
-    "building": "Building",
+    "building": "Association configuration",
     "invites": "Invite codes",
     "dataRequests": "Personal-data requests",
     "processing": "Data processing (DPA)",

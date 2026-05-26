@@ -347,6 +347,7 @@
 .navitem {
   display: flex;
   align-items: center;
+  text-align: left;
   gap: 10px;
   height: 34px;
   padding: 0 var(--space-3);

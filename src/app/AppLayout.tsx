@@ -234,16 +234,16 @@ function Sidebar() {
               icon={<Settings size={16} />}
             />
             <NavItem
-              label={t('chrome.apartments')}
-              active={isActive('admin/apartamente')}
-              onClick={() => navigate('/app/admin/apartamente')}
-              icon={<Home size={16} />}
-            />
-            <NavItem
               label={t('chrome.building')}
               active={isActive('admin/cladire')}
               onClick={() => navigate('/app/admin/cladire')}
               icon={<Building2 size={16} />}
+            />
+            <NavItem
+              label={t('chrome.apartments')}
+              active={isActive('admin/apartamente')}
+              onClick={() => navigate('/app/admin/apartamente')}
+              icon={<Home size={16} />}
             />
             <NavItem
               label={t('chrome.invites')}
