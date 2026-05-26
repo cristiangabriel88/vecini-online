@@ -41,7 +41,7 @@ export const useFeatureStore = create<FeatureState>()(
       flagsFor: (asociatieId) => flagsForAsociatie(get().byAsociatie, asociatieId),
     }),
     {
-      name: 'intrevecini.features',
+      name: 'vecini.features',
       version: 2,
       // v1 stored a single flat `flags` map shared across asociații; carry it
       // over to the demo asociație so an existing install keeps its toggles.

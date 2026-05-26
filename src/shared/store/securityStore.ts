@@ -96,6 +96,6 @@ export const useSecurityStore = create<SecurityState>()(
 
       recentEvents: () => get().events,
     }),
-    { name: 'intrevecini.security' },
+    { name: 'vecini.security' },
   ),
 );

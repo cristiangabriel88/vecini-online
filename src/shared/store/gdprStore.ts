@@ -112,6 +112,6 @@ export const useGdprStore = create<GdprState>()(
 
       isErased: (userId) => get().erasedUserIds.includes(userId),
     }),
-    { name: 'intrevecini.gdpr' },
+    { name: 'vecini.gdpr' },
   ),
 );

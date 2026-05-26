@@ -23,7 +23,7 @@ interface HomeLayoutState {
 }
 
 /**
- * F67 home layouts persisted per resident + asociație (`intrevecini.home`), so a
+ * F67 home layouts persisted per resident + asociație (`vecini.home`), so a
  * personalized home survives a refresh and follows the resident across devices
  * once the live `home_layouts` table is wired (owner RLS). The demo store is the
  * offline source of truth; live read/write is a documented follow-up.
@@ -45,7 +45,7 @@ export const useHomeLayoutStore = create<HomeLayoutState>()(
       forKey: (key) => layoutForKey(get().byKey, key),
       hasLayout: (key) => Boolean(key && get().byKey[key]),
     }),
-    { name: 'intrevecini.home' },
+    { name: 'vecini.home' },
   ),
 );
 

@@ -336,7 +336,7 @@ export const useMfaStore = create<MfaState>()(
       challengeLockMs: () => remainingLockMs(get().challengeThrottle, Date.now()),
     }),
     {
-      name: 'intrevecini.mfa',
+      name: 'vecini.mfa',
       // Only the demo enrolment + the challenge lockout survive reloads. Live
       // state is read from Supabase on load(); plaintext recovery codes and
       // drafts are never stored. Persisting the throttle keeps a temporary

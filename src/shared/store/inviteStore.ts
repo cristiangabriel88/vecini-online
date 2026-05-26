@@ -70,6 +70,6 @@ export const useInviteStore = create<InviteState>()(
           .invites.filter((invite) => invite.asociatieId === asociatieId)
           .sort((a, b) => b.createdAt - a.createdAt),
     }),
-    { name: 'intrevecini.invites' },
+    { name: 'vecini.invites' },
   ),
 );

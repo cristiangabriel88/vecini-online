@@ -535,15 +535,14 @@ without new dependencies while preserving the real shape:
   scopes voting to an `in_desfasurare` assembly within the asociație.
 
 
-## Product name: vecini.online vs. vecini.online
+## Product name: vecini.online
 
-The repository, environment, and master prompt name the product **vecini.online**.
-The `/docs` (ARCHITECTURE, FEATURES, etc.) were written against an earlier
-working title, **vecini.online**. The prompt says docs win on conflicts, but a product
-name is a branding decision, not an architectural one, and the repo/prompt are
-the more authoritative source for it. **Decision:** ship as *vecini.online* in all
-user-facing strings, code, and package name; leave the historical docs as-is
-(they remain accurate for architecture/data/feature specs).
+**Decision:** the product is named **vecini.online** everywhere, with no other
+brand anywhere in the codebase, docs, package name, or persisted storage keys.
+Earlier drafts used a different working title; the name is now fully settled and
+there is a single brand throughout. A product name is a branding decision, so the
+repo/environment are authoritative for it over any older spec text, and all stores
+use the `vecini.*` localStorage prefix.
 
 ## Scope delivered in this session vs. registered-but-not-built
 
@@ -589,7 +588,7 @@ not-configured check.
   the demo asociație (T43). The active asociație's set is resolved via the
   `useAsociatieFlags()` hook from `authStore.currentAsociatieId`, so different
   local asociații can enable different modules; pure resolution/mutation lives in
-  `featureFlagsLogic`. Persisted at `intrevecini.features` with a `version: 2`
+  `featureFlagsLogic`. Persisted at `vecini.features` with a `version: 2`
   migrate that carries a pre-T43 flat `flags` map onto the demo asociație. With a
   backend an asociație's set is hydrated from / written back to `asociatie_features`
   (live activation is T56).
@@ -677,7 +676,7 @@ the preload list. `npm audit` reported 0 vulnerabilities, so nothing to resolve.
 
 The invite model lives in two layers so the offline loop is complete and the
 live path is a thin follow-up. Pure `inviteLogic` owns the lifecycle (create /
-validate / consume / revoke); a persisted `inviteStore` (`intrevecini.invites`)
+validate / consume / revoke); a persisted `inviteStore` (`vecini.invites`)
 keeps issued codes across all asociații and filters by the active one. Codes are
 generated with the existing `generateInviteCode` (unambiguous 8-char alphabet)
 and regenerated on the rare collision so they stay unique within the store.
@@ -1050,7 +1049,7 @@ The audit trail records state changes across features (actor, time, before/after
   Stronger, secret-keyed or Merkle-anchored evidence (so integrity no longer
   depends on the store being honest) is the explicit follow-up T87.
 - **Persisted, unlike the content stores.** `auditStore` uses `persist`
-  (`intrevecini.audit`), whereas announcements/discussions/tickets are not yet
+  (`vecini.audit`), whereas announcements/discussions/tickets are not yet
   persisted (T65). An audit trail must survive a reload to be tamper-evident at
   all, so the seeded demo chain plus recorded entries are kept in local storage
   offline; the seq/hash chain is therefore continuous across reloads.

@@ -113,6 +113,6 @@ export const useBreachStore = create<BreachState>()(
       notifyAuthority: (id) => transform(get, set, id, (r) => markAuthorityNotified(r)),
       notifySubjects: (id) => transform(get, set, id, (r) => markSubjectsNotified(r)),
     }),
-    { name: 'intrevecini.breaches' },
+    { name: 'vecini.breaches' },
   ),
 );

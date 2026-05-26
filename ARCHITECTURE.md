@@ -25,7 +25,7 @@ The stack is intentionally simple to keep hosting cheap and operations boring:
 │   ├── DEPLOYMENT.md            (Netlify + Supabase setup)
 │   └── DECISIONS.md             (running log of architectural decisions)
 ├── BOT_SETUP.md                 (user-facing Telegram setup guide)
-├── CLAUDE_CODE_PROMPT.md        (the master prompt)
+├── DevArchive/                 (historical bootstrap docs, no longer authoritative)
 ├── README.md                    (project overview)
 ├── public/
 ├── src/

@@ -21,6 +21,6 @@ export const useThemeStore = create<ThemeState>()(
         document.documentElement.setAttribute('data-theme', get().theme);
       },
     }),
-    { name: 'intrevecini.theme' },
+    { name: 'vecini.theme' },
   ),
 );

@@ -87,6 +87,6 @@ export const useTelegramLinkStore = create<TelegramLinkState>()(
           links: state.links.filter((l) => l.telegramUserId !== telegramUserId),
         })),
     }),
-    { name: 'intrevecini.telegram' },
+    { name: 'vecini.telegram' },
   ),
 );

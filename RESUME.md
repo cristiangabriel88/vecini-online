@@ -2,9 +2,8 @@
 
 A quick-start status summary so work can resume without re-reading the full spec.
 Sourced from `DECISIONS.md` and `FEATURES.md` (both live at the repo root, not
-under `docs/`, despite references to the contrary). The product ships as
-**vecini.online**; the docs use the earlier working title **vecini.online** but remain
-accurate for architecture/data/feature specs.
+under `docs/`, despite references to the contrary). The product is
+**vecini.online** throughout.
 
 > Scope note: the spec defines **65 features (F01–F65)**. This codebase is a
 > production-shaped *foundation*: buildable, type-safe, lint-clean, unit-tested,
@@ -252,7 +251,7 @@ accurate for architecture/data/feature specs.
   reference a disabled feature); non-mutating `toggleCardVisible`/`cycleCardSize`/
   `moveCard`/`moveCardTo`, plus `visibleCards`/`isDefaultLayout`/`layoutForKey`
   (stable frozen empty reference)/`layoutStorageKey` (12 assertions). Persisted
-  `homeLayoutStore` (`intrevecini.home`) keyed by `${residentId}::${asociatieId}`
+  `homeLayoutStore` (`vecini.home`) keyed by `${residentId}::${asociatieId}`
   with `save`/`reset`/`forKey`/`hasLayout` + a `useHomeLayoutKey()` hook. Rewrote
   `HomePage`: a `Personalizează` pencil flips the grid into edit mode (eased
   transitions) where each card has show/hide, up/down reorder + native
@@ -367,7 +366,7 @@ accurate for architecture/data/feature specs.
   `{ ok, brokenAt }`, catching any edit/reorder), `filterEntries`
   (action/entity/actor/text/date range), `pruneExpired` (730-day retention,
   the T06 security window), `auditToJson`/`auditToCsv`, and a deterministic
-  `buildDemoAuditChain` seed (14 unit assertions). Persisted (`intrevecini.audit`)
+  `buildDemoAuditChain` seed (14 unit assertions). Persisted (`vecini.audit`)
   `auditStore` keyed by asociație, seeded for demo, `record`/`recordAudit`
   appending to the active chain + mirroring best-effort to `audit_log`; a
   `useAsociatieAudit()` hook. Admin `AuditLogPage` at `/app/admin/jurnal`
@@ -699,7 +698,7 @@ accurate for architecture/data/feature specs.
   resolver (precedence: no-code → already-linked → link code → invite code →
   unknown; a found-but-not-redeemable code reports its own status), returning the
   `telegram_users`-shaped `TelegramLink` + the matched code id to consume. New
-  persisted `telegramLinkStore` (`intrevecini.telegram`) is the local/mock path:
+  persisted `telegramLinkStore` (`vecini.telegram`) is the local/mock path:
   `issueLinkCode`, an atomic replay-safe `linkByPayload` (records + consumes the
   link-code path; the invite path validates but records nothing offline since the
   app user is provisioned live, T58), `linkFor`, `unlink`. The webhook `/start`
@@ -790,7 +789,7 @@ accurate for architecture/data/feature specs.
   empty default for a stable selector reference; `isFeatureEnabled`; pure
   `setFlagIn`/`setAllIn`; `migrateFlatFlags` carrying the old flat shape onto the
   demo asociație). `featureStore` is now keyed by asociație (`byAsociatie`),
-  persisted at `intrevecini.features` with `version: 2` + a migrate; `setFlag`/
+  persisted at `vecini.features` with `version: 2` + a migrate; `setFlag`/
   `setAll` take an asociație id, and a new `useAsociatieFlags()` hook resolves the
   active asociație's set from `authStore.currentAsociatieId` (no store cycle).
   `useFeature`/`FeatureGate` and all nav/home/assistant/admin consumers now read
@@ -823,7 +822,7 @@ accurate for architecture/data/feature specs.
   collision-regeneration; `validateInvite` → `ok`/`expired`/`used`/`revoked`/
   `unknown`; `consumeInvite`/`revokeInvite` non-mutating; `findByCode`;
   `isRedeemable`; `expiryFromPreset`; `INVITABLE_ROLES` minus founder/platform
-  roles). Persisted `inviteStore` (`intrevecini.invites`): `issue`, `revoke`, an
+  roles). Persisted `inviteStore` (`vecini.invites`): `issue`, `revoke`, an
   atomic double-spend-safe `consume`, and a `forAsociatie` selector. New
   `InvitesAdminPage` at `/app/admin/invitatii` (admin nav link) to issue (role,
   optional apartment, expiry preset, single-use) / list / copy / revoke codes,

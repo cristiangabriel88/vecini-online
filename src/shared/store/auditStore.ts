@@ -94,7 +94,7 @@ export const useAuditStore = create<AuditState>()(
       },
       forAsociatie: (asociatieId) => chainFor(get().byAsociatie, asociatieId),
     }),
-    { name: 'intrevecini.audit', version: 1 },
+    { name: 'vecini.audit', version: 1 },
   ),
 );
 

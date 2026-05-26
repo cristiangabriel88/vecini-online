@@ -33,7 +33,7 @@ interface ProfileState {
 }
 
 /**
- * F66 profiles persisted per user (`intrevecini.profile`), seeded with the demo
+ * F66 profiles persisted per user (`vecini.profile`), seeded with the demo
  * resident so the offline editor is populated. The demo store is the offline
  * source of truth; live read/write against the extended `users` row +
  * `profile_custom_fields` under RLS is a documented follow-up (see BACKLOG.md).
@@ -46,7 +46,7 @@ export const useProfileStore = create<ProfileState>()(
       save: (profile) =>
         set((s) => ({ byUser: { ...s.byUser, [profile.userId]: profile } })),
     }),
-    { name: 'intrevecini.profile' },
+    { name: 'vecini.profile' },
   ),
 );
 

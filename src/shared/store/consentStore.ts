@@ -37,6 +37,6 @@ export const useConsentStore = create<ConsentState>()(
       rejectNonEssential: () => get().decide(rejectNonEssentialChoices()),
       reset: () => set({ record: null }),
     }),
-    { name: 'intrevecini.consent' },
+    { name: 'vecini.consent' },
   ),
 );

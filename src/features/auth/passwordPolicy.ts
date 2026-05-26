@@ -38,7 +38,7 @@ const COMMON_PASSWORDS = new Set<string>([
   'secret', 'access', 'shadow', 'michael', 'jordan', 'hello123', 'freedom',
   // Romanian-leaning and product-specific guesses.
   'parola', 'parola123', 'parolamea', 'asociatie', 'asociatia', 'administrator1',
-  'romania', 'bucuresti', 'vecini', 'vecinionline', 'intrevecini', 'bloc',
+  'romania', 'bucuresti', 'vecini', 'vecinionline', 'vecinionline123', 'bloc',
 ]);
 
 /** Lower-case and strip common separators so "P@ss-word_1" reduces sensibly. */

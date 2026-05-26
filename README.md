@@ -5,9 +5,10 @@ A multi-tenant web app and Telegram bot for Romanian *asociații de proprietari*
 One codebase. Many buildings. 65 features the admin can mix and match. Works for
 an 18-apartment bloc or a 1000-apartment complex.
 
-> Built from `CLAUDE_CODE_PROMPT.md`. The spec docs (`ARCHITECTURE.md`,
-> `FEATURES.md`, `DATA_MODEL.md`, …) were authored under the working title
-> *vecini.online*; the shipped product is **vecini.online** (see `DECISIONS.md`).
+> Built from `DevArchive/CLAUDE_CODE_PROMPT.md` (the original bootstrap prompt,
+> archived now that the app is built). The spec docs (`ARCHITECTURE.md`,
+> `FEATURES.md`, `DATA_MODEL.md`, …) describe the product, **vecini.online**
+> (see `DECISIONS.md`).
 
 ## What it does
 
