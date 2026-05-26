@@ -358,7 +358,9 @@
     "err_revoked": "Codul a fost revocat. Cere unul nou.",
     "err_unknown": "Link sau cod invalid. Verifică-l și încearcă din nou.",
     "createPrompt": "Tu administrezi asociația?",
-    "createLink": "Creează o asociație nouă"
+    "createLink": "Creează o asociație nouă",
+    "noTokenTitle": "Link de invitație invalid",
+    "noTokenBody": "Linkul de invitație lipsește sau este invalid. Contactează administratorul pentru un nou link de invitație."
   },
   "features": {
     "title": "Funcționalități",
@@ -822,8 +824,8 @@
     "singleUse": "O singură utilizare",
     "reusable": "Reutilizabil",
     "issue": "Generează codul",
-    "issued": "Cod generat: {{code}}",
-    "autoIssued": "Cod generat pentru invitat: {{code}}",
+    "issued": "Link de invitație generat.",
+    "autoIssued": "Link de invitație creat pentru invitat.",
     "inviteeName": "Nume invitat",
     "inviteeEmail": "Email invitat",
     "copy": "Copiază",

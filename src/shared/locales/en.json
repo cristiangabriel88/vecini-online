@@ -358,7 +358,9 @@
     "err_revoked": "This code has been revoked. Ask for a new one.",
     "err_unknown": "Invalid link or code. Check it and try again.",
     "createPrompt": "Are you the administrator?",
-    "createLink": "Create a new association"
+    "createLink": "Create a new association",
+    "noTokenTitle": "Invalid invitation link",
+    "noTokenBody": "This invitation link is missing or invalid. Ask your administrator for a new invitation link."
   },
   "features": {
     "title": "Features",
@@ -822,8 +824,8 @@
     "singleUse": "Single use",
     "reusable": "Reusable",
     "issue": "Generate code",
-    "issued": "Code generated: {{code}}",
-    "autoIssued": "Code generated for the invitee: {{code}}",
+    "issued": "Invite link ready.",
+    "autoIssued": "Invite link created for the invitee.",
     "inviteeName": "Invitee name",
     "inviteeEmail": "Invitee email",
     "copy": "Copy",

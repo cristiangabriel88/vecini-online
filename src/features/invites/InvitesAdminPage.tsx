@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { Copy, KeyRound, Link2, Mail, Ticket, Trash2 } from 'lucide-react';
+import { KeyRound, Link2, Mail, Ticket, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
@@ -102,7 +102,7 @@ export default function InvitesAdminPage() {
         before: null,
         after: invite.role,
       });
-      toast.success(t('invites.autoIssued', { code: invite.code }));
+      toast.success(t('invites.autoIssued'));
     }
     navigate('.', { replace: true, state: null });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -144,7 +144,7 @@ export default function InvitesAdminPage() {
       before: null,
       after: invite.role,
     });
-    toast.success(t('invites.issued', { code: invite.code }));
+    toast.success(t('invites.issued'));
   };
 
   const onRevoke = (id: string, code: string) => {
@@ -276,9 +276,6 @@ export default function InvitesAdminPage() {
             return (
               <Card key={invite.id}>
                 <div className="flex flex-wrap items-center gap-3">
-                  <code className="rounded bg-surface-2 px-2 py-1 font-mono text-base font-semibold tracking-widest">
-                    {invite.code}
-                  </code>
                   <Badge tone={STATUS_TONE[status]}>{t(`invites.status_${status}`)}</Badge>
                   <Badge tone="primary">{t(`invites.role_${invite.role}`)}</Badge>
                   {invite.apartmentId && (
@@ -288,13 +285,6 @@ export default function InvitesAdminPage() {
                     <Badge tone="neutral">{t('invites.reusable')}</Badge>
                   )}
                   <div className="ml-auto flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copy(invite.code, t('invites.copied'))}
-                    >
-                      <Copy className="h-4 w-4" /> {t('invites.copy')}
-                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"

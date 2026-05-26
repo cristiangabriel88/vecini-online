@@ -19,9 +19,9 @@ under `docs/`, despite references to the contrary). The product is
 > Finished tasks' full done-notes are archived in `COMPLETED.md` (newest first);
 > §0 below stays the dated chronological summary.
 
-## 0. Current status (updated 2026-05-26, MVP presentation flow planned — T152-T157 queued)
+## 0. Current status (updated 2026-05-26, T157 done — invite code UI removed)
 
-- **2026-05-26 — MVP presentation flow defined.** Added 6 new P1 tasks (T157, T153, T152, T154, T155, T156) at the top of the backlog priority queue to wire the full live-demo flow end-to-end: superadmin sends admin invite by email (dedicated page, T152; polished HTML+QR template, T153) → admin onboards via wizard → lands on Apartamente (T154) → downloads CSV template and imports apartment list with auto-invite for opt-in residents (T155, T156). Short alphanumeric code UI removed from all surfaces (T157); invite flow is `?token=` deep link only. T116 elevated P2→P1 (prerequisite for T156); T136 removed (absorbed into T154); T132 removed (old modal obsolete). Open tasks: T157, T148, T153, T152, T154, T116, T155, T156 (MVP priority), then T90, T126, T140, T141, ... (existing P1 queue).
+- **2026-05-26 — T157 (P1) Invite code UI removed from all surfaces.** `InvitesAdminPage`: removed the code chip and "Copy code" button from each invite row (link, email, and revoke remain); issue toasts no longer echo the code. `AccountSetupPage`: removed the manual code-entry fallback input; arriving without a `?token=` now shows a clean bilingual "Link invalid" error state. New `setup.noTokenTitle`/`setup.noTokenBody` locale keys (RO+EN); `invites.issued` and `invites.autoIssued` updated to remove code interpolation. `inviteLogic.ts`, `inviteStore.ts`, and DB schema unchanged (code field preserved for backward compat). 132 files / 1031 tests green. Open tasks: T148, T153, T152, T154, T116, T155, T156 (MVP priority), then T90, T126, T140, T141, ... (existing P1 queue).
 
 ## 0a. Previous status (2026-05-26, T150 locked-feature request channel)
 

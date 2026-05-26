@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { Building2, ShieldCheck, Ticket, UserPlus } from 'lucide-react';
+import { AlertCircle, Building2, ShieldCheck, Ticket, UserPlus } from 'lucide-react';
 import { Button } from '@/shared/components/Button';
 import { Card } from '@/shared/components/Card';
 import { Input } from '@/shared/components/Input';
@@ -22,13 +22,15 @@ import {
 /**
  * Account-creation-on-redemption landing (T124), at `/configurare-cont`.
  *
- * The invitee arrives by an onboarding deep link carrying an opaque token (the
- * locatar invite link or the admin setup link) or types the short fallback code.
- * They set a password (twice), and on submit the matching token/code is consumed
- * once (single-use, 24h, replay-safe) and the membership is activated offline:
- * `admin` for a setup link, the code's role for a locatar invite. They land in
- * `/app`. Live account creation under RLS is T55; the privileged admin-setup
- * cross-tenant write is the T92 service-role function.
+ * The invitee arrives via a `?token=` deep link (the locatar invite link or the
+ * admin setup link). They set a password (twice), and on submit the token is
+ * consumed once (single-use, 24h, replay-safe) and the membership is activated
+ * offline: `admin` for a setup link, the code's role for a locatar invite.
+ * They land in `/app`. Live account creation under RLS is T55; the privileged
+ * admin-setup cross-tenant write is the T92 service-role function.
+ *
+ * If no `?token=` param is present the page shows a bilingual invalid-link
+ * state so users who arrive without a token get a clear explanation.
  */
 export default function AccountSetupPage() {
   const { t } = useTranslation();
@@ -43,22 +45,18 @@ export default function AccountSetupPage() {
   const provisions = usePlatformAsociatiiStore((s) => s.provisions);
   const asociatii = usePlatformAsociatiiStore((s) => s.asociatii);
 
-  // The manual fallback code, used only when no token rides in the URL.
-  const [code, setCode] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // What the link/code points at, and whether it is still redeemable.
-  const value = tokenParam || code.trim();
   const setupLinks = useMemo(
     () => setupProvisionLinks(provisions, asociatii),
     [provisions, asociatii],
   );
   const resolved: ResolvedOnboarding | null = useMemo(
-    () => (value ? resolveOnboarding(value, invites, setupLinks) : null),
-    [value, invites, setupLinks],
+    () => (tokenParam ? resolveOnboarding(tokenParam, invites, setupLinks) : null),
+    [tokenParam, invites, setupLinks],
   );
 
   const form = useMemo(
@@ -66,34 +64,50 @@ export default function AccountSetupPage() {
     [email, password, confirm],
   );
 
-  // A typed value that resolves to nothing, or to a non-redeemable target, is
-  // reported with a precise reason. An empty value just prompts for the code.
-  const tokenError: string | null =
-    value.length === 0
-      ? null
-      : !resolved
-        ? t('setup.err_unknown')
-        : resolved.status !== 'ok'
-          ? t(`setup.err_${resolved.status}`)
-          : null;
+  // No token in the URL — the link is missing or was corrupted.
+  if (!tokenParam) {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-12">
+        <div className="mb-6 text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-danger/10 text-danger">
+            <AlertCircle className="h-6 w-6" />
+          </div>
+          <h1 className="text-2xl font-semibold">{t('setup.noTokenTitle')}</h1>
+          <p className="mt-1 text-muted">{t('setup.noTokenBody')}</p>
+        </div>
+        <p className="mt-6 text-center text-sm text-muted">
+          {t('auth.haveAccount')}{' '}
+          <Link to="/" className="auth-link">
+            {t('auth.login')}
+          </Link>
+        </p>
+      </div>
+    );
+  }
+
+  const tokenError: string | null = !resolved
+    ? t('setup.err_unknown')
+    : resolved.status !== 'ok'
+      ? t(`setup.err_${resolved.status}`)
+      : null;
 
   const canSubmit = form.ok && resolved?.status === 'ok' && !submitting;
 
-  const roleLabel = (resolved: ResolvedOnboarding) =>
-    resolved.kind === 'setup' ? t('setup.roleAdmin') : t(`invites.role_${resolved.role}`);
+  const roleLabel = (r: ResolvedOnboarding) =>
+    r.kind === 'setup' ? t('setup.roleAdmin') : t(`invites.role_${r.role}`);
 
   const submit = () => {
     if (!resolved || resolved.status !== 'ok' || !form.ok) return;
     setSubmitting(true);
     try {
       if (resolved.kind === 'invite') {
-        const result = redeemInvite(value);
+        const result = redeemInvite(tokenParam);
         if (result.status !== 'ok') {
           toast.error(t(`setup.err_${result.status}`));
           return;
         }
       } else {
-        const result = consumeSetup(value);
+        const result = consumeSetup(tokenParam);
         if (result.status !== 'ok' || !result.asociatieId) {
           toast.error(t(`setup.err_${result.status}`));
           return;
@@ -149,20 +163,7 @@ export default function AccountSetupPage() {
             submit();
           }}
         >
-          {!tokenParam && (
-            <Input
-              label={t('setup.codeLabel')}
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="ABCD-2345"
-              autoComplete="off"
-              spellCheck={false}
-              className="font-mono uppercase tracking-widest"
-              hint={t('setup.codeHint')}
-              error={tokenError ?? undefined}
-            />
-          )}
-          {tokenParam && tokenError && (
+          {tokenError && (
             <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">{tokenError}</p>
           )}
 
