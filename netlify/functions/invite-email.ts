@@ -10,6 +10,12 @@
 //    so the function cannot be used as an open email relay.
 //  - Rate-limited: max 20 sends per 10 minutes per caller+asociatie.
 //
+// Two templates (T153):
+//  - kind === 'admin_setup' (or absent): polished admin invite with branded
+//    header, rounded-pill CTA and an embedded QR code generated server-side
+//    using `qrcode`.
+//  - kind === 'resident_invite': the existing resident template (T147).
+//
 // Requires both Resend (`RESEND_API_KEY`, `RESEND_FROM_EMAIL`) and the
 // Supabase service-role key (`SUPABASE_SERVICE_ROLE_KEY`, `VITE_SUPABASE_URL`)
 // to be configured.  If either is absent the endpoint returns 503 so the
@@ -18,7 +24,8 @@
 //
 // Privacy: never log the recipient, token, rendered body, or user id.
 
-import { buildInviteEmail } from '../../src/shared/lib/inviteEmail';
+import QRCode from 'qrcode';
+import { buildAdminInviteEmail, buildInviteEmail } from '../../src/shared/lib/inviteEmail';
 import { buildOnboardingLink } from '../../src/shared/lib/inviteCode';
 import { isResendConfigured, sendEmail } from './_shared/resend';
 import {
@@ -35,6 +42,12 @@ interface InviteEmailRequest {
   inviteId?: string;
   /** Recipient locale used to select the email template language. */
   locale?: string;
+  /**
+   * Template kind. `'admin_setup'` renders the polished admin template with
+   * branded header, rounded-pill CTA and embedded QR code (T153). Omitting
+   * this field (or `'resident_invite'`) renders the standard resident template.
+   */
+  kind?: 'admin_setup' | 'resident_invite';
 }
 
 function json(status: number, body: Record<string, unknown>): Response {
@@ -103,12 +116,37 @@ export default async (req: Request): Promise<Response> => {
   const inviteLink = buildOnboardingLink(appUrl, invite.token);
 
   // ── Render template and send ──────────────────────────────────────────────
-  const email = buildInviteEmail({
-    locale: payload.locale,
-    recipientName: invite.invitee_name ?? null,
-    asociatieName,
-    inviteLink,
-  });
+  const isAdminKind = payload.kind === 'admin_setup';
+
+  let email;
+  if (isAdminKind) {
+    // Generate a QR code as an inline base64 PNG (200x200, subtle dark-on-white).
+    // On failure we silently omit the QR rather than rejecting the request.
+    let qrCodeDataUrl: string | null = null;
+    try {
+      qrCodeDataUrl = await QRCode.toDataURL(inviteLink, {
+        width: 200,
+        margin: 2,
+        color: { dark: '#1f2933', light: '#ffffff' },
+      });
+    } catch {
+      // Non-fatal: the template renders without the QR block.
+    }
+
+    email = buildAdminInviteEmail({
+      locale: payload.locale,
+      adminName: invite.invitee_name ?? null,
+      setupLink: inviteLink,
+      qrCodeDataUrl,
+    });
+  } else {
+    email = buildInviteEmail({
+      locale: payload.locale,
+      recipientName: invite.invitee_name ?? null,
+      asociatieName,
+      inviteLink,
+    });
+  }
 
   const result = await sendEmail({
     to: invite.invitee_email,
