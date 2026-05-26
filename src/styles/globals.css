@@ -35,6 +35,15 @@ html, body, #root {
 }
 
 /* ============================================================
+   Apartment add/edit form — compact vertical rhythm so the whole
+   form fits on one laptop screen without feeling cramped. Only the
+   vertical axis tightens; horizontal padding is left untouched.
+   ============================================================ */
+.apt-form .pageheader { padding-bottom: var(--space-4); }
+.apt-form .card { margin-bottom: var(--space-3); }
+.apt-form .card__body { padding-block: var(--space-4); }
+
+/* ============================================================
    Home edit-mode drag reorder (F67)
    ------------------------------------------------------------
    The whole card is the drag handle; a glowing caret sits in the

@@ -1,9 +1,15 @@
-import { forwardRef, useId, type InputHTMLAttributes, type TextareaHTMLAttributes } from 'react';
+import {
+  forwardRef,
+  useId,
+  type InputHTMLAttributes,
+  type ReactNode,
+  type TextareaHTMLAttributes,
+} from 'react';
 import { Info } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 
 interface FieldProps {
-  label?: string;
+  label?: ReactNode;
   hint?: string;
   error?: string;
 }

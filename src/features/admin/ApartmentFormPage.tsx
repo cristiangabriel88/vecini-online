@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Check, Mail, Plus, Send, ShieldCheck, Trash2 } from 'lucide-react';
+import { ArrowLeft, Check, Info, Mail, Plus, Send, ShieldCheck, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
-import { Input, Textarea } from '@/shared/components/Input';
+import { Input } from '@/shared/components/Input';
 import { Select } from '@/shared/components/Select';
 import { Switch } from '@/shared/components/Switch';
 import { Badge } from '@/shared/components/Badge';
@@ -61,6 +61,9 @@ export default function ApartmentFormPage() {
   );
   const [persons, setPersons] = useState<ApartmentPerson[]>(() => apartment?.persons ?? []);
   const [active, setActive] = useState<boolean>(() => apartment?.is_active ?? true);
+  // Required-field errors stay silent until the admin actually tries to save,
+  // so a pristine form never greets them with red text.
+  const [submitted, setSubmitted] = useState(false);
 
   if (isEdit && !apartment) {
     return (
@@ -101,6 +104,7 @@ export default function ApartmentFormPage() {
   /** Persist the current form (create or update) and return the saved apartment,
    *  or null when the asociație is missing or a field is invalid. */
   const persist = (): Apartment | null => {
+    setSubmitted(true);
     if (!asociatieId) return null;
     if (Object.keys(errors).length > 0) {
       toast.error(t('apartments.fixErrors'));
@@ -225,15 +229,15 @@ export default function ApartmentFormPage() {
     ) : undefined;
 
   return (
-    <div>
+    <div className="apt-form">
       <PageHeader
         title={isEdit ? t('apartments.edit', { label: apartmentShortLabel(apartment!) }) : t('apartments.addOneTitle')}
         subtitle={isEdit ? t('apartments.editSubtitle') : t('apartments.addOneSubtitle')}
         action={statusBlock}
       />
 
-      <Card className="mb-4">
-        <div className="grid gap-4 sm:grid-cols-2">
+      <Card>
+        <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2">
           <EntranceField
             label={t('apartments.scara')}
             value={input.scara}
@@ -241,16 +245,33 @@ export default function ApartmentFormPage() {
           />
           <Input
             type="number"
-            label={t('apartments.etaj')}
+            label={
+              <span className="inline-flex items-center gap-1">
+                {t('apartments.etaj')}
+                <span
+                  className="inline-flex cursor-help text-muted"
+                  title={t('apartments.etajHint')}
+                  aria-label={t('apartments.etajHint')}
+                >
+                  <Info size={13} />
+                </span>
+              </span>
+            }
             value={input.etaj}
             error={errors.etaj ? t('apartments.invalidField') : undefined}
-            hint={t('apartments.etajHint')}
             onChange={(e) => setField('etaj', e.target.value)}
           />
           <Input
-            label={t('apartments.number')}
+            label={
+              <span className="inline-flex items-center gap-1">
+                {t('apartments.number')}
+                <span className="text-danger" aria-hidden="true">
+                  *
+                </span>
+              </span>
+            }
             value={input.numar_apartament}
-            error={errors.numar_apartament ? t('common.required') : undefined}
+            error={submitted && errors.numar_apartament ? t('common.required') : undefined}
             onChange={(e) => setField('numar_apartament', e.target.value)}
           />
           <Input
@@ -274,16 +295,20 @@ export default function ApartmentFormPage() {
             onChange={(e) => setField('cota_parte_indiviza', e.target.value)}
           />
         </div>
-        <div className="mt-4">
-          <Textarea
+        <div className="mt-3">
+          <Input
             label={t('apartments.notes')}
             value={input.notes}
             onChange={(e) => setField('notes', e.target.value)}
           />
         </div>
+        <label className="mt-3 flex items-center gap-3 border-t border-[var(--border-subtle)] pt-3">
+          <Switch label={t('apartments.active')} checked={active} onChange={setActive} />
+          <span className="text-sm">{t('apartments.active')}</span>
+        </label>
       </Card>
 
-      <Card className="mb-4">
+      <Card>
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-baseline gap-2">
             <h2 className="text-base font-semibold">{t('apartments.persons')}</h2>
@@ -296,7 +321,11 @@ export default function ApartmentFormPage() {
           <Button
             variant="secondary"
             size="sm"
-            onClick={() => setPersons((prev) => [...prev, newPerson()])}
+            // The first occupant added to an empty list becomes the primary by
+            // default: most apartments have one, and it spares the admin a click.
+            onClick={() =>
+              setPersons((prev) => [...prev, { ...newPerson(), is_primary: prev.length === 0 }])
+            }
           >
             <Plus className="h-4 w-4" /> {t('apartments.addPerson')}
           </Button>
@@ -357,13 +386,6 @@ export default function ApartmentFormPage() {
             ))}
           </div>
         )}
-      </Card>
-
-      <Card className="mb-4">
-        <label className="flex items-center gap-3">
-          <Switch label={t('apartments.active')} checked={active} onChange={setActive} />
-          <span className="text-sm">{t('apartments.active')}</span>
-        </label>
       </Card>
 
       <div className="flex justify-between">
