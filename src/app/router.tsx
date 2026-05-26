@@ -4,6 +4,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import { AppLayout } from './AppLayout';
 import { RequireAuth } from './RequireAuth';
 import { RequireAsociatie } from './RequireAsociatie';
+import { RequireWelcome } from './RequireWelcome';
 import { RequireAdmin } from './RequireAdmin';
 import { RequireSuperAdmin } from './RequireSuperAdmin';
 import { RouteFallback } from '@/shared/components/RouteFallback';
@@ -19,6 +20,7 @@ const PrivacySettingsPage = lazy(() => import('@/features/legal/PrivacySettingsP
 const ProcessingRecordsPage = lazy(() => import('@/features/legal/ProcessingRecordsPage'));
 const OnboardingWizard = lazy(() => import('@/features/onboarding/OnboardingWizard'));
 const JoinAsociatiePage = lazy(() => import('@/features/onboarding/JoinAsociatiePage'));
+const WelcomePage = lazy(() => import('@/features/welcome/WelcomePage'));
 const AppHome = lazy(() => import('./AppHome'));
 const SuperAdminHomePage = lazy(() => import('@/features/superadmin/SuperAdminHomePage'));
 const SuperAdminAsociatiiPage = lazy(() => import('@/features/superadmin/SuperAdminAsociatiiPage'));
@@ -118,11 +120,23 @@ export const router = createBrowserRouter([
   { path: '/onboarding', element: <S><OnboardingWizard /></S> },
   { path: '/onboarding/alatura', element: <S><JoinAsociatiePage /></S> },
   {
+    path: '/bun-venit',
+    element: (
+      <RequireAuth>
+        <RequireAsociatie>
+          <S><WelcomePage /></S>
+        </RequireAsociatie>
+      </RequireAuth>
+    ),
+  },
+  {
     path: '/app',
     element: (
       <RequireAuth>
         <RequireAsociatie>
-          <AppLayout />
+          <RequireWelcome>
+            <AppLayout />
+          </RequireWelcome>
         </RequireAsociatie>
       </RequireAuth>
     ),

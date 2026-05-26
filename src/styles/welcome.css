@@ -1,0 +1,315 @@
+/* ============================================================
+   First-login welcome flow — intro carousel + profile capture.
+   A full-screen, premium takeover that sits above the Atmosphere
+   wash. Reads only design tokens so it tracks palette + theme.
+   ============================================================ */
+
+.welcome {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6) var(--space-4);
+}
+
+/* The floating glass panel that holds either phase. */
+.welcome__panel {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  background: color-mix(in oklab, var(--bg-surface) 86%, transparent);
+  backdrop-filter: blur(16px) saturate(1.1);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  animation: welcome-panel-in var(--dur-slow) var(--ease-out) both;
+}
+.welcome__panel--wide { max-width: 620px; }
+
+/* A hairline of accent light along the top edge of the panel. */
+.welcome__panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--primary) 35%,
+    var(--accent-300) 65%,
+    transparent
+  );
+  opacity: 0.85;
+}
+
+@keyframes welcome-panel-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ── Shared chrome ─────────────────────────────────────── */
+.welcome__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-5) var(--space-6) 0;
+}
+.welcome__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: var(--text-lg);
+  letter-spacing: var(--tracking-snug);
+  color: var(--text-primary);
+}
+.welcome__brand-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-soft);
+}
+.welcome__skip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+.welcome__skip:hover { color: var(--text-primary); background: var(--bg-sunken); }
+
+/* ── Carousel ──────────────────────────────────────────── */
+.welcome-carousel { display: flex; flex-direction: column; }
+
+.welcome-carousel__viewport {
+  overflow: hidden;
+  touch-action: pan-y;
+}
+.welcome-carousel__track {
+  display: flex;
+  transition: transform var(--dur-slow) var(--ease-out);
+  will-change: transform;
+}
+.welcome-slide {
+  flex: 0 0 100%;
+  min-width: 0;
+  padding: var(--space-6) var(--space-8) var(--space-4);
+  text-align: center;
+}
+
+/* Decorative motif: a haloed central icon orbited by feature chips. */
+.welcome-motif {
+  position: relative;
+  width: 184px;
+  height: 184px;
+  margin: var(--space-4) auto var(--space-6);
+}
+.welcome-motif__halo {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-full);
+  background:
+    radial-gradient(circle at 50% 42%, var(--primary-soft) 0%, transparent 68%),
+    radial-gradient(circle at 70% 78%, var(--accent-200) 0%, transparent 60%);
+  filter: blur(2px);
+}
+.welcome-motif__core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 86px;
+  height: 86px;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-full);
+  background: var(--bg-elevated);
+  color: var(--primary);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-md);
+}
+.welcome-motif__chip {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+  animation: welcome-float 6s var(--ease) infinite;
+}
+.welcome-motif__chip--a { top: 6%;  left: 8%;  animation-delay: 0s; }
+.welcome-motif__chip--b { top: 14%; right: 2%; animation-delay: -2s; }
+.welcome-motif__chip--c { bottom: 4%; left: 24%; animation-delay: -4s; }
+
+@keyframes welcome-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-7px); }
+}
+
+.welcome-slide__title {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: var(--text-3xl);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-display);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-3);
+  text-wrap: balance;
+}
+.welcome-slide__body {
+  font-size: var(--text-md);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+  margin: 0 auto;
+  max-width: 38ch;
+}
+
+/* On-load staggered reveal of a slide's inner pieces. */
+.welcome-slide--active .welcome-motif,
+.welcome-slide--active .welcome-slide__title,
+.welcome-slide--active .welcome-slide__body {
+  animation: welcome-rise var(--dur-slow) var(--ease-out) both;
+}
+.welcome-slide--active .welcome-motif        { animation-delay: 40ms; }
+.welcome-slide--active .welcome-slide__title { animation-delay: 120ms; }
+.welcome-slide--active .welcome-slide__body  { animation-delay: 200ms; }
+
+@keyframes welcome-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ── Footer: dots + navigation ─────────────────────────── */
+.welcome-carousel__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-6) var(--space-6);
+}
+.welcome-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.welcome-dots__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--border-strong);
+  transition: width var(--dur) var(--ease-spring), background var(--dur) var(--ease);
+}
+.welcome-dots__dot--active {
+  width: 24px;
+  background: var(--primary);
+}
+.welcome-carousel__nav { display: inline-flex; align-items: center; gap: var(--space-2); }
+
+/* ── Profile capture ───────────────────────────────────── */
+.welcome-profile { padding: var(--space-5) var(--space-6) var(--space-6); }
+.welcome-profile__head { text-align: center; margin-bottom: var(--space-5); }
+.welcome-profile__greeting {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: var(--text-2xl);
+  letter-spacing: var(--tracking-snug);
+  color: var(--text-primary);
+  margin: 0 0 4px;
+  text-wrap: balance;
+}
+.welcome-profile__subtitle {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.welcome-profile__avatar-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--bg-sunken);
+  margin-bottom: var(--space-5);
+}
+.welcome-profile__avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.welcome-profile__avatar-fallback {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  background: var(--primary-soft);
+  color: var(--primary-soft-text);
+  font-weight: 600;
+  font-size: var(--text-xl);
+}
+.welcome-profile__meter-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.welcome-profile__meter {
+  height: 8px;
+  width: 100%;
+  border-radius: var(--radius-full);
+  background: var(--bg-muted);
+  overflow: hidden;
+}
+.welcome-profile__meter-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  transition: width var(--dur-slow) var(--ease-out);
+}
+
+.welcome-profile__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+.welcome-profile__grid > .welcome-profile__full { grid-column: 1 / -1; }
+
+.welcome-profile__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+@media (max-width: 480px) {
+  .welcome { align-items: flex-start; }
+  .welcome-slide { padding-left: var(--space-5); padding-right: var(--space-5); }
+  .welcome-profile__grid { grid-template-columns: 1fr; }
+}
+
+/* Reduced motion: keep the calm transitions, silence the looping drift. */
+@media (prefers-reduced-motion: reduce) {
+  .welcome-motif__chip { animation: none; }
+}

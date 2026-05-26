@@ -302,6 +302,25 @@
     "haveCode": "Got an invite code?",
     "joinLink": "Join an existing association"
   },
+  "welcome": {
+    "skip": "Skip",
+    "next": "Next",
+    "back": "Back",
+    "start": "Get started",
+    "carouselLabel": "Welcome tour",
+    "slideOf": "Slide {{current}} of {{total}}",
+    "slide1Title": "Your whole building, in one calm place",
+    "slide1Body": "Announcements, events and neighbourly chat: everything from the association reaches you, without the noise of group chats.",
+    "slide2Title": "Decisions made in the open",
+    "slide2Body": "Vote on proposals, read the documents and follow how the money is spent, all transparent and on the record.",
+    "slide3Title": "Neighbours who help neighbours",
+    "slide3Body": "Find each other in the directory, lend a hand or a tool, and keep the building safe together.",
+    "greeting": "Welcome, {{name}}!",
+    "greetingNoName": "Welcome to your building!",
+    "profileSubtitle": "Add a few details so your neighbours and committee know who you are. You can change anything later.",
+    "skipForNow": "Skip for now",
+    "finish": "Enter the app"
+  },
   "join": {
     "title": "Join an association",
     "subtitle": "Enter the invite code your administrator gave you to join your association.",
@@ -598,6 +617,7 @@
     "security": "Account security",
     "myData": "My personal data",
     "privacy": "Privacy",
+    "replayTour": "Replay the welcome tour",
     "type": {
       "text": "Short text",
       "longtext": "Long text",

@@ -11,6 +11,7 @@ import '@/styles/primitives.css';
 import '@/styles/shell.css';
 import '@/styles/assistant.css';
 import '@/styles/legal.css';
+import '@/styles/welcome.css';
 
 installGlobalErrorHandlers();
 void useAuthStore.getState().init();

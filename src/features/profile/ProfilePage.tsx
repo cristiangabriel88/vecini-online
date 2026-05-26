@@ -10,6 +10,7 @@ import {
   Globe,
   LogOut,
   Plus,
+  Sparkles,
   ShieldCheck,
   Shield,
   Trash2,
@@ -27,6 +28,7 @@ import { useAuthStore } from '@/shared/store/authStore';
 import { DEMO_APARTMENTS, DEMO_ASOCIATIE } from '@/shared/demo/demoData';
 import type { Locale } from '@/shared/types/domain';
 import { useMyIdentity, useProfileStore } from './profileStore';
+import { fileToAvatar } from './avatarImage';
 import {
   AVATAR_MAX_BYTES,
   CUSTOM_FIELD_TYPES,
@@ -35,7 +37,6 @@ import {
   type FieldVisibility,
   type ProfileData,
   addCustomField,
-  avatarThumbDim,
   completeness,
   initials,
   isAcceptedImageType,
@@ -43,41 +44,12 @@ import {
   newCustomField,
   removeCustomField,
   sortedCustomFields,
-  squareCropRect,
   updateCustomField,
   validateCustomFieldValue,
   validateStandard,
 } from './profileLogic';
 
 const VISIBILITIES: FieldVisibility[] = ['private', 'neighbours'];
-
-/** Read a picked image file, center-crop it to a capped square, return a JPEG data URL. */
-function fileToAvatar(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error('read'));
-    reader.onload = () => {
-      const img = new Image();
-      img.onerror = () => reject(new Error('decode'));
-      img.onload = () => {
-        const { sx, sy, size } = squareCropRect(img.naturalWidth, img.naturalHeight);
-        const dim = avatarThumbDim(size);
-        const canvas = document.createElement('canvas');
-        canvas.width = dim;
-        canvas.height = dim;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('canvas'));
-          return;
-        }
-        ctx.drawImage(img, sx, sy, size, size, 0, 0, dim, dim);
-        resolve(canvas.toDataURL('image/jpeg', 0.85));
-      };
-      img.src = reader.result as string;
-    };
-    reader.readAsDataURL(file);
-  });
-}
 
 export default function ProfilePage() {
   const { t } = useTranslation();
@@ -384,6 +356,9 @@ export default function ProfilePage() {
             </button>
             <button className="profile-link" onClick={() => navigate('/app/confidentialitate')}>
               <Globe className="h-4 w-4" /> {t('profile.privacy')}
+            </button>
+            <button className="profile-link" onClick={() => navigate('/bun-venit')}>
+              <Sparkles className="h-4 w-4" /> {t('profile.replayTour')}
             </button>
           </div>
           <div className="mt-4">
