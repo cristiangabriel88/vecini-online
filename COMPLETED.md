@@ -8,6 +8,44 @@ the live `BACKLOG.md` carries only the protocol and the open (⬜) queue.
 > task (read it only when a task's prerequisite or history is genuinely needed).
 > `RESUME.md` §0 remains the dated chronological summary.
 
+### ✅ T55 — [MVP] Live invite write/consume + real account creation on redemption (admin + resident)
+
+**Done:** Server-authoritative invite redemption via two SECURITY DEFINER RPCs (new migration `supabase/migrations/20260527000004_onboarding_redemption_rpcs.sql`) + `AccountSetupPage` live branch + live invite write on CSV import.
+
+**Migration RPCs:**
+- `resolve_onboarding_token(p_token text)` -- STABLE, callable by anon + authenticated. Token as bearer secret: no prior auth required to preview invite context (kind, asociatie_name, invitee_name/email, role, status). Validation order mirrors `inviteLogic.ts`: revoked > used (if single_use) > expired > ok. Returns minimal context only; never exposes `created_by`. `REVOKE FROM PUBLIC; GRANT TO anon, authenticated`.
+- `redeem_onboarding_token(p_token text, p_full_name text, p_locale text)` -- VOLATILE, authenticated only. Uses `auth.uid()` + server-resolved `auth.users.email`; never trusts client-supplied role/asociatie_id/kind. `SELECT ... FOR UPDATE` lock for replay-safe single-use enforcement. Re-validates (revoked/used/expired) after acquiring the lock. Email ownership check when `invitee_email` is set. Upserts `users` row (name + locale). Inserts `memberships` (`admin` for `admin_setup` kind, `invite_codes.role` for `resident_invite`). Links `apartment_residents` when `apartment_id` present and role is proprietar/chirias. Marks invite `consumed_at + consumed_by_user_id`. `REVOKE FROM PUBLIC; GRANT TO authenticated` only. Both functions: `SECURITY DEFINER SET search_path = ''` with fully qualified table names.
+
+**AccountSetupPage live branch (`src/features/onboarding/AccountSetupPage.tsx`):**
+- New `useEffect` calls `resolveTokenLive(token)` on mount when `isSupabaseConfigured`; shows a spinner while resolving; maps RPC result to `ResolvedOnboarding` (or status-only for non-ok).
+- `resolved` computed from live state when configured, offline store otherwise.
+- `submit` is now async and branches on `isSupabaseConfigured`: (1) `supabase.auth.signUp(email, password)` -- if no session returned, surfaces `setup.err_no_session` (Confirm email likely enabled); (2) `redeemTokenLive(token, name, locale)` -- handles users row + membership + consume server-side; (3) `authStore.hydrate()` to sync the store.
+- Offline/demo path unchanged (redeemInvite + consumeSetup + seedProfile).
+
+**New modules:**
+- `src/features/onboarding/onboardingApi.ts`: `resolveTokenLive()` + `redeemTokenLive()` wrapping the RPCs with typed results and catch-all fallback.
+- `src/features/invites/inviteWriteApi.ts`: `writeInviteToLive(invite)` -- best-effort write of an `invite_codes` row to Supabase. Strips `inv-` prefix from local ID for DB UUID. Called from `ApartmentsPage.handleFileSelected` before `sendInviteEmail` when `isSupabaseConfigured`.
+
+**Translations:** 3 new `setup.*` keys per language: `err_no_session` (Confirm email still on), `err_email_mismatch` (wrong address), `resolving` (spinner label).
+
+**Tests:** 36 new static source tests in `tests/unit/onboardingRedemption.test.ts` covering: RPC definitions, SECURITY DEFINER + locked search_path, GRANT/REVOKE contracts (resolve: anon+authenticated; redeem: authenticated only), auth.uid() server-side usage, token re-validation in redeem body (consumed/revoked/expired), users upsert, memberships insert (ON CONFLICT DO NOTHING), admin_setup->'admin' mapping, invite consumed markers, AccountSetupPage live branch contracts (signUp, resolveTokenLive, redeemTokenLive, hydrate, offline path preserved), onboardingApi RPC name contracts.
+
+**Verification:** `npm run lint`, `npm run typecheck`, `npm test` (142 files / 1282 tests), `npm run build` -- all green.
+
+**Locally/statically verified. Live activation pending credentials + `supabase db push`.**
+
+**Real smoke pending:**
+- Superadmin creates admin (provision-asociatie function + email)
+- Admin accepts invite (AccountSetupPage live path) -> signUp -> redeemTokenLive -> hydrate -> /onboarding
+- Admin membership exists in `memberships` table
+- Resident invite written to `invite_codes` via `writeInviteToLive`
+- Resident accepts invite -> signUp -> redeemTokenLive -> hydrate -> /app
+- Invite cannot be reused (FOR UPDATE + consumed_at check)
+
+**Known gaps documented for follow-up (not blocking the MVP spine):**
+- The `invite-email` Netlify function looks up invites by `id` (the local `inv-{uuid}` format); `writeInviteToLive` stores only the UUID part as the DB primary key. The function needs to strip the `inv-` prefix (or switch to token-based lookup) for live email delivery to work -- tracked as a T149 refinement.
+- `apartment_residents` has no unique constraint on `(apartment_id, user_id)`; `redeem_onboarding_token` uses `WHERE NOT EXISTS` guard as an idempotent substitute.
+
 ### ✅ T92 — [MVP] Server-side privileged provisioning (Netlify function, service role) + wire the superadmin live send
 
 **Done:** new `netlify/functions/provision-asociatie.ts` (POST only): (1) requires `isSupabaseAdminConfigured()` -> 503 when missing; (2) resolves caller via `verifyBearerToken()` -> 401; (3) re-checks platform superadmin status server-side by querying `platform_admins` directly with the service-role client (equivalent to `is_super_admin()`, which uses `auth.uid()` and cannot be called from the service role) -> 403 if not found; (4) validates `adminName` / `adminEmail` inline (mirrors `validateAdminInvite` from `platformProvisioningLogic`, inlined to avoid `@/` import chains under `tsconfig.node.json`) -> 422; (5) creates a provisional `asociatii` row (placeholder name/address; admin fills in identity during onboarding wizard T154) with a UUID-hex slug; (6) creates an `invite_codes` row with `kind='admin_setup'`, server-generated 64-hex token, 24h expiry, `invitee_name` + `invitee_email`; (7) dispatches the real `kind: 'admin_setup'` email via `buildAdminInviteEmail` + `sendEmail` only when `isResendConfigured()` (non-fatal: returns `emailSent: false` if absent/failed); (8) returns `{ ok: true, inviteId, emailSent }`. New migration `supabase/migrations/20260527000003_invite_kind.sql`: adds `kind text` (constrained to `'resident_invite'|'admin_setup'`, nullable for backward compat) and `revoked_at timestamptz` (already modelled in `_shared/supabaseAdmin.ts` + `invite-email.ts` but missing from schema) to `invite_codes`. `PlatformAddAsociatiePage.tsx` live branch wired: fetches `supabase.auth.getSession()` access_token, POSTs to `/.netlify/functions/provision-asociatie` with `Authorization: Bearer`, surfaces `err.notConfigured` (503), `err.forbidden` (403), or `err.provisionFailed` (other) via a `role="alert"` paragraph; success shows `sentNoteLive` when `emailSent=true` or the new `sentNoteLiveNoEmail` note when Resend is not yet configured; demo/offline path unchanged. 3 new locale keys per language (`sentNoteLiveNoEmail`, `err.notConfigured`, `err.forbidden`, `err.provisionFailed`). New `.platform-add-asoc__live-error` CSS rule. 32 new tests in `tests/unit/provisionAsociatie.test.ts` (static source analysis + pure validation logic). All four checks green: `npm run lint`, `npm run typecheck`, `npm run build`, `npm test` (141 files / 1246 tests). **Live activation still pending:** apply all migrations (`supabase db push`), set `VITE_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` + `VITE_SUPABASE_ANON_KEY` Netlify env vars, set `RESEND_API_KEY` + `RESEND_FROM_EMAIL` (requires verified Resend domain for `vecini.online`), set `APP_URL` to the resident origin, seed the superadmin via the T169 service-role INSERT template, then live smoke test: superadmin creates admin via "Adauga asociatie" -> admin real inbox receives invite -> admin clicks link -> sets password -> onboards.

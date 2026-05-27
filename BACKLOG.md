@@ -123,8 +123,8 @@ Keep the queue sorted with the highest priority on top. When two tasks share a p
 
 ### ✅ T92 — [MVP] Server-side privileged provisioning (Netlify function, service role) + wire the superadmin live send
 
-### ⬜ T55 — [MVP] Live invite write/consume + real account creation on redemption (admin + resident)
-The account-on-redemption flow + invite lifecycle work offline; switch on the live path behind `isSupabaseConfigured`. (1) Issuing an invite in live mode must write a row to Supabase `invite_codes` (today `inviteStore.issue` is local only) so `invite-email` can resolve it. (2) In `AccountSetupPage.submit` live branch, create the real account: `supabase.auth.signUp(email, password)`, write the `users` profile row (carrying the captured name + locale), create the membership (admin via `activateProvisionedAdmin`, resident via `redeemInvite`), and consume the setup/invite token server-side (replay-safe, 24h). Covers both the admin-setup redemption and the resident-invite redemption. Demo path unchanged. Prereq: T92, T124, T168.
+### ✅ T55 — [MVP] Live invite write/consume + real account creation on redemption (admin + resident)
+Done: resolve_onboarding_token + redeem_onboarding_token SECURITY DEFINER RPCs (migration 20260527000004), onboardingApi.ts (resolveTokenLive/redeemTokenLive), inviteWriteApi.ts (writeInviteToLive), AccountSetupPage live branch (signUp + redeemTokenLive + hydrate), ApartmentsPage live invite write. 36 new tests. 142 files / 1282 tests / build green. Live smoke pending credentials.
 
 ### ⬜ T115 — [MVP] Live Supabase read/write for the apartment registry
 `apartmentsApi.ts` already branches on `isSupabaseConfigured` and the `apartments` table + `persons` column + RLS exist, but the live path has not run against a real backend. Verify and finish it: hydrate on mount, create/update/delete persisting to Supabase, surface a user-visible error on a failed write, and handle the `(asociatie_id, scara, numar_apartament)` unique conflict. The resident invite created when an apartment is added must link to the real apartment id so the resident lands in the right place. Prereq: T55, T168.

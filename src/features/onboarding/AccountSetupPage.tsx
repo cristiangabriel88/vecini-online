@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { AlertCircle, Building2, ShieldCheck, Ticket, UserPlus } from 'lucide-react';
+import { AlertCircle, Building2, Loader2, ShieldCheck, Ticket, UserPlus } from 'lucide-react';
 import { Button } from '@/shared/components/Button';
 import { Card } from '@/shared/components/Card';
 import { Input } from '@/shared/components/Input';
@@ -11,7 +11,7 @@ import { useAuthStore } from '@/shared/store/authStore';
 import { useInviteStore } from '@/shared/store/inviteStore';
 import { useProfileStore } from '@/features/profile/profileStore';
 import { seedProfile } from '@/features/profile/profileLogic';
-import { isSupabaseConfigured } from '@/shared/lib/supabase';
+import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import { DEMO_CURRENT_USER_ID } from '@/shared/demo/demoData';
 import {
   setupProvisionLinks,
@@ -23,28 +23,35 @@ import {
   postSetupRoute,
   resolveOnboarding,
 } from './accountSetupLogic';
+import { resolveTokenLive, redeemTokenLive } from './onboardingApi';
 
 /**
  * Account-creation-on-redemption landing (T124), at `/configurare-cont`.
  *
- * The invitee arrives via a `?token=` deep link (the locatar invite link or the
- * admin setup link). They set a password (twice), and on submit the token is
- * consumed once (single-use, 24h, replay-safe) and the membership is activated
- * offline: `admin` for a setup link, the code's role for a locatar invite.
- * They land in `/app`. Live account creation under RLS is T55; the privileged
- * admin-setup cross-tenant write is the T92 service-role function.
+ * The invitee arrives via a `?token=` deep link (a locatar invite link or the
+ * admin setup link). They set a password (and full name), and on submit the
+ * token is consumed once (single-use, 24h, replay-safe) and the membership is
+ * activated. They land in `/onboarding` (admin setup) or `/app` (invite).
  *
- * If no `?token=` param is present the page shows a bilingual invalid-link
- * state so users who arrive without a token get a clear explanation.
+ * Offline path: resolves the token from the local invite store + provision
+ * records, consumes both offline and establishes the demo session.
+ *
+ * Live path (T55, isSupabaseConfigured): resolves the token via the
+ * resolve_onboarding_token RPC (anon-callable), calls supabase.auth.signUp,
+ * then calls redeem_onboarding_token (authenticated) which upserts the users
+ * row + inserts the membership + consumes the invite server-side. Relies on
+ * "Confirm email" being disabled in the Supabase project settings (as
+ * documented in RUNBOOK-MVP.md) so signUp returns a session immediately.
  */
 export default function AccountSetupPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const tokenParam = params.get('token')?.trim() ?? '';
 
   const redeemInvite = useAuthStore((s) => s.redeemInvite);
   const activateProvisionedAdmin = useAuthStore((s) => s.activateProvisionedAdmin);
+  const hydrate = useAuthStore((s) => s.hydrate);
   const consumeSetup = usePlatformAsociatiiStore((s) => s.consumeSetup);
   const saveProfile = useProfileStore((s) => s.save);
   const invites = useInviteStore((s) => s.invites);
@@ -57,21 +64,76 @@ export default function AccountSetupPage() {
   const [confirm, setConfirm] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  // Live path: resolved state from the resolve_onboarding_token RPC.
+  const [liveResolved, setLiveResolved] = useState<ResolvedOnboarding | null>(null);
+  const [resolving, setResolving] = useState(isSupabaseConfigured && Boolean(tokenParam));
+
+  // Offline path: resolve the token against the local stores.
   const setupLinks = useMemo(
     () => setupProvisionLinks(provisions, asociatii),
     [provisions, asociatii],
   );
-  const resolved: ResolvedOnboarding | null = useMemo(
-    () => (tokenParam ? resolveOnboarding(tokenParam, invites, setupLinks) : null),
+  const offlineResolved: ResolvedOnboarding | null = useMemo(
+    () =>
+      !isSupabaseConfigured && tokenParam
+        ? resolveOnboarding(tokenParam, invites, setupLinks)
+        : null,
     [tokenParam, invites, setupLinks],
   );
+
+  // The resolved token used for UI rendering: live RPC result when configured,
+  // offline result otherwise.
+  const resolved: ResolvedOnboarding | null = isSupabaseConfigured
+    ? liveResolved
+    : offlineResolved;
+
+  // Resolve the token via the live RPC when Supabase is available.
+  useEffect(() => {
+    if (!isSupabaseConfigured || !tokenParam) {
+      setResolving(false);
+      return;
+    }
+    let cancelled = false;
+    setResolving(true);
+    resolveTokenLive(tokenParam).then((result) => {
+      if (cancelled) return;
+      if (!result) {
+        // Network or RPC error -- show 'unknown' so the invitee gets a clear
+        // message instead of a blank form.
+        setLiveResolved({
+          kind: 'invite',
+          status: 'unknown',
+          asociatieId: '',
+          asociatieName: null,
+          role: 'proprietar',
+        });
+      } else if ('asociatieId' in result) {
+        // Full ResolvedOnboarding (status === 'ok').
+        setLiveResolved(result as ResolvedOnboarding);
+      } else {
+        // Non-ok status returned by the RPC; use a minimal descriptor so the
+        // page can render the right bilingual error message.
+        setLiveResolved({
+          kind: 'invite',
+          status: result.status,
+          asociatieId: '',
+          asociatieName: null,
+          role: 'proprietar',
+        });
+      }
+      setResolving(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [tokenParam]);
 
   const form = useMemo(
     () => evaluateAccountForm({ name, email, password, confirm }),
     [name, email, password, confirm],
   );
 
-  // No token in the URL — the link is missing or was corrupted.
+  // No token in the URL -- the link is missing or was corrupted.
   if (!tokenParam) {
     return (
       <div className="mx-auto max-w-lg px-4 py-12">
@@ -92,40 +154,77 @@ export default function AccountSetupPage() {
     );
   }
 
-  const tokenError: string | null = !resolved
-    ? t('setup.err_unknown')
-    : resolved.status !== 'ok'
-      ? t(`setup.err_${resolved.status}`)
-      : null;
+  const tokenError: string | null = (() => {
+    // While the RPC is in flight, suppress the "unknown" placeholder error.
+    if (isSupabaseConfigured && resolving) return null;
+    if (!resolved) return t('setup.err_unknown');
+    if (resolved.status !== 'ok') return t(`setup.err_${resolved.status}`);
+    return null;
+  })();
 
-  const canSubmit = form.ok && resolved?.status === 'ok' && !submitting;
+  const canSubmit =
+    form.ok &&
+    resolved?.status === 'ok' &&
+    !submitting &&
+    !(isSupabaseConfigured && resolving);
 
   const roleLabel = (r: ResolvedOnboarding) =>
     r.kind === 'setup' ? t('setup.roleAdmin') : t(`invites.role_${r.role}`);
 
-  const submit = () => {
+  const submit = async () => {
     if (!resolved || resolved.status !== 'ok' || !form.ok) return;
     setSubmitting(true);
     try {
-      if (resolved.kind === 'invite') {
-        const result = redeemInvite(tokenParam);
-        if (result.status !== 'ok') {
-          toast.error(t(`setup.err_${result.status}`));
+      if (isSupabaseConfigured) {
+        // ── Live path (T55) ──────────────────────────────────────────────
+        // 1. Create the Supabase auth account. With "Confirm email" disabled
+        //    (RUNBOOK-MVP.md step 3), signUp returns a session immediately.
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+        });
+        if (signUpError) {
+          toast.error(signUpError.message);
           return;
         }
+        // If signUp returns no session, email confirmation is still enabled in
+        // the Supabase project. The admin must disable it (Auth settings ->
+        // "Enable email confirmations" off) before this flow works.
+        if (!signUpData.session) {
+          toast.error(t('setup.err_no_session'));
+          return;
+        }
+        // 2. Redeem the token server-side: upserts the users row (name + locale)
+        //    and inserts the membership, then marks the invite consumed.
+        const redeemed = await redeemTokenLive(tokenParam, name.trim(), i18n.language);
+        if (redeemed.status !== 'ok') {
+          toast.error(t(`setup.err_${redeemed.status}`));
+          return;
+        }
+        // 3. Sync the auth store so the app reflects the new session + membership.
+        await hydrate();
       } else {
-        const result = consumeSetup(tokenParam);
-        if (result.status !== 'ok' || !result.asociatieId) {
-          toast.error(t(`setup.err_${result.status}`));
-          return;
+        // ── Offline/demo path (unchanged from T124) ───────────────────────
+        if (resolved.kind === 'invite') {
+          const result = redeemInvite(tokenParam);
+          if (result.status !== 'ok') {
+            toast.error(t(`setup.err_${result.status}`));
+            return;
+          }
+        } else {
+          const result = consumeSetup(tokenParam);
+          if (result.status !== 'ok' || !result.asociatieId) {
+            toast.error(t(`setup.err_${result.status}`));
+            return;
+          }
+          activateProvisionedAdmin(
+            result.asociatieId,
+            result.asociatieName ?? resolved.asociatieName ?? '',
+          );
         }
-        activateProvisionedAdmin(result.asociatieId, result.asociatieName ?? resolved.asociatieName ?? '');
-      }
-      // Offline, the new account is linked to the demo user id and has no `users`
-      // row, so seed a minimal profile (name + email) for it now — without this
-      // the chrome and the F36 directory show no name until the resident opens
-      // the profile editor. Live, the real `users` row is written by T55.
-      if (!isSupabaseConfigured) {
+        // Offline: the new account is linked to the demo user id. Seed a minimal
+        // profile (name + email) so the chrome and F36 directory show who joined
+        // without waiting for the resident to open the profile editor.
         const userId = useAuthStore.getState().session?.user?.id ?? DEMO_CURRENT_USER_ID;
         saveProfile(seedProfile(userId, email.trim(), name));
       }
@@ -175,9 +274,15 @@ export default function AccountSetupPage() {
           className="space-y-4"
           onSubmit={(e) => {
             e.preventDefault();
-            submit();
+            void submit();
           }}
         >
+          {isSupabaseConfigured && resolving && (
+            <p className="flex items-center gap-2 rounded-lg bg-surface-2 px-3 py-2 text-sm text-muted">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {t('setup.resolving')}
+            </p>
+          )}
           {tokenError && (
             <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">{tokenError}</p>
           )}

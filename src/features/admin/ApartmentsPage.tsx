@@ -21,7 +21,9 @@ import { useInviteStore } from '@/shared/store/inviteStore';
 import type { Apartment } from '@/shared/types/domain';
 import { apartmentShortLabel } from '@/features/apartment/apartmentLogic';
 import { sendInviteEmail } from '@/features/invites/inviteEmailApi';
+import { writeInviteToLive } from '@/features/invites/inviteWriteApi';
 import { onboardingExpiry } from '@/features/invites/inviteLogic';
+import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import { useAsociatieApartments, useApartmentsStore } from './apartmentsStore';
 import { createApartments, deleteApartment, hydrateApartments } from './apartmentsApi';
 
@@ -94,6 +96,15 @@ export default function ApartmentsPage() {
           inviteeName: row.name || null,
           inviteeEmail: row.email,
         });
+        // Live path: persist the invite row to Supabase so the invite-email
+        // function can look it up by id. Best-effort: failure does not block
+        // email delivery or the import. Note: the function currently expects
+        // the raw local id (invite.id = 'inv-{uuid}'); writeInviteToLive stores
+        // only the uuid part as the DB primary key. The function will need an
+        // update to strip the prefix for lookup -- tracked in the T55 done note.
+        if (isSupabaseConfigured) {
+          await writeInviteToLive(invite);
+        }
         const result = await sendInviteEmail({ invite, locale: i18n.language });
         if (result.ok) {
           inviteState.markEmailSent(invite.id);
