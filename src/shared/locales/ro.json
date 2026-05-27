@@ -870,7 +870,16 @@
     "firstEntrance": "Prima scară",
     "lastEntrance": "Ultima scară",
     "entrancesPreview": "Scări: {{list}}",
-    "saved": "Datele clădirii au fost salvate."
+    "saved": "Datele clădirii au fost salvate.",
+    "fixErrors": "Corectează câmpurile evidențiate înainte de salvare.",
+    "err": {
+      "required": "Câmp obligatoriu",
+      "tooShort": "Prea scurt",
+      "email": "Adresă de email invalidă",
+      "cui": "CUI invalid (doar cifre, opțional prefix RO)",
+      "iban": "IBAN invalid",
+      "phone": "Număr de telefon invalid"
+    }
   },
   "invites": {
     "title": "Coduri de invitație",

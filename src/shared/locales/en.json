@@ -870,7 +870,16 @@
     "firstEntrance": "First entrance",
     "lastEntrance": "Last entrance",
     "entrancesPreview": "Entrances: {{list}}",
-    "saved": "Building details saved."
+    "saved": "Building details saved.",
+    "fixErrors": "Fix the highlighted fields before saving.",
+    "err": {
+      "required": "Required field",
+      "tooShort": "Too short",
+      "email": "Invalid email address",
+      "cui": "Invalid CUI (digits only, optional RO prefix)",
+      "iban": "Invalid IBAN",
+      "phone": "Invalid phone number"
+    }
   },
   "invites": {
     "title": "Invite codes",

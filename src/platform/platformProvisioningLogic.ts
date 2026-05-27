@@ -1,4 +1,10 @@
-import { isValidEmail } from '@/features/auth/authLogic';
+import {
+  isValidCui,
+  isValidEmail,
+  isValidIban,
+  isValidPhone,
+  normalizeIban,
+} from '@/shared/lib/identity';
 import {
   buildOnboardingLink,
   generateInviteCode,
@@ -6,6 +12,11 @@ import {
 } from '@/shared/lib/inviteCode';
 import { ONBOARDING_LINK_TTL_MS } from '@/features/invites/inviteLogic';
 import type { PlatformAsociatieSummary } from './demoPlatform';
+
+// The identity validators now live in the shared module (T131) so the
+// admin-facing BuildingSettingsPage can reuse them without importing from
+// src/platform. Re-export them here for the existing platform-side callers.
+export { isValidCui, isValidIban, isValidPhone, normalizeIban };
 
 /**
  * Pure provisioning logic for the superadmin console (T94).
@@ -86,35 +97,6 @@ export function blankProvisionInput(): ProvisionInputDraft {
     adminName: '',
     adminEmail: '',
   };
-}
-
-/** Normalise an IBAN: drop spaces, upper-case. Pure; used for validation + storage. */
-export function normalizeIban(raw: string): string {
-  return raw.replace(/\s+/g, '').toUpperCase();
-}
-
-/**
- * Accept a structurally plausible IBAN (2-letter country code, 2 check digits,
- * 11-30 alphanumerics; 15-34 total). This is format-only, not a mod-97 checksum,
- * which is enough to catch a typo at provisioning without rejecting a valid
- * foreign account. Romanian IBANs are 24 chars and pass.
- */
-export function isValidIban(raw: string): boolean {
-  const v = normalizeIban(raw);
-  return v.length >= 15 && v.length <= 34 && /^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(v);
-}
-
-/** Accept a Romanian fiscal code: optional RO prefix then 2-10 digits. */
-export function isValidCui(raw: string): boolean {
-  return /^(RO)?\d{2,10}$/i.test(raw.replace(/\s+/g, ''));
-}
-
-/** Accept a phone made of digits and the usual separators, 7-15 digits. */
-export function isValidPhone(raw: string): boolean {
-  const v = raw.trim();
-  if (!/^[+()\d\s.-]+$/.test(v)) return false;
-  const digits = v.replace(/\D/g, '');
-  return digits.length >= 7 && digits.length <= 15;
 }
 
 /**

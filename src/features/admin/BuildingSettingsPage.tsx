@@ -11,11 +11,13 @@ import { Select } from '@/shared/components/Select';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useAsociatieStore, useCurrentAsociatie } from './asociatieStore';
 import {
+  type BuildingIdentityForm,
   type EntranceMode,
   detectEntranceConfig,
   entranceInterval,
   entranceOptions,
   scariList,
+  validateBuildingIdentity,
 } from './buildingLogic';
 
 export default function BuildingSettingsPage() {
@@ -42,12 +44,21 @@ export default function BuildingSettingsPage() {
   const [mode, setMode] = useState<EntranceMode>(initialEntrances.mode);
   const [first, setFirst] = useState(initialEntrances.first);
   const [last, setLast] = useState(initialEntrances.last);
+  const [touched, setTouched] = useState(false);
 
   const options = entranceOptions(mode);
   const preview = entranceInterval(mode, first, last);
 
+  const { errors, value: validated } = useMemo(
+    () => validateBuildingIdentity(form),
+    [form],
+  );
+
   const set = (key: keyof typeof form, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
+
+  const fieldError = (key: keyof BuildingIdentityForm) =>
+    touched && errors[key] ? t(`building.err.${errors[key]}`) : undefined;
 
   const changeMode = (next: EntranceMode) => {
     setMode(next);
@@ -59,18 +70,19 @@ export default function BuildingSettingsPage() {
 
   const save = () => {
     if (!asociatieId || !asociatie) return;
-    if (form.name.trim() === '') {
-      toast.error(t('common.required'));
+    setTouched(true);
+    if (!validated) {
+      toast.error(t('building.fixErrors'));
       return;
     }
     update(asociatieId, {
-      name: form.name.trim(),
-      address: form.address.trim(),
-      cui: form.cui.trim() || null,
-      registration_number: form.registration_number.trim() || null,
-      iban: form.iban.trim() || null,
-      contact_phone: form.contact_phone.trim() || null,
-      contact_email: form.contact_email.trim() || null,
+      name: validated.name,
+      address: validated.address,
+      cui: validated.cui || null,
+      registration_number: validated.registration_number || null,
+      iban: validated.iban || null,
+      contact_phone: validated.contact_phone || null,
+      contact_email: validated.contact_email || null,
       settings: { ...asociatie.settings, scari: preview },
     });
     toast.success(t('building.saved'));
@@ -86,6 +98,7 @@ export default function BuildingSettingsPage() {
             label={t('building.name')}
             value={form.name}
             onChange={(e) => set('name', e.target.value)}
+            error={fieldError('name')}
           />
           <Input
             label={t('building.address')}
@@ -97,6 +110,7 @@ export default function BuildingSettingsPage() {
               label={t('building.cui')}
               value={form.cui}
               onChange={(e) => set('cui', e.target.value)}
+              error={fieldError('cui')}
             />
             <Input
               label={t('building.regNumber')}
@@ -108,6 +122,7 @@ export default function BuildingSettingsPage() {
             label={t('building.iban')}
             value={form.iban}
             onChange={(e) => set('iban', e.target.value)}
+            error={fieldError('iban')}
           />
           <div className="grid gap-4 sm:grid-cols-2">
             <Input
@@ -115,12 +130,14 @@ export default function BuildingSettingsPage() {
               type="tel"
               value={form.contact_phone}
               onChange={(e) => set('contact_phone', e.target.value)}
+              error={fieldError('contact_phone')}
             />
             <Input
               label={t('building.contactEmail')}
               type="email"
               value={form.contact_email}
               onChange={(e) => set('contact_email', e.target.value)}
+              error={fieldError('contact_email')}
             />
           </div>
 

@@ -4,6 +4,8 @@
    stored in the flexible `Asociatie.settings.scari` bag and drives the entrance
    selector on the apartment forms. No UI or store imports so it stays testable. */
 
+import { isValidCui, isValidEmail, isValidIban, isValidPhone, normalizeIban } from '@/shared/lib/identity';
+
 export type EntranceMode = 'letters' | 'numbers';
 
 /** A, B, ... Z. */
@@ -65,4 +67,67 @@ export function detectEntranceConfig(scari: string[]): EntranceConfig {
   if (known.length === 0) return { mode: 'letters', first: 'A', last: 'A' };
   const sorted = [...known].sort((x, y) => indexOf(mode, x) - indexOf(mode, y));
   return { mode, first: sorted[0], last: sorted[sorted.length - 1] };
+}
+
+/* Identity validation for the admin-facing BuildingSettingsPage (T131). The
+   superadmin provisioning surface already format-checks CUI / IBAN / phone /
+   contact email, but the admin form only required a non-empty name, so an admin
+   could save a malformed IBAN or phone. This mirrors `validateProvisionInput`
+   for the fields the admin edits, reusing the shared identity validators so the
+   two surfaces stay in lockstep. Pure: no UI or store imports. */
+
+/** The free-text form the BuildingSettingsPage edits before validation. */
+export interface BuildingIdentityForm {
+  name: string;
+  address: string;
+  cui: string;
+  registration_number: string;
+  iban: string;
+  contact_phone: string;
+  contact_email: string;
+}
+
+/** The trimmed/normalised identity, ready to persist (blank optional = ''). */
+export type BuildingIdentityValue = BuildingIdentityForm;
+
+/** Per-field outcome, mapped to a bilingual `building.err.*` message. */
+export type BuildingFieldError = 'required' | 'tooShort' | 'email' | 'cui' | 'iban' | 'phone';
+
+export type BuildingIdentityErrors = Partial<Record<keyof BuildingIdentityForm, BuildingFieldError>>;
+
+export interface BuildingIdentityValidation {
+  errors: BuildingIdentityErrors;
+  /** The trimmed, valid identity when there are no errors; null otherwise. */
+  value: BuildingIdentityValue | null;
+}
+
+/**
+ * Validate and normalise the building identity form. Pure: returns the per-field
+ * error codes and, when clean, the trimmed/normalised values. The name is
+ * required (>= 3 chars); the identity fields (CUI, IBAN, phone, contact email)
+ * are optional but format-checked when filled. The IBAN is normalised (no
+ * spaces, upper-case) for both validation and storage.
+ */
+export function validateBuildingIdentity(form: BuildingIdentityForm): BuildingIdentityValidation {
+  const name = form.name.trim();
+  const address = form.address.trim();
+  const cui = form.cui.trim();
+  const registration_number = form.registration_number.trim();
+  const iban = normalizeIban(form.iban);
+  const contact_phone = form.contact_phone.trim();
+  const contact_email = form.contact_email.trim();
+
+  const errors: BuildingIdentityErrors = {};
+  if (!name) errors.name = 'required';
+  else if (name.length < 3) errors.name = 'tooShort';
+  if (cui && !isValidCui(cui)) errors.cui = 'cui';
+  if (iban && !isValidIban(iban)) errors.iban = 'iban';
+  if (contact_phone && !isValidPhone(contact_phone)) errors.contact_phone = 'phone';
+  if (contact_email && !isValidEmail(contact_email)) errors.contact_email = 'email';
+
+  const value: BuildingIdentityValue | null =
+    Object.keys(errors).length === 0
+      ? { name, address, cui, registration_number, iban, contact_phone, contact_email }
+      : null;
+  return { errors, value };
 }
