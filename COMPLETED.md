@@ -8,6 +8,9 @@ the live `BACKLOG.md` carries only the protocol and the open (⬜) queue.
 > task (read it only when a task's prerequisite or history is genuinely needed).
 > `RESUME.md` §0 remains the dated chronological summary.
 
+### ✅ T167 — [P3] Keep the triage-row actions usable on a narrow viewport
+Done: icon+meta wrapped in a `flex min-w-0 flex-1 items-center gap-3` group; outer row changed from `flex items-center gap-3` to `flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:gap-3`; title/key/count inner row gains `flex-wrap` so long meta wraps gracefully on very narrow screens. On mobile the actions div drops to its own row below the meta; on `sm+` the existing side-by-side layout is preserved. 4 new structural tests in `featuresAdminTriageResponsive.test.tsx`. 149 files / 1379 tests / build green.
+
 ### ✅ T138 — [P2] Live-wire the F05 comitet inbox through the privacy-preserving functions
 Done: `AnonymousMessage.sender_user_id` made optional (absent from comitet function rows). `anonymousStore` gains `replaceAll` (live hydration) + `setStatus` (explicit status set). New `anonymousApi.ts`: `hydrateAnonymousMessages` (RPC path for privileged roles, owner-RLS table path for residents, no-op offline), `submitAnonymousMessage` (prepends to store + best-effort `anonymous_messages` insert), `setAnonymousMessageStatus` (store update + `set_anonymous_message_status` RPC). `AnonymousPage` wired: `useEffect` hydrates on mount when configured, submit/toggle branch on `isSupabaseConfigured`, role-aware (`isPrivileged` flag). 14 new tests in `anonymousApi.test.ts`. 148 files / 1375 tests / build green. Live smoke pending credentials.
 

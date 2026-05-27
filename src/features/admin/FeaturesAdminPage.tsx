@@ -112,20 +112,25 @@ export default function FeaturesAdminPage() {
                 const f = getFeature(s.featureKey);
                 const names = s.requesterNames.slice(0, 3).join(', ');
                 return (
-                  <div key={s.featureKey} className="flex items-center gap-3 p-3">
-                    {f && <Icon name={f.icon} className="h-5 w-5 shrink-0 text-muted" />}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">
-                          {f ? featureTitle(t, f) : s.featureKey}
-                        </span>
-                        <span className="text-xs text-muted">{s.featureKey}</span>
-                        <span className="inline-flex items-center gap-1 text-xs text-muted">
-                          <Users className="h-3.5 w-3.5" aria-hidden />
-                          {t('features.requestCount', { count: s.count })}
-                        </span>
+                  <div
+                    key={s.featureKey}
+                    className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:gap-3"
+                  >
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                      {f && <Icon name={f.icon} className="h-5 w-5 shrink-0 text-muted" />}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-medium">
+                            {f ? featureTitle(t, f) : s.featureKey}
+                          </span>
+                          <span className="text-xs text-muted">{s.featureKey}</span>
+                          <span className="inline-flex items-center gap-1 text-xs text-muted">
+                            <Users className="h-3.5 w-3.5" aria-hidden />
+                            {t('features.requestCount', { count: s.count })}
+                          </span>
+                        </div>
+                        {names && <p className="truncate text-sm text-muted">{names}</p>}
                       </div>
-                      {names && <p className="truncate text-sm text-muted">{names}</p>}
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       <Button
