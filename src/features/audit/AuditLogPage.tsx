@@ -30,6 +30,7 @@ const AUDIT_ADMIN_ROLES = ['admin', 'presedinte'] as const;
 const ACTION_TONE: Record<AuditAction, 'success' | 'danger' | 'warning' | 'neutral'> = {
   'feature.enabled': 'success',
   'feature.disabled': 'neutral',
+  'feature.request_dismissed': 'neutral',
   'invite.issued': 'success',
   'invite.revoked': 'danger',
   'invite.email_sent': 'success',

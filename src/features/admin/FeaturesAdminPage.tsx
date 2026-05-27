@@ -1,11 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { Inbox, Sparkles, Users } from 'lucide-react';
+import { Inbox, Sparkles, Users, X } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Switch } from '@/shared/components/Switch';
 import { Button } from '@/shared/components/Button';
+import { Modal } from '@/shared/components/Modal';
 import { Icon } from '@/shared/components/Icon';
 import { Badge } from '@/shared/components/Badge';
 import {
@@ -33,6 +34,9 @@ export default function FeaturesAdminPage() {
   const requests = useFeatureRequestStore((s) => s.requests);
   const clearRequests = useFeatureRequestStore((s) => s.clearFor);
   const hydrateRequests = useFeatureRequestStore((s) => s.hydrateFor);
+
+  // The module key whose dismissal is awaiting confirmation, or null.
+  const [pendingDismiss, setPendingDismiss] = useState<string | null>(null);
 
   // Live: pull the full tenant slice the admin read policy exposes. Offline this
   // is a no-op and the persisted store already holds the demo queue.
@@ -62,6 +66,34 @@ export default function FeaturesAdminPage() {
       t('features.requestEnabledToast', { feature: f ? featureTitle(t, f) : featureKey }),
     );
   };
+
+  // Clear the demand for a module without enabling it: the admin has decided not
+  // to turn it on. Reuses the same `clearFor` path (and live delete policy) as the
+  // enable action, but leaves the flag off and records a distinct audit event so
+  // the decision stays traceable.
+  const dismissRequested = (featureKey: string) => {
+    if (!asociatieId) return;
+    clearRequests(asociatieId, featureKey);
+    recordAudit({
+      action: 'feature.request_dismissed',
+      entity: 'feature',
+      entity_label: featureKey,
+      before: 'requested',
+      after: 'dismissed',
+    });
+    const f = getFeature(featureKey);
+    toast.success(
+      t('features.requestDismissedToast', { feature: f ? featureTitle(t, f) : featureKey }),
+    );
+    setPendingDismiss(null);
+  };
+
+  const pendingFeature = pendingDismiss ? getFeature(pendingDismiss) : null;
+  const pendingLabel = pendingDismiss
+    ? pendingFeature
+      ? featureTitle(t, pendingFeature)
+      : pendingDismiss
+    : '';
 
   return (
     <div>
@@ -95,9 +127,18 @@ export default function FeaturesAdminPage() {
                       </div>
                       {names && <p className="truncate text-sm text-muted">{names}</p>}
                     </div>
-                    <Button size="sm" onClick={() => enableRequested(s.featureKey)}>
-                      <Sparkles size={15} aria-hidden /> {t('features.requestEnable')}
-                    </Button>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setPendingDismiss(s.featureKey)}
+                      >
+                        <X size={15} aria-hidden /> {t('features.requestDismiss')}
+                      </Button>
+                      <Button size="sm" onClick={() => enableRequested(s.featureKey)}>
+                        <Sparkles size={15} aria-hidden /> {t('features.requestEnable')}
+                      </Button>
+                    </div>
                   </div>
                 );
               })}
@@ -146,6 +187,29 @@ export default function FeaturesAdminPage() {
           </section>
         ))}
       </div>
+
+      <Modal
+        open={pendingDismiss !== null}
+        onClose={() => setPendingDismiss(null)}
+        title={t('features.requestDismissTitle')}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setPendingDismiss(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => pendingDismiss && dismissRequested(pendingDismiss)}
+            >
+              <X size={15} aria-hidden /> {t('features.requestDismiss')}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm">
+          {pendingDismiss ? t('features.requestDismissBody', { feature: pendingLabel }) : ''}
+        </p>
+      </Modal>
     </div>
   );
 }

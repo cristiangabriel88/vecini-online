@@ -29,6 +29,7 @@ import Papa from 'papaparse';
 export const AUDIT_ACTIONS = [
   'feature.enabled',
   'feature.disabled',
+  'feature.request_dismissed',
   'invite.issued',
   'invite.revoked',
   'invite.email_sent',

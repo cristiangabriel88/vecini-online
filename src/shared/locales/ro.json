@@ -423,7 +423,11 @@
     "requestsSubtitle": "Module pe care locatarii ți-au cerut să le activezi. Activarea unuia șterge cererile aferente.",
     "requestCount": "{{count}} locatari",
     "requestEnable": "Activează",
-    "requestEnabledToast": "{{feature}} a fost activată"
+    "requestEnabledToast": "{{feature}} a fost activată",
+    "requestDismiss": "Respinge",
+    "requestDismissTitle": "Respingi cererea?",
+    "requestDismissBody": "Cererile pentru „{{feature}}” vor fi șterse din listă, fără a activa modulul. Decizia este înregistrată în jurnalul de audit.",
+    "requestDismissedToast": "Cererile pentru {{feature}} au fost respinse"
   },
   "announcements": {
     "title": "Anunțuri",
@@ -2390,6 +2394,7 @@
     "action": {
       "feature.enabled": "Funcționalitate activată",
       "feature.disabled": "Funcționalitate dezactivată",
+      "feature.request_dismissed": "Cerere de funcționalitate respinsă",
       "invite.issued": "Cod de invitație emis",
       "invite.revoked": "Cod de invitație revocat",
       "invite.email_sent": "Invitație trimisă pe email",
