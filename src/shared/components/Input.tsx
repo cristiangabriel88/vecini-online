@@ -62,12 +62,13 @@ export const Textarea = forwardRef<
         ref={ref}
         id={fieldId}
         aria-invalid={!!error}
+        aria-describedby={error ? `${fieldId}-err` : undefined}
         className={cn('textarea', className)}
         {...rest}
       />
       {hint && !error && <p className="field__hint">{hint}</p>}
       {error && (
-        <p className="field__error">
+        <p id={`${fieldId}-err`} className="field__error">
           <Info size={12} /> {error}
         </p>
       )}

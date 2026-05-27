@@ -8,6 +8,10 @@ the live `BACKLOG.md` carries only the protocol and the open (⬜) queue.
 > task (read it only when a task's prerequisite or history is genuinely needed).
 > `RESUME.md` §0 remains the dated chronological summary.
 
+### ✅ T165 — [P3] Link the shared `Textarea` error to its control with `aria-describedby`
+
+**Done:** Added `aria-describedby={error ? \`${fieldId}-err\` : undefined}` to `<textarea>` and `id={\`${fieldId}-err\`}` to the error `<p>` in `Textarea` (`src/shared/components/Input.tsx`), mirroring the existing `Input` pattern. Added 6-test coverage file `tests/unit/Input.test.tsx` covering both `Input` and `Textarea` for the aria wiring, `aria-invalid`, hint/error mutual exclusion. Pipeline: lint / typecheck / 1288 tests / build all green.
+
 ### ✅ T55 — [MVP] Live invite write/consume + real account creation on redemption (admin + resident)
 
 **Done:** Server-authoritative invite redemption via two SECURITY DEFINER RPCs (new migration `supabase/migrations/20260527000004_onboarding_redemption_rpcs.sql`) + `AccountSetupPage` live branch + live invite write on CSV import.
