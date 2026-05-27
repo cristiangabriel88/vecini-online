@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 
 // T91 — Platform superadmin identity + cross-asociatie RLS foundation. The whole
 // superadmin tier (T92 provisioning, T100 mandatory MFA, T93-T99 the console)
@@ -105,5 +105,71 @@ describe('platform superadmin foundation (T91)', () => {
     // The original tenant-scoped reads still exist alongside the new ones.
     expect(sql).toContain('create policy "members read asociatie" on asociatii for select');
     expect(sql).toContain('create policy "read own memberships" on memberships for select');
+  });
+});
+
+// T169 -- Least-privilege execute grants for is_super_admin() + live superadmin
+// seed path documented. These backend-free guards parse the migration SQL so the
+// contract cannot silently regress: if someone accidentally grants public execute
+// access again, or removes the authenticated grant, these tests turn red before
+// any live deployment. Complements the T91 guards above.
+describe('is_super_admin() execute grant contract (T169)', () => {
+  const raw = allMigrationSql();
+  const sql = flatten(raw);
+
+  it('EXECUTE on is_super_admin() is granted to authenticated only', () => {
+    expect(sql).toContain('grant execute on function is_super_admin() to authenticated');
+  });
+
+  it('EXECUTE is revoked from PUBLIC (removes the Postgres default open grant)', () => {
+    expect(sql).toContain('revoke execute on function is_super_admin() from public');
+  });
+
+  it('EXECUTE is explicitly revoked from anon (belt-and-suspenders: intent documented, survives future grants)', () => {
+    expect(sql).toContain('revoke execute on function is_super_admin() from anon');
+  });
+
+  it('the superadmin seed path is documented as a parameterized comment, not a hardcoded user id', () => {
+    // The migration must contain the documented INSERT pattern with a placeholder so
+    // a human or agent can supply the real address later. A hardcoded UUID or email
+    // in the executed SQL would be a security / privacy leak.
+    expect(raw).toContain('<SUPERADMIN_EMAIL>');
+
+    // The SEED PATH comment block must not contain a real UUID (8-4-4-4-12 hex).
+    // Extract everything between the SEED PATH marker and the IDEMPOTENT marker.
+    const seedBlock = raw.match(/SEED PATH[\s\S]*?(?=IDEMPOTENT)/i)?.[0] ?? '';
+    expect(seedBlock).not.toBe('');
+    expect(seedBlock).not.toMatch(
+      /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/i,
+    );
+  });
+
+  it('the executed statements do not contain the <SUPERADMIN_EMAIL> placeholder (it must stay a comment)', () => {
+    // Strip SQL line comments before checking -- the placeholder is only valid
+    // inside a comment, not in an executable statement.
+    const noComments = raw
+      .split('\n')
+      .filter((line) => !line.trimStart().startsWith('--'))
+      .join('\n');
+    expect(noComments).not.toContain('<SUPERADMIN_EMAIL>');
+  });
+
+  it('platformAuthStore.verify() calls is_super_admin() server-side and treats any error as denied', () => {
+    // Static contract guard: if the store were changed to trust a client-supplied
+    // claim instead of the server RPC, or to map an error to null/true, the gate
+    // would break. This parses the TypeScript source offline -- the live behaviour
+    // is covered by platformAuthLogic.test.ts.
+    const storePath = resolve(process.cwd(), 'src', 'platform', 'platformAuthStore.ts');
+    const storeSource = readFileSync(storePath, 'utf8');
+
+    // The RPC name must be exactly 'is_super_admin'.
+    expect(storeSource).toContain("rpc('is_super_admin')");
+
+    // Any error must map to false (denied), never to null or true.
+    expect(storeSource).toContain('error ? false : Boolean(data)');
+
+    // The call must be inside the verify action, not in an inline useEffect or
+    // component (server-authoritative, not client-computed).
+    expect(storeSource).toContain('verify:');
   });
 });

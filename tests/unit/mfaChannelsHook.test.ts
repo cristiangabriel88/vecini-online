@@ -197,14 +197,16 @@ describe('custom_access_token_hook function (T141)', () => {
   });
 
   it('does NOT grant execute to authenticated', () => {
+    // Use [^;]+ (stop at statement boundary) so the pattern cannot accidentally
+    // match a later GRANT for a different function in the cumulative migration SQL.
     expect(sqlLow).not.toMatch(
-      /grant execute on function custom_access_token_hook[\s\S]+?to authenticated/,
+      /grant execute on function custom_access_token_hook[^;]+to authenticated/,
     );
   });
 
   it('does NOT grant execute to anon', () => {
     expect(sqlLow).not.toMatch(
-      /grant execute on function custom_access_token_hook[\s\S]+?to anon/,
+      /grant execute on function custom_access_token_hook[^;]+to anon/,
     );
   });
 
