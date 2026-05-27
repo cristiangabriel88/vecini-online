@@ -143,8 +143,8 @@ Done: `AnonymousMessage.sender_user_id` made optional (absent from comitet funct
 ### ✅ T167 — [P3] Keep the triage-row actions usable on a narrow viewport
 Done: icon+meta wrapped in a `flex min-w-0 flex-1 items-center gap-3` group; outer row changed from `flex items-center gap-3` to `flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:gap-3`; title/key/count inner row gains `flex-wrap` so long meta wraps gracefully on very narrow screens. On mobile the actions div drops to its own row below the meta; on `sm+` the existing side-by-side layout is preserved. 4 new structural tests in `featuresAdminTriageResponsive.test.tsx`. 149 files / 1379 tests / build green.
 
-### ⬜ T164 — [P3] Seed the new invitee's profile locale from the active UI language
-Surfaced in T146: the offline `seedProfile` written on account creation defaults `locale` to `'ro'` (via `emptyProfile`), regardless of the language the invitee actually used to complete the setup landing. A resident who set up their account with the UI in English still gets a `ro` profile locale, which would mis-target their bilingual notifications/emails once those honour the per-user locale. Pass the active i18n language (`i18n.language`, narrowed to a `Locale`) into `seedProfile` from `AccountSetupPage` so the new account's profile locale matches the language they chose. Trivial, backend-free, offline; the live equivalent folds into T55 (account creation) / T103 (profile persistence). Prereq: T146.
+### ✅ T164 — [P3] Seed the new invitee's profile locale from the active UI language
+Done: `seedProfile` gains an optional `locale?: Locale` parameter (spreads over `emptyProfile`'s `'ro'` default only when provided); `AccountSetupPage` offline path narrows `i18n.language` to `Locale` (`'en'` or `'ro'`) and passes it to `seedProfile`; 2 new locale tests in `profileLogic.test.ts`. 149 files / 1381 tests / build green.
 
 ### ✅ T165 — [P3] Link the shared `Textarea` error to its control with `aria-describedby`
 

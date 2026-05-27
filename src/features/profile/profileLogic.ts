@@ -120,12 +120,18 @@ export function firstName(fullName: string): string {
  * resident to open the profile editor. Live account creation writes the real
  * `users` row (T55); this is the offline-parity seed.
  */
-export function seedProfile(userId: string, email: string, fullName: string): ProfileData {
+export function seedProfile(
+  userId: string,
+  email: string,
+  fullName: string,
+  locale?: Locale,
+): ProfileData {
   const trimmed = fullName.trim();
   return {
     ...emptyProfile(userId, email),
     fullName: trimmed,
     displayName: firstName(trimmed),
+    ...(locale ? { locale } : {}),
   };
 }
 

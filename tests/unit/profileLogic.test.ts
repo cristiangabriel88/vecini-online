@@ -76,6 +76,16 @@ describe('seedProfile', () => {
     expect(p.customFields).toEqual([]);
     expect(hasValidationErrors(p)).toBe(false);
   });
+
+  it('defaults locale to ro when no locale is passed', () => {
+    const p = seedProfile('u-9', 'a@b.com', 'Ana');
+    expect(p.locale).toBe('ro');
+  });
+
+  it('uses the provided locale when passed', () => {
+    const p = seedProfile('u-9', 'a@b.com', 'Ana', 'en');
+    expect(p.locale).toBe('en');
+  });
 });
 
 describe('initials', () => {

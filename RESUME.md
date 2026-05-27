@@ -19,8 +19,9 @@ under `docs/`, despite references to the contrary). The product is
 > Finished tasks' full done-notes are archived in `COMPLETED.md` (newest first);
 > §0 below stays the dated chronological summary.
 
-## 0. Current status (updated 2026-05-27, T167 done -- triage-row responsive layout, 4 new tests, 1379 total)
+## 0. Current status (updated 2026-05-27, T164 done -- seed profile locale from UI language, 2 new tests, 1381 total)
 
+- **2026-05-27 — T164 (P3) Seed invitee profile locale from active UI language.** `seedProfile` gains an optional `locale` parameter; `AccountSetupPage` offline path narrows `i18n.language` to `Locale` and passes it to `seedProfile`. 2 new tests. 149 files / 1381 tests green.
 - **2026-05-27 — T167 (P3) Triage-row actions responsive on narrow viewports.** Icon+meta wrapped in a flex group; outer row is `flex-col sm:flex-row`; title/key/count row gains `flex-wrap`. Actions drop to their own row on mobile, stay beside meta on sm+. 4 structural tests. 149 files / 1379 tests green.
 - **2026-05-27 — T138 (P2) Live-wire F05 comitet inbox through privacy-preserving functions.** `AnonymousMessage.sender_user_id` made optional (comitet rows never carry it). `anonymousStore` gains `replaceAll` + `setStatus`. New `anonymousApi.ts`: `hydrateAnonymousMessages` (RPC for privileged, owner-table for residents, no-op offline), `submitAnonymousMessage`, `setAnonymousMessageStatus`. `AnonymousPage` wired with role-aware `useEffect` hydration + `isSupabaseConfigured` branches. 14 new tests. 148 files / 1375 tests green.
 - **2026-05-27 — T135 (P2) Cross-origin superadmin redirect to platform subdomain.** `AsociatieRoute` gains `'platform-redirect'`; `resolveAsociatieRoute` returns it when superadmin + `platformUrl` set; `RequireAsociatie` fires `window.location.href` in `useEffect` + returns null; `AppHome` same defense-in-depth; `env.platformUrl` reads `VITE_PLATFORM_URL`; `.env.example` documented. Existing hydrationLogic tests pass unchanged. 19 new tests. 147 files / 1363 tests green.

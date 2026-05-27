@@ -11,6 +11,7 @@ import { useAuthStore } from '@/shared/store/authStore';
 import { useInviteStore } from '@/shared/store/inviteStore';
 import { useProfileStore } from '@/features/profile/profileStore';
 import { seedProfile } from '@/features/profile/profileLogic';
+import type { Locale } from '@/shared/types/domain';
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import { DEMO_CURRENT_USER_ID } from '@/shared/demo/demoData';
 import {
@@ -226,7 +227,8 @@ export default function AccountSetupPage() {
         // profile (name + email) so the chrome and F36 directory show who joined
         // without waiting for the resident to open the profile editor.
         const userId = useAuthStore.getState().session?.user?.id ?? DEMO_CURRENT_USER_ID;
-        saveProfile(seedProfile(userId, email.trim(), name));
+        const uiLocale: Locale = i18n.language === 'en' ? 'en' : 'ro';
+        saveProfile(seedProfile(userId, email.trim(), name, uiLocale));
       }
       toast.success(t('setup.success'));
       navigate(postSetupRoute(resolved.kind));

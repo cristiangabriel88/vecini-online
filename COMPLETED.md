@@ -8,6 +8,9 @@ the live `BACKLOG.md` carries only the protocol and the open (⬜) queue.
 > task (read it only when a task's prerequisite or history is genuinely needed).
 > `RESUME.md` §0 remains the dated chronological summary.
 
+### ✅ T164 — [P3] Seed the new invitee's profile locale from the active UI language
+Done: `seedProfile` gains an optional `locale?: Locale` parameter (spreads over `emptyProfile`'s `'ro'` default only when provided); `AccountSetupPage` offline path narrows `i18n.language` to `Locale` (`'en'` or `'ro'`) and passes it to `seedProfile`; 2 new locale tests in `profileLogic.test.ts`. 149 files / 1381 tests / build green.
+
 ### ✅ T167 — [P3] Keep the triage-row actions usable on a narrow viewport
 Done: icon+meta wrapped in a `flex min-w-0 flex-1 items-center gap-3` group; outer row changed from `flex items-center gap-3` to `flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:gap-3`; title/key/count inner row gains `flex-wrap` so long meta wraps gracefully on very narrow screens. On mobile the actions div drops to its own row below the meta; on `sm+` the existing side-by-side layout is preserved. 4 new structural tests in `featuresAdminTriageResponsive.test.tsx`. 149 files / 1379 tests / build green.
 
