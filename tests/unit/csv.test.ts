@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   generateApartmentsCsvTemplate,
   parseApartmentsCsv,
+  resolveImportBatch,
   rowToApartment,
+  type ApartmentImportRow,
 } from '@/shared/lib/csv';
 
 describe('parseApartmentsCsv', () => {
@@ -214,5 +216,80 @@ describe('rowToApartment', () => {
     const row = parseApartmentsCsv('numar_apartament,name,email\n3,Elena,').rows[0];
     const apt = rowToApartment(row, BASE_ASOCIATIE_ID);
     expect(apt.persons[0].email).toBeNull();
+  });
+});
+
+describe('resolveImportBatch', () => {
+  const makeRow = (overrides: Partial<ApartmentImportRow> = {}): ApartmentImportRow => ({
+    scara: 'A',
+    etaj: null,
+    numar_apartament: '1',
+    suprafata_utila: null,
+    cota_parte_indiviza: null,
+    name: 'Ionescu Maria',
+    email: 'maria@test.ro',
+    numar_persoane: 2,
+    proprietar: true,
+    opt_in: true,
+    ...overrides,
+  });
+
+  it('accepts a row not already in the registry', () => {
+    const { toCreate, errors } = resolveImportBatch([makeRow()], [], new Set());
+    expect(toCreate).toHaveLength(1);
+    expect(errors).toHaveLength(0);
+  });
+
+  it('rejects a row whose key exists in the registry', () => {
+    const { toCreate, errors } = resolveImportBatch([makeRow()], [], new Set(['A|1']));
+    expect(toCreate).toHaveLength(0);
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toMatch(/Rândul 1/);
+    expect(errors[0]).toMatch(/există deja/);
+  });
+
+  it('rejects the second occurrence of a duplicate key within the CSV', () => {
+    const row = makeRow();
+    const { toCreate, errors } = resolveImportBatch([row, row], [], new Set());
+    expect(toCreate).toHaveLength(1);
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toMatch(/duplicat în CSV/);
+  });
+
+  it('puts opt_in rows with a non-empty email into toInvite', () => {
+    const { toCreate, toInvite } = resolveImportBatch([makeRow()], [], new Set());
+    expect(toCreate).toHaveLength(1);
+    expect(toInvite).toHaveLength(1);
+    expect(toInvite[0]).toBe(toCreate[0]);
+  });
+
+  it('excludes opt_in rows with an empty email from toInvite', () => {
+    const { toInvite } = resolveImportBatch([makeRow({ email: '' })], [], new Set());
+    expect(toInvite).toHaveLength(0);
+  });
+
+  it('excludes opt_in=false rows from toInvite even when email is present', () => {
+    const { toInvite } = resolveImportBatch([makeRow({ opt_in: false })], [], new Set());
+    expect(toInvite).toHaveLength(0);
+  });
+
+  it('preserves parse-level errors forwarded from parseApartmentsCsv', () => {
+    const { errors } = resolveImportBatch([], ['Rândul 1: lipsește numar_apartament'], new Set());
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toMatch(/lipsește/);
+  });
+
+  it('handles rows with no scara (empty string key segment)', () => {
+    const row = makeRow({ scara: '' });
+    const { toCreate, errors } = resolveImportBatch([row], [], new Set(['|1']));
+    expect(toCreate).toHaveLength(0);
+    expect(errors[0]).toMatch(/există deja/);
+  });
+
+  it('accepts multiple distinct rows with no errors', () => {
+    const rows = [makeRow({ numar_apartament: '1' }), makeRow({ numar_apartament: '2' })];
+    const { toCreate, errors } = resolveImportBatch(rows, [], new Set());
+    expect(toCreate).toHaveLength(2);
+    expect(errors).toHaveLength(0);
   });
 });

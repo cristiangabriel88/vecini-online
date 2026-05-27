@@ -107,6 +107,57 @@ export function parseApartmentsCsv(text: string): ImportResult {
   return { rows, errors };
 }
 
+export interface ImportBatchResult {
+  /** Rows accepted for creation (no duplicate, no parse error). */
+  toCreate: ApartmentImportRow[];
+  /** Subset of toCreate where opt_in is true and email is non-empty. */
+  toInvite: ApartmentImportRow[];
+  /** All errors (parse-level + semantic-level duplicates), in row order. */
+  errors: string[];
+}
+
+/**
+ * Resolve a parsed CSV batch against the already-registered apartment keys
+ * (`"${scara}|${numar_apartament}"`) for an asociație.
+ *
+ * Returns which rows should be created, which should trigger an invite (opt-in
+ * with email), and any errors encountered (parse errors forwarded unchanged,
+ * plus duplicate-key errors detected here). Pure: no store access.
+ */
+export function resolveImportBatch(
+  rows: ApartmentImportRow[],
+  parseErrors: string[],
+  existingApartmentKeys: ReadonlySet<string>,
+): ImportBatchResult {
+  const errors = [...parseErrors];
+  const toCreate: ApartmentImportRow[] = [];
+  const toInvite: ApartmentImportRow[] = [];
+  const csvKeys = new Set<string>();
+
+  rows.forEach((row, i) => {
+    const key = `${row.scara}|${row.numar_apartament}`;
+    const label = row.scara
+      ? `Ap. ${row.numar_apartament} Sc. ${row.scara}`
+      : `Ap. ${row.numar_apartament}`;
+
+    if (existingApartmentKeys.has(key)) {
+      errors.push(`Rândul ${i + 1}: ${label} există deja.`);
+      return;
+    }
+    if (csvKeys.has(key)) {
+      errors.push(`Rândul ${i + 1}: ${label} duplicat în CSV.`);
+      return;
+    }
+    csvKeys.add(key);
+    toCreate.push(row);
+    if (row.opt_in && row.email) {
+      toInvite.push(row);
+    }
+  });
+
+  return { toCreate, toInvite, errors };
+}
+
 /**
  * Convert a parsed CSV row into an Apartment ready to persist in the registry.
  *

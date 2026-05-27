@@ -837,6 +837,11 @@
     "codesGenerated": "{{count}} coduri generate (ex: {{code}})",
     "generateCodes": "Generează coduri de invitație",
     "downloadTemplate": "Descarcă șablon .csv",
+    "importList": "Import listă",
+    "importing": "Se importă...",
+    "importSuccess": "{{apartments}} apartament(e) importat(e), {{invites}} invitație(i) trimisă(e).",
+    "importNone": "Fișierul nu conține apartamente noi.",
+    "importErrorsTitle": "{{count}} eroare(i) găsită(e):",
     "empty": "Niciun apartament importat. Folosește pasul de import din configurare."
   },
   "building": {

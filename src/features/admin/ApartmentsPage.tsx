@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { Download, KeyRound, Pencil, Plus, Trash2, Building2 } from 'lucide-react';
+import { AlertTriangle, Building2, Download, KeyRound, Pencil, Plus, Trash2, Upload, X } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
@@ -10,19 +10,30 @@ import { EmptyState } from '@/shared/components/EmptyState';
 import { Modal } from '@/shared/components/Modal';
 import { formatLei } from '@/shared/lib/format';
 import { generateInviteCode } from '@/shared/lib/inviteCode';
-import { generateApartmentsCsvTemplate } from '@/shared/lib/csv';
+import {
+  generateApartmentsCsvTemplate,
+  parseApartmentsCsv,
+  resolveImportBatch,
+  rowToApartment,
+} from '@/shared/lib/csv';
 import { useAuthStore } from '@/shared/store/authStore';
+import { useInviteStore } from '@/shared/store/inviteStore';
 import type { Apartment } from '@/shared/types/domain';
 import { apartmentShortLabel } from '@/features/apartment/apartmentLogic';
-import { useAsociatieApartments } from './apartmentsStore';
-import { deleteApartment, hydrateApartments } from './apartmentsApi';
+import { sendInviteEmail } from '@/features/invites/inviteEmailApi';
+import { onboardingExpiry } from '@/features/invites/inviteLogic';
+import { useAsociatieApartments, useApartmentsStore } from './apartmentsStore';
+import { createApartments, deleteApartment, hydrateApartments } from './apartmentsApi';
 
 export default function ApartmentsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
   const apartments = useAsociatieApartments();
   const [pendingDelete, setPendingDelete] = useState<Apartment | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importErrors, setImportErrors] = useState<string[]>([]);
 
   // With a backend present, pull the live registry into the store on mount; in
   // demo mode this is a no-op and the seeded/persisted list stands.
@@ -39,6 +50,75 @@ export default function ApartmentsPage() {
     a.download = 'sablon-apartamente.csv';
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !asociatieId) return;
+
+    setIsImporting(true);
+    setImportErrors([]);
+
+    try {
+      const text = await file.text();
+      const { rows, errors: parseErrors } = parseApartmentsCsv(text);
+
+      const existing = useApartmentsStore.getState().forAsociatie(asociatieId);
+      const existingKeys = new Set(
+        existing.map((a) => `${a.scara ?? ''}|${a.numar_apartament}`),
+      );
+
+      const { toCreate, toInvite, errors } = resolveImportBatch(rows, parseErrors, existingKeys);
+
+      const newApartments = toCreate.map((row) => rowToApartment(row, asociatieId));
+      if (newApartments.length > 0) {
+        createApartments(asociatieId, newApartments);
+      }
+
+      let invitesSent = 0;
+      const inviteState = useInviteStore.getState();
+
+      for (const row of toInvite) {
+        const idx = toCreate.indexOf(row);
+        const aptId = idx !== -1 ? newApartments[idx].id : null;
+        const invite = inviteState.issue({
+          asociatieId,
+          role: row.proprietar ? 'proprietar' : 'chirias',
+          apartmentId: aptId,
+          expiresAt: onboardingExpiry(),
+          singleUse: true,
+          inviteeName: row.name || null,
+          inviteeEmail: row.email,
+        });
+        const result = await sendInviteEmail({ invite, locale: i18n.language });
+        if (result.ok) {
+          inviteState.markEmailSent(invite.id);
+          invitesSent++;
+        }
+      }
+
+      if (newApartments.length > 0) {
+        toast.success(
+          t('apartments.importSuccess', {
+            apartments: newApartments.length,
+            invites: invitesSent,
+          }),
+        );
+      } else if (errors.length === 0) {
+        toast(t('apartments.importNone'));
+      }
+
+      if (errors.length > 0) {
+        setImportErrors(errors);
+      }
+    } finally {
+      setIsImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   const confirmDelete = () => {
@@ -62,6 +142,14 @@ export default function ApartmentsPage() {
               <Button variant="secondary" onClick={handleDownloadTemplate}>
                 <Download className="h-4 w-4" /> {t('apartments.downloadTemplate')}
               </Button>
+              <Button
+                variant="secondary"
+                onClick={handleImportClick}
+                loading={isImporting}
+                aria-label={t('apartments.importList')}
+              >
+                <Upload className="h-4 w-4" /> {t('apartments.importList')}
+              </Button>
               <Button onClick={() => navigate('/app/admin/apartamente/adauga')}>
                 <Plus className="h-4 w-4" /> {t('apartments.addApartments')}
               </Button>
@@ -69,6 +157,53 @@ export default function ApartmentsPage() {
           ) : undefined
         }
       />
+
+      {/* Hidden file input for CSV import */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".csv,text/csv"
+        className="sr-only"
+        aria-hidden="true"
+        onChange={handleFileSelected}
+      />
+
+      {/* Per-row import errors */}
+      {importErrors.length > 0 && (
+        <div
+          role="alert"
+          className="mb-4 rounded-xl border border-yellow-400/40 bg-yellow-400/10 p-4"
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-start gap-2">
+              <AlertTriangle
+                size={16}
+                className="mt-0.5 shrink-0 text-yellow-500"
+                aria-hidden
+              />
+              <div className="text-sm">
+                <p className="font-medium text-yellow-700 dark:text-yellow-300">
+                  {t('apartments.importErrorsTitle', { count: importErrors.length })}
+                </p>
+                <ul className="mt-1 space-y-0.5 text-yellow-700/80 dark:text-yellow-300/80">
+                  {importErrors.map((err, i) => (
+                    <li key={i}>{err}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            <button
+              onClick={() => setImportErrors([])}
+              className="iconbtn shrink-0"
+              style={{ width: 28, height: 28 }}
+              aria-label={t('common.close')}
+            >
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+      )}
+
       {apartments.length === 0 ? (
         <EmptyState
           icon={<Building2 size={22} />}
@@ -81,6 +216,13 @@ export default function ApartmentsPage() {
               </Button>
               <Button variant="secondary" onClick={handleDownloadTemplate}>
                 <Download className="h-4 w-4" /> {t('apartments.downloadTemplate')}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={handleImportClick}
+                loading={isImporting}
+              >
+                <Upload className="h-4 w-4" /> {t('apartments.importList')}
               </Button>
               <Button variant="secondary" onClick={() => navigate('/app/admin/cladire')}>
                 <Building2 className="h-4 w-4" /> {t('apartments.configureBuilding')}

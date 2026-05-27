@@ -837,6 +837,11 @@
     "codesGenerated": "{{count}} codes generated (e.g. {{code}})",
     "generateCodes": "Generate invite codes",
     "downloadTemplate": "Download .csv template",
+    "importList": "Import list",
+    "importing": "Importing...",
+    "importSuccess": "{{apartments}} apartment(s) imported, {{invites}} invitation(s) sent.",
+    "importNone": "The file contains no new apartments.",
+    "importErrorsTitle": "{{count}} error(s) found:",
     "empty": "No apartments imported. Use the import step in setup."
   },
   "building": {
