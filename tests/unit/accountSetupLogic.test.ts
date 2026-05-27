@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   type SetupProvisionLike,
+  NAME_MAX_LENGTH,
   evaluateAccountForm,
+  isValidName,
   postSetupRoute,
   resolveOnboarding,
   setupProvisionStatus,
@@ -107,35 +109,75 @@ describe('postSetupRoute', () => {
 
 describe('evaluateAccountForm', () => {
   const strong = 'Munte-Albastru-91';
+  const name = 'Ioana Popescu';
 
-  it('accepts a valid email with a strong, matching password', () => {
-    const r = evaluateAccountForm({ email: 'vecin@example.com', password: strong, confirm: strong });
+  it('accepts a valid name + email with a strong, matching password', () => {
+    const r = evaluateAccountForm({ name, email: 'vecin@example.com', password: strong, confirm: strong });
     expect(r.ok).toBe(true);
+    expect(r.nameInvalid).toBe(false);
     expect(r.emailInvalid).toBe(false);
     expect(r.mismatch).toBe(false);
   });
 
   it('blocks on a malformed email', () => {
-    const r = evaluateAccountForm({ email: 'not-an-email', password: strong, confirm: strong });
+    const r = evaluateAccountForm({ name, email: 'not-an-email', password: strong, confirm: strong });
     expect(r.ok).toBe(false);
     expect(r.emailInvalid).toBe(true);
   });
 
   it('blocks on a breached password and surfaces the policy issue', () => {
-    const r = evaluateAccountForm({ email: 'vecin@example.com', password: 'password123', confirm: 'password123' });
+    const r = evaluateAccountForm({ name, email: 'vecin@example.com', password: 'password123', confirm: 'password123' });
     expect(r.ok).toBe(false);
     expect(r.assessment.issues).toContain('breached');
   });
 
   it('blocks and flags a mismatched confirmation', () => {
-    const r = evaluateAccountForm({ email: 'vecin@example.com', password: strong, confirm: `${strong}x` });
+    const r = evaluateAccountForm({ name, email: 'vecin@example.com', password: strong, confirm: `${strong}x` });
     expect(r.ok).toBe(false);
     expect(r.mismatch).toBe(true);
   });
 
   it('is not ok until the confirmation is filled', () => {
-    const r = evaluateAccountForm({ email: 'vecin@example.com', password: strong, confirm: '' });
+    const r = evaluateAccountForm({ name, email: 'vecin@example.com', password: strong, confirm: '' });
     expect(r.ok).toBe(false);
     expect(r.mismatch).toBe(false);
+  });
+
+  it('blocks on an empty name without flagging an inline error', () => {
+    const r = evaluateAccountForm({ name: '   ', email: 'vecin@example.com', password: strong, confirm: strong });
+    expect(r.ok).toBe(false);
+    expect(r.nameInvalid).toBe(false);
+  });
+
+  it('flags a too-short name inline', () => {
+    const r = evaluateAccountForm({ name: 'A', email: 'vecin@example.com', password: strong, confirm: strong });
+    expect(r.ok).toBe(false);
+    expect(r.nameInvalid).toBe(true);
+  });
+
+  it('accepts a Romanian name with diacritics and a hyphen', () => {
+    const r = evaluateAccountForm({
+      name: 'Ștefan-Andrei Mureșan',
+      email: 'vecin@example.com',
+      password: strong,
+      confirm: strong,
+    });
+    expect(r.ok).toBe(true);
+    expect(r.nameInvalid).toBe(false);
+  });
+});
+
+describe('isValidName', () => {
+  it('accepts a name within the length bounds', () => {
+    expect(isValidName('Ana')).toBe(true);
+  });
+  it('rejects a blank or whitespace-only name', () => {
+    expect(isValidName('   ')).toBe(false);
+  });
+  it('rejects a single character', () => {
+    expect(isValidName('A')).toBe(false);
+  });
+  it('rejects a name past the maximum length', () => {
+    expect(isValidName('x'.repeat(NAME_MAX_LENGTH + 1))).toBe(false);
   });
 });

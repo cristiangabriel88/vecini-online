@@ -6,8 +6,10 @@ import {
   avatarThumbDim,
   completeness,
   emptyProfile,
+  firstName,
   hasValidationErrors,
   initials,
+  seedProfile,
   isAcceptedImageType,
   moveCustomField,
   neighbourVisibleFields,
@@ -46,6 +48,35 @@ function filledProfile(): ProfileData {
     dateOfBirth: '1988-04-12',
   };
 }
+
+describe('firstName', () => {
+  it('returns the first whitespace-delimited token', () => {
+    expect(firstName('Popescu Andrei')).toBe('Popescu');
+    expect(firstName('  Ioana   Maria ')).toBe('Ioana');
+  });
+  it('returns an empty string for a blank name', () => {
+    expect(firstName('   ')).toBe('');
+  });
+});
+
+describe('seedProfile', () => {
+  it('seeds the full name + email and derives the display name from the first token', () => {
+    const p = seedProfile('u-9', 'nou@vecini.online', '  Ștefan-Andrei Mureșan ');
+    expect(p.userId).toBe('u-9');
+    expect(p.email).toBe('nou@vecini.online');
+    expect(p.fullName).toBe('Ștefan-Andrei Mureșan');
+    expect(p.displayName).toBe('Ștefan-Andrei');
+  });
+
+  it('leaves every other field at its empty default', () => {
+    const p = seedProfile('u-9', 'nou@vecini.online', 'Ana');
+    expect(p.phone).toBe('');
+    expect(p.avatarDataUrl).toBeNull();
+    expect(p.apartmentId).toBeNull();
+    expect(p.customFields).toEqual([]);
+    expect(hasValidationErrors(p)).toBe(false);
+  });
+});
 
 describe('initials', () => {
   it('takes the first letter of the first two name parts, uppercased', () => {

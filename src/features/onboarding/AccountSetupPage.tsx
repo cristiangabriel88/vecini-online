@@ -9,6 +9,10 @@ import { Input } from '@/shared/components/Input';
 import { PasswordStrengthMeter } from '@/features/auth/PasswordStrengthMeter';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useInviteStore } from '@/shared/store/inviteStore';
+import { useProfileStore } from '@/features/profile/profileStore';
+import { seedProfile } from '@/features/profile/profileLogic';
+import { isSupabaseConfigured } from '@/shared/lib/supabase';
+import { DEMO_CURRENT_USER_ID } from '@/shared/demo/demoData';
 import {
   setupProvisionLinks,
   usePlatformAsociatiiStore,
@@ -42,10 +46,12 @@ export default function AccountSetupPage() {
   const redeemInvite = useAuthStore((s) => s.redeemInvite);
   const activateProvisionedAdmin = useAuthStore((s) => s.activateProvisionedAdmin);
   const consumeSetup = usePlatformAsociatiiStore((s) => s.consumeSetup);
+  const saveProfile = useProfileStore((s) => s.save);
   const invites = useInviteStore((s) => s.invites);
   const provisions = usePlatformAsociatiiStore((s) => s.provisions);
   const asociatii = usePlatformAsociatiiStore((s) => s.asociatii);
 
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -61,8 +67,8 @@ export default function AccountSetupPage() {
   );
 
   const form = useMemo(
-    () => evaluateAccountForm({ email, password, confirm }),
-    [email, password, confirm],
+    () => evaluateAccountForm({ name, email, password, confirm }),
+    [name, email, password, confirm],
   );
 
   // No token in the URL — the link is missing or was corrupted.
@@ -114,6 +120,14 @@ export default function AccountSetupPage() {
           return;
         }
         activateProvisionedAdmin(result.asociatieId, result.asociatieName ?? resolved.asociatieName ?? '');
+      }
+      // Offline, the new account is linked to the demo user id and has no `users`
+      // row, so seed a minimal profile (name + email) for it now — without this
+      // the chrome and the F36 directory show no name until the resident opens
+      // the profile editor. Live, the real `users` row is written by T55.
+      if (!isSupabaseConfigured) {
+        const userId = useAuthStore.getState().session?.user?.id ?? DEMO_CURRENT_USER_ID;
+        saveProfile(seedProfile(userId, email.trim(), name));
       }
       toast.success(t('setup.success'));
       navigate(postSetupRoute(resolved.kind));
@@ -168,6 +182,16 @@ export default function AccountSetupPage() {
             <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">{tokenError}</p>
           )}
 
+          <Input
+            label={t('setup.name')}
+            type="text"
+            autoComplete="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            hint={t('setup.nameHint')}
+            error={form.nameInvalid ? t('setup.err_name') : undefined}
+            required
+          />
           <Input
             label={t('auth.email')}
             type="email"

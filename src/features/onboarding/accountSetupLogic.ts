@@ -118,6 +118,8 @@ export function resolveOnboarding(
 
 /** The invitee's account-creation form fields. */
 export interface AccountForm {
+  /** The invitee's display name, seeded into their profile on redemption (T146). */
+  name: string;
   email: string;
   password: string;
   confirm: string;
@@ -127,12 +129,28 @@ export interface AccountForm {
 export interface AccountFormResult {
   /** True only when every field is valid and safe to submit. */
   ok: boolean;
+  /** True when the name is present but too short/long (for an inline error). */
+  nameInvalid: boolean;
   /** True when the email is present but malformed (for an inline error). */
   emailInvalid: boolean;
   /** The password policy assessment, backing the strength meter + first issue. */
   assessment: PasswordAssessment;
   /** True when the confirmation is non-empty and differs from the password. */
   mismatch: boolean;
+}
+
+/** Bounds for the invitee's display name (a real human name, not a handle). */
+export const NAME_MIN_LENGTH = 2;
+export const NAME_MAX_LENGTH = 80;
+
+/**
+ * A display name is acceptable when, trimmed, it falls within the length bounds.
+ * Romanian names carry diacritics, hyphens and spaces, so no character class is
+ * imposed beyond a sane length. Pure so the submit gate is unit-testable.
+ */
+export function isValidName(value: string): boolean {
+  const trimmed = value.trim();
+  return trimmed.length >= NAME_MIN_LENGTH && trimmed.length <= NAME_MAX_LENGTH;
 }
 
 /**
@@ -158,11 +176,18 @@ export function postSetupRoute(kind: OnboardingKind): string {
 export function evaluateAccountForm(form: AccountForm): AccountFormResult {
   const email = form.email.trim();
   const emailValid = isValidEmail(email);
+  const nameValid = isValidName(form.name);
   const assessment = evaluatePassword(form.password, email);
   const mismatch = form.confirm.length > 0 && form.password !== form.confirm;
-  const ok = emailValid && assessment.ok && form.confirm.length > 0 && form.password === form.confirm;
+  const ok =
+    nameValid &&
+    emailValid &&
+    assessment.ok &&
+    form.confirm.length > 0 &&
+    form.password === form.confirm;
   return {
     ok,
+    nameInvalid: form.name.trim().length > 0 && !nameValid,
     emailInvalid: email.length > 0 && !emailValid,
     assessment,
     mismatch,

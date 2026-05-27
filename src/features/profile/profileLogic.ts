@@ -107,6 +107,28 @@ export function emptyProfile(userId: string, email: string): ProfileData {
   };
 }
 
+/** First token of a name, the conventional default for the short display name. */
+export function firstName(fullName: string): string {
+  return fullName.trim().split(/\s+/).filter(Boolean)[0] ?? '';
+}
+
+/**
+ * A minimal profile seeded when a brand-new invitee creates their account on
+ * redemption (T146): just the captured full name + email, every other field
+ * empty. The short display name defaults to the first token of the full name,
+ * so the chrome and the F36 directory reflect who joined without waiting for the
+ * resident to open the profile editor. Live account creation writes the real
+ * `users` row (T55); this is the offline-parity seed.
+ */
+export function seedProfile(userId: string, email: string, fullName: string): ProfileData {
+  const trimmed = fullName.trim();
+  return {
+    ...emptyProfile(userId, email),
+    fullName: trimmed,
+    displayName: firstName(trimmed),
+  };
+}
+
 /** Two-letter initials from a name, for the avatar fallback. */
 export function initials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
