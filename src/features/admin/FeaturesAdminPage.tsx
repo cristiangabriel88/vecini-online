@@ -126,6 +126,11 @@ export default function FeaturesAdminPage() {
                     onChange={(v) => {
                       if (!asociatieId) return;
                       setFlag(asociatieId, f.key, v);
+                      // Enabling a module here satisfies any pending resident
+                      // requests for it, exactly as the triage "enable" action
+                      // does, so the demand is cleared regardless of which
+                      // control turned the module on (see enableRequested).
+                      if (v) clearRequests(asociatieId, f.key);
                       recordAudit({
                         action: v ? 'feature.enabled' : 'feature.disabled',
                         entity: 'feature',
