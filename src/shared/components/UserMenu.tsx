@@ -54,6 +54,7 @@ export function UserMenu() {
   // Reflect the active persona so each demo role (admin, superadmin, locatar)
   // shows its own identity here rather than a fixed placeholder.
   const profile = useAuthStore((s) => s.profile);
+  const isSuperAdmin = useAuthStore((s) => s.isPlatformSuperAdmin);
   const role = useAuthStore((s) => s.activeRole)();
   const userName = profile?.full_name?.trim() || DEMO_CURRENT_USER_NAME;
   const roleLabel = role ? t(`chrome.userMenu.roleLabel.${role}`) : t('chrome.userMenu.role');
@@ -206,18 +207,22 @@ export function UserMenu() {
               desc={t('chrome.userMenu.aboutDesc')}
               onClick={() => openModal('about')}
             />
-            <Item
-              icon={<LifeBuoy size={17} />}
-              label={t('chrome.userMenu.help')}
-              desc={t('chrome.userMenu.helpDesc')}
-              onClick={() => openModal('help')}
-            />
-            <Item
-              icon={<Mail size={17} />}
-              label={t('chrome.userMenu.contact')}
-              desc={t('chrome.userMenu.contactDesc')}
-              onClick={() => openModal('contact')}
-            />
+            {!isSuperAdmin && (
+              <>
+                <Item
+                  icon={<LifeBuoy size={17} />}
+                  label={t('chrome.userMenu.help')}
+                  desc={t('chrome.userMenu.helpDesc')}
+                  onClick={() => openModal('help')}
+                />
+                <Item
+                  icon={<Mail size={17} />}
+                  label={t('chrome.userMenu.contact')}
+                  desc={t('chrome.userMenu.contactDesc')}
+                  onClick={() => openModal('contact')}
+                />
+              </>
+            )}
           </div>
 
           <div className="usermenu__divider" />

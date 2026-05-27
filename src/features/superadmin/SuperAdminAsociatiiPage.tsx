@@ -10,14 +10,12 @@ import { Badge } from '@/shared/components/Badge';
 import { Card } from '@/shared/components/Card';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { formatDate } from '@/shared/lib/format';
-import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import { usePlatformAsociatiiStore } from '@/platform/platformAsociatiiStore';
 import {
-  blankProvisionInput,
+  blankAdminInvite,
   isDormant,
-  validateProvisionInput,
-  type ProvisionInputDraft,
-  type ProvisionResult,
+  validateAdminInvite,
+  type AdminInviteDraft,
 } from '@/platform/platformProvisioningLogic';
 
 /**
@@ -33,17 +31,16 @@ export default function SuperAdminAsociatiiPage() {
   const { t } = useTranslation();
   const asociatii = usePlatformAsociatiiStore((s) => s.asociatii);
   const provisions = usePlatformAsociatiiStore((s) => s.provisions);
-  const provision = usePlatformAsociatiiStore((s) => s.provision);
+  const inviteAdmin = usePlatformAsociatiiStore((s) => s.inviteAdmin);
 
   const [formOpen, setFormOpen] = useState(false);
-  const [draft, setDraft] = useState<ProvisionInputDraft>(blankProvisionInput());
+  const [draft, setDraft] = useState<AdminInviteDraft>(blankAdminInvite());
   const [touched, setTouched] = useState(false);
-  const [result, setResult] = useState<ProvisionResult | null>(null);
 
-  const { errors, value } = useMemo(() => validateProvisionInput(draft), [draft]);
+  const { errors, value } = useMemo(() => validateAdminInvite(draft), [draft]);
 
   const openForm = () => {
-    setDraft(blankProvisionInput());
+    setDraft(blankAdminInvite());
     setTouched(false);
     setFormOpen(true);
   };
@@ -51,10 +48,9 @@ export default function SuperAdminAsociatiiPage() {
   const submit = () => {
     setTouched(true);
     if (!value) return;
-    const provisioned = provision(value);
+    inviteAdmin(value.adminName, value.adminEmail);
     setFormOpen(false);
-    setResult(provisioned);
-    toast.success(t('platform.asociatii.success', { name: provisioned.asociatie.name }));
+    toast.success(t('platform.addAsociatie.sent', { email: value.adminEmail }));
   };
 
   const copyCode = async (code: string) => {
@@ -66,11 +62,11 @@ export default function SuperAdminAsociatiiPage() {
     }
   };
 
-  const set = (key: keyof ProvisionInputDraft) => (e: React.ChangeEvent<HTMLInputElement>) =>
+  const set = (key: keyof AdminInviteDraft) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setDraft((d) => ({ ...d, [key]: e.target.value }));
 
-  const fieldError = (key: keyof ProvisionInputDraft) =>
-    touched && errors[key] ? t(`platform.asociatii.err.${errors[key]}`) : undefined;
+  const fieldError = (key: keyof AdminInviteDraft) =>
+    touched && errors[key] ? t(`platform.addAsociatie.err.${errors[key]}`) : undefined;
 
   return (
     <div>
@@ -195,72 +191,25 @@ export default function SuperAdminAsociatiiPage() {
           </>
         }
       >
-        <p className="mb-4 text-sm text-muted">{t('platform.asociatii.provisionLead')}</p>
         <div className="space-y-3">
           <Input
-            label={t('platform.asociatii.fields.asociatieName')}
-            placeholder={t('platform.asociatii.fields.asociatieNamePlaceholder')}
-            value={draft.asociatieName}
-            onChange={set('asociatieName')}
-            error={fieldError('asociatieName')}
-          />
-          <Input
-            label={t('platform.asociatii.fields.city')}
-            placeholder={t('platform.asociatii.fields.cityPlaceholder')}
-            value={draft.city}
-            onChange={set('city')}
-            error={fieldError('city')}
-          />
-          <Input
-            label={t('platform.asociatii.fields.adminName')}
-            placeholder={t('platform.asociatii.fields.adminNamePlaceholder')}
+            label={t('platform.addAsociatie.adminName')}
+            placeholder={t('platform.addAsociatie.adminNamePlaceholder')}
             value={draft.adminName}
             onChange={set('adminName')}
             error={fieldError('adminName')}
+            autoComplete="name"
           />
           <Input
-            label={t('platform.asociatii.fields.adminEmail')}
+            label={t('platform.addAsociatie.adminEmail')}
             type="email"
             autoComplete="off"
-            placeholder={t('platform.asociatii.fields.adminEmailPlaceholder')}
+            placeholder={t('platform.addAsociatie.adminEmailPlaceholder')}
             value={draft.adminEmail}
             onChange={set('adminEmail')}
             error={fieldError('adminEmail')}
           />
         </div>
-        <p className="mt-4 text-xs text-muted">
-          {isSupabaseConfigured
-            ? t('platform.asociatii.liveNote')
-            : t('platform.asociatii.demoNote')}
-        </p>
-      </Modal>
-
-      <Modal
-        open={result !== null}
-        onClose={() => setResult(null)}
-        title={t('platform.asociatii.resultTitle')}
-        footer={<Button onClick={() => setResult(null)}>{t('platform.asociatii.done')}</Button>}
-      >
-        {result && (
-          <div className="space-y-3">
-            <p className="font-semibold">{result.asociatie.name}</p>
-            <p className="text-sm text-muted">
-              {t('platform.asociatii.resultBody', { name: result.admin.name })}
-            </p>
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-muted">
-                <KeyRound className="h-3 w-3" />
-                {t('platform.asociatii.setupCodeLabel')}
-              </span>
-              <code className="rounded bg-surface-2 px-2 py-0.5 font-mono text-sm font-semibold tracking-widest">
-                {result.admin.setupCode}
-              </code>
-            </div>
-            <Button variant="ghost" onClick={() => void copyCode(result.admin.setupCode)}>
-              <Copy className="h-4 w-4" /> {t('platform.asociatii.copyCode')}
-            </Button>
-          </div>
-        )}
       </Modal>
     </div>
   );

@@ -431,17 +431,12 @@ function Topbar() {
             {scaraLabel}
           </span>
         </span>
-        <ChevronDown size={14} style={{ color: 'var(--text-faint)', flexShrink: 0 }} />
       </button>
 
       <div className="topbar__search">
         <div className="topsearch">
           <Search size={15} />
           <input placeholder={t('chrome.searchPlaceholder')} />
-          <span style={{ display: 'inline-flex', gap: 3 }}>
-            <kbd className="kbd">⌘</kbd>
-            <kbd className="kbd">K</kbd>
-          </span>
         </div>
       </div>
 

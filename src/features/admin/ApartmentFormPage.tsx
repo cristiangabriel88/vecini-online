@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Check, Info, Mail, Plus, Send, ShieldCheck, Trash2 } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Check, Info, Mail, Plus, ShieldCheck, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
 import { Select } from '@/shared/components/Select';
 import { Switch } from '@/shared/components/Switch';
-import { Badge } from '@/shared/components/Badge';
+import { Modal } from '@/shared/components/Modal';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useInviteStore } from '@/shared/store/inviteStore';
@@ -61,6 +61,12 @@ export default function ApartmentFormPage() {
   // Required-field errors stay silent until the admin actually tries to save,
   // so a pristine form never greets them with red text.
   const [submitted, setSubmitted] = useState(false);
+  // Invite-by-email modal state.
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [selectedEmail, setSelectedEmail] = useState('');
+  const [customEmail, setCustomEmail] = useState('');
+  // Delete-person confirmation: holds the id of the person pending removal.
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   if (isEdit && !apartment) {
     return (
@@ -126,30 +132,25 @@ export default function ApartmentFormPage() {
     navigate('/app/admin/apartamente');
   };
 
-  // Save the form first (so edits are not lost), then open the codes page with the
-  // apartment/role/recipient prefilled and the code auto-issued.
-  const onSendInvite = () => {
-    if (!apartment) return;
-    if (!persist()) return;
-    navigate('/app/admin/invitatii', {
-      state: {
-        prefill: {
-          apartmentId: apartment.id,
-          role: 'proprietar',
-          inviteeName: primaryName,
-          inviteeEmail: contactEmail.trim(),
-          autoIssue: true,
-        },
-      },
-    });
+  // Persons with a valid email -- used to populate the invite modal's selection list.
+  const emailPersons = persons.filter(
+    (p): p is ApartmentPerson & { email: string } =>
+      Boolean(p.email?.trim()) && isValidEmail(p.email!),
+  );
+
+  // Open the invite modal, resetting selection to the primary occupant's email.
+  const openInviteModal = () => {
+    setSelectedEmail(contactEmail);
+    setCustomEmail('');
+    setInviteModalOpen(true);
   };
 
-  // Capture the email on the occupant, mint the invite, then deliver it: offline
-  // this simulates the send and stamps the invite; live it calls the Resend-backed
-  // `invite-email` function (T147).
-  const onSendByEmail = async () => {
+  // Mint the invite and deliver it via email. The custom-email field takes
+  // precedence over the radio selection so the admin can always override.
+  const onConfirmInvite = async () => {
     if (!apartment || !asociatieId) return;
-    if (!isValidEmail(contactEmail)) {
+    const effectiveEmail = customEmail.trim() || selectedEmail;
+    if (!isValidEmail(effectiveEmail)) {
       toast.error(t('apartments.emailInvalid'));
       return;
     }
@@ -162,7 +163,7 @@ export default function ApartmentFormPage() {
       singleUse: true,
       createdBy: userId,
       inviteeName: primaryName,
-      inviteeEmail: contactEmail.trim(),
+      inviteeEmail: effectiveEmail,
     });
     recordAudit({
       action: 'invite.issued',
@@ -187,38 +188,54 @@ export default function ApartmentFormPage() {
       before: null,
       after: null,
     });
-    toast.success(t('apartments.emailSent', { email: contactEmail.trim() }));
+    toast.success(t('apartments.emailSent', { email: effectiveEmail }));
+    setInviteModalOpen(false);
   };
 
   const statusBlock =
     isEdit && apartment ? (
       registered ? (
-        <Badge tone="success">
-          <ShieldCheck className="mr-1 inline h-3.5 w-3.5" /> {t('apartments.statusRegistered')}
-        </Badge>
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '7px 14px',
+            borderRadius: 'var(--radius)',
+            background: 'color-mix(in oklch, var(--color-success) 12%, transparent)',
+            border: '1.5px solid color-mix(in oklch, var(--color-success) 30%, transparent)',
+            color: 'var(--color-success)',
+            fontWeight: 600,
+            fontSize: 14,
+            lineHeight: 1,
+          }}
+        >
+          <ShieldCheck size={17} strokeWidth={2.2} />
+          {t('apartments.statusRegistered')}
+        </div>
       ) : (
-        <div className="flex flex-col gap-2 sm:items-end">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge tone="neutral">{t('apartments.statusNotRegistered')}</Badge>
-            <Button variant="secondary" size="sm" onClick={onSendInvite}>
-              <Send className="h-4 w-4" /> {t('apartments.sendInvite')}
-            </Button>
+        <div style={{ display: 'inline-flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '7px 14px',
+              borderRadius: 'var(--radius)',
+              background: 'color-mix(in oklch, var(--color-warning) 12%, transparent)',
+              border: '1.5px solid color-mix(in oklch, var(--color-warning) 30%, transparent)',
+              color: 'var(--color-warning)',
+              fontWeight: 600,
+              fontSize: 14,
+              lineHeight: 1,
+            }}
+          >
+            <AlertCircle size={17} strokeWidth={2.2} />
+            {t('apartments.statusNotRegistered')}
           </div>
-          {primary && (
-            <div className="flex items-end gap-2">
-              <Input
-                type="email"
-                className="w-52"
-                aria-label={t('apartments.personEmail')}
-                placeholder={t('apartments.personEmail')}
-                value={contactEmail}
-                onChange={(e) => setPerson(primary.id, { email: e.target.value })}
-              />
-              <Button size="sm" onClick={onSendByEmail}>
-                <Mail className="h-4 w-4" /> {t('apartments.sendByEmail')}
-              </Button>
-            </div>
-          )}
+          <Button onClick={openInviteModal}>
+            <Mail className="h-4 w-4" /> {t('apartments.sendInvite')}
+          </Button>
         </div>
       )
     ) : undefined;
@@ -369,14 +386,16 @@ export default function ApartmentFormPage() {
                   />
                   <span className="text-sm text-muted">{t('apartments.primary')}</span>
                 </div>
-                <button
-                  className="iconbtn mb-1.5"
-                  style={{ width: 32, height: 32 }}
+                <Button
+                  variant="danger"
+                  size="sm"
                   aria-label={t('apartments.removePerson')}
-                  onClick={() => setPersons((prev) => prev.filter((x) => x.id !== p.id))}
+                  onClick={() => setDeleteConfirmId(p.id)}
+                  style={{ marginBottom: 6, flexShrink: 0 }}
                 >
                   <Trash2 size={15} />
-                </button>
+                  {t('apartments.removePerson')}
+                </Button>
               </div>
             ))}
           </div>
@@ -391,6 +410,110 @@ export default function ApartmentFormPage() {
           <Check className="h-4 w-4" /> {t('common.save')}
         </Button>
       </div>
+
+      {/* ── Delete-person confirmation ───────────────────────── */}
+      <Modal
+        open={deleteConfirmId !== null}
+        onClose={() => setDeleteConfirmId(null)}
+        title={t('apartments.removePersonConfirmTitle')}
+        footer={
+          <div className="ml-auto flex gap-2">
+            <Button variant="ghost" onClick={() => setDeleteConfirmId(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => {
+                if (deleteConfirmId) {
+                  setPersons((prev) => prev.filter((x) => x.id !== deleteConfirmId));
+                }
+                setDeleteConfirmId(null);
+              }}
+            >
+              <Trash2 className="h-4 w-4" /> {t('apartments.removePerson')}
+            </Button>
+          </div>
+        }
+      >
+        <p className="text-sm">{t('apartments.removePersonConfirmBody')}</p>
+      </Modal>
+
+      {isEdit && apartment && !registered && (
+        <Modal
+          open={inviteModalOpen}
+          onClose={() => setInviteModalOpen(false)}
+          title={t('apartments.sendInvite')}
+          footer={
+            <div className="ml-auto flex gap-2">
+              <Button variant="ghost" onClick={() => setInviteModalOpen(false)}>
+                {t('common.cancel')}
+              </Button>
+              <Button onClick={onConfirmInvite}>
+                <Mail className="h-4 w-4" /> {t('apartments.sendByEmail')}
+              </Button>
+            </div>
+          }
+        >
+          <div className="space-y-4">
+            <p className="text-sm">
+              {t('apartments.inviteModalBody', { label: apartmentShortLabel(apartment) })}
+            </p>
+
+            {emailPersons.length > 0 && (
+              <div>
+                <p className="mb-2 text-sm font-medium">
+                  {t('apartments.inviteModalSelectEmail')}
+                </p>
+                <div className="space-y-1">
+                  {emailPersons.map((p) => (
+                    <label
+                      key={p.id}
+                      className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 transition-colors hover:bg-[var(--surface-raised)]"
+                    >
+                      <input
+                        type="radio"
+                        name="invite-email"
+                        value={p.email}
+                        checked={selectedEmail === p.email && !customEmail.trim()}
+                        onChange={() => {
+                          setSelectedEmail(p.email);
+                          setCustomEmail('');
+                        }}
+                        className="accent-[var(--accent)]"
+                      />
+                      <span className="flex-1 text-sm">
+                        <span className="font-medium">{p.name}</span>
+                        <span className="ml-1 text-muted">
+                          ({t(`apartments.role_${p.role}`)})
+                        </span>
+                      </span>
+                      <span className="font-mono text-sm text-muted">{p.email}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div>
+              <div className="mb-3 flex items-center gap-2">
+                <div className="h-px flex-1 bg-[var(--border-subtle)]" />
+                <span className="text-xs uppercase tracking-wide text-muted">
+                  {t('apartments.inviteModalOrNew')}
+                </span>
+                <div className="h-px flex-1 bg-[var(--border-subtle)]" />
+              </div>
+              <Input
+                type="email"
+                label={t('apartments.inviteModalNewEmailLabel')}
+                placeholder="exemplu@email.com"
+                hint={t('apartments.inviteModalNewEmailHint')}
+                value={customEmail}
+                onChange={(e) => setCustomEmail(e.target.value)}
+              />
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

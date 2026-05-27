@@ -56,6 +56,7 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const signOut = useAuthStore((s) => s.signOut);
   const { userId, email } = useMyIdentity();
+  const isSuperAdmin = useAuthStore((s) => s.isPlatformSuperAdmin);
   const get = useProfileStore((s) => s.get);
   const save = useProfileStore((s) => s.save);
 
@@ -218,34 +219,38 @@ export default function ProfilePage() {
               error={errors.email ? t(`profile.err.${errors.email}`) : undefined}
               onChange={(e) => update({ email: e.target.value })}
             />
-            <Select
-              label={t('profile.apartment')}
-              value={profile.apartmentId ?? ''}
-              onChange={(e) => selectApartment(e.target.value)}
-            >
-              <option value="">{t('profile.apartmentNone')}</option>
-              {DEMO_APARTMENTS.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {t('profile.apartmentOption', {
-                    numar: a.numar_apartament,
-                    scara: a.scara ?? '-',
-                    etaj: a.etaj ?? '-',
-                  })}
-                </option>
-              ))}
-            </Select>
-            <div className="grid grid-cols-2 gap-3">
-              <Input
-                label={t('profile.scara')}
-                value={profile.scara}
-                onChange={(e) => update({ scara: e.target.value })}
-              />
-              <Input
-                label={t('profile.etaj')}
-                value={profile.etaj}
-                onChange={(e) => update({ etaj: e.target.value })}
-              />
-            </div>
+            {!isSuperAdmin && (
+              <>
+                <Select
+                  label={t('profile.apartment')}
+                  value={profile.apartmentId ?? ''}
+                  onChange={(e) => selectApartment(e.target.value)}
+                >
+                  <option value="">{t('profile.apartmentNone')}</option>
+                  {DEMO_APARTMENTS.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {t('profile.apartmentOption', {
+                        numar: a.numar_apartament,
+                        scara: a.scara ?? '-',
+                        etaj: a.etaj ?? '-',
+                      })}
+                    </option>
+                  ))}
+                </Select>
+                <div className="grid grid-cols-2 gap-3">
+                  <Input
+                    label={t('profile.scara')}
+                    value={profile.scara}
+                    onChange={(e) => update({ scara: e.target.value })}
+                  />
+                  <Input
+                    label={t('profile.etaj')}
+                    value={profile.etaj}
+                    onChange={(e) => update({ etaj: e.target.value })}
+                  />
+                </div>
+              </>
+            )}
             <Input
               label={t('profile.carPlate')}
               hint={t('profile.carPlateHint')}
@@ -259,14 +264,16 @@ export default function ProfilePage() {
               value={profile.address}
               onChange={(e) => update({ address: e.target.value })}
             />
-            <Input
-              label={t('profile.dateOfBirth')}
-              type="date"
-              hint={t('profile.dobHint')}
-              value={profile.dateOfBirth}
-              error={errors.dateOfBirth ? t(`profile.err.${errors.dateOfBirth}`) : undefined}
-              onChange={(e) => update({ dateOfBirth: e.target.value })}
-            />
+            {!isSuperAdmin && (
+              <Input
+                label={t('profile.dateOfBirth')}
+                type="date"
+                hint={t('profile.dobHint')}
+                value={profile.dateOfBirth}
+                error={errors.dateOfBirth ? t(`profile.err.${errors.dateOfBirth}`) : undefined}
+                onChange={(e) => update({ dateOfBirth: e.target.value })}
+              />
+            )}
             <Select
               label={t('profile.language')}
               value={profile.locale}
@@ -342,9 +349,13 @@ export default function ProfilePage() {
 
         {/* Account + chrome */}
         <Card title={t('profile.account')}>
-          <p className="font-medium">{DEMO_ASOCIATIE.name}</p>
-          <p className="text-sm text-muted">{DEMO_ASOCIATIE.address}</p>
-          <div className="mt-4 space-y-2">
+          {!isSuperAdmin && (
+            <>
+              <p className="font-medium">{DEMO_ASOCIATIE.name}</p>
+              <p className="text-sm text-muted">{DEMO_ASOCIATIE.address}</p>
+            </>
+          )}
+          <div className={isSuperAdmin ? 'space-y-2' : 'mt-4 space-y-2'}>
             <button className="profile-link" onClick={() => navigate('/app/notificari')}>
               <Bell className="h-4 w-4" /> {t('profile.notifications')}
             </button>
