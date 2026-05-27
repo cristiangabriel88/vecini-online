@@ -1,7 +1,11 @@
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
+import { Inbox, Sparkles, Users } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Switch } from '@/shared/components/Switch';
+import { Button } from '@/shared/components/Button';
 import { Icon } from '@/shared/components/Icon';
 import { Badge } from '@/shared/components/Badge';
 import {
@@ -10,9 +14,12 @@ import {
   categoryLabel,
   featureTitle,
   featureDescription,
+  getFeature,
   type FeatureCategory,
 } from '@/shared/features/registry';
+import { summarizeRequests } from '@/shared/features/featureRequestLogic';
 import { useAsociatieFlags, useFeatureStore } from '@/shared/features/featureStore';
+import { useFeatureRequestStore } from '@/shared/store/featureRequestStore';
 import { useAuthStore } from '@/shared/store/authStore';
 import { recordAudit } from '@/shared/store/auditStore';
 
@@ -23,10 +30,80 @@ export default function FeaturesAdminPage() {
   const setFlag = useFeatureStore((s) => s.setFlag);
   const categories = Object.keys(FEATURE_CATEGORIES) as FeatureCategory[];
 
+  const requests = useFeatureRequestStore((s) => s.requests);
+  const clearRequests = useFeatureRequestStore((s) => s.clearFor);
+  const hydrateRequests = useFeatureRequestStore((s) => s.hydrateFor);
+
+  // Live: pull the full tenant slice the admin read policy exposes. Offline this
+  // is a no-op and the persisted store already holds the demo queue.
+  useEffect(() => {
+    if (asociatieId) void hydrateRequests(asociatieId);
+  }, [asociatieId, hydrateRequests]);
+
+  // Demand is only worth surfacing for modules still disabled; once a flag is on,
+  // the satisfied requests are cleared, so this also self-heals after enabling.
+  const triage = (asociatieId ? summarizeRequests(requests, asociatieId) : []).filter(
+    (s) => !flags[s.featureKey],
+  );
+
+  const enableRequested = (featureKey: string) => {
+    if (!asociatieId) return;
+    setFlag(asociatieId, featureKey, true);
+    clearRequests(asociatieId, featureKey);
+    recordAudit({
+      action: 'feature.enabled',
+      entity: 'feature',
+      entity_label: featureKey,
+      before: 'off',
+      after: 'on',
+    });
+    const f = getFeature(featureKey);
+    toast.success(
+      t('features.requestEnabledToast', { feature: f ? featureTitle(t, f) : featureKey }),
+    );
+  };
+
   return (
     <div>
       <PageHeader title={t('features.title')} subtitle={t('features.subtitle')} />
       <div className="space-y-6">
+        {triage.length > 0 && (
+          <section aria-label={t('features.requestsTitle')}>
+            <h2 className="mb-2 flex items-center gap-2 text-lg font-semibold">
+              <Inbox className="h-5 w-5 text-primary" aria-hidden />
+              {t('features.requestsTitle')}
+              <Badge tone="primary">{triage.length}</Badge>
+            </h2>
+            <p className="mb-2 text-sm text-muted">{t('features.requestsSubtitle')}</p>
+            <Card className="divide-y divide-border p-0">
+              {triage.map((s) => {
+                const f = getFeature(s.featureKey);
+                const names = s.requesterNames.slice(0, 3).join(', ');
+                return (
+                  <div key={s.featureKey} className="flex items-center gap-3 p-3">
+                    {f && <Icon name={f.icon} className="h-5 w-5 shrink-0 text-muted" />}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">
+                          {f ? featureTitle(t, f) : s.featureKey}
+                        </span>
+                        <span className="text-xs text-muted">{s.featureKey}</span>
+                        <span className="inline-flex items-center gap-1 text-xs text-muted">
+                          <Users className="h-3.5 w-3.5" aria-hidden />
+                          {t('features.requestCount', { count: s.count })}
+                        </span>
+                      </div>
+                      {names && <p className="truncate text-sm text-muted">{names}</p>}
+                    </div>
+                    <Button size="sm" onClick={() => enableRequested(s.featureKey)}>
+                      <Sparkles size={15} aria-hidden /> {t('features.requestEnable')}
+                    </Button>
+                  </div>
+                );
+              })}
+            </Card>
+          </section>
+        )}
         {categories.map((cat) => (
           <section key={cat}>
             <h2 className="mb-2 text-lg font-semibold">{categoryLabel(t, cat)}</h2>

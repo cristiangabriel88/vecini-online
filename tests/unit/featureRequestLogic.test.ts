@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
   addRequest,
+  clearRequestsFor,
   hasRequested,
   newFeatureRequest,
+  replaceAsociatieRequests,
+  summarizeRequests,
   type FeatureRequest,
 } from '@/shared/features/featureRequestLogic';
 
@@ -66,5 +69,74 @@ describe('addRequest', () => {
     const second = addRequest(first.requests, ASOC, FEATURE, 'user-2', 'Bogdan');
     expect(second.added).not.toBeNull();
     expect(second.requests).toHaveLength(2);
+  });
+});
+
+describe('summarizeRequests', () => {
+  // Two modules in ASOC, plus a row for a different asociație that must not leak.
+  const requests: FeatureRequest[] = [
+    newFeatureRequest(ASOC, 'F12', 'u1', 'Ana', 1000),
+    newFeatureRequest(ASOC, 'F12', 'u2', 'Bogdan', 3000),
+    newFeatureRequest(ASOC, 'F13', 'u3', null, 2000),
+    newFeatureRequest('asoc-2', 'F12', 'u4', 'Dan', 9000),
+  ];
+
+  it('groups by module, counts requesters, and sorts newest-first', () => {
+    const summary = summarizeRequests(requests, ASOC);
+    expect(summary.map((s) => s.featureKey)).toEqual(['F12', 'F13']);
+    expect(summary[0]).toMatchObject({ featureKey: 'F12', count: 2, latestCreatedAt: 3000 });
+    expect(summary[1]).toMatchObject({ featureKey: 'F13', count: 1, latestCreatedAt: 2000 });
+  });
+
+  it('lists requester names newest-first and drops the unnamed', () => {
+    const summary = summarizeRequests(requests, ASOC);
+    expect(summary[0].requesterNames).toEqual(['Bogdan', 'Ana']);
+    expect(summary[1].requesterNames).toEqual([]);
+  });
+
+  it('scopes to the asociație, never leaking another tenant', () => {
+    expect(summarizeRequests(requests, 'asoc-2')).toHaveLength(1);
+    expect(summarizeRequests(requests, 'asoc-unknown')).toEqual([]);
+  });
+});
+
+describe('clearRequestsFor', () => {
+  const requests: FeatureRequest[] = [
+    newFeatureRequest(ASOC, 'F12', 'u1', 'Ana', 1000),
+    newFeatureRequest(ASOC, 'F12', 'u2', 'Bogdan', 2000),
+    newFeatureRequest(ASOC, 'F13', 'u3', 'Dan', 3000),
+    newFeatureRequest('asoc-2', 'F12', 'u4', 'Ema', 4000),
+  ];
+
+  it('drops only the matching module in the matching asociație', () => {
+    const next = clearRequestsFor(requests, ASOC, 'F12');
+    expect(next.map((r) => r.featureKey)).toEqual(['F13', 'F12']);
+    // the surviving F12 belongs to the other asociație
+    expect(next.find((r) => r.featureKey === 'F12')?.asociatieId).toBe('asoc-2');
+  });
+
+  it('returns an unchanged-content list when nothing matches', () => {
+    expect(clearRequestsFor(requests, ASOC, 'F99')).toHaveLength(requests.length);
+  });
+});
+
+describe('replaceAsociatieRequests', () => {
+  const existing: FeatureRequest[] = [
+    newFeatureRequest(ASOC, 'F12', 'u1', 'Ana', 1000),
+    newFeatureRequest('asoc-2', 'F12', 'u4', 'Ema', 4000),
+  ];
+
+  it('swaps the asociație slice and keeps other tenants', () => {
+    const hydrated = [newFeatureRequest(ASOC, 'F13', 'u9', 'Live', 5000)];
+    const next = replaceAsociatieRequests(existing, ASOC, hydrated);
+    expect(next).toHaveLength(2);
+    expect(next.filter((r) => r.asociatieId === ASOC).map((r) => r.featureKey)).toEqual(['F13']);
+    expect(next.some((r) => r.asociatieId === 'asoc-2')).toBe(true);
+  });
+
+  it('clears the slice when hydrated is empty', () => {
+    const next = replaceAsociatieRequests(existing, ASOC, []);
+    expect(next.some((r) => r.asociatieId === ASOC)).toBe(false);
+    expect(next).toHaveLength(1);
   });
 });

@@ -67,6 +67,82 @@ export function hasRequested(
 }
 
 /**
+ * Aggregated demand for a single module in one asociație, as the admin triage
+ * queue shows it: how many residents asked, when the most recent ask landed
+ * (the queue is sorted newest-first on this), and their display names so the
+ * admin can see who is waiting.
+ */
+export interface FeatureRequestSummary {
+  featureKey: string;
+  /** Number of distinct residents who asked (one row per resident per module). */
+  count: number;
+  /** Timestamp of the most recent request for this module. */
+  latestCreatedAt: number;
+  /** Requester display names, most recent first, with the unnamed dropped. */
+  requesterNames: string[];
+}
+
+/**
+ * Roll the flat request list up into a per-module triage queue for one asociație:
+ * one entry per requested module, carrying the requester count and names, sorted
+ * newest-first so the freshest demand sits on top. Pure so the admin surface and
+ * the unit tests share it.
+ */
+export function summarizeRequests(
+  requests: FeatureRequest[],
+  asociatieId: string,
+): FeatureRequestSummary[] {
+  const byKey = new Map<string, FeatureRequest[]>();
+  for (const r of requests) {
+    if (r.asociatieId !== asociatieId) continue;
+    const list = byKey.get(r.featureKey);
+    if (list) list.push(r);
+    else byKey.set(r.featureKey, [r]);
+  }
+  const summaries: FeatureRequestSummary[] = [];
+  for (const [featureKey, list] of byKey) {
+    const sorted = [...list].sort((a, b) => b.createdAt - a.createdAt);
+    summaries.push({
+      featureKey,
+      count: sorted.length,
+      latestCreatedAt: sorted[0].createdAt,
+      requesterNames: sorted
+        .map((r) => r.requestedByName)
+        .filter((n): n is string => Boolean(n)),
+    });
+  }
+  return summaries.sort((a, b) => b.latestCreatedAt - a.latestCreatedAt);
+}
+
+/**
+ * Drop every request for one module in one asociație, leaving the rest of the
+ * list untouched. The admin calls this once they have actioned the demand (e.g.
+ * enabled the module), clearing the satisfied requests from the queue.
+ */
+export function clearRequestsFor(
+  requests: FeatureRequest[],
+  asociatieId: string,
+  featureKey: string,
+): FeatureRequest[] {
+  return requests.filter(
+    (r) => !(r.asociatieId === asociatieId && r.featureKey === featureKey),
+  );
+}
+
+/**
+ * Swap in the freshly hydrated requests for one asociație, keeping every other
+ * asociație's rows. Used when a backend is present and the admin queue is loaded
+ * from `feature_requests`: the DB is authoritative for that tenant's slice.
+ */
+export function replaceAsociatieRequests(
+  existing: FeatureRequest[],
+  asociatieId: string,
+  hydrated: FeatureRequest[],
+): FeatureRequest[] {
+  return [...hydrated, ...existing.filter((r) => r.asociatieId !== asociatieId)];
+}
+
+/**
  * Append a request unless the same resident already filed one for this module
  * (idempotent). Returns the next list and the record that was added, or `null`
  * when it was a duplicate so the caller can skip the backend mirror.

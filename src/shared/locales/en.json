@@ -415,7 +415,12 @@
     "enabled": "Enabled",
     "disabled": "Disabled",
     "audience": "Audience",
-    "preview": "preview"
+    "preview": "preview",
+    "requestsTitle": "Requested by residents",
+    "requestsSubtitle": "Modules your residents asked you to turn on. Enabling one clears its requests.",
+    "requestCount": "{{count}} residents",
+    "requestEnable": "Enable",
+    "requestEnabledToast": "{{feature}} enabled"
   },
   "announcements": {
     "title": "Announcements",

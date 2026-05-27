@@ -415,7 +415,12 @@
     "enabled": "Activată",
     "disabled": "Dezactivată",
     "audience": "Public",
-    "preview": "previzualizare"
+    "preview": "previzualizare",
+    "requestsTitle": "Cerute de locatari",
+    "requestsSubtitle": "Module pe care locatarii ți-au cerut să le activezi. Activarea unuia șterge cererile aferente.",
+    "requestCount": "{{count}} locatari",
+    "requestEnable": "Activează",
+    "requestEnabledToast": "{{feature}} a fost activată"
   },
   "announcements": {
     "title": "Anunțuri",
