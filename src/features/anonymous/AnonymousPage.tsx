@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { EyeOff, Plus } from 'lucide-react';
@@ -10,8 +10,15 @@ import { Textarea } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Modal } from '@/shared/components/Modal';
 import { formatDateTime } from '@/shared/lib/format';
+import { isSupabaseConfigured } from '@/shared/lib/supabase';
+import { useAuthStore } from '@/shared/store/authStore';
 import { useAnonymousStore } from './anonymousStore';
-import { isValidMessage, openCount, orderedMessages } from './anonymousLogic';
+import { isValidMessage, openCount, orderedMessages, toggledStatus } from './anonymousLogic';
+import {
+  hydrateAnonymousMessages,
+  submitAnonymousMessage,
+  setAnonymousMessageStatus,
+} from './anonymousApi';
 
 export default function AnonymousPage() {
   const { t } = useTranslation();
@@ -19,16 +26,41 @@ export default function AnonymousPage() {
   const [open, setOpen] = useState(false);
   const [body, setBody] = useState('');
 
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const userId = useAuthStore((s) => s.session?.user?.id ?? null);
+  const role = useAuthStore((s) => s.activeRole());
+  const isPrivileged =
+    role === 'admin' || role === 'presedinte' || role === 'comitet';
+
+  useEffect(() => {
+    if (isSupabaseConfigured && asociatieId) {
+      void hydrateAnonymousMessages(asociatieId, isPrivileged, userId ?? undefined);
+    }
+  }, [asociatieId, isPrivileged, userId]);
+
   const ordered = orderedMessages(messages);
   const valid = isValidMessage(body);
   const pending = openCount(messages);
 
   const submit = () => {
     if (!valid) return;
-    add(body);
+    if (isSupabaseConfigured && asociatieId && userId) {
+      submitAnonymousMessage(asociatieId, body, userId);
+    } else {
+      add(body);
+    }
     toast.success(t('anonymous.added'));
     setOpen(false);
     setBody('');
+  };
+
+  const handleToggleStatus = (id: string, currentStatus: string) => {
+    const next = toggledStatus(currentStatus as 'nou' | 'rezolvat');
+    if (isSupabaseConfigured) {
+      setAnonymousMessageStatus(id, next);
+    } else {
+      toggleStatus(id);
+    }
   };
 
   return (
@@ -65,7 +97,11 @@ export default function AnonymousPage() {
                 <p className="text-sm text-muted">
                   {t('anonymous.anonymousAuthor')} · {formatDateTime(m.created_at)}
                 </p>
-                <Button size="sm" variant="ghost" onClick={() => toggleStatus(m.id)}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => handleToggleStatus(m.id, m.status)}
+                >
                   {m.status === 'nou' ? t('anonymous.markResolved') : t('anonymous.reopen')}
                 </Button>
               </div>

@@ -697,7 +697,10 @@ export type AnonymousStatus = 'nou' | 'rezolvat';
 export interface AnonymousMessage {
   id: string;
   asociatie_id: string;
-  sender_user_id: string;
+  /** Present for the message owner (owner-RLS read) and in the offline store.
+   *  Absent when the row is returned via `anonymous_messages_for_comitet` (the
+   *  privacy-preserving function never projects sender identity). */
+  sender_user_id?: string;
   body: string;
   status: AnonymousStatus;
   created_at: string;

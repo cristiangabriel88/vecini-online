@@ -8,6 +8,9 @@ the live `BACKLOG.md` carries only the protocol and the open (⬜) queue.
 > task (read it only when a task's prerequisite or history is genuinely needed).
 > `RESUME.md` §0 remains the dated chronological summary.
 
+### ✅ T138 — [P2] Live-wire the F05 comitet inbox through the privacy-preserving functions
+Done: `AnonymousMessage.sender_user_id` made optional (absent from comitet function rows). `anonymousStore` gains `replaceAll` (live hydration) + `setStatus` (explicit status set). New `anonymousApi.ts`: `hydrateAnonymousMessages` (RPC path for privileged roles, owner-RLS table path for residents, no-op offline), `submitAnonymousMessage` (prepends to store + best-effort `anonymous_messages` insert), `setAnonymousMessageStatus` (store update + `set_anonymous_message_status` RPC). `AnonymousPage` wired: `useEffect` hydrates on mount when configured, submit/toggle branch on `isSupabaseConfigured`, role-aware (`isPrivileged` flag). 14 new tests in `anonymousApi.test.ts`. 148 files / 1375 tests / build green. Live smoke pending credentials.
+
 ### ✅ T135 — [P2] Cross-origin redirect: bounce a superadmin off the resident origin to the platform subdomain
 
 **Done:** When `VITE_PLATFORM_URL` is configured, a platform superadmin authenticating on the resident/admin origin is immediately redirected cross-origin to the dedicated console subdomain instead of seeing the in-app preview.
