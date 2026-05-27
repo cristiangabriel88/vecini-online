@@ -15,6 +15,14 @@ interface ClientEnv {
   residentAppUrl: string;
   /** 2FA enforcement posture: `strict` (default/production) or `relaxed` (self-hosted/dev). */
   securityEnforcement: SecurityEnforcement;
+  /**
+   * URL of the dedicated platform (superadmin) console on its own subdomain.
+   * When set and the session is a platform superadmin, the resident app performs
+   * a full-page cross-origin redirect here instead of rendering the in-app
+   * console preview (T135). Reads `VITE_PLATFORM_URL`; null when unset so the
+   * single-origin dev/demo build is unchanged.
+   */
+  platformUrl: string | null;
 }
 
 const rawUrl = import.meta.env.VITE_SUPABASE_URL ?? '';
@@ -42,6 +50,7 @@ export const env: ClientEnv = {
   appUrl,
   residentAppUrl: resolveResidentAppUrl(import.meta.env.VITE_RESIDENT_APP_URL, appUrl),
   securityEnforcement: parseSecurityEnforcement(import.meta.env.VITE_SECURITY_ENFORCEMENT),
+  platformUrl: (import.meta.env.VITE_PLATFORM_URL as string | undefined)?.trim() || null,
 };
 
 /** True when Supabase credentials are present. In their absence the app runs

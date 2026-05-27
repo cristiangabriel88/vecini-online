@@ -8,6 +8,19 @@ the live `BACKLOG.md` carries only the protocol and the open (⬜) queue.
 > task (read it only when a task's prerequisite or history is genuinely needed).
 > `RESUME.md` §0 remains the dated chronological summary.
 
+### ✅ T135 — [P2] Cross-origin redirect: bounce a superadmin off the resident origin to the platform subdomain
+
+**Done:** When `VITE_PLATFORM_URL` is configured, a platform superadmin authenticating on the resident/admin origin is immediately redirected cross-origin to the dedicated console subdomain instead of seeing the in-app preview.
+
+- **`hydrationLogic.ts`**: `AsociatieRoute` gains `'platform-redirect'`; `AsociatieRouteInput` gains optional `platformUrl?: string | null`; `resolveAsociatieRoute` returns `'platform-redirect'` when `isPlatformSuperAdmin && platformUrl`, else `'superadmin'` — all existing callers with no `platformUrl` are unchanged.
+- **`RequireAsociatie.tsx`**: route is computed before any early return (hooks stay unconditional); a `useEffect` fires `window.location.href = env.platformUrl` on `'platform-redirect'`; the render returns `null` immediately so no resident content ever shows.
+- **`AppHome.tsx`**: same defense-in-depth pattern — `useEffect` + `return null` when `env.platformUrl` set; falls back to `<Navigate to={SUPERADMIN_HOME_PATH} replace />` (in-app preview) when unset.
+- **`env.ts`**: `platformUrl: string | null` added to `ClientEnv`; reads `VITE_PLATFORM_URL`, trims and coerces empty string to null.
+- **`.env.example`**: `VITE_PLATFORM_URL` documented.
+- **Tests**: `tests/unit/platformRedirect.test.ts` — 19 tests (platform-redirect matrix, invariants, source contracts for env/RequireAsociatie/AppHome). All existing `hydrationLogic.test.ts` tests pass unchanged.
+
+147 files / 1363 tests / build green.
+
 ### ✅ T117 — [P2] Reconcile embedded `persons` with account-linked `apartment_residents`
 
 **Done:** Defined and implemented the claim link between the pre-account `persons` jsonb and the live `apartment_residents` row.

@@ -88,25 +88,37 @@ export const SUPERADMIN_HOME_PATH = '/app/platforma';
  * Where a fully-hydrated, authenticated (or demo) session belongs once it reaches
  * the app shell. Kept as a pure decision so the route components stay declarative
  * and the whole matrix is unit-testable without rendering:
- * - `superadmin` — a platform superadmin (server-authoritative `is_super_admin()`,
- *   never a tenant role) belongs in the platform console. This wins **with or
- *   without** an association membership, so a superadmin is never sent through
- *   association onboarding and never needs a (fake) membership to be routed.
+ * - `superadmin` — a platform superadmin belongs in the in-app console preview
+ *   (demo / single-origin dev when `VITE_PLATFORM_URL` is unset).
+ * - `platform-redirect` — a platform superadmin when `platformUrl` is configured:
+ *   the resident app must redirect cross-origin to the dedicated console subdomain
+ *   so the superadmin never sees the resident shell (T135).
  * - `onboarding` — an ordinary authenticated user with no active membership is
  *   sent to create or join an association.
  * - `app` — an association member reaches the ordinary app.
+ *
+ * `superadmin` (and `platform-redirect`) win with or without a membership so a
+ * superadmin is never sent through association onboarding.
  */
-export type AsociatieRoute = 'superadmin' | 'onboarding' | 'app';
+export type AsociatieRoute = 'superadmin' | 'platform-redirect' | 'onboarding' | 'app';
 
 export interface AsociatieRouteInput {
   /** Server-authoritative platform-superadmin status (never a tenant role). */
   isPlatformSuperAdmin: boolean;
   /** Whether the user holds at least one active association membership. */
   hasActiveMembership: boolean;
+  /**
+   * URL of the dedicated platform console (from `env.platformUrl`). When set
+   * and the user is a platform superadmin, the resident app must redirect
+   * cross-origin here rather than rendering the in-app preview (T135).
+   */
+  platformUrl?: string | null;
 }
 
 export function resolveAsociatieRoute(input: AsociatieRouteInput): AsociatieRoute {
-  if (input.isPlatformSuperAdmin) return 'superadmin';
+  if (input.isPlatformSuperAdmin) {
+    return input.platformUrl ? 'platform-redirect' : 'superadmin';
+  }
   if (!input.hasActiveMembership) return 'onboarding';
   return 'app';
 }
