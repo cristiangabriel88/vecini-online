@@ -23,6 +23,9 @@ export interface SendEmailResult {
   status: number;
   /** A short, non-PII reason when `ok` is false. */
   reason?: string;
+  /** Resend message id returned on a successful send. Stored server-side to
+   *  enable precise webhook-to-invite matching on the delivery path (T149). */
+  messageId?: string;
 }
 
 const RESEND_ENDPOINT = 'https://api.resend.com/emails';
@@ -58,9 +61,15 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       }),
     });
     // Do not read or log the body on failure: it can echo the recipient.
-    return res.ok
-      ? { ok: true, status: res.status }
-      : { ok: false, status: res.status, reason: 'send-failed' };
+    if (!res.ok) return { ok: false, status: res.status, reason: 'send-failed' };
+    let messageId: string | undefined;
+    try {
+      const body = (await res.json()) as { id?: string };
+      if (typeof body.id === 'string') messageId = body.id;
+    } catch {
+      // Non-fatal: delivery webhook falls back gracefully when no id is stored.
+    }
+    return { ok: true, status: res.status, messageId };
   } catch {
     return { ok: false, status: 0, reason: 'network-error' };
   }

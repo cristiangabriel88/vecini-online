@@ -8,6 +8,7 @@ import {
   createInvite,
   findByCode,
   findByToken,
+  markInviteEmailDelivered,
   markInviteEmailSent,
   revokeInvite,
   validateInvite,
@@ -29,6 +30,8 @@ interface InviteState {
   revoke: (id: string) => void;
   /** Stamp a code as having had its invitation email dispatched (T147). */
   markEmailSent: (id: string, at?: number) => void;
+  /** Stamp a code as having its invitation email confirmed delivered (T149). */
+  markEmailDelivered: (id: string, at?: number) => void;
   /**
    * Atomically validate and consume a code for `userId`. Re-validates inside the
    * state update so a single-use code cannot be double-spent under a race (the
@@ -91,6 +94,13 @@ export const useInviteStore = create<InviteState>()(
         set({
           invites: get().invites.map((invite) =>
             invite.id === id ? markInviteEmailSent(invite, at) : invite,
+          ),
+        }),
+
+      markEmailDelivered: (id, at = Date.now()) =>
+        set({
+          invites: get().invites.map((invite) =>
+            invite.id === id ? markInviteEmailDelivered(invite, at) : invite,
           ),
         }),
 

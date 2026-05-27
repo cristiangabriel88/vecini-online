@@ -60,6 +60,22 @@ The function-side guard `isResendConfigured()` returns true only when both
 `RESEND_API_KEY` and `RESEND_FROM_EMAIL` are present; otherwise the email
 endpoints return 503 and the app stays in its offline fallback.
 
+### 2b. Register the delivery webhook (T149)
+
+The `resend-webhook` Netlify function stamps `invite_email_delivered_at` when
+Resend confirms delivery of an invite email:
+
+1. In the Resend dashboard go to **Webhooks > Add endpoint**.
+2. Set the endpoint URL to:
+   `https://<your-netlify-site>/.netlify/functions/resend-webhook`
+3. Subscribe to the **`email.delivered`** and **`email.bounced`** events.
+4. Click **Add endpoint**; Resend will show a **Signing Secret** (`whsec_...`).
+5. Set `RESEND_WEBHOOK_SECRET=<that value>` in the Netlify environment (both sites
+   if you have two) and redeploy.
+
+Without `RESEND_WEBHOOK_SECRET` the function returns 503 and the delivered badge
+simply never appears -- no other functionality is affected.
+
 ## 3. Netlify (hosting + functions)
 
 Two sites from this one repo:
@@ -79,6 +95,7 @@ Set these environment variables on **both** sites (Site settings > Environment):
 | `SUPABASE_SERVICE_ROLE_KEY` | functions only | service-role key (never client) |
 | `RESEND_API_KEY` | functions | Resend API key |
 | `RESEND_FROM_EMAIL` | functions | `noreply@vecini.online` |
+| `RESEND_WEBHOOK_SECRET` | functions | Resend webhook signing secret (see §2b) |
 | `APP_URL` | functions | resident/admin origin (no trailing slash) |
 | `VITE_APP_URL` | client | resident/admin origin |
 | `VITE_RESIDENT_APP_URL` | client (platform build) | resident/admin origin, so links minted in the console point at the resident app |

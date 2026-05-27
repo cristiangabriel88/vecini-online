@@ -944,6 +944,7 @@
     "resendEmail": "Resend email",
     "emailSent": "Invitation emailed to {{email}}.",
     "emailSentOn": "Emailed on {{date}}",
+    "emailDeliveredOn": "Delivered on {{date}}",
     "emailFailed": "Could not send the invitation email. Please try again.",
     "revoke": "Revoke",
     "status_ok": "Active",

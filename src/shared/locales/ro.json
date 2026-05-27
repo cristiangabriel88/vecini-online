@@ -944,6 +944,7 @@
     "resendEmail": "Retrimite pe email",
     "emailSent": "Invitație trimisă pe email către {{email}}.",
     "emailSentOn": "Email trimis pe {{date}}",
+    "emailDeliveredOn": "Livrat pe {{date}}",
     "emailFailed": "Nu am putut trimite invitația pe email. Încearcă din nou.",
     "revoke": "Revocă",
     "status_ok": "Activ",

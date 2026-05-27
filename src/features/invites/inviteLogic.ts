@@ -147,6 +147,11 @@ export function markInviteEmailSent(invite: InviteCode, now: number = Date.now()
   return { ...invite, emailSentAt: now };
 }
 
+/** Return a copy of the code marked as having its invitation email confirmed delivered (T149). */
+export function markInviteEmailDelivered(invite: InviteCode, now: number = Date.now()): InviteCode {
+  return { ...invite, emailDeliveredAt: now };
+}
+
 /** Whether the invite has a recipient address it can be emailed to. */
 export function canEmailInvite(invite: InviteCode): boolean {
   return Boolean(invite.inviteeEmail && invite.inviteeEmail.trim());

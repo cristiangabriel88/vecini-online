@@ -28,6 +28,8 @@ import {
   validateInvite,
 } from '@/features/invites/inviteLogic';
 import { sendInviteEmail } from '@/features/invites/inviteEmailApi';
+import { hydrateInviteDelivery } from '@/features/invites/inviteWriteApi';
+import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import type { Role } from '@/shared/types/domain';
 
 /** Prefill carried in router state when the apartment surface jumps here to
@@ -75,6 +77,13 @@ export default function InvitesAdminPage() {
   // Apply a prefill handed over from the apartment surface exactly once, and
   // auto-issue the code when asked so the change is "saved" without an extra
   // click. The router state is then cleared so a refresh does not re-mint.
+  // Hydrate delivery timestamps from the live DB on mount (T149).
+  useEffect(() => {
+    if (asociatieId && isSupabaseConfigured) {
+      void hydrateInviteDelivery(asociatieId);
+    }
+  }, [asociatieId]);
+
   const prefillApplied = useRef(false);
   useEffect(() => {
     if (prefillApplied.current) return;
@@ -333,6 +342,8 @@ export default function InvitesAdminPage() {
                     ` · ${t('invites.consumedOn', { date: formatDate(invite.consumedAt) })}`}
                   {invite.emailSentAt !== null &&
                     ` · ${t('invites.emailSentOn', { date: formatDate(invite.emailSentAt) })}`}
+                  {invite.emailDeliveredAt !== null &&
+                    ` · ${t('invites.emailDeliveredOn', { date: formatDate(invite.emailDeliveredAt) })}`}
                 </p>
                 {openQrs.has(invite.id) && (
                   <div className="mt-3">

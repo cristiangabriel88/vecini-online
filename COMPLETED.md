@@ -8,6 +8,24 @@ the live `BACKLOG.md` carries only the protocol and the open (⬜) queue.
 > task (read it only when a task's prerequisite or history is genuinely needed).
 > `RESUME.md` §0 remains the dated chronological summary.
 
+### ✅ T149 — [P2] Live activation: Resend delivery webhook -> stamp `invite_email_delivered_at`
+
+**Done:** Full delivery-webhook pipeline wired end-to-end.
+
+- **Migration** `20260527000005` adds `resend_message_id text` to `invite_codes` so the webhook can match a Resend delivery event to the exact invite row without fuzzy email matching.
+- **`resend.ts`**: `SendEmailResult` gains an optional `messageId` field; the response body is read on success (never on failure, which could echo the recipient).
+- **`invite-email.ts`**: after a confirmed send, stamps `invite_email_sent_at` and stores `resend_message_id` via the service role. Non-fatal.
+- **`resend-webhook.ts`** (new Netlify function): svix HMAC-SHA256 signature verification with base64-decoded `whsec_...` secret and ±5 min timestamp freshness guard; on `email.delivered` stamps `invite_email_delivered_at` by `resend_message_id` lookup; `email.bounced` and all other event types are acknowledged silently. Never logs recipient, message id, or any PII.
+- **`inviteLogic.ts`**: `markInviteEmailDelivered` pure helper added.
+- **`inviteStore.ts`**: `markEmailDelivered` action added.
+- **`inviteWriteApi.ts`**: `hydrateInviteDelivery(asociatieId)` queries live `invite_email_delivered_at` and applies it to the local store using the `inv-` prefixed id. No-op when Supabase not configured.
+- **`InvitesAdminPage.tsx`**: hydrates delivery timestamps on mount (`isSupabaseConfigured` gated); invite card metadata line shows `emailDeliveredOn`.
+- **Bilingual strings**: `invites.emailDeliveredOn` added to both en + ro locale files.
+- **Ops**: `RESEND_WEBHOOK_SECRET` added to `.env.example`; RUNBOOK-MVP.md gains §2b with step-by-step webhook registration instructions and the variable added to the Netlify env table.
+- **Tests**: `tests/unit/inviteDeliveryWebhook.test.ts` -- 20 tests covering the pure logic, source contracts, and the HMAC/timestamp verification algorithm.
+
+145 files / 1323 tests / build green.
+
 ### ✅ T115 — [MVP] Live Supabase read/write for the apartment registry
 
 **Done:** Finished and verified the live path for the apartment registry so the MVP flow (superadmin -> admin -> apartments -> resident invite) works end-to-end with a real Supabase backend.

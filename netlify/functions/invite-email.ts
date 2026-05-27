@@ -30,6 +30,7 @@ import { buildOnboardingLink } from '../../src/shared/lib/inviteCode';
 import { isResendConfigured, sendEmail } from './_shared/resend';
 import {
   isSupabaseAdminConfigured,
+  supabaseAdmin,
   verifyBearerToken,
   isAdminOfAsociatie,
   getInviteById,
@@ -156,5 +157,12 @@ export default async (req: Request): Promise<Response> => {
   });
 
   if (!result.ok) return json(502, { error: 'send-failed' });
+
+  // Stamp the sent timestamp and provider message id for the delivery webhook
+  // (T149). Non-fatal: the invite is still valid for link-based redemption.
+  const patch: Record<string, unknown> = { invite_email_sent_at: new Date().toISOString() };
+  if (result.messageId) patch.resend_message_id = result.messageId;
+  void supabaseAdmin().from('invite_codes').update(patch).eq('id', inviteId);
+
   return json(200, { ok: true });
 };

@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
+import { useInviteStore } from '@/shared/store/inviteStore';
 import type { InviteCode } from './inviteLogic';
 
 /**
@@ -61,4 +62,29 @@ export async function writeInviteToLive(invite: InviteCode): Promise<WriteInvite
 
   if (error) return { ok: false, error: error.code ?? 'write-failed' };
   return { ok: true };
+}
+
+/**
+ * Pull delivery timestamps from invite_codes for the given asociatie and apply
+ * them to the local store. Called on mount by InvitesAdminPage so the delivered
+ * badge reflects live DB state (T149). No-op when Supabase is not configured.
+ */
+export async function hydrateInviteDelivery(asociatieId: string): Promise<void> {
+  if (!isSupabaseConfigured) return;
+
+  const { data } = await supabase
+    .from('invite_codes')
+    .select('id, invite_email_delivered_at')
+    .eq('asociatie_id', asociatieId)
+    .not('invite_email_delivered_at', 'is', null);
+
+  if (!data) return;
+
+  const store = useInviteStore.getState();
+  for (const row of data) {
+    if (!row.id || !row.invite_email_delivered_at) continue;
+    const storeId = `inv-${row.id}`;
+    const at = new Date(row.invite_email_delivered_at as string).getTime();
+    if (Number.isFinite(at)) store.markEmailDelivered(storeId, at);
+  }
 }
