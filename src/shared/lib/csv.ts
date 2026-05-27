@@ -1,4 +1,5 @@
 import Papa from 'papaparse';
+import { isValidEmail } from '@/features/auth/authLogic';
 import type { Apartment, ApartmentPerson } from '@/shared/types/domain';
 
 export interface ApartmentImportRow {
@@ -151,7 +152,14 @@ export function resolveImportBatch(
     csvKeys.add(key);
     toCreate.push(row);
     if (row.opt_in && row.email) {
-      toInvite.push(row);
+      // The apartment is still created; only the invite is withheld when the
+      // opted-in resident's address is malformed, so we never store a bad
+      // recipient on the invite or fire a doomed send.
+      if (isValidEmail(row.email)) {
+        toInvite.push(row);
+      } else {
+        errors.push(`Rândul ${i + 1}: ${label} are email invalid, nu se va trimite invitație.`);
+      }
     }
   });
 

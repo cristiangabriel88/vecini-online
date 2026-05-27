@@ -132,9 +132,6 @@ Keep the queue sorted with the highest priority on top. When two tasks share a p
 
 ### ✅ T156 — [P1] ApartmentsPage: "Import lista" — CSV parse, apartment create, auto-invite for opt-in residents
 
-### ⬜ T160 — [P2] Validate email format in CSV import rows before issuing invites
-Surfaced in T156: `resolveImportBatch` classifies a row as invite-eligible when `opt_in && email` (non-empty string), but the email string is never format-validated. A malformed address (e.g. "ionescu" or "x@") passes the check, an invite is issued and the send attempt hits Resend or the offline no-op, and the bad address is silently stored on the `InviteCode`. Add a lightweight RFC-5322-compatible email regex (reuse or re-export the `isValidEmail` already present in `platformProvisioningLogic.ts`) to `resolveImportBatch` so rows with malformed emails are excluded from `toInvite` and a row-level warning is appended to `errors` ("Rândul N: email invalid -- nu se va trimite invitatie"). Pure; add a unit-test covering valid, empty, and malformed email inputs. Prereq: T156, T131 (for the shared validator extraction).
-
 ### ✅ T159 — [P2] Extend in-app AAL2 step-up on SecurityPage to support email/Telegram OTP channels
 
 ### ✅ T151 — [P2] Admin surface to triage the `feature_requests` queue
@@ -162,6 +159,9 @@ Surfaced in T151: the triage "enable" action flips the flag *and* clears the mod
 
 ### ⬜ T162 — [P3] "Dismiss without enabling" action on the feature-request triage queue
 Surfaced in T151: the admin triage queue offers only "enable", so an admin who decides not to turn a requested module on has no way to clear the demand short of enabling it. Add a secondary "dismiss / respinge" action per triage row that clears the module's requests (reusing `clearFor` + the "admin clear asociatie feature requests" delete policy) without flipping the flag, recording an audit event so the decision is traceable. Bilingual RO/EN, premium-feel, with a confirm so a dismissal is deliberate. Prereq: T151.
+
+### ⬜ T163 — [P3] Distinguish row warnings from blocking errors in the CSV import summary
+Surfaced in T160: `resolveImportBatch` now returns the malformed-email notice in the same `errors` array as the genuinely-blocking notices ("există deja", "duplicat în CSV", parse failures), and `ApartmentsPage` renders them all in one red error list via `setImportErrors` even though the apartment for a bad-email row was still created. So an admin sees a red "error" for a row that actually imported (just without an invite), which overstates the failure. Split the result into blocking `errors` vs. non-blocking `warnings` (the email-invalid notice becomes a warning), and render warnings in a softer amber/info style separate from the red error list, so the summary truthfully reflects "imported, invite skipped" vs. "row rejected". Pure split unit-tested; bilingual RO/EN. Prereq: T160.
 
 ### ⬜ T158 — [P3] Remove orphaned `onboarding.import/invite/csv*` locale keys
 Surfaced in T154: the wizard lost its CSV-import step (step 1) and bulk-invite step (step 4). Their locale keys (`onboarding.import`, `onboarding.invite`, `onboarding.csvHelp`, `onboarding.csvParsed`, `onboarding.csvError`, `onboarding.inviteEmails`) are no longer consumed by any component. Confirm no other file references them (ripgrep), then remove the dead keys from both `ro.json` and `en.json`. Trivial, backend-free. Coordinates with T145 (the parallel `join.*` cleanup).

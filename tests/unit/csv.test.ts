@@ -273,6 +273,46 @@ describe('resolveImportBatch', () => {
     expect(toInvite).toHaveLength(0);
   });
 
+  it('excludes opt_in rows with a malformed email from toInvite and still creates them', () => {
+    const { toCreate, toInvite, errors } = resolveImportBatch(
+      [makeRow({ email: 'ionescu' })],
+      [],
+      new Set(),
+    );
+    expect(toCreate).toHaveLength(1);
+    expect(toInvite).toHaveLength(0);
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toMatch(/Rândul 1/);
+    expect(errors[0]).toMatch(/email invalid/);
+  });
+
+  it('treats an address missing the domain part as malformed', () => {
+    const { toInvite, errors } = resolveImportBatch([makeRow({ email: 'x@' })], [], new Set());
+    expect(toInvite).toHaveLength(0);
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toMatch(/email invalid/);
+  });
+
+  it('keeps a well-formed email in toInvite with no warning', () => {
+    const { toInvite, errors } = resolveImportBatch(
+      [makeRow({ email: '  popescu.ion@vecini.online  ' })],
+      [],
+      new Set(),
+    );
+    expect(toInvite).toHaveLength(1);
+    expect(errors).toHaveLength(0);
+  });
+
+  it('does not warn about a malformed email when the row is not opted in', () => {
+    const { toInvite, errors } = resolveImportBatch(
+      [makeRow({ email: 'ionescu', opt_in: false })],
+      [],
+      new Set(),
+    );
+    expect(toInvite).toHaveLength(0);
+    expect(errors).toHaveLength(0);
+  });
+
   it('preserves parse-level errors forwarded from parseApartmentsCsv', () => {
     const { errors } = resolveImportBatch([], ['Rândul 1: lipsește numar_apartament'], new Set());
     expect(errors).toHaveLength(1);
