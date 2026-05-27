@@ -67,6 +67,22 @@ export function hasRequested(
 }
 
 /**
+ * Is there any recorded demand for this module in this asociație, from any
+ * resident? A cheap existence check (no grouping, no sorting) the store uses to
+ * skip a clear and its best-effort backend delete when an admin enables a module
+ * that nobody had asked for, which is the common case.
+ */
+export function hasAnyRequest(
+  requests: FeatureRequest[],
+  asociatieId: string,
+  featureKey: string,
+): boolean {
+  return requests.some(
+    (r) => r.asociatieId === asociatieId && r.featureKey === featureKey,
+  );
+}
+
+/**
  * Aggregated demand for a single module in one asociație, as the admin triage
  * queue shows it: how many residents asked, when the most recent ask landed
  * (the queue is sorted newest-first on this), and their display names so the

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   addRequest,
   clearRequestsFor,
+  hasAnyRequest,
   hasRequested,
   newFeatureRequest,
   replaceAsociatieRequests,
@@ -45,6 +46,31 @@ describe('hasRequested', () => {
     expect(hasRequested(existing, ASOC, FEATURE, 'user-2')).toBe(false);
     expect(hasRequested(existing, ASOC, 'F13', USER)).toBe(false);
     expect(hasRequested(existing, 'asoc-2', FEATURE, USER)).toBe(false);
+  });
+});
+
+describe('hasAnyRequest', () => {
+  const requests: FeatureRequest[] = [
+    newFeatureRequest(ASOC, 'F12', 'u1', 'Ana', 1000),
+    newFeatureRequest(ASOC, 'F12', 'u2', 'Bogdan', 2000),
+    newFeatureRequest('asoc-2', 'F13', 'u3', 'Dan', 3000),
+  ];
+
+  it('is true when any resident has asked for the module in the asociație', () => {
+    // Two residents asked, but presence ignores the count.
+    expect(hasAnyRequest(requests, ASOC, 'F12')).toBe(true);
+  });
+
+  it('is false when the module has no demand in the asociație', () => {
+    expect(hasAnyRequest(requests, ASOC, 'F13')).toBe(false);
+    expect(hasAnyRequest(requests, ASOC, 'F99')).toBe(false);
+    expect(hasAnyRequest([], ASOC, 'F12')).toBe(false);
+  });
+
+  it('does not leak demand across asociații', () => {
+    // F13 demand belongs to asoc-2, not ASOC; F12 demand belongs to ASOC.
+    expect(hasAnyRequest(requests, 'asoc-2', 'F13')).toBe(true);
+    expect(hasAnyRequest(requests, 'asoc-2', 'F12')).toBe(false);
   });
 });
 

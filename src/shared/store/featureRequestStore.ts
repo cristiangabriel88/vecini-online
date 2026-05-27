@@ -6,6 +6,7 @@ import {
   type FeatureRequestSummary,
   addRequest,
   clearRequestsFor,
+  hasAnyRequest,
   hasRequested,
   replaceAsociatieRequests,
   summarizeRequests,
@@ -116,6 +117,11 @@ export const useFeatureRequestStore = create<FeatureRequestState>()(
       summaryFor: (asociatieId) => summarizeRequests(get().requests, asociatieId),
 
       clearFor: (asociatieId, featureKey) => {
+        // Skip when no demand is recorded for this module: an admin enabling a
+        // module nobody asked for is the common case, and clearing nothing would
+        // still fire a no-op `mirrorClear` delete live. The clear behaviour is
+        // identical when there is demand (T166).
+        if (!hasAnyRequest(get().requests, asociatieId, featureKey)) return;
         set({ requests: clearRequestsFor(get().requests, asociatieId, featureKey) });
         mirrorClear(asociatieId, featureKey);
       },
