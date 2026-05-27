@@ -2,6 +2,30 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## Live MVP presentation flow: email-as-verification + deploy to Netlify (T168)
+
+- **"Confirm email" is OFF in Supabase Auth for the live invite flow.** The
+  onboarding is invite-driven: every account is created by redeeming a single-use,
+  24h, opaque invite/setup link delivered to the recipient's address. Possession
+  of that link already proves control of the inbox, so a second Supabase
+  confirmation email would be redundant friction. The flow is therefore one email
+  (the invite) -> set password -> in. Password reset still returns to
+  `<VITE_APP_URL>/reset-parola`.
+- **Run target is Netlify (two sites), not local + tunnel.** Email links must
+  resolve to a stable public URL and the functions must run server-side; the repo
+  already carries `netlify.toml` (resident/admin) and `netlify-platform.toml`
+  (superadmin console on its own subdomain). A second Netlify site pointed at
+  `netlify-platform.toml` gives the console its own origin (origin isolation per
+  the existing "separate app on its own subdomain" decision). `netlify dev` + a
+  tunnel is documented as a fallback but is more fragile for a live demo.
+- **`APP_URL` is the resident origin on both sites.** The `invite-email` function
+  builds the onboarding link with `buildOnboardingLink(APP_URL, token)`, so even
+  on the platform site `APP_URL` must point at the resident/admin app where the
+  invitee lands.
+- **The provisioning checklist lives in `RUNBOOK-MVP.md`**, not scattered across
+  task done-notes, so the human/infra steps (Supabase keys + auth config, Resend
+  domain verification, Netlify env vars) are reproducible in one place.
+
 ## QR code component: library and surface choice (T90)
 
 - **Used the existing `qrcode` package instead of adding `qrcode.react`.** The
