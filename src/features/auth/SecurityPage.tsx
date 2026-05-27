@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
@@ -28,7 +28,7 @@ import { useTelegramLinkStore } from '@/shared/store/telegramLinkStore';
 import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import { formatDateTime } from '@/shared/lib/format';
 import { isValidTotpFormat, mfaErrorKey, requiresMfa } from './mfaLogic';
-import { maskEmail, maskTelegram, type MfaChannel } from './otpChannelLogic';
+import { maskEmail, maskTelegram, isValidOtpFormat, type MfaChannel } from './otpChannelLogic';
 
 /** Round a remaining-lockout duration up to whole minutes for the message. */
 function lockoutMinutes(ms: number): number {
@@ -70,6 +70,8 @@ export default function SecurityPage() {
     clearRecoveryCodes,
     challengeRequired,
     verifyChallenge,
+    requestOtp,
+    verifyOtp,
     demoEnabledChannels,
     enableChannel,
     disableChannel,
@@ -88,6 +90,13 @@ export default function SecurityPage() {
   // gated, so it never needs an in-app step-up.
   const [needsStepUp, setNeedsStepUp] = useState(false);
   const [stepUpCode, setStepUpCode] = useState('');
+  // OTP channel step-up state (T159): mirrors the LoginPage channel picker flow.
+  const [stepUpSelectedChannel, setStepUpSelectedChannel] = useState<MfaChannel | null>(null);
+  const [stepUpOtpSent, setStepUpOtpSent] = useState(false);
+  const [stepUpDemoCode, setStepUpDemoCode] = useState<string | null>(null);
+  const [stepUpDemoConfirmToken, setStepUpDemoConfirmToken] = useState<string | null>(null);
+  const [stepUpResendCountdown, setStepUpResendCountdown] = useState(0);
+  const stepUpResendTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const onSignOutEverywhere = async () => {
     setConfirmSignOutAll(false);
@@ -98,6 +107,13 @@ export default function SecurityPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // Clean up the resend countdown timer when the component unmounts.
+  useEffect(() => {
+    return () => {
+      if (stepUpResendTimerRef.current) clearInterval(stepUpResendTimerRef.current);
+    };
+  }, []);
 
   // Resolve whether this enrolled live session still owes the AAL2 challenge.
   useEffect(() => {
@@ -113,6 +129,65 @@ export default function SecurityPage() {
       active = false;
     };
   }, [loaded, enrolled, challengeRequired]);
+
+  // Reset all step-up OTP state when the step-up clears (either satisfied or no
+  // longer needed), so a re-triggered step-up starts from the picker.
+  useEffect(() => {
+    if (needsStepUp) return;
+    setStepUpSelectedChannel(null);
+    setStepUpOtpSent(false);
+    setStepUpDemoCode(null);
+    setStepUpDemoConfirmToken(null);
+    setStepUpCode('');
+    if (stepUpResendTimerRef.current) clearInterval(stepUpResendTimerRef.current);
+  }, [needsStepUp]);
+
+  // Auto-select the channel when only one is available so single-channel users
+  // never see the picker (mirrors the LoginPage behaviour, T140).
+  useEffect(() => {
+    if (!needsStepUp || stepUpSelectedChannel !== null) return;
+    const channels = stepUpAvailableChannels();
+    if (channels.length === 1) setStepUpSelectedChannel(channels[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [needsStepUp, stepUpSelectedChannel, enrolled, demoEnabledChannels]);
+
+  /**
+   * Channels available for the step-up. Uses `enrolled` for TOTP (correct for
+   * both live and demo modes) and `demoEnabledChannels` for delivered channels
+   * (the live path reads from `mfa_channels` via T143 once that lands).
+   */
+  function stepUpAvailableChannels(): MfaChannel[] {
+    const channels: MfaChannel[] = [];
+    if (enrolled) channels.push('totp');
+    if (demoEnabledChannels['email']) channels.push('email');
+    if (demoEnabledChannels['telegram']) channels.push('telegram');
+    return channels;
+  }
+
+  /** Tick down the step-up resend countdown every second. */
+  const startStepUpResendTimer = useCallback((remainingMs: number) => {
+    setStepUpResendCountdown(Math.ceil(remainingMs / 1000));
+    if (stepUpResendTimerRef.current) clearInterval(stepUpResendTimerRef.current);
+    stepUpResendTimerRef.current = setInterval(() => {
+      setStepUpResendCountdown((prev) => {
+        if (prev <= 1) {
+          if (stepUpResendTimerRef.current) clearInterval(stepUpResendTimerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
+  /** Reset the step-up channel picker (used by the "Use a different method" link). */
+  const resetStepUpChannel = () => {
+    setStepUpSelectedChannel(null);
+    setStepUpOtpSent(false);
+    setStepUpDemoCode(null);
+    setStepUpDemoConfirmToken(null);
+    setStepUpCode('');
+    if (stepUpResendTimerRef.current) clearInterval(stepUpResendTimerRef.current);
+  };
 
   const account = profile?.email ?? session?.user?.email ?? 'demo@vecini.online';
   const mustEnrol = requiresMfa(role) && !enrolled;
@@ -214,12 +289,22 @@ export default function SecurityPage() {
     }
   };
 
+  /**
+   * Submit the in-app step-up challenge. Dispatches to `verifyOtp` for
+   * email/Telegram channels, or `verifyChallenge` for TOTP/recovery (T159).
+   */
   const onStepUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!stepUpCode.trim()) return;
     setBusy(true);
     try {
-      const { error, lockedMs } = await verifyChallenge(stepUpCode);
+      const channel = stepUpSelectedChannel;
+      const result =
+        channel === 'email' || channel === 'telegram'
+          ? await verifyOtp(channel, stepUpCode)
+          : await verifyChallenge(stepUpCode);
+
+      const { error, lockedMs } = result;
       if (lockedMs > 0) {
         toast.error(t('auth.mfaLockout', { minutes: lockoutMinutes(lockedMs) }));
         setStepUpCode('');
@@ -233,6 +318,55 @@ export default function SecurityPage() {
       setNeedsStepUp(false);
       toast.success(t('auth.mfa.stepUpDone'));
       navigate('/app');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /** Request an OTP for the selected delivered channel during the step-up. */
+  const handleStepUpSendOtp = async () => {
+    const channel = stepUpSelectedChannel;
+    if (!channel || (channel !== 'email' && channel !== 'telegram')) return;
+    setBusy(true);
+    try {
+      const result = await requestOtp(channel);
+      if (result.cooldownMs > 0) {
+        startStepUpResendTimer(result.cooldownMs);
+        return;
+      }
+      if (result.error) {
+        toast.error(t(`auth.mfa.err.${mfaErrorKey(result.error)}`));
+        return;
+      }
+      setStepUpOtpSent(true);
+      setStepUpDemoCode(result.demoCode ?? null);
+      setStepUpDemoConfirmToken(result.demoConfirmToken ?? null);
+      startStepUpResendTimer(60_000); // OTP_RESEND_COOLDOWN_MS
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /** Resend the OTP for the selected channel during the step-up. */
+  const handleStepUpResendOtp = async () => {
+    const channel = stepUpSelectedChannel;
+    if (!channel || (channel !== 'email' && channel !== 'telegram')) return;
+    if (stepUpResendCountdown > 0) return;
+    setBusy(true);
+    try {
+      const result = await requestOtp(channel);
+      if (result.cooldownMs > 0) {
+        startStepUpResendTimer(result.cooldownMs);
+        return;
+      }
+      if (result.error) {
+        toast.error(t(`auth.mfa.err.${mfaErrorKey(result.error)}`));
+        return;
+      }
+      setStepUpDemoCode(result.demoCode ?? null);
+      setStepUpDemoConfirmToken(result.demoConfirmToken ?? null);
+      startStepUpResendTimer(60_000);
+      toast.success(t('auth.mfa.channels.resent'));
     } finally {
       setBusy(false);
     }
@@ -252,30 +386,170 @@ export default function SecurityPage() {
           </div>
         )}
 
-        {/* In-app AAL2 step-up for a re-gated enrolled-but-AAL1 session (T112). */}
+        {/*
+          In-app AAL2 step-up for a re-gated enrolled-but-AAL1 session (T112/T159).
+          Shows the full OTP channel picker + send/verify flow mirroring the
+          LoginPage challenge, so email/Telegram channels work from the security
+          page just as they do at sign-in.
+        */}
         {needsStepUp && !draft && !recoveryCodes && (
           <Card title={t('auth.mfa.stepUpTitle')}>
             <div className="flex items-start gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-warning/10 text-warning">
                 <ShieldAlert className="h-5 w-5" />
               </span>
-              <p className="text-sm text-muted">{t('auth.mfa.stepUpBody')}</p>
+              <p className="text-sm text-muted">
+                {stepUpSelectedChannel === 'email'
+                  ? t('auth.mfa.channels.emailChallengeBody', {
+                      hint: demoEnabledChannels['email']?.targetHint ?? '',
+                    })
+                  : stepUpSelectedChannel === 'telegram'
+                    ? t('auth.mfa.channels.telegramChallengeBody', {
+                        hint: demoEnabledChannels['telegram']?.targetHint ?? '',
+                      })
+                    : t('auth.mfa.stepUpBody')}
+              </p>
             </div>
-            <form onSubmit={onStepUp} className="mt-4 space-y-3">
-              <Input
-                label={t('auth.mfa.codeLabel')}
-                inputMode="text"
-                autoComplete="one-time-code"
-                autoFocus
-                value={stepUpCode}
-                onChange={(e) => setStepUpCode(e.target.value)}
-                hint={t('auth.mfa.challengeHint')}
-                required
-              />
-              <Button type="submit" loading={busy} disabled={!stepUpCode.trim()}>
-                <ShieldCheck className="h-4 w-4" /> {t('auth.mfa.verify')}
-              </Button>
-            </form>
+
+            {/* Channel picker: shown when multiple channels are available and none is selected. */}
+            {!stepUpSelectedChannel && stepUpAvailableChannels().length > 1 && (
+              <div className="mt-4 space-y-2">
+                <p className="text-center text-xs font-medium uppercase tracking-wide text-muted">
+                  {t('auth.mfa.channels.choosePicker')}
+                </p>
+                {stepUpAvailableChannels().map((ch) => (
+                  <button
+                    key={ch}
+                    type="button"
+                    className="flex w-full items-center gap-3 rounded-lg border border-[var(--border)] bg-[var(--bg-card)] px-4 py-3 text-left text-sm transition-colors hover:border-primary hover:bg-primary/5"
+                    onClick={() => setStepUpSelectedChannel(ch)}
+                  >
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      {ch === 'email' ? (
+                        <Mail className="h-4 w-4" />
+                      ) : ch === 'telegram' ? (
+                        <Send className="h-4 w-4" />
+                      ) : (
+                        <Smartphone className="h-4 w-4" />
+                      )}
+                    </span>
+                    <span className="font-medium">
+                      {ch === 'email'
+                        ? t('auth.mfa.channels.emailLabel')
+                        : ch === 'telegram'
+                          ? t('auth.mfa.channels.telegramLabel')
+                          : t('auth.mfa.channels.totpLabel')}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* TOTP / recovery-code input (auto-selected when TOTP is the only channel). */}
+            {stepUpSelectedChannel === 'totp' && (
+              <form onSubmit={onStepUp} className="mt-4 space-y-3">
+                <Input
+                  label={t('auth.mfa.codeLabel')}
+                  inputMode="text"
+                  autoComplete="one-time-code"
+                  autoFocus
+                  value={stepUpCode}
+                  onChange={(e) => setStepUpCode(e.target.value)}
+                  hint={t('auth.mfa.challengeHint')}
+                  required
+                />
+                <Button type="submit" loading={busy} disabled={!stepUpCode.trim()}>
+                  <ShieldCheck className="h-4 w-4" /> {t('auth.mfa.verify')}
+                </Button>
+              </form>
+            )}
+
+            {/* Email / Telegram OTP: "Send code" button before the code is sent. */}
+            {(stepUpSelectedChannel === 'email' || stepUpSelectedChannel === 'telegram') &&
+              !stepUpOtpSent && (
+                <div className="mt-4">
+                  <Button
+                    className="w-full"
+                    loading={busy}
+                    onClick={() => void handleStepUpSendOtp()}
+                  >
+                    {stepUpSelectedChannel === 'email'
+                      ? t('auth.mfa.channels.sendEmail')
+                      : t('auth.mfa.channels.sendTelegram')}
+                  </Button>
+                </div>
+              )}
+
+            {/* Email / Telegram OTP: code input after the code is sent. */}
+            {(stepUpSelectedChannel === 'email' || stepUpSelectedChannel === 'telegram') &&
+              stepUpOtpSent && (
+                <form onSubmit={onStepUp} className="mt-4 space-y-3">
+                  {/* Demo affordance: show the one-time code on-screen. */}
+                  {stepUpDemoCode && (
+                    <div className="rounded-lg border border-warning/30 bg-warning/8 px-4 py-3">
+                      <p className="text-xs font-medium text-warning">
+                        {t('auth.mfa.channels.demoNotice')}
+                      </p>
+                      <p
+                        className="iv-mono mt-1 text-center text-2xl font-bold tracking-[0.3em] text-text"
+                        aria-label={t('auth.mfa.channels.demoCodeAriaLabel')}
+                      >
+                        {stepUpDemoCode}
+                      </p>
+                      {stepUpDemoConfirmToken && stepUpSelectedChannel === 'email' && (
+                        <p className="mt-2 text-center text-xs text-muted">
+                          {t('auth.mfa.channels.orClickLink')}{' '}
+                          <Link
+                            to={`/confirma-2fa?token=${encodeURIComponent(stepUpDemoConfirmToken)}&channel=${stepUpSelectedChannel}`}
+                            className="auth-link text-xs"
+                          >
+                            {t('auth.mfa.channels.confirmLinkLabel')}
+                          </Link>
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  <Input
+                    label={t('auth.mfa.channels.otpLabel')}
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    autoFocus
+                    value={stepUpCode}
+                    maxLength={6}
+                    onChange={(e) => setStepUpCode(e.target.value.replace(/\D/g, ''))}
+                    hint={t('auth.mfa.channels.otpHint')}
+                    required
+                  />
+                  <Button
+                    type="submit"
+                    loading={busy}
+                    disabled={!isValidOtpFormat(stepUpCode)}
+                  >
+                    <ShieldCheck className="h-4 w-4" /> {t('auth.mfa.verify')}
+                  </Button>
+                  <button
+                    type="button"
+                    className="auth-link block w-full text-center text-sm"
+                    disabled={stepUpResendCountdown > 0 || busy}
+                    onClick={() => void handleStepUpResendOtp()}
+                  >
+                    {stepUpResendCountdown > 0
+                      ? t('auth.mfa.channels.resendIn', { seconds: stepUpResendCountdown })
+                      : t('auth.mfa.channels.resend')}
+                  </button>
+                </form>
+              )}
+
+            {/* "Use a different method" back link when a channel is selected and multiple exist. */}
+            {stepUpSelectedChannel && stepUpAvailableChannels().length > 1 && (
+              <button
+                type="button"
+                className="auth-link mt-3 block w-full text-center text-sm"
+                onClick={resetStepUpChannel}
+              >
+                {t('auth.mfa.channels.changeChannel')}
+              </button>
+            )}
           </Card>
         )}
 
