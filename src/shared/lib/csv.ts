@@ -111,10 +111,18 @@ export function parseApartmentsCsv(text: string): ImportResult {
 export interface ImportBatchResult {
   /** Rows accepted for creation (no duplicate, no parse error). */
   toCreate: ApartmentImportRow[];
-  /** Subset of toCreate where opt_in is true and email is non-empty. */
+  /** Subset of toCreate where opt_in is true and email is valid. */
   toInvite: ApartmentImportRow[];
-  /** All errors (parse-level + semantic-level duplicates), in row order. */
+  /**
+   * Blocking errors: the row was rejected and NOT created
+   * (parse failures, already-exists, intra-CSV duplicate).
+   */
   errors: string[];
+  /**
+   * Non-blocking warnings: the apartment WAS created but something was skipped
+   * (e.g. invalid email -- invite not sent).
+   */
+  warnings: string[];
 }
 
 /**
@@ -131,6 +139,7 @@ export function resolveImportBatch(
   existingApartmentKeys: ReadonlySet<string>,
 ): ImportBatchResult {
   const errors = [...parseErrors];
+  const warnings: string[] = [];
   const toCreate: ApartmentImportRow[] = [];
   const toInvite: ApartmentImportRow[] = [];
   const csvKeys = new Set<string>();
@@ -158,12 +167,15 @@ export function resolveImportBatch(
       if (isValidEmail(row.email)) {
         toInvite.push(row);
       } else {
-        errors.push(`Rândul ${i + 1}: ${label} are email invalid, nu se va trimite invitație.`);
+        // Non-blocking: apartment imported, invite skipped.
+        warnings.push(
+          `Rândul ${i + 1}: ${label} are email invalid, invitația nu a fost trimisă.`,
+        );
       }
     }
   });
 
-  return { toCreate, toInvite, errors };
+  return { toCreate, toInvite, errors, warnings };
 }
 
 /**

@@ -856,7 +856,8 @@
     "importing": "Se importă...",
     "importSuccess": "{{apartments}} apartament(e) importat(e), {{invites}} invitație(i) trimisă(e).",
     "importNone": "Fișierul nu conține apartamente noi.",
-    "importErrorsTitle": "{{count}} eroare(i) găsită(e):",
+    "importErrorsTitle": "{{count}} eroare(i) — rând(uri) neimportat(e):",
+    "importWarningsTitle": "{{count}} notificare(i) — apartament(e) importat(e), invitație omisă:",
     "empty": "Niciun apartament importat. Folosește pasul de import din configurare."
   },
   "building": {

@@ -274,43 +274,76 @@ describe('resolveImportBatch', () => {
   });
 
   it('excludes opt_in rows with a malformed email from toInvite and still creates them', () => {
-    const { toCreate, toInvite, errors } = resolveImportBatch(
+    const { toCreate, toInvite, errors, warnings } = resolveImportBatch(
       [makeRow({ email: 'ionescu' })],
       [],
       new Set(),
     );
     expect(toCreate).toHaveLength(1);
     expect(toInvite).toHaveLength(0);
-    expect(errors).toHaveLength(1);
-    expect(errors[0]).toMatch(/Rândul 1/);
-    expect(errors[0]).toMatch(/email invalid/);
+    // The row IS created -- this is a non-blocking warning, not a blocking error.
+    expect(errors).toHaveLength(0);
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]).toMatch(/Rândul 1/);
+    expect(warnings[0]).toMatch(/email invalid/);
   });
 
-  it('treats an address missing the domain part as malformed', () => {
-    const { toInvite, errors } = resolveImportBatch([makeRow({ email: 'x@' })], [], new Set());
+  it('treats an address missing the domain part as malformed (warning, not error)', () => {
+    const { toInvite, errors, warnings } = resolveImportBatch(
+      [makeRow({ email: 'x@' })],
+      [],
+      new Set(),
+    );
     expect(toInvite).toHaveLength(0);
-    expect(errors).toHaveLength(1);
-    expect(errors[0]).toMatch(/email invalid/);
+    expect(errors).toHaveLength(0);
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]).toMatch(/email invalid/);
   });
 
-  it('keeps a well-formed email in toInvite with no warning', () => {
-    const { toInvite, errors } = resolveImportBatch(
+  it('keeps a well-formed email in toInvite with no errors or warnings', () => {
+    const { toInvite, errors, warnings } = resolveImportBatch(
       [makeRow({ email: '  popescu.ion@vecini.online  ' })],
       [],
       new Set(),
     );
     expect(toInvite).toHaveLength(1);
     expect(errors).toHaveLength(0);
+    expect(warnings).toHaveLength(0);
   });
 
   it('does not warn about a malformed email when the row is not opted in', () => {
-    const { toInvite, errors } = resolveImportBatch(
+    const { toInvite, errors, warnings } = resolveImportBatch(
       [makeRow({ email: 'ionescu', opt_in: false })],
       [],
       new Set(),
     );
     expect(toInvite).toHaveLength(0);
     expect(errors).toHaveLength(0);
+    expect(warnings).toHaveLength(0);
+  });
+
+  it('returns empty warnings when all opt_in rows have valid emails', () => {
+    const rows = [
+      makeRow({ numar_apartament: '1', email: 'a@test.ro' }),
+      makeRow({ numar_apartament: '2', email: 'b@test.ro' }),
+    ];
+    const { errors, warnings } = resolveImportBatch(rows, [], new Set());
+    expect(errors).toHaveLength(0);
+    expect(warnings).toHaveLength(0);
+  });
+
+  it('can have both blocking errors and non-blocking warnings in the same batch', () => {
+    const rows = [
+      makeRow({ numar_apartament: '1', email: 'bad-email' }),  // warning: bad email, still created
+      makeRow({ numar_apartament: '2' }),                       // blocking: duplicate in CSV
+      makeRow({ numar_apartament: '2' }),
+    ];
+    const { toCreate, errors, warnings } = resolveImportBatch(rows, [], new Set());
+    expect(toCreate).toHaveLength(2); // row 1 + row 2 (first occurrence)
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toMatch(/duplicat în CSV/);
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]).toMatch(/email invalid/);
   });
 
   it('preserves parse-level errors forwarded from parseApartmentsCsv', () => {

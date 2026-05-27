@@ -8,6 +8,9 @@ the live `BACKLOG.md` carries only the protocol and the open (⬜) queue.
 > task (read it only when a task's prerequisite or history is genuinely needed).
 > `RESUME.md` §0 remains the dated chronological summary.
 
+### ✅ T163 — [P3] Distinguish row warnings from blocking errors in the CSV import summary
+Done: Added `warnings: string[]` to `ImportBatchResult` in `csv.ts`; the "email invalid, invite skipped" notice moves from `errors` to `warnings` (apartment IS created). `ApartmentsPage` now shows blocking errors in a red banner and non-blocking warnings in a separate amber banner with independent dismiss buttons. Two new bilingual locale keys (`importErrorsTitle` clarified, `importWarningsTitle` added) in `ro.json` + `en.json`. Updated 4 existing `resolveImportBatch` tests + added 3 new ones (empty-warnings happy path, combined batch with both errors and warnings). 143 files / 1290 tests green.
+
 ### ✅ T165 — [P3] Link the shared `Textarea` error to its control with `aria-describedby`
 
 **Done:** Added `aria-describedby={error ? \`${fieldId}-err\` : undefined}` to `<textarea>` and `id={\`${fieldId}-err\`}` to the error `<p>` in `Textarea` (`src/shared/components/Input.tsx`), mirroring the existing `Input` pattern. Added 6-test coverage file `tests/unit/Input.test.tsx` covering both `Input` and `Textarea` for the aria wiring, `aria-invalid`, hint/error mutual exclusion. Pipeline: lint / typecheck / 1288 tests / build all green.

@@ -856,7 +856,8 @@
     "importing": "Importing...",
     "importSuccess": "{{apartments}} apartment(s) imported, {{invites}} invitation(s) sent.",
     "importNone": "The file contains no new apartments.",
-    "importErrorsTitle": "{{count}} error(s) found:",
+    "importErrorsTitle": "{{count}} error(s) — row(s) not imported:",
+    "importWarningsTitle": "{{count}} notice(s) — apartment(s) imported, invite skipped:",
     "empty": "No apartments imported. Use the import step in setup."
   },
   "building": {

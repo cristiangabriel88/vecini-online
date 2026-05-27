@@ -36,6 +36,7 @@ export default function ApartmentsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [importErrors, setImportErrors] = useState<string[]>([]);
+  const [importWarnings, setImportWarnings] = useState<string[]>([]);
 
   // With a backend present, pull the live registry into the store on mount; in
   // demo mode this is a no-op and the seeded/persisted list stands.
@@ -64,6 +65,7 @@ export default function ApartmentsPage() {
 
     setIsImporting(true);
     setImportErrors([]);
+    setImportWarnings([]);
 
     try {
       const text = await file.text();
@@ -74,7 +76,7 @@ export default function ApartmentsPage() {
         existing.map((a) => `${a.scara ?? ''}|${a.numar_apartament}`),
       );
 
-      const { toCreate, toInvite, errors } = resolveImportBatch(rows, parseErrors, existingKeys);
+      const { toCreate, toInvite, errors, warnings } = resolveImportBatch(rows, parseErrors, existingKeys);
 
       const newApartments = toCreate.map((row) => rowToApartment(row, asociatieId));
       if (newApartments.length > 0) {
@@ -125,6 +127,9 @@ export default function ApartmentsPage() {
 
       if (errors.length > 0) {
         setImportErrors(errors);
+      }
+      if (warnings.length > 0) {
+        setImportWarnings(warnings);
       }
     } finally {
       setIsImporting(false);
@@ -179,10 +184,46 @@ export default function ApartmentsPage() {
         onChange={handleFileSelected}
       />
 
-      {/* Per-row import errors */}
+      {/* Blocking import errors -- row was rejected */}
       {importErrors.length > 0 && (
         <div
           role="alert"
+          className="mb-4 rounded-xl border border-red-400/40 bg-red-400/10 p-4"
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-start gap-2">
+              <AlertTriangle
+                size={16}
+                className="mt-0.5 shrink-0 text-red-500"
+                aria-hidden
+              />
+              <div className="text-sm">
+                <p className="font-medium text-red-700 dark:text-red-300">
+                  {t('apartments.importErrorsTitle', { count: importErrors.length })}
+                </p>
+                <ul className="mt-1 space-y-0.5 text-red-700/80 dark:text-red-300/80">
+                  {importErrors.map((err, i) => (
+                    <li key={i}>{err}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            <button
+              onClick={() => setImportErrors([])}
+              className="iconbtn shrink-0"
+              style={{ width: 28, height: 28 }}
+              aria-label={t('common.close')}
+            >
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Non-blocking import warnings -- apartment created, something skipped */}
+      {importWarnings.length > 0 && (
+        <div
+          role="status"
           className="mb-4 rounded-xl border border-yellow-400/40 bg-yellow-400/10 p-4"
         >
           <div className="flex items-start justify-between gap-2">
@@ -194,17 +235,17 @@ export default function ApartmentsPage() {
               />
               <div className="text-sm">
                 <p className="font-medium text-yellow-700 dark:text-yellow-300">
-                  {t('apartments.importErrorsTitle', { count: importErrors.length })}
+                  {t('apartments.importWarningsTitle', { count: importWarnings.length })}
                 </p>
                 <ul className="mt-1 space-y-0.5 text-yellow-700/80 dark:text-yellow-300/80">
-                  {importErrors.map((err, i) => (
-                    <li key={i}>{err}</li>
+                  {importWarnings.map((w, i) => (
+                    <li key={i}>{w}</li>
                   ))}
                 </ul>
               </div>
             </div>
             <button
-              onClick={() => setImportErrors([])}
+              onClick={() => setImportWarnings([])}
               className="iconbtn shrink-0"
               style={{ width: 28, height: 28 }}
               aria-label={t('common.close')}

@@ -149,8 +149,7 @@ Surfaced in T146: the offline `seedProfile` written on account creation defaults
 
 ### ✅ T165 — [P3] Link the shared `Textarea` error to its control with `aria-describedby`
 
-### ⬜ T163 — [P3] Distinguish row warnings from blocking errors in the CSV import summary
-Surfaced in T160: `resolveImportBatch` now returns the malformed-email notice in the same `errors` array as the genuinely-blocking notices ("există deja", "duplicat în CSV", parse failures), and `ApartmentsPage` renders them all in one red error list via `setImportErrors` even though the apartment for a bad-email row was still created. So an admin sees a red "error" for a row that actually imported (just without an invite), which overstates the failure. Split the result into blocking `errors` vs. non-blocking `warnings` (the email-invalid notice becomes a warning), and render warnings in a softer amber/info style separate from the red error list, so the summary truthfully reflects "imported, invite skipped" vs. "row rejected". Pure split unit-tested; bilingual RO/EN. Prereq: T160.
+### ✅ T163 — [P3] Distinguish row warnings from blocking errors in the CSV import summary
 
 ### ⬜ T158 — [P3] Remove orphaned `onboarding.import/invite/csv*` locale keys
 Surfaced in T154: the wizard lost its CSV-import step (step 1) and bulk-invite step (step 4). Their locale keys (`onboarding.import`, `onboarding.invite`, `onboarding.csvHelp`, `onboarding.csvParsed`, `onboarding.csvError`, `onboarding.inviteEmails`) are no longer consumed by any component. Confirm no other file references them (ripgrep), then remove the dead keys from both `ro.json` and `en.json`. Trivial, backend-free. Coordinates with T145 (the parallel `join.*` cleanup).
