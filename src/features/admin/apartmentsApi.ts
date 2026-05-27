@@ -6,14 +6,36 @@ import { useApartmentsStore } from './apartmentsStore';
 
 /* Dual-mode apartment repository. The zustand store is the synchronous source of
    truth the UI reads; these functions apply each change there and, when a backend
-   is configured, mirror it to the `apartments` table (best-effort, never throwing
-   to the caller, mirroring the audit store's strategy). Every mutation is also
-   written to the tamper-evident audit log. */
+   is configured, mirror it to the `apartments` table. A failed live write calls the
+   optional `onError` callback so the caller can surface a user-visible toast. Every
+   mutation is also written to the tamper-evident audit log. */
 
-/** The DB columns that map 1:1 onto the Apartment model. */
-function toRow(a: Apartment): Record<string, unknown> {
+/**
+ * Discriminated error type surfaced to callers on a live write failure.
+ * - 'conflict': the (asociatie_id, scara, numar_apartament) unique constraint was
+ *   violated -- the admin is trying to create a duplicate apartment.
+ * - 'write-failed': any other DB/network error.
+ */
+export type ApartmentWriteError = 'conflict' | 'write-failed';
+
+/**
+ * Map a Supabase error to the ApartmentWriteError discriminant.
+ * Postgres unique-constraint violations surface as error code '23505'.
+ */
+function classify(err: { code?: string }): ApartmentWriteError {
+  return err.code === '23505' ? 'conflict' : 'write-failed';
+}
+
+/**
+ * The DB columns that map 1:1 onto the Apartment model.
+ * Local apartment ids use an 'ap-' prefix for visual distinction in the offline
+ * store; the 'apartments' table expects a plain UUID, so the prefix is stripped
+ * here before any Supabase call.
+ */
+export function toRow(a: Apartment): Record<string, unknown> {
+  const dbId = a.id.startsWith('ap-') ? a.id.slice(3) : a.id;
   return {
-    id: a.id,
+    id: dbId,
     asociatie_id: a.asociatie_id,
     scara: a.scara,
     etaj: a.etaj,
@@ -26,6 +48,14 @@ function toRow(a: Apartment): Record<string, unknown> {
     is_active: a.is_active,
     notes: a.notes,
   };
+}
+
+/**
+ * Strip the 'ap-' prefix from a local apartment id to get the DB-compatible UUID.
+ * Used in WHERE clauses and in the invite apartment_id FK reference.
+ */
+export function toDbId(localId: string): string {
+  return localId.startsWith('ap-') ? localId.slice(3) : localId;
 }
 
 /** Hydrate the store for an asociație from the backend, when configured. The
@@ -44,8 +74,17 @@ export async function hydrateApartments(asociatieId: string): Promise<void> {
   }
 }
 
-/** Create one or more apartments in an asociație. */
-export function createApartments(asociatieId: string, apartments: Apartment[]): void {
+/**
+ * Create one or more apartments in an asociație.
+ * The local store is updated synchronously; the Supabase mirror is async.
+ * A failed live write calls onError with a discriminated error code so the
+ * caller can surface a bilingual toast without silent data-loss.
+ */
+export function createApartments(
+  asociatieId: string,
+  apartments: Apartment[],
+  onError?: (err: ApartmentWriteError) => void,
+): void {
   if (apartments.length === 0) return;
   useApartmentsStore.getState().addMany(asociatieId, apartments);
   recordAudit({
@@ -60,16 +99,25 @@ export function createApartments(asociatieId: string, apartments: Apartment[]): 
   if (isSupabaseConfigured) {
     void (async () => {
       try {
-        await supabase.from('apartments').insert(apartments.map(toRow));
+        const { error } = await supabase.from('apartments').insert(apartments.map(toRow));
+        if (error) onError?.(classify(error));
       } catch {
-        /* mirroring is best-effort */
+        onError?.('write-failed');
       }
     })();
   }
 }
 
-/** Replace an existing apartment with its edited version. */
-export function updateApartment(asociatieId: string, before: Apartment, after: Apartment): void {
+/**
+ * Replace an existing apartment with its edited version.
+ * Surfaces a live write failure via onError (same discriminant as createApartments).
+ */
+export function updateApartment(
+  asociatieId: string,
+  before: Apartment,
+  after: Apartment,
+  onError?: (err: ApartmentWriteError) => void,
+): void {
   useApartmentsStore.getState().update(asociatieId, after);
   recordAudit({
     action: 'apartment.updated',
@@ -81,16 +129,28 @@ export function updateApartment(asociatieId: string, before: Apartment, after: A
   if (isSupabaseConfigured) {
     void (async () => {
       try {
-        await supabase.from('apartments').update(toRow(after)).eq('id', after.id);
+        const dbId = toDbId(after.id);
+        const { error } = await supabase
+          .from('apartments')
+          .update(toRow(after))
+          .eq('id', dbId);
+        if (error) onError?.(classify(error));
       } catch {
-        /* mirroring is best-effort */
+        onError?.('write-failed');
       }
     })();
   }
 }
 
-/** Delete an apartment from an asociație. */
-export function deleteApartment(asociatieId: string, apartment: Apartment): void {
+/**
+ * Delete an apartment from an asociație.
+ * Surfaces a live write failure via onError.
+ */
+export function deleteApartment(
+  asociatieId: string,
+  apartment: Apartment,
+  onError?: (err: ApartmentWriteError) => void,
+): void {
   useApartmentsStore.getState().remove(asociatieId, apartment.id);
   recordAudit({
     action: 'apartment.deleted',
@@ -101,9 +161,11 @@ export function deleteApartment(asociatieId: string, apartment: Apartment): void
   if (isSupabaseConfigured) {
     void (async () => {
       try {
-        await supabase.from('apartments').delete().eq('id', apartment.id);
+        const dbId = toDbId(apartment.id);
+        const { error } = await supabase.from('apartments').delete().eq('id', dbId);
+        if (error) onError?.(classify(error));
       } catch {
-        /* mirroring is best-effort */
+        onError?.('write-failed');
       }
     })();
   }

@@ -35,10 +35,18 @@ export async function writeInviteToLive(invite: InviteCode): Promise<WriteInvite
   // Strip the 'inv-' prefix so the row id is a valid UUID.
   const dbId = invite.id.startsWith('inv-') ? invite.id.slice(4) : invite.id;
 
+  // Strip the 'ap-' prefix from local apartment ids so the FK references the
+  // correct UUID in the 'apartments' table (mirrors the toDbId helper in
+  // apartmentsApi.ts, kept local here to avoid a cross-feature import cycle).
+  const rawAptId = invite.apartmentId;
+  const dbAptId = rawAptId
+    ? (rawAptId.startsWith('ap-') ? rawAptId.slice(3) : rawAptId)
+    : null;
+
   const { error } = await supabase.from('invite_codes').insert({
     id: dbId,
     asociatie_id: invite.asociatieId,
-    apartment_id: invite.apartmentId ?? null,
+    apartment_id: dbAptId,
     code: invite.code,
     token: invite.token,
     role: invite.role,

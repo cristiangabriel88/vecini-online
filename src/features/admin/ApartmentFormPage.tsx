@@ -15,8 +15,10 @@ import { useAuthStore } from '@/shared/store/authStore';
 import { useInviteStore } from '@/shared/store/inviteStore';
 import { recordAudit } from '@/shared/store/auditStore';
 import { isValidEmail } from '@/features/auth/authLogic';
-import { isApartmentRegistered } from '@/features/invites/inviteLogic';
+import { isApartmentRegistered, onboardingExpiry } from '@/features/invites/inviteLogic';
 import { sendInviteEmail } from '@/features/invites/inviteEmailApi';
+import { writeInviteToLive } from '@/features/invites/inviteWriteApi';
+import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import type { Apartment, ApartmentPerson } from '@/shared/types/domain';
 import { apartmentShortLabel } from '@/features/apartment/apartmentLogic';
 import { useApartment } from './apartmentsStore';
@@ -104,6 +106,11 @@ export default function ApartmentFormPage() {
   const contactEmail = primary?.email ?? '';
   const registered = isEdit && apartment ? isApartmentRegistered(apartment.id, invites) : false;
 
+  /** Show a bilingual error toast for a live write failure. */
+  const handleWriteError = (err: 'conflict' | 'write-failed') => {
+    toast.error(t(err === 'conflict' ? 'apartments.conflictError' : 'apartments.saveFailed'));
+  };
+
   /** Persist the current form (create or update) and return the saved apartment,
    *  or null when the asociație is missing or a field is invalid. */
   const persist = (): Apartment | null => {
@@ -115,11 +122,11 @@ export default function ApartmentFormPage() {
     }
     if (isEdit && apartment) {
       const updated = { ...applyApartmentEdit(apartment, input, persons), is_active: active };
-      updateApartment(asociatieId, apartment, updated);
+      updateApartment(asociatieId, apartment, updated, handleWriteError);
       return updated;
     }
     const created = { ...newApartment(input, asociatieId, persons), is_active: active };
-    createApartments(asociatieId, [created]);
+    createApartments(asociatieId, [created], handleWriteError);
     return created;
   };
 
@@ -159,7 +166,7 @@ export default function ApartmentFormPage() {
       asociatieId,
       role: 'proprietar',
       apartmentId: apartment.id,
-      expiresAt: null,
+      expiresAt: onboardingExpiry(),
       singleUse: true,
       createdBy: userId,
       inviteeName: primaryName,
@@ -172,6 +179,11 @@ export default function ApartmentFormPage() {
       before: null,
       after: invite.role,
     });
+    // Persist the invite to the live backend so the redemption RPC can find it.
+    // Best-effort: a failed write does not block email delivery.
+    if (isSupabaseConfigured) {
+      await writeInviteToLive(invite);
+    }
     const result = await sendInviteEmail({
       invite,
       locale: i18n.language,

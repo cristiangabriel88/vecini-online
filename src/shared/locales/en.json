@@ -875,7 +875,9 @@
     "importNone": "The file contains no new apartments.",
     "importErrorsTitle": "{{count}} error(s) — row(s) not imported:",
     "importWarningsTitle": "{{count}} notice(s) — apartment(s) imported, invite skipped:",
-    "empty": "No apartments imported. Use the import step in setup."
+    "empty": "No apartments imported. Use the import step in setup.",
+    "conflictError": "An apartment with this entrance and number already exists. Check the registry and try again.",
+    "saveFailed": "Could not save to the database. Your changes are saved locally — please try again later."
   },
   "building": {
     "title": "Association configuration",

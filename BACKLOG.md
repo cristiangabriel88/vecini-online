@@ -126,8 +126,7 @@ Keep the queue sorted with the highest priority on top. When two tasks share a p
 ### ✅ T55 — [MVP] Live invite write/consume + real account creation on redemption (admin + resident)
 Done: resolve_onboarding_token + redeem_onboarding_token SECURITY DEFINER RPCs (migration 20260527000004), onboardingApi.ts (resolveTokenLive/redeemTokenLive), inviteWriteApi.ts (writeInviteToLive), AccountSetupPage live branch (signUp + redeemTokenLive + hydrate), ApartmentsPage live invite write. 36 new tests. 142 files / 1282 tests / build green. Live smoke pending credentials.
 
-### ⬜ T115 — [MVP] Live Supabase read/write for the apartment registry
-`apartmentsApi.ts` already branches on `isSupabaseConfigured` and the `apartments` table + `persons` column + RLS exist, but the live path has not run against a real backend. Verify and finish it: hydrate on mount, create/update/delete persisting to Supabase, surface a user-visible error on a failed write, and handle the `(asociatie_id, scara, numar_apartament)` unique conflict. The resident invite created when an apartment is added must link to the real apartment id so the resident lands in the right place. Prereq: T55, T168.
+### ✅ T115 — [MVP] Live Supabase read/write for the apartment registry
 
 ### ⬜ T149 — [P2] Live activation: Resend delivery webhook -> stamp `invite_email_delivered_at`
 Surfaced building T147: the migration carries an `invite_email_delivered_at` column and the offline model an `emailDeliveredAt`, but nothing sets it (offline only stamps `emailSentAt`, and live there is no delivery callback yet). Add a Resend webhook receiver (Netlify function, signature-verified) that, on an `email.delivered`/`email.bounced` event for an invitation, updates the matching `invite_codes` row's delivery marker via the service role so the invites surface can show delivered vs. bounced rather than only "sent". Behind `isSupabaseConfigured`; document the webhook registration step. Prereq: T147, T142.

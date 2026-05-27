@@ -875,7 +875,9 @@
     "importNone": "Fișierul nu conține apartamente noi.",
     "importErrorsTitle": "{{count}} eroare(i) — rând(uri) neimportat(e):",
     "importWarningsTitle": "{{count}} notificare(i) — apartament(e) importat(e), invitație omisă:",
-    "empty": "Niciun apartament importat. Folosește pasul de import din configurare."
+    "empty": "Niciun apartament importat. Folosește pasul de import din configurare.",
+    "conflictError": "Există deja un apartament cu aceeași scară și număr. Verifică registrul și încearcă din nou.",
+    "saveFailed": "Nu am putut salva în baza de date. Modificările sunt salvate local — încearcă mai târziu."
   },
   "building": {
     "title": "Configurarea asociației",

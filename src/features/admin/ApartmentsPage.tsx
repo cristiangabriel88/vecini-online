@@ -325,7 +325,9 @@ export default function ApartmentsPage() {
 
       const newApartments = toCreate.map((row) => rowToApartment(row, asociatieId));
       if (newApartments.length > 0) {
-        createApartments(asociatieId, newApartments);
+        createApartments(asociatieId, newApartments, (err) => {
+          toast.error(t(err === 'conflict' ? 'apartments.conflictError' : 'apartments.saveFailed'));
+        });
       }
 
       let invitesSent = 0;
@@ -384,7 +386,9 @@ export default function ApartmentsPage() {
 
   const confirmDelete = () => {
     if (!asociatieId || !pendingDelete) return;
-    deleteApartment(asociatieId, pendingDelete);
+    deleteApartment(asociatieId, pendingDelete, (_err) => {
+      toast.error(t('apartments.saveFailed'));
+    });
     toast.success(t('apartments.deleted', { label: apartmentShortLabel(pendingDelete) }));
     setPendingDelete(null);
   };

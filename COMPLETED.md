@@ -8,6 +8,34 @@ the live `BACKLOG.md` carries only the protocol and the open (⬜) queue.
 > task (read it only when a task's prerequisite or history is genuinely needed).
 > `RESUME.md` §0 remains the dated chronological summary.
 
+### ✅ T115 — [MVP] Live Supabase read/write for the apartment registry
+
+**Done:** Finished and verified the live path for the apartment registry so the MVP flow (superadmin -> admin -> apartments -> resident invite) works end-to-end with a real Supabase backend.
+
+**Key fixes applied:**
+
+1. **`ap-` prefix stripped in `toRow()`** -- `newApartment` generates ids as `ap-{uuid}` for offline visual clarity, but the `apartments.id` column is `uuid`. `toRow()` now strips the `ap-` prefix before every Supabase insert, making the DB row id a valid UUID. A new exported `toDbId()` helper does the same for WHERE clause `.eq('id', ...)` calls in `updateApartment` + `deleteApartment`. Previously every live write silently failed with an invalid UUID error.
+
+2. **`ap-` prefix stripped in `writeInviteToLive()`** -- The `apartment_id` FK on `invite_codes` references `apartments.id`. `inviteWriteApi.ts` now strips the `ap-` prefix from `invite.apartmentId` before the insert, so the invite correctly links to the real apartment row. Without this fix the resident redemption RPC (`redeem_onboarding_token`) would find no apartment to link the new `apartment_residents` row to.
+
+3. **User-visible errors on failed live write** -- All three mutation functions (`createApartments`, `updateApartment`, `deleteApartment`) gained an optional `onError?: (err: ApartmentWriteError) => void` callback. Callers in `ApartmentFormPage` and `ApartmentsPage` pass a callback that toasts the bilingual `apartments.conflictError` or `apartments.saveFailed` message. Silent swallowing is gone.
+
+4. **Unique-constraint conflict surfaced** -- Postgres error code `23505` (unique constraint on `(asociatie_id, scara, numar_apartament)`) is classified as `'conflict'` and shown as a specific bilingual toast ("An apartment with this entrance and number already exists / Există deja un apartament cu aceeași scară și număr") instead of a generic failure.
+
+5. **`writeInviteToLive` added to `ApartmentFormPage`** -- The `onConfirmInvite` handler (single-apartment invite from the edit form) now calls `writeInviteToLive(invite)` when `isSupabaseConfigured`, mirroring the CSV import path that T55 already wired. The invite now carries the correct DB-compatible `apartment_id`.
+
+6. **`expiresAt` set on `ApartmentFormPage` invite** -- The form's `onConfirmInvite` was issuing invites with `expiresAt: null` (no expiry); changed to `onboardingExpiry()` (24h TTL) consistent with the CSV import and the `redeem_onboarding_token` expiry check.
+
+**New locale keys (RO + EN):** `apartments.conflictError`, `apartments.saveFailed`.
+
+**New test file:** `tests/unit/apartmentsLivePath.test.ts` (11 tests): `toRow` strips the prefix + maps all fields correctly + omits timestamp columns; `toDbId` strips / passes through; `ApartmentWriteError` discriminant; `inviteWriteApi` source contract (no direct `invite.apartmentId` assignment); unique-constraint code `23505` present in source; all three mutation functions expose `onError?`.
+
+**Hydration on mount:** already wired in `ApartmentsPage`'s `useEffect`; verified it calls `hydrateApartments(asociatieId)` correctly.
+
+**Demo mode unchanged:** offline path is unaffected; all new guards are behind `isSupabaseConfigured`.
+
+Pipeline: lint / typecheck / 144 files / 1301 tests / build all green.
+
 ### ✅ T163 — [P3] Distinguish row warnings from blocking errors in the CSV import summary
 Done: Added `warnings: string[]` to `ImportBatchResult` in `csv.ts`; the "email invalid, invite skipped" notice moves from `errors` to `warnings` (apartment IS created). `ApartmentsPage` now shows blocking errors in a red banner and non-blocking warnings in a separate amber banner with independent dismiss buttons. Two new bilingual locale keys (`importErrorsTitle` clarified, `importWarningsTitle` added) in `ro.json` + `en.json`. Updated 4 existing `resolveImportBatch` tests + added 3 new ones (empty-warnings happy path, combined batch with both errors and warnings). 143 files / 1290 tests green.
 
