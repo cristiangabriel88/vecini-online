@@ -2654,12 +2654,16 @@
       "sent": "Invitație trimisă la {{email}}",
       "sentNoteDemo": "Mod demonstrativ - în aplicația live, administratorul primește emailul cu link-ul de configurare (valabil 24 de ore).",
       "sentNoteLive": "Administratorul a primit emailul cu link-ul de configurare (valabil 24 de ore).",
+      "sentNoteLiveNoEmail": "Invitația a fost creată, dar emailul nu a putut fi trimis (Resend nu este configurat). Configurați RESEND_API_KEY pentru livrare automată.",
       "anotherOne": "Trimite altă invitație",
       "backToList": "Vezi lista de asociații",
       "err": {
         "required": "Câmp obligatoriu",
         "tooShort": "Prea scurt (minim 2 caractere)",
-        "email": "Adresă de email invalidă"
+        "email": "Adresă de email invalidă",
+        "notConfigured": "Serviciul de backend nu este configurat. Verificați variabilele de mediu Supabase.",
+        "provisionFailed": "Eroare la creare. Verificați configurarea și încercați din nou.",
+        "forbidden": "Acces interzis. Contul nu are drepturi de superadmin."
       }
     }
   }

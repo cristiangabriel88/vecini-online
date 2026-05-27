@@ -2649,12 +2649,16 @@
       "sent": "Invitation sent to {{email}}",
       "sentNoteDemo": "Demo mode - in the live app, the administrator receives the email with the setup link (valid for 24 hours).",
       "sentNoteLive": "The administrator has received the email with the setup link (valid for 24 hours).",
+      "sentNoteLiveNoEmail": "Invitation created, but email could not be sent (Resend not configured). Set RESEND_API_KEY for automatic delivery.",
       "anotherOne": "Send another invitation",
       "backToList": "View associations list",
       "err": {
         "required": "Required field",
         "tooShort": "Too short (minimum 2 characters)",
-        "email": "Invalid email address"
+        "email": "Invalid email address",
+        "notConfigured": "Backend service is not configured. Check your Supabase environment variables.",
+        "provisionFailed": "Error creating invitation. Check your configuration and try again.",
+        "forbidden": "Access denied. Account does not have superadmin rights."
       }
     }
   }

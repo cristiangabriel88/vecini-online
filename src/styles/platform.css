@@ -779,6 +779,17 @@
   gap: var(--space-3);
 }
 
+.platform-add-asoc__live-error {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  color: var(--color-error, #dc2626);
+  background: color-mix(in oklab, var(--color-error, #dc2626) 10%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-error, #dc2626) 25%, transparent);
+}
+
 /* ── Pending invitations section (T152) ──────────────────────────────────── */
 .platform-asoc-pending {
   margin-bottom: var(--space-6);
