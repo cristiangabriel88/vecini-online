@@ -802,6 +802,7 @@
     "persons": "People",
     "personsShort": "Ppl.",
     "personsTotal": "{{count}} total",
+    "personLinked": "Account linked",
     "personName": "Name",
     "personRole": "Role",
     "addPerson": "Add person",

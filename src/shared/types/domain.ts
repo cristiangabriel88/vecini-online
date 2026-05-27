@@ -83,6 +83,10 @@ export interface ApartmentPerson {
    *  by email later. Lives in the embedded jsonb (absent on older records), so
    *  no schema change is needed. */
   email?: string | null;
+  /** Auth user id of the resident who claimed this entry by redeeming an invite
+   *  linked to this apartment (T117). Absent on pre-account / unclaimed entries.
+   *  Set server-side by redeem_onboarding_token; lives in the jsonb. */
+  claimed_user_id?: string | null;
 }
 
 export interface Apartment {

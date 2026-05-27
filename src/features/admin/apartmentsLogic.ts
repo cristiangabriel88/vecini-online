@@ -139,6 +139,43 @@ export function newPerson(role: ApartmentPerson['role'] = 'locator'): ApartmentP
   return { id: `pe-${crypto.randomUUID()}`, name: '', role, is_primary: false, email: null };
 }
 
+/** True when this persons-list entry has been claimed by a real auth account (T117). */
+export function isPersonClaimed(person: ApartmentPerson): boolean {
+  return Boolean(person.claimed_user_id);
+}
+
+/**
+ * Claim the best-matching unclaimed person entry in `persons` for `userId`. Pure.
+ * Mirrors the server-side match in redeem_onboarding_token (T117).
+ *
+ * Match order:
+ *   1. First unclaimed entry whose name (case-insensitive trim) equals `inviteeName`.
+ *   2. Fallback: first unclaimed entry whose role matches `role`.
+ *   Returns the list unchanged when no match is found.
+ */
+export function claimPersonInList(
+  persons: ApartmentPerson[],
+  userId: string,
+  inviteeName: string | null | undefined,
+  role: ApartmentPerson['role'],
+): ApartmentPerson[] {
+  let idx = -1;
+
+  if (inviteeName && inviteeName.trim()) {
+    const needle = inviteeName.trim().toLowerCase();
+    idx = persons.findIndex(
+      (p) => !p.claimed_user_id && p.name.trim().toLowerCase() === needle,
+    );
+  }
+
+  if (idx === -1) {
+    idx = persons.findIndex((p) => !p.claimed_user_id && p.role === role);
+  }
+
+  if (idx === -1) return persons;
+  return persons.map((p, i) => (i === idx ? { ...p, claimed_user_id: userId } : p));
+}
+
 /** The fields shared by create and update, derived from a validated input.
  *  `numar_persoane` defaults to the person-list length when the admin left the
  *  count blank, but an explicit value always wins. */

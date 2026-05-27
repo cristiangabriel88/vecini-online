@@ -8,6 +8,19 @@ the live `BACKLOG.md` carries only the protocol and the open (⬜) queue.
 > task (read it only when a task's prerequisite or history is genuinely needed).
 > `RESUME.md` §0 remains the dated chronological summary.
 
+### ✅ T117 — [P2] Reconcile embedded `persons` with account-linked `apartment_residents`
+
+**Done:** Defined and implemented the claim link between the pre-account `persons` jsonb and the live `apartment_residents` row.
+
+- **`ApartmentPerson`** type gains `claimed_user_id?: string | null`. Lives in the jsonb; no DDL migration needed (absent keys are treated as unclaimed).
+- **Migration `20260527000006`** (`CREATE OR REPLACE`) updates `redeem_onboarding_token` to also set `claimed_user_id` in the matching `persons` entry via `jsonb_set`. Match order: (1) first unclaimed entry whose name matches `invitee_name` case-insensitively, (2) first unclaimed entry with the matching role. Both passes guard against re-claiming already-claimed entries.
+- **`apartmentsLogic.ts`**: pure `isPersonClaimed(person)` and `claimPersonInList(persons, userId, inviteeName, role)` helpers mirror the server logic exactly -- testable offline, callable from future client paths.
+- **`ApartmentFormPage.tsx`**: persons editor shows a "Account linked / Cont înregistrat" badge on claimed entries and marks the name input disabled so the admin sees which persons have completed onboarding without accidentally overwriting their account-linked name.
+- **Bilingual**: `apartments.personLinked` added to en.json + ro.json.
+- **Tests**: `tests/unit/personsReconcile.test.ts` -- 21 tests (isPersonClaimed, claimPersonInList name/role/no-match/immutability, domain type contract, migration contract).
+
+146 files / 1344 tests / build green.
+
 ### ✅ T149 — [P2] Live activation: Resend delivery webhook -> stamp `invite_email_delivered_at`
 
 **Done:** Full delivery-webhook pipeline wired end-to-end.

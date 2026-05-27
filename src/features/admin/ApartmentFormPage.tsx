@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { AlertCircle, ArrowLeft, Check, Info, Mail, Plus, ShieldCheck, Trash2 } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Check, Info, Link2, Mail, Plus, ShieldCheck, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
@@ -28,6 +28,7 @@ import {
   apartmentToInput,
   applyApartmentEdit,
   blankApartmentInput,
+  isPersonClaimed,
   newApartment,
   newPerson,
   validateApartment,
@@ -362,9 +363,24 @@ export default function ApartmentFormPage() {
               <div key={p.id} className="flex flex-wrap items-end gap-2 sm:flex-nowrap">
                 <div className="min-w-40 flex-1">
                   <Input
-                    label={t('apartments.personName')}
+                    label={
+                      isPersonClaimed(p) ? (
+                        <span className="inline-flex items-center gap-1">
+                          {t('apartments.personName')}
+                          <span
+                            className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-medium"
+                            style={{ background: 'var(--success-soft)', color: 'var(--success)' }}
+                            title={t('apartments.personLinked')}
+                          >
+                            <Link2 size={10} />
+                            {t('apartments.personLinked')}
+                          </span>
+                        </span>
+                      ) : t('apartments.personName')
+                    }
                     value={p.name}
                     onChange={(e) => setPerson(p.id, { name: e.target.value })}
+                    disabled={isPersonClaimed(p)}
                   />
                 </div>
                 <div className="min-w-48 flex-1">
