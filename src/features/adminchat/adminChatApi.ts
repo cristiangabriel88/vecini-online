@@ -63,11 +63,14 @@ export async function hydrateThreads(asociatieId: string): Promise<void> {
   }
 }
 
-/** Open a new thread authored by `sender`; returns the created thread. */
+/** Open a new thread authored by `sender`; returns the created thread.
+ *  `onError` is called (on the next microtask) when the backend write fails,
+ *  so the page can surface a toast without coupling the API to react-hot-toast. */
 export function startThread(
   asociatieId: string,
   sender: PrivateSender,
   input: NewThreadInput,
+  onError?: () => void,
 ): PrivateThread {
   const thread = useAdminChatStore.getState().startThread(asociatieId, sender, input);
   if (isSupabaseConfigured) {
@@ -85,20 +88,22 @@ export function startThread(
         });
         await supabase.from('private_messages').insert(messageRow(asociatieId, thread.messages[0]));
       } catch {
-        /* mirroring is best-effort */
+        onError?.();
       }
     })();
   }
   return thread;
 }
 
-/** Append a reply authored by `sender`, and reopen the thread. */
+/** Append a reply authored by `sender`, and reopen the thread.
+ *  `onError` is called when the backend write fails. */
 export function reply(
   asociatieId: string,
   threadId: string,
   sender: PrivateSender,
   senderName: string,
   body: string,
+  onError?: () => void,
 ): void {
   useAdminChatStore.getState().reply(asociatieId, threadId, sender, senderName, body);
   if (isSupabaseConfigured) {
@@ -112,13 +117,14 @@ export function reply(
         if (message) await supabase.from('private_messages').insert(messageRow(asociatieId, message));
         await supabase.from('private_threads').update({ status: 'open' }).eq('id', threadId);
       } catch {
-        /* mirroring is best-effort */
+        onError?.();
       }
     })();
   }
 }
 
-/** Mark the other party's messages read, from `viewer`'s perspective. */
+/** Mark the other party's messages read, from `viewer`'s perspective.
+ *  Always best-effort: a missed read-mark is a minor UX glitch, not data loss. */
 export function markRead(asociatieId: string, threadId: string, viewer: PrivateSender): void {
   useAdminChatStore.getState().markRead(asociatieId, threadId, viewer);
   if (isSupabaseConfigured) {
@@ -130,14 +136,15 @@ export function markRead(asociatieId: string, threadId: string, viewer: PrivateS
           .eq('thread_id', threadId)
           .eq('sender', counterpartOf(viewer));
       } catch {
-        /* mirroring is best-effort */
+        /* read-mark failure is a minor UX glitch, not data loss — stay silent */
       }
     })();
   }
 }
 
-/** Toggle a thread between open and resolved. */
-export function toggleStatus(asociatieId: string, threadId: string): void {
+/** Toggle a thread between open and resolved.
+ *  `onError` is called when the backend write fails. */
+export function toggleStatus(asociatieId: string, threadId: string, onError?: () => void): void {
   useAdminChatStore.getState().toggleStatus(asociatieId, threadId);
   if (isSupabaseConfigured) {
     void (async () => {
@@ -150,7 +157,7 @@ export function toggleStatus(asociatieId: string, threadId: string): void {
           await supabase.from('private_threads').update({ status: thread.status }).eq('id', threadId);
         }
       } catch {
-        /* mirroring is best-effort */
+        onError?.();
       }
     })();
   }

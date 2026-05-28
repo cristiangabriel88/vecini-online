@@ -1657,6 +1657,7 @@
     "reopen": "Redeschide",
     "threadStarted": "Mesaj trimis către administrator.",
     "threadStartedToResident": "Mesaj trimis către locatar.",
+    "writeFailed": "Mesajul nu a putut fi salvat. Vă rugăm să încercați din nou.",
     "empty": "Nicio conversație încă. Începe una cu butonul de mai sus.",
     "emptyAdmin": "Niciun mesaj de la locatari încă. Poți porni tu o conversație cu butonul de mai sus."
   },

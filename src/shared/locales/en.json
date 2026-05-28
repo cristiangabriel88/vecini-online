@@ -1655,6 +1655,7 @@
     "reopen": "Reopen",
     "threadStarted": "Message sent to the administrator.",
     "threadStartedToResident": "Message sent to the resident.",
+    "writeFailed": "Message could not be saved. Please try again.",
     "empty": "No conversations yet. Start one with the button above.",
     "emptyAdmin": "No messages from residents yet. You can start a conversation with the button above."
   },
