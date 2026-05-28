@@ -60,7 +60,7 @@ export default function ApartmentFormPage() {
     apartment ? { ...apartmentToInput(apartment), numar_persoane: '' } : blankApartmentInput(),
   );
   const [persons, setPersons] = useState<ApartmentPerson[]>(() => apartment?.persons ?? []);
-  const [active, setActive] = useState<boolean>(() => apartment?.is_active ?? true);
+  const active = apartment?.is_active ?? true;
   // Required-field errors stay silent until the admin actually tries to save,
   // so a pristine form never greets them with red text.
   const [submitted, setSubmitted] = useState(false);
@@ -262,7 +262,7 @@ export default function ApartmentFormPage() {
       />
 
       <Card>
-        <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-3 sm:grid-cols-3 lg:grid-cols-5">
           <EntranceField
             label={t('apartments.scara')}
             value={input.scara}
@@ -300,11 +300,6 @@ export default function ApartmentFormPage() {
             onChange={(e) => setField('numar_apartament', e.target.value)}
           />
           <Input
-            label={t('apartments.owner')}
-            value={input.proprietar_principal_name}
-            onChange={(e) => setField('proprietar_principal_name', e.target.value)}
-          />
-          <Input
             type="number"
             label={t('apartments.area')}
             value={input.suprafata_utila}
@@ -313,24 +308,35 @@ export default function ApartmentFormPage() {
           />
           <Input
             type="number"
-            label={t('apartments.sharePercent')}
+            label={
+              <span className="inline-flex items-center gap-1">
+                {t('apartments.sharePercent')}
+                <span
+                  className="inline-flex cursor-help text-muted"
+                  title={t('apartments.shareFieldHint')}
+                  aria-label={t('apartments.shareFieldHint')}
+                >
+                  <Info size={13} />
+                </span>
+              </span>
+            }
             value={input.cota_parte_indiviza}
             error={errors.cota_parte_indiviza ? t('apartments.invalidField') : undefined}
-            hint={t('apartments.shareFieldHint')}
             onChange={(e) => setField('cota_parte_indiviza', e.target.value)}
           />
         </div>
-        <div className="mt-3">
+        <div className="mt-3 grid gap-x-3 gap-y-3 sm:grid-cols-2">
+          <Input
+            label={t('apartments.owner')}
+            value={input.proprietar_principal_name}
+            onChange={(e) => setField('proprietar_principal_name', e.target.value)}
+          />
           <Input
             label={t('apartments.notes')}
             value={input.notes}
             onChange={(e) => setField('notes', e.target.value)}
           />
         </div>
-        <label className="mt-3 flex items-center gap-3 border-t border-[var(--border-subtle)] pt-3">
-          <Switch label={t('apartments.active')} checked={active} onChange={setActive} />
-          <span className="text-sm">{t('apartments.active')}</span>
-        </label>
       </Card>
 
       <Card>
