@@ -37,7 +37,7 @@ type ResolveRpcResult = ResolveRpcOk | ResolveRpcErr;
 
 /** Shape returned by the redeem_onboarding_token RPC. */
 export interface RedeemRpcResult {
-  status: 'ok' | InviteStatus | 'email_mismatch';
+  status: 'ok' | InviteStatus | 'email_mismatch' | 'rate_limited';
   asociatie_id?: string;
   role?: string;
   kind?: string;

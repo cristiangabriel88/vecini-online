@@ -34,6 +34,7 @@ const ACTION_TONE: Record<AuditAction, 'success' | 'danger' | 'warning' | 'neutr
   'invite.issued': 'success',
   'invite.revoked': 'danger',
   'invite.email_sent': 'success',
+  'invite.redeemed': 'success',
   'dsr.completed': 'success',
   'dsr.rejected': 'danger',
   'breach.recorded': 'warning',

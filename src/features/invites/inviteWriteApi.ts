@@ -3,6 +3,15 @@ import { useInviteStore } from '@/shared/store/inviteStore';
 import type { InviteCode } from './inviteLogic';
 
 /**
+ * Compute SHA-256 of a string and return it as lower-case hex.
+ * Used to hash the plaintext invite token before storing it in the DB (T128).
+ */
+async function sha256Hex(text: string): Promise<string> {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
  * Live-mode invite persistence (T55): write an invite_codes row to Supabase
  * after the invite has been minted locally by inviteStore.issue().
  *
@@ -44,12 +53,16 @@ export async function writeInviteToLive(invite: InviteCode): Promise<WriteInvite
     ? (rawAptId.startsWith('ap-') ? rawAptId.slice(3) : rawAptId)
     : null;
 
+  // Hash the token before storage (T128): the DB stores only the SHA-256 digest;
+  // the plaintext remains in the link URL (the only copy the invitee receives).
+  const tokenHash = await sha256Hex(invite.token);
+
   const { error } = await supabase.from('invite_codes').insert({
     id: dbId,
     asociatie_id: invite.asociatieId,
     apartment_id: dbAptId,
     code: invite.code,
-    token: invite.token,
+    token: tokenHash,
     role: invite.role,
     single_use: invite.singleUse,
     expires_at: invite.expiresAt ? new Date(invite.expiresAt).toISOString() : null,
