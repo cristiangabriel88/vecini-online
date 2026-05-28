@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import * as XLSX from 'xlsx';
 import {
   generateApartmentsCsvTemplate,
+  generateApartmentsXlsxTemplate,
   parseApartmentsCsv,
+  parseApartmentsXlsx,
   resolveImportBatch,
   rowToApartment,
   type ApartmentImportRow,
@@ -25,11 +28,11 @@ describe('parseApartmentsCsv', () => {
     });
   });
 
-  it('parses new-template headers (name, email, numar_persoane, proprietar, opt_in)', () => {
+  it('parses Romanian-template headers (nume, email, numar_persoane, proprietar, trimite_invitatie) with Da/Nu', () => {
     const csv = [
-      'scara,numar_apartament,name,email,numar_persoane,proprietar,opt_in',
-      'A,1,Ionescu Maria,maria@exemplu.ro,2,true,true',
-      'B,3,Dumitrescu Elena,,1,false,false',
+      'scara,numar_apartament,nume,email,numar_persoane,proprietar,trimite_invitatie',
+      'A,1,Ionescu Maria,maria@exemplu.ro,2,Da,Da',
+      'B,3,Dumitrescu Elena,,1,Nu,Nu',
     ].join('\n');
     const res = parseApartmentsCsv(csv);
     expect(res.errors).toHaveLength(0);
@@ -51,35 +54,58 @@ describe('parseApartmentsCsv', () => {
     });
   });
 
-  it('prefers `name` over legacy `proprietar_principal_name` when both are present', () => {
-    const csv = 'numar_apartament,name,proprietar_principal_name\n5,Alice,Bob';
+  it('accepts the legacy English headers (name, opt_in) as aliases', () => {
+    const csv = [
+      'scara,numar_apartament,name,email,numar_persoane,proprietar,opt_in',
+      'A,1,Ionescu Maria,maria@exemplu.ro,2,true,true',
+    ].join('\n');
     const res = parseApartmentsCsv(csv);
-    expect(res.rows[0].name).toBe('Alice');
+    expect(res.errors).toHaveLength(0);
+    expect(res.rows[0]).toMatchObject({
+      name: 'Ionescu Maria',
+      proprietar: true,
+      opt_in: true,
+    });
   });
 
-  it('falls back to `proprietar_principal_name` when `name` column is absent', () => {
+  it('prefers `nume` over `name` over legacy `proprietar_principal_name`', () => {
+    const csv1 =
+      'numar_apartament,nume,name,proprietar_principal_name\n5,Alice,Bob,Carol';
+    expect(parseApartmentsCsv(csv1).rows[0].name).toBe('Alice');
+
+    const csv2 = 'numar_apartament,name,proprietar_principal_name\n5,Bob,Carol';
+    expect(parseApartmentsCsv(csv2).rows[0].name).toBe('Bob');
+  });
+
+  it('falls back to `proprietar_principal_name` when neither `nume` nor `name` is present', () => {
     const csv = 'numar_apartament,proprietar_principal_name\n5,Bob';
     const res = parseApartmentsCsv(csv);
     expect(res.rows[0].name).toBe('Bob');
   });
 
-  it('coerces boolean columns: "true"/"1"/"da" -> true, else false', () => {
+  it('prefers `trimite_invitatie` over legacy `opt_in` when both are present', () => {
+    const csv = 'numar_apartament,trimite_invitatie,opt_in\n1,Da,Nu';
+    const res = parseApartmentsCsv(csv);
+    expect(res.rows[0].opt_in).toBe(true);
+  });
+
+  it('coerces boolean columns: "Da"/"true"/"1"/"yes" -> true, "Nu"/empty/anything else -> false', () => {
     const csv = [
-      'numar_apartament,proprietar,opt_in',
-      '1,true,1',
-      '2,da,yes',
-      '3,false,0',
-      '4,,',
+      'numar_apartament,proprietar,trimite_invitatie',
+      '1,Da,Da',
+      '2,true,1',
+      '3,DA,yes',
+      '4,Nu,Nu',
+      '5,false,0',
+      '6,,',
     ].join('\n');
     const res = parseApartmentsCsv(csv);
-    expect(res.rows[0].proprietar).toBe(true);
-    expect(res.rows[0].opt_in).toBe(true);
-    expect(res.rows[1].proprietar).toBe(true);
-    expect(res.rows[1].opt_in).toBe(true);
-    expect(res.rows[2].proprietar).toBe(false);
-    expect(res.rows[2].opt_in).toBe(false);
-    expect(res.rows[3].proprietar).toBe(false);
-    expect(res.rows[3].opt_in).toBe(false);
+    expect(res.rows[0]).toMatchObject({ proprietar: true, opt_in: true });
+    expect(res.rows[1]).toMatchObject({ proprietar: true, opt_in: true });
+    expect(res.rows[2]).toMatchObject({ proprietar: true, opt_in: true });
+    expect(res.rows[3]).toMatchObject({ proprietar: false, opt_in: false });
+    expect(res.rows[4]).toMatchObject({ proprietar: false, opt_in: false });
+    expect(res.rows[5]).toMatchObject({ proprietar: false, opt_in: false });
   });
 
   it('accepts comma decimal separators', () => {
@@ -110,9 +136,11 @@ describe('generateApartmentsCsvTemplate', () => {
     expect(result.length).toBeGreaterThan(0);
   });
 
-  it('first line is the correct header', () => {
+  it('first line is the Romanian-only header', () => {
     const [header] = generateApartmentsCsvTemplate().split('\r\n');
-    expect(header).toBe('scara,numar_apartament,name,email,numar_persoane,proprietar,opt_in');
+    expect(header).toBe(
+      'scara,numar_apartament,nume,email,numar_persoane,proprietar,trimite_invitatie',
+    );
   });
 
   it('has exactly 3 sample data rows', () => {
@@ -121,12 +149,16 @@ describe('generateApartmentsCsvTemplate', () => {
     expect(lines).toHaveLength(4);
   });
 
-  it('sample rows contain scara, numar_apartament, and opt_in values', () => {
+  it('renders booleans as "Da" / "Nu" in the sample rows', () => {
     const lines = generateApartmentsCsvTemplate().split('\r\n');
     const row1 = lines[1].split(',');
+    const row3 = lines[3].split(',');
     expect(row1[0]).toBe('A');        // scara
     expect(row1[1]).toBe('1');        // numar_apartament
-    expect(['true', 'false']).toContain(row1[6]); // opt_in is boolean string
+    expect(row1[5]).toBe('Da');       // proprietar
+    expect(row1[6]).toBe('Da');       // trimite_invitatie
+    expect(row3[5]).toBe('Nu');       // proprietar (third row)
+    expect(row3[6]).toBe('Nu');       // trimite_invitatie (third row)
   });
 
   it('uses CRLF line endings', () => {
@@ -364,5 +396,80 @@ describe('resolveImportBatch', () => {
     const { toCreate, errors } = resolveImportBatch(rows, [], new Set());
     expect(toCreate).toHaveLength(2);
     expect(errors).toHaveLength(0);
+  });
+});
+
+// SheetJS's `type: 'array'` may return ArrayBuffer, Uint8Array, or number[]
+// depending on build; normalise via the Uint8Array constructor (which accepts
+// all three) into a fresh ArrayBuffer.
+function xlsxBytesToArrayBuffer(
+  raw: ArrayBuffer | Uint8Array | number[],
+): ArrayBuffer {
+  const view = new Uint8Array(raw as ArrayBuffer);
+  const out = new Uint8Array(view.length);
+  out.set(view);
+  return out.buffer;
+}
+
+describe('generateApartmentsXlsxTemplate + parseApartmentsXlsx', () => {
+  // Round-tripping the generated workbook back through the parser is the
+  // strongest guarantee that a freshly-downloaded template imports cleanly.
+  it('round-trips: writing the template and parsing it yields the same 3 sample rows', () => {
+    const bytes = generateApartmentsXlsxTemplate();
+    const res = parseApartmentsXlsx(bytes.buffer);
+    expect(res.errors).toHaveLength(0);
+    expect(res.rows).toHaveLength(3);
+    expect(res.rows[0]).toMatchObject({
+      scara: 'A',
+      numar_apartament: '1',
+      name: 'Ionescu Maria',
+      email: 'maria.ionescu@exemplu.ro',
+      numar_persoane: 2,
+      proprietar: true,
+      opt_in: true,
+    });
+    expect(res.rows[2]).toMatchObject({
+      scara: 'B',
+      numar_apartament: '3',
+      name: 'Dumitrescu Elena',
+      email: '',
+      proprietar: false,
+      opt_in: false,
+    });
+  });
+
+  it('parses a hand-built workbook with Romanian headers and Da/Nu literals', () => {
+    const ws = XLSX.utils.aoa_to_sheet([
+      ['numar_apartament', 'nume', 'proprietar', 'trimite_invitatie'],
+      ['1', 'Test User', 'Da', 'Nu'],
+    ]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'S1');
+    const bytes = XLSX.write(wb, { bookType: 'xlsx', type: 'array' }) as Uint8Array;
+    const res = parseApartmentsXlsx(xlsxBytesToArrayBuffer(bytes));
+    expect(res.errors).toHaveLength(0);
+    expect(res.rows[0]).toMatchObject({
+      numar_apartament: '1',
+      name: 'Test User',
+      proprietar: true,
+      opt_in: false,
+    });
+  });
+
+  it('parses a workbook that uses the legacy English headers (name, opt_in)', () => {
+    const ws = XLSX.utils.aoa_to_sheet([
+      ['numar_apartament', 'name', 'opt_in'],
+      ['7', 'Legacy User', 'true'],
+    ]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'S1');
+    const bytes = XLSX.write(wb, { bookType: 'xlsx', type: 'array' }) as Uint8Array;
+    const res = parseApartmentsXlsx(xlsxBytesToArrayBuffer(bytes));
+    expect(res.errors).toHaveLength(0);
+    expect(res.rows[0]).toMatchObject({
+      numar_apartament: '7',
+      name: 'Legacy User',
+      opt_in: true,
+    });
   });
 });

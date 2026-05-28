@@ -12,9 +12,12 @@ import { Modal } from '@/shared/components/Modal';
 import { formatLei } from '@/shared/lib/format';
 import {
   generateApartmentsCsvTemplate,
+  generateApartmentsXlsxTemplate,
   parseApartmentsCsv,
+  parseApartmentsXlsx,
   resolveImportBatch,
   rowToApartment,
+  type ImportResult,
 } from '@/shared/lib/csv';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useInviteStore } from '@/shared/store/inviteStore';
@@ -269,32 +272,14 @@ export default function ApartmentsPage() {
   };
 
   const handleDownloadExcel = () => {
-    const headers = ['scara', 'numar_apartament', 'name', 'email', 'numar_persoane', 'proprietar', 'opt_in'];
-    const sampleRows = [
-      ['A', '1', 'Ionescu Maria', 'maria.ionescu@exemplu.ro', '2', 'true', 'true'],
-      ['A', '2', 'Popescu Ion', 'ion.popescu@exemplu.ro', '3', 'true', 'true'],
-      ['B', '3', 'Dumitrescu Elena', '', '1', 'false', 'false'],
-    ];
-    const escape = (v: string) => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const cellXml = (val: string) => `<Cell><Data ss:Type="String">${escape(val)}</Data></Cell>`;
-    const rowXml = (cells: string[]) => `<Row>${cells.map(cellXml).join('')}</Row>`;
-    const xml = [
-      '<?xml version="1.0" encoding="UTF-8"?>',
-      '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"',
-      '         xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">',
-      '  <Worksheet ss:Name="Apartamente">',
-      '    <Table>',
-      `      ${rowXml(headers)}`,
-      ...sampleRows.map((r) => `      ${rowXml(r)}`),
-      '    </Table>',
-      '  </Worksheet>',
-      '</Workbook>',
-    ].join('\r\n');
-    const blob = new Blob([xml], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const bytes = generateApartmentsXlsxTemplate();
+    const blob = new Blob([bytes], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'sablon-apartamente.xls';
+    a.download = 'sablon-apartamente.xlsx';
     a.click();
     URL.revokeObjectURL(url);
     setShowDownloadDropdown(false);
@@ -313,8 +298,11 @@ export default function ApartmentsPage() {
     setImportWarnings([]);
 
     try {
-      const text = await file.text();
-      const { rows, errors: parseErrors } = parseApartmentsCsv(text);
+      const isExcel = /\.(xlsx|xls)$/i.test(file.name);
+      const parsed: ImportResult = isExcel
+        ? parseApartmentsXlsx(await file.arrayBuffer())
+        : parseApartmentsCsv(await file.text());
+      const { rows, errors: parseErrors } = parsed;
 
       const existing = useApartmentsStore.getState().forAsociatie(asociatieId);
       const existingKeys = new Set(
@@ -440,7 +428,7 @@ export default function ApartmentsPage() {
                       onClick={handleDownloadExcel}
                     >
                       <FileSpreadsheet className="h-4 w-4 shrink-0 text-muted" />
-                      Excel (.xls)
+                      Excel (.xlsx)
                     </button>
                   </div>
                 )}
@@ -466,7 +454,7 @@ export default function ApartmentsPage() {
       <input
         ref={fileInputRef}
         type="file"
-        accept=".csv,text/csv"
+        accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
         className="sr-only"
         aria-hidden="true"
         onChange={handleFileSelected}
@@ -590,7 +578,7 @@ export default function ApartmentsPage() {
                       onClick={handleDownloadExcel}
                     >
                       <FileSpreadsheet className="h-4 w-4 shrink-0 text-muted" />
-                      Excel (.xls)
+                      Excel (.xlsx)
                     </button>
                   </div>
                 )}

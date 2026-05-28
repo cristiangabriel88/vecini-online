@@ -2,6 +2,32 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## Production MVP launch: full hardening gates the launch + hub on its own origin
+
+- **This is a real production launch handling residents' personal data, not a
+  throwaway demo.** The user confirmed full hardening before any live traffic, so
+  the two security tasks that `RUNBOOK-MVP.md` had deferred were **promoted into the
+  `make mvp` spine** and now gate the launch: **T128** (hash onboarding/invite tokens
+  at rest + rate-limit + audit redemption) and **T100** (mandatory superadmin MFA).
+  RUNBOOK-MVP.md's "does not block the presentation" note is overridden for this
+  reason. The redemption rate-limit lives inside T128 (no separate task).
+- **A confirmed flow blocker became T170.** `sendInviteEmail` posted the local
+  `inv-<uuid>` id while the `invite-email` function only accepts a bare UUID, so every
+  live resident-invite email returned 400. The fix (strip the prefix on send) is the
+  topmost spine task. The superadmin admin-invite path is unaffected (it mints + sends
+  server-side in `provision-asociatie`).
+- **Final spine order: T170 -> T115 -> T128 -> T100**, dependency-ordered; all four
+  prerequisites (T55, T123, T91, T02, T93) are already done.
+- **The superadmin console is `hub.vecini.online`** (not the `admin.vecini.online`
+  placeholder in `netlify-platform.toml` comments). On the hub Netlify site,
+  `VITE_APP_URL` = its own origin (`https://hub.vecini.online`) while `APP_URL` and
+  `VITE_RESIDENT_APP_URL` = the resident origin (`https://vecini.online`), so onboarding
+  links minted by the console's functions point at the resident app, not the console.
+  The hub-serving-the-main-app problem seen in prod is purely a Netlify dashboard
+  setting (Configuration file path = `netlify-platform.toml`), no repo change.
+- **Production Supabase is the hosted cloud project** `https://zylfndjluunbtudtawzq.supabase.co`;
+  the LAN IP that was briefly in `.env` only worked for on-network testing.
+
 ## Live MVP presentation flow: email-as-verification + deploy to Netlify (T168)
 
 - **"Confirm email" is OFF in Supabase Auth for the live invite flow.** The

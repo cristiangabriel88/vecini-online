@@ -54,7 +54,7 @@ export async function sendInviteEmail(input: SendInviteEmailInput): Promise<Send
         Authorization: `Bearer ${session.access_token}`,
       },
       body: JSON.stringify({
-        inviteId: input.invite.id,
+        inviteId: input.invite.id.startsWith('inv-') ? input.invite.id.slice(4) : input.invite.id,
         locale: input.locale,
       }),
     });
