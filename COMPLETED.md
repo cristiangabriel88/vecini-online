@@ -8,6 +8,9 @@ the live `BACKLOG.md` carries only the protocol and the open (⬜) queue.
 > task (read it only when a task's prerequisite or history is genuinely needed).
 > `RESUME.md` §0 remains the dated chronological summary.
 
+### ✅ T145 — [P3] Remove the now-unused `join.*` locale keys
+Done: confirmed zero source references via ripgrep; removed the 13-key `join.*` block (`title`, `subtitle`, `codeLabel`, `codeHint`, `submit`, `success`, `err_expired`, `err_used`, `err_revoked`, `err_unknown`, `createPrompt`, `createLink`) from both `ro.json` and `en.json`. 149 files / 1381 tests / build green.
+
 ### ✅ T158 — [P3] Remove orphaned `onboarding.import/invite/csv*` locale keys
 Done: confirmed zero source references via ripgrep; removed 6 dead keys (`import`, `invite`, `csvHelp`, `csvParsed`, `csvError`, `inviteEmails`) from the `onboarding` section in both `ro.json` and `en.json`. 149 files / 1381 tests / build green.
 

@@ -368,20 +368,6 @@
     "skipForNow": "Sari peste deocamdată",
     "finish": "Intră în aplicație"
   },
-  "join": {
-    "title": "Alătură-te unei asociații",
-    "subtitle": "Introdu codul de invitație primit de la administrator ca să te alături asociației tale.",
-    "codeLabel": "Cod de invitație",
-    "codeHint": "Codul are 8 caractere. Liniuțele și majusculele nu contează.",
-    "submit": "Alătură-mă",
-    "success": "Te-ai alăturat asociației. Bine ai venit!",
-    "err_expired": "Codul a expirat. Cere administratorului unul nou.",
-    "err_used": "Codul a fost deja folosit. Cere administratorului unul nou.",
-    "err_revoked": "Codul a fost revocat. Cere administratorului unul nou.",
-    "err_unknown": "Cod invalid. Verifică-l și încearcă din nou.",
-    "createPrompt": "Tu administrezi asociația?",
-    "createLink": "Creează o asociație nouă"
-  },
   "setup": {
     "title": "Creează-ți contul",
     "subtitle": "Alege o parolă ca să îți activezi accesul în asociație.",

@@ -368,20 +368,6 @@
     "skipForNow": "Skip for now",
     "finish": "Enter the app"
   },
-  "join": {
-    "title": "Join an association",
-    "subtitle": "Enter the invite code your administrator gave you to join your association.",
-    "codeLabel": "Invite code",
-    "codeHint": "The code is 8 characters. Dashes and capitalization do not matter.",
-    "submit": "Join",
-    "success": "You have joined the association. Welcome!",
-    "err_expired": "This code has expired. Ask your administrator for a new one.",
-    "err_used": "This code has already been used. Ask your administrator for a new one.",
-    "err_revoked": "This code has been revoked. Ask your administrator for a new one.",
-    "err_unknown": "Invalid code. Check it and try again.",
-    "createPrompt": "Are you the administrator?",
-    "createLink": "Create a new association"
-  },
   "setup": {
     "title": "Create your account",
     "subtitle": "Choose a password to activate your access to the association.",

@@ -152,8 +152,7 @@ Done: `seedProfile` gains an optional `locale?: Locale` parameter (spreads over 
 
 ### ✅ T158 — [P3] Remove orphaned `onboarding.import/invite/csv*` locale keys
 
-### ⬜ T145 — [P3] Remove the now-unused `join.*` locale keys
-Surfaced in T124: `JoinAsociatiePage` was superseded by `AccountSetupPage` and deleted, but its `join.*` translation block (`title`/`subtitle`/`codeLabel`/`codeHint`/`submit`/`success`/`err_*`/`createPrompt`/`createLink`) remains in `ro.json` + `en.json` with no consumer, while the new landing uses its own `setup.*` keys. Remove the dead `join.*` keys from both locale files (confirm nothing else references them first) so the locale files do not accumulate orphaned strings. Trivial, backend-free. Prereq: T124.
+### ✅ T145 — [P3] Remove the now-unused `join.*` locale keys
 
 ---
 

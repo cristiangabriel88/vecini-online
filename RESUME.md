@@ -19,8 +19,9 @@ under `docs/`, despite references to the contrary). The product is
 > Finished tasks' full done-notes are archived in `COMPLETED.md` (newest first);
 > §0 below stays the dated chronological summary.
 
-## 0. Current status (updated 2026-05-28, T158 done -- remove orphaned onboarding locale keys, 149 files / 1381 tests green)
+## 0. Current status (updated 2026-05-28, T145 done -- remove unused join.* locale keys, 149 files / 1381 tests green)
 
+- **2026-05-28 — T145 (P3) Remove unused join.* locale keys.** Confirmed zero source references; removed the 13-key `join.*` block from both `ro.json` and `en.json`. 149 files / 1381 tests green.
 - **2026-05-28 — T158 (P3) Remove orphaned onboarding locale keys.** Confirmed zero source references via ripgrep; removed 6 dead keys (`import`, `invite`, `csvHelp`, `csvParsed`, `csvError`, `inviteEmails`) from the `onboarding` section in both `ro.json` and `en.json`. 149 files / 1381 tests green.
 - **2026-05-27 — T164 (P3) Seed invitee profile locale from active UI language.** `seedProfile` gains an optional `locale` parameter; `AccountSetupPage` offline path narrows `i18n.language` to `Locale` and passes it to `seedProfile`. 2 new tests. 149 files / 1381 tests green.
 - **2026-05-27 — T167 (P3) Triage-row actions responsive on narrow viewports.** Icon+meta wrapped in a flex group; outer row is `flex-col sm:flex-row`; title/key/count row gains `flex-wrap`. Actions drop to their own row on mobile, stay beside meta on sm+. 4 structural tests. 149 files / 1379 tests green.
