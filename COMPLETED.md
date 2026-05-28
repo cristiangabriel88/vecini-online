@@ -4,6 +4,11 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T101 P3 ✅ — Label each export section's asociație for a multi-asociație resident
+- api/code: `CollectInput.apartment` renamed to `apartments: Record<string, string | null>` (per-asociatie_id map); `CollectInput.asociatieName` renamed to `asociatiiNames: Record<string, string>`. `DataSubjectExport.subject.asociatie: string` changed to `asociatii: string[]`. Profile section emits one row per asociatie (apartment + name from their respective records). Tickets/discussions/adminchat rows gain an `asociatie` column resolved from `asociatiiNames[row.asociatie_id]`. `toExportCsv` header joins all asociatii names. `MyDataPage.buildExport` builds both maps: `asociatiiNames` from `subjectAsociatieIds`+`localAsociatii`, `apartments` from demo data (live to follow with T103). Decision recorded in `DECISIONS.md`.
+- tests: emptyInput updated; 4 new T101 tests (ticket labeling, discussion labeling, multi-row profile, subject.asociatii); existing assertions updated to `asociatii: []` array and multi-column profile row
+- result: 165 files / 1542 tests / lint+typecheck+build+pi+demo green
+
 ### T32 P1 ✅ — Server-side auth-policy parity
 - docs: `.env.example` expanded with exact Supabase Auth dashboard settings: minimum password length 10 (`MIN_POLICY_LENGTH`), "Medium" strength, HIBP leaked-password check enabled, sign-in rate limit 30/hr, email rate limit 5/hr
 - `SECURITY.md` Authentication section rewritten to cover both client and server policy layers with exact dashboard paths; Known gaps updated (T32 is now "settings documented, apply on provisioned project" rather than a silent gap)

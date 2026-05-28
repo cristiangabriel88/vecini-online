@@ -5,16 +5,21 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-29
-- last_task: T32 (P1) Server-side auth-policy parity documented
+- last_task: T101 (P3) Per-asociatie labeling in art. 15 export
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 165 files / 1538 tests
+- counts: 165 files / 1542 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T33 server-backed login lockout (needs provisioned backend) or T88 F33 real file upload
+- next: T109 ROPA processing override semantic guard or T88 F33 real file upload
 - features: 65/65 built end-to-end; F66+F67 (Cat-9 personalization) done
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T101 P3 ✅ 2026-05-29 — Per-asociatie labeling in art. 15 export
+- api/code: `CollectInput` gains `apartments: Record<string,string|null>` + `asociatiiNames: Record<string,string>` (replacing single-string fields); `DataSubjectExport.subject.asociatii: string[]` (was singular); profile section emits one row per asociatie; tickets/discussions/adminchat rows gain `asociatie` column; `toExportCsv` header joins all names; `MyDataPage.buildExport` builds both maps
+- tests: 4 new T101 tests; emptyInput + 2 existing assertions updated
+- result: 165 files / 1542 tests / build+pi+demo green
 
 ### T32 P1 ✅ 2026-05-29 — Server-side auth-policy parity
 - docs: `.env.example` + `SECURITY.md` updated with exact Supabase Auth dashboard settings (min password length 10, HIBP check, rate limits); Known gaps updated

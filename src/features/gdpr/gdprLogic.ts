@@ -57,7 +57,7 @@ export interface ExportSection {
 export interface DataSubjectExport {
   /** ISO timestamp the copy was generated. */
   generatedAt: string;
-  subject: { userId: string; name: string; asociatie: string };
+  subject: { userId: string; name: string; asociatii: string[] };
   sections: ExportSection[];
 }
 
@@ -72,8 +72,10 @@ export interface CollectInput {
   userId: string;
   name: string;
   email: string | null;
-  apartment: string | null;
-  asociatieName: string;
+  /** Apartment label (e.g. "Ap. 4") keyed by asociatie_id. Absent key means unknown. */
+  apartments: Record<string, string | null>;
+  /** Display name keyed by asociatie_id, for every asociație the subject belongs to. */
+  asociatiiNames: Record<string, string>;
   tickets: Ticket[];
   marketplace: MarketplaceListing[];
   ideas: Idea[];
@@ -131,15 +133,14 @@ const SUBJECT_SECTIONS: SectionSpec[] = [
     reasonKey: 'gdpr.reason.profile',
     periodKey: 'gdpr.retain.account',
     basisKey: 'gdpr.basis.contract',
-    select: (input, userId) => [
-      {
+    select: (input, userId) =>
+      Object.entries(input.asociatiiNames).map(([id, asocName]) => ({
         user_id: userId,
         name: input.name,
         email: input.email ?? '',
-        apartment: input.apartment ?? '',
-        asociatie: input.asociatieName,
-      },
-    ],
+        apartment: input.apartments[id] ?? '',
+        asociatie: asocName,
+      })),
   },
   {
     key: 'tickets',
@@ -152,6 +153,7 @@ const SUBJECT_SECTIONS: SectionSpec[] = [
         .filter((t) => t.reporter_user_id === userId)
         .map((t) => ({
           id: t.id,
+          asociatie: input.asociatiiNames[t.asociatie_id] ?? t.asociatie_id,
           title: t.title,
           description: t.description,
           category: t.category,
@@ -207,6 +209,7 @@ const SUBJECT_SECTIONS: SectionSpec[] = [
         th.messages
           .filter((m) => m.author_user_id === userId)
           .map((m) => ({
+            asociatie: input.asociatiiNames[th.asociatie_id] ?? th.asociatie_id,
             thread: th.title,
             message_id: m.id,
             body: m.body,
@@ -227,6 +230,7 @@ const SUBJECT_SECTIONS: SectionSpec[] = [
           th.messages
             .filter((m) => m.sender === 'resident')
             .map((m) => ({
+              asociatie: input.asociatiiNames[th.asociatie_id] ?? th.asociatie_id,
               subject: th.subject,
               message_id: m.id,
               body: m.body,
@@ -557,7 +561,7 @@ export function collectPersonalData(input: CollectInput): DataSubjectExport {
 
   return {
     generatedAt: now.toISOString(),
-    subject: { userId, name: input.name, asociatie: input.asociatieName },
+    subject: { userId, name: input.name, asociatii: Object.values(input.asociatiiNames) },
     sections,
   };
 }
@@ -575,7 +579,7 @@ export function toExportJson(exp: DataSubjectExport): string {
 export function toExportCsv(exp: DataSubjectExport): string {
   const blocks: string[] = [
     `# vecini.online — export date personale / personal data export`,
-    `# ${exp.subject.name} · ${exp.subject.asociatie} · ${exp.generatedAt}`,
+    `# ${exp.subject.name} · ${exp.subject.asociatii.join(', ')} · ${exp.generatedAt}`,
     '',
   ];
   for (const section of exp.sections) {

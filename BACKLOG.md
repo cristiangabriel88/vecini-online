@@ -117,7 +117,7 @@ The `/onboarding` route at `src/app/router.tsx:159` currently has no guards. Any
 ### ⬜ T78 — [P2] Erasure/export must cover Storage photo objects (pets/bikes/lending/visitors)
 T73's export carries photo `photo_path` references as metadata, and `ERASURE_PLAN` deletes the pets/bikes/lending listings, but the actual uploaded photo objects live in Supabase Storage. The server-side erasure execution (T72) must also delete those Storage objects for the subject (pets, bikes, lending items, visitor-report photos) so an erased resident's images do not remain, and the export could optionally include signed links to them. Behind `isSupabaseConfigured`; folds into T72's server-side erasure routine. Prereq: T73, T72.
 
-### ⬜ T101 — [P3] Label each export section's asociație for a multi-asociație resident
+### ✅ T101 — [P3] Label each export section's asociație for a multi-asociație resident
 Surfaced in T77: the export now gathers tickets + discussions across all the subject's memberships, but the `DataSubjectExport.subject` still names a single `asociatie` and the offline `apartment` is single-tenant, so a resident in more than one asociație gets a union of rows without a clear per-row indication of which asociație each ticket/thread (and each flat-store listing) belongs to. For a fully self-describing art. 15 copy, either add an `asociatie` column to the rows that carry an `asociatie_id` or group the export by asociație (a per-tenant subject block), and surface the resident's apartment per asociație rather than only the demo one. Keep `collectPersonalData` pure. Prereq: T77.
 
 ### ⬜ T109 — [P3] Catch features that should declare a ROPA processing override but don't

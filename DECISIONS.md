@@ -3,6 +3,14 @@
 Compact, machine-readable log of non-trivial choices. Newest first. Format:
 - choice / why / alternatives rejected (when non-obvious) / blast radius.
 
+## 2026-05-29
+
+### Per-asociatie column vs grouping in the art. 15 export (T101)
+- choice: add `asociatie` column to rows that carry an `asociatie_id` (tickets/discussions/adminchat); emit one profile row per asociație (not a grouped document-per-tenant); `asociatiiNames: Record<string, string>` + `apartments: Record<string, string|null>` in `CollectInput` replace the old single-string fields.
+- why: flat sections with a labeling column work in both JSON and CSV without restructuring `DataSubjectExport`; one-profile-row-per-asociație is the clearest CSV representation for human reading; keeps `collectPersonalData` pure and its signature stable for future live activation.
+- alternatives rejected: group by asociație (per-tenant block) would require changing `DataSubjectExport.sections` to nested structure, breaking the CSV `Papa.unparse` loop and all existing consumers.
+- blast radius: `CollectInput` (two fields renamed+retyped), `DataSubjectExport.subject.asociatii` (was `asociatie`), `toExportCsv` header, `MyDataPage.buildExport`, and tests; no other consumers of these types outside `gdprLogic` + `MyDataPage`.
+
 ## 2026-05-28
 
 ### Three-stage deployment model (PROD / DEV / DEMO) (T171-T177)

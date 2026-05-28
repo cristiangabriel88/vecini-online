@@ -182,8 +182,8 @@ function emptyInput(overrides: Partial<CollectInput> = {}): CollectInput {
     userId: ME,
     name: 'Eu Rezident',
     email: 'eu@vecini.online',
-    apartment: 'Ap. 5',
-    asociatieName: 'Asociația Test',
+    apartments: { a1: 'Ap. 5' },
+    asociatiiNames: { a1: 'Asociația Test' },
     tickets: [],
     marketplace: [],
     ideas: [],
@@ -231,7 +231,12 @@ describe('gdprLogic — collectPersonalData (art. 15 + 20)', () => {
     const exp = collect();
     const profile = exp.sections.find((s) => s.key === 'profile');
     expect(profile?.rows).toHaveLength(1);
-    expect(profile?.rows[0]).toMatchObject({ user_id: ME, name: 'Eu Rezident', apartment: 'Ap. 5' });
+    expect(profile?.rows[0]).toMatchObject({
+      user_id: ME,
+      name: 'Eu Rezident',
+      apartment: 'Ap. 5',
+      asociatie: 'Asociația Test',
+    });
   });
 
   it('returns only rows that genuinely belong to the subject', () => {
@@ -254,7 +259,7 @@ describe('gdprLogic — collectPersonalData (art. 15 + 20)', () => {
   it('stamps the generation time and subject metadata', () => {
     const exp = collect();
     expect(exp.generatedAt).toBe('2026-05-23T10:00:00.000Z');
-    expect(exp.subject).toEqual({ userId: ME, name: 'Eu Rezident', asociatie: 'Asociația Test' });
+    expect(exp.subject).toEqual({ userId: ME, name: 'Eu Rezident', asociatii: ['Asociația Test'] });
   });
 
   it('gathers the broadened personal-data stores, filtered to the subject', () => {
@@ -392,6 +397,58 @@ describe('gdprLogic — subjectAsociatieIds (T77 membership-complete export)', (
   });
 });
 
+describe('gdprLogic — T101 per-asociatie labeling', () => {
+  it('labels ticket rows with their asociatie name', () => {
+    const t1 = ticket('t1', ME); // asociatie_id: 'a1'
+    const t2 = { ...ticket('t2', ME), id: 't2', asociatie_id: 'a2' };
+    const exp = collectPersonalData(
+      emptyInput({
+        tickets: [t1, t2],
+        asociatiiNames: { a1: 'Bloc 1', a2: 'Bloc 2' },
+      }),
+    );
+    const rows = exp.sections.find((s) => s.key === 'tickets')?.rows ?? [];
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ id: 't1', asociatie: 'Bloc 1' });
+    expect(rows[1]).toMatchObject({ id: 't2', asociatie: 'Bloc 2' });
+  });
+
+  it('labels discussion message rows with their asociatie name', () => {
+    const th = thread([{ author: ME }]);
+    const th2 = { ...thread([{ author: ME }]), id: 'th2', asociatie_id: 'a2' };
+    const exp = collectPersonalData(
+      emptyInput({
+        discussionThreads: [th, th2],
+        asociatiiNames: { a1: 'Bloc 1', a2: 'Bloc 2' },
+      }),
+    );
+    const rows = exp.sections.find((s) => s.key === 'discussions')?.rows ?? [];
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ asociatie: 'Bloc 1' });
+    expect(rows[1]).toMatchObject({ asociatie: 'Bloc 2' });
+  });
+
+  it('emits one profile row per asociatie with the correct apartment', () => {
+    const exp = collectPersonalData(
+      emptyInput({
+        asociatiiNames: { a1: 'Bloc 1', a2: 'Bloc 2' },
+        apartments: { a1: 'Ap. 3', a2: 'Ap. 7' },
+      }),
+    );
+    const profile = exp.sections.find((s) => s.key === 'profile')?.rows ?? [];
+    expect(profile).toHaveLength(2);
+    expect(profile[0]).toMatchObject({ user_id: ME, asociatie: 'Bloc 1', apartment: 'Ap. 3' });
+    expect(profile[1]).toMatchObject({ user_id: ME, asociatie: 'Bloc 2', apartment: 'Ap. 7' });
+  });
+
+  it('lists all asociatii names in subject metadata', () => {
+    const exp = collectPersonalData(
+      emptyInput({ asociatiiNames: { a1: 'Bloc 1', a2: 'Bloc 2' } }),
+    );
+    expect(exp.subject.asociatii).toEqual(['Bloc 1', 'Bloc 2']);
+  });
+});
+
 describe('gdprLogic — serialization', () => {
   it('produces parseable JSON round-tripping to the export', () => {
     const exp = collect();
@@ -401,7 +458,7 @@ describe('gdprLogic — serialization', () => {
   });
 
   it('emits one CSV block per section, with empty sections shown as (none)', () => {
-    const exp = collectPersonalData(emptyInput({ email: null, apartment: null }));
+    const exp = collectPersonalData(emptyInput({ email: null, apartments: { a1: null } }));
     const csv = toExportCsv(exp);
     // Every section appears as a labelled block; empty ones are not omitted.
     for (const s of exp.sections) expect(csv).toContain(`# ${s.key}`);

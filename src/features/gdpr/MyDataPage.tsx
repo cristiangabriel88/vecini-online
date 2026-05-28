@@ -119,14 +119,6 @@ export default function MyDataPage() {
   const name = profile?.full_name ?? DEMO_CURRENT_USER_NAME;
   const email = profile?.email ?? sessionEmail;
   const asociatieId = currentAsociatieId ?? DEMO_ASOCIATIE.id;
-  const asociatieName =
-    localAsociatii.find((a) => a.id === currentAsociatieId)?.name ?? DEMO_ASOCIATIE.name;
-  const apartment = demo
-    ? (() => {
-        const apt = DEMO_APARTMENTS.find((a) => a.id === DEMO_CURRENT_APARTMENT_ID);
-        return apt ? `Ap. ${apt.numar_apartament}` : null;
-      })()
-    : null;
 
   const myRequests = useMemo(
     () =>
@@ -151,12 +143,23 @@ export default function MyDataPage() {
       useAdminChatStore.getState().byAsociatie,
       asociatieIds,
     );
+    // Build per-asociatie name map for self-describing export rows (T101).
+    const asociatiiNames: Record<string, string> = {};
+    for (const id of asociatieIds) {
+      asociatiiNames[id] = localAsociatii.find((a) => a.id === id)?.name ?? DEMO_ASOCIATIE.name;
+    }
+    // Build per-asociatie apartment map; demo knows the current user's apartment.
+    const apartments: Record<string, string | null> = {};
+    if (demo) {
+      const demoApt = DEMO_APARTMENTS.find((a) => a.id === DEMO_CURRENT_APARTMENT_ID);
+      if (demoApt) apartments[DEMO_ASOCIATIE.id] = `Ap. ${demoApt.numar_apartament}`;
+    }
     return collectPersonalData({
       userId,
       name,
       email,
-      apartment,
-      asociatieName,
+      apartments,
+      asociatiiNames,
       tickets,
       marketplace: listings,
       ideas,
