@@ -8,6 +8,9 @@ the live `BACKLOG.md` carries only the protocol and the open (⬜) queue.
 > task (read it only when a task's prerequisite or history is genuinely needed).
 > `RESUME.md` §0 remains the dated chronological summary.
 
+### ✅ T174 — [P1] Auto-bypass login in DEMO + remember last role
+Done: `DemoEntry` component added to `router.tsx`; root `/` route is `isDemo() ? <DemoEntry /> : <S><LoginPage /></S>`. `DemoEntry` reads `localStorage['iv.demo.role']` via exported `readLastDemoRole()` (validates against all 7 roles, falls back to `'admin'`), calls `enterDemo(role)`, and navigates to `/app` replacing history. `enterDemo` in `authStore.ts` now writes `localStorage.setItem('iv.demo.role', role)` so every role-switch from `DevRoleSwitcher` is persisted automatically. `LoginPage` unchanged. 13 new tests in `demoEntry.test.ts`. 159 files / 1480 tests / build / build:pi / build:demo all green.
+
 ### ✅ T173 — [P1] Floating dev role switcher (DEV + DEMO, hidden in PROD)
 Done: `DevRoleSwitcher.tsx` added (`src/shared/components/`) with `floating` (fixed top-right chip-bar, default) and `inline` (LoginPage) variants. Lists all 7 roles; active role highlighted via `aria-pressed` + `data-active`. In DEMO calls `enterDemo(role)` + navigate; in DEV calls new `signInAsDevUser(role)` (signs in as `{role}@dev.local` using `VITE_DEV_PASSWORD`). `super_admin` uses `super.admin@dev.local`. `signInAsDevUser` added to `AuthState` + `authStore.ts`. Mounted in `AppLayout.tsx` (no-op in PROD). LoginPage inline buttons extracted to `<DevRoleSwitcher variant="inline" onSelect={...} />`. Shell CSS block added. 5 new locale keys per language. 9 new tests. 158 files / 1467 tests / build / build:pi / build:demo all green.
 

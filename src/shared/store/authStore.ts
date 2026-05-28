@@ -466,6 +466,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   enterDemo: (role = 'admin') => {
+    // Persist the chosen role so a hard refresh re-enters the same persona (T174).
+    try { localStorage.setItem('iv.demo.role', role); } catch { /* storage unavailable */ }
     // A demo login is recorded too, so the activity log is exercised offline.
     useSecurityStore.getState().log('login', null);
     // Seed local tenant context so demo mode has a real active asociație + role

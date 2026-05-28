@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
-import { lazy, Suspense } from 'react';
-import { createBrowserRouter, Navigate, useLocation } from 'react-router-dom';
+import { lazy, Suspense, useEffect } from 'react';
+import { createBrowserRouter, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AppLayout } from './AppLayout';
 import { RequireAuth } from './RequireAuth';
 import { RequireAsociatie } from './RequireAsociatie';
@@ -8,6 +8,9 @@ import { RequireWelcome } from './RequireWelcome';
 import { RequireAdmin } from './RequireAdmin';
 import { RequireSuperAdmin } from './RequireSuperAdmin';
 import { RouteFallback } from '@/shared/components/RouteFallback';
+import { useAuthStore } from '@/shared/store/authStore';
+import { isDemo } from '@/shared/lib/env';
+import type { Role } from '@/shared/types/domain';
 
 const LoginPage = lazy(() => import('@/features/auth/LoginPage'));
 const ResetPasswordPage = lazy(() => import('@/features/auth/ResetPasswordPage'));
@@ -110,6 +113,32 @@ function S({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<RouteFallback />}>{children}</Suspense>;
 }
 
+const DEMO_ROLES: Role[] = ['admin', 'presedinte', 'comitet', 'cenzor', 'proprietar', 'chirias', 'super_admin'];
+
+/** Read the persisted demo role from localStorage; fall back to 'admin'. */
+export function readLastDemoRole(): Role {
+  try {
+    const stored = localStorage.getItem('iv.demo.role');
+    if (stored && (DEMO_ROLES as string[]).includes(stored)) return stored as Role;
+  } catch { /* storage unavailable */ }
+  return 'admin';
+}
+
+/**
+ * DEMO-stage entry point. Reads the last-used role from localStorage, enters
+ * demo mode, and immediately replaces the root route with /app so the user
+ * lands in the authenticated shell without ever seeing LoginPage.
+ */
+function DemoEntry() {
+  const enterDemo = useAuthStore((s) => s.enterDemo);
+  const navigate = useNavigate();
+  useEffect(() => {
+    enterDemo(readLastDemoRole());
+    navigate('/app', { replace: true });
+  }, [enterDemo, navigate]);
+  return null;
+}
+
 /**
  * Redirect the legacy onboarding-join path to the account-creation landing
  * (T124), preserving the `?token=` query so a link minted before the route moved
@@ -121,7 +150,7 @@ function LegacyJoinRedirect() {
 }
 
 export const router = createBrowserRouter([
-  { path: '/', element: <S><LoginPage /></S> },
+  { path: '/', element: isDemo() ? <DemoEntry /> : <S><LoginPage /></S> },
   { path: '/reset-parola', element: <S><ResetPasswordPage /></S> },
   { path: '/confidentialitate', element: <S><PrivacyPolicyPage /></S> },
   { path: '/termeni', element: <S><TermsPage /></S> },

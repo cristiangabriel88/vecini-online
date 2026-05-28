@@ -19,10 +19,11 @@ under `docs/`, despite references to the contrary). The product is
 > Finished tasks' full done-notes are archived in `COMPLETED.md` (newest first);
 > §0 below stays the dated chronological summary.
 
-## 0. Current status (updated 2026-05-28, T173 done -- floating dev role switcher live in DEV + DEMO; all 7 roles; 158 files / 1467 tests)
+## 0. Current status (updated 2026-05-28, T174 done -- DEMO auto-bypass live; login skipped in DEMO, last role persisted; 159 files / 1480 tests)
 
-The three-stage model (PROD/DEV/DEMO) is fully operational. A floating role-switcher chip-bar now appears in DEV and DEMO stages, letting the operator flip between all 7 roles from any page without returning to login. In PROD it is absent entirely. LoginPage role buttons are now served by the same shared component.
+The three-stage model (PROD/DEV/DEMO) is fully operational. In DEMO, opening the app goes straight to the authenticated shell (last used role restored from localStorage). The floating role-switcher chip-bar lets the operator flip roles from any page. LoginPage is untouched and remains the entry point for PROD + DEV.
 
+- **2026-05-28 — T174 (P1) Auto-bypass login in DEMO + remember last role.** `DemoEntry` in `router.tsx`; root `/` route skips LoginPage in DEMO, reads `localStorage['iv.demo.role']` via `readLastDemoRole()`, enters demo, navigates to `/app`. `enterDemo` persists role on every switch. 13 new tests. 159 files / 1480 tests / build / build:pi / build:demo green.
 - **2026-05-28 — T173 (P1) Floating dev role switcher.** `DevRoleSwitcher.tsx` with `floating`/`inline` variants; `signInAsDevUser` added to authStore. Mounted in AppLayout; LoginPage buttons extracted. 5 new locale keys per language. 9 new tests. 158 files / 1467 tests / build / build:pi / build:demo green.
 - **2026-05-28 — T172 (P1) Stage-specific build/dev scripts.** `build:prod`, `build:pi`, `build:demo`, `dev:pi`, `dev:demo` added to `package.json`. `.env.pi` + `.env.demo` committed; `.gitignore` updated with `!.env.pi` + `!.env.demo`. 157 files / 1458 tests / build / build:pi / build:demo green.
 - **2026-05-28 — T171 (P1) Three-stage deployment model.** `AppStage` type + `appStage` field added to `ClientEnv`; `resolveAppStage()` pure helper + `getStage()`/`isProd()`/`isDev()`/`isDemo()` exported. `.env.demo.example` created; `.env.example` + `.env.pi.example` updated with `VITE_APP_STAGE`. 8 new tests. BACKLOG.md / CLAUDE.md protocol updated. 157 files / 1458 tests green.
