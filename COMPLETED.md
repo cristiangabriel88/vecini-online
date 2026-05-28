@@ -8,6 +8,9 @@ the live `BACKLOG.md` carries only the protocol and the open (⬜) queue.
 > task (read it only when a task's prerequisite or history is genuinely needed).
 > `RESUME.md` §0 remains the dated chronological summary.
 
+### ✅ T170 — [P0/MVP] Fix live resident-invite email: strip the `inv-` id prefix before calling the function
+Done: Applied `startsWith('inv-') ? id.slice(4) : id` inline in the `JSON.stringify` body of `sendInviteEmail` (`src/features/invites/inviteEmailApi.ts`), mirroring the existing guard in `writeInviteToLive`. Added `tests/unit/inviteEmailApi.test.ts` (3 static-analysis tests asserting the stripping expression is present, the raw `invite.id` is not posted directly, and the ternary handles already-bare UUIDs). lint / typecheck / 1298 tests / build green.
+
 ### ✅ T163 — [P3] Distinguish row warnings from blocking errors in the CSV import summary
 Done: Added `warnings: string[]` to `ImportBatchResult` in `csv.ts`; the "email invalid, invite skipped" notice moves from `errors` to `warnings` (apartment IS created). `ApartmentsPage` now shows blocking errors in a red banner and non-blocking warnings in a separate amber banner with independent dismiss buttons. Two new bilingual locale keys (`importErrorsTitle` clarified, `importWarningsTitle` added) in `ro.json` + `en.json`. Updated 4 existing `resolveImportBatch` tests + added 3 new ones (empty-warnings happy path, combined batch with both errors and warnings). 143 files / 1290 tests green.
 
