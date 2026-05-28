@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Check, Plus } from 'lucide-react';
@@ -17,6 +17,7 @@ import { useAuthStore } from '@/shared/store/authStore';
 import { DEMO_CURRENT_USER_ID } from '@/shared/demo/demoData';
 import { recordAudit } from '@/shared/store/auditStore';
 import { useAnnouncementsStore, useAsociatieAnnouncements } from './announcementsStore';
+import { hydrateAnnouncements, publishAnnouncement } from './announcementsApi';
 
 const categoryTone: Record<AnnouncementCategory, 'urgent' | 'warning' | 'primary' | 'success'> = {
   urgent: 'urgent',
@@ -30,15 +31,19 @@ export default function AnnouncementsPage() {
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
   const authorUserId = useAuthStore((s) => s.profile?.id) ?? DEMO_CURRENT_USER_ID;
   const items = useAsociatieAnnouncements();
-  const { reads, add, markRead } = useAnnouncementsStore();
+  const { reads, markRead } = useAnnouncementsStore();
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (asociatieId) void hydrateAnnouncements(asociatieId);
+  }, [asociatieId]);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [category, setCategory] = useState<AnnouncementCategory>('informativ');
 
   const submit = () => {
     if (!asociatieId || !title.trim() || !body.trim()) return;
-    add(asociatieId, authorUserId, {
+    publishAnnouncement(asociatieId, authorUserId, {
       title: title.trim(),
       body_html: `<p>${body.trim()}</p>`,
       category,

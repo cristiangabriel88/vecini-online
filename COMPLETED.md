@@ -8,6 +8,9 @@ the live `BACKLOG.md` carries only the protocol and the open (⬜) queue.
 > task (read it only when a task's prerequisite or history is genuinely needed).
 > `RESUME.md` §0 remains the dated chronological summary.
 
+### ✅ T57 — [P2] Live activation: content slices read/write Supabase (Anunțuri / Discuții / Sesizări)
+Done: migration `20260528000001` adds `title text` to `discussion_threads` and `author_name text` to `discussion_messages` (avoids a self-read-only users JOIN). Three API modules: `announcementsApi.ts` (`hydrateAnnouncements` + `publishAnnouncement`), `discussionApi.ts` (`hydrateThreads` + `addThread` + `postMessage` + `togglePin` + `deleteMessage`), `ticketsApi.ts` (`hydrateTickets` + `submitTicket`); each applies the store change synchronously then best-effort mirrors to the DB when `isSupabaseConfigured`. All three stores gain `replaceForAsociatie` for hydration. `AnnouncementsPage`, `DiscussionsPage`, `TicketsPage` wired: `useEffect` hydrates on mount and mutations route through the API modules. 32 new tests across 3 test files. 153 files / 1420 tests / build green. Live smoke pending credentials.
+
 ### ✅ T56 — [P2] Live activation: per-asociație feature flags read/write (`asociatie_features`)
 Done: new `src/shared/features/featureApi.ts` with `hydrateFeatureFlags` (reads all `asociatie_features` rows, calls `setAll` on the store, no-op offline) and `setFeatureFlagLive` (calls `setFlag` synchronously + best-effort upsert on `(asociatie_id, feature_key)` conflict target when Supabase is configured). `FeaturesAdminPage` wired: `useEffect` hydrates flags on mount / asociatie change; `setFlag` calls replaced with `setFeatureFlagLive` in both the triage-enable path and the per-feature Switch `onChange`. 7 new tests in `featureApi.test.ts`. 150 files / 1388 tests / build green. Live smoke pending credentials.
 

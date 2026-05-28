@@ -1,0 +1,134 @@
+import { beforeEach, describe, expect, it } from 'vitest';
+import type { Announcement } from '@/shared/types/domain';
+import { useAnnouncementsStore } from '@/features/announcements/announcementsStore';
+import { hydrateAnnouncements, publishAnnouncement } from '@/features/announcements/announcementsApi';
+
+// announcementsApi offline-path tests (T57).
+// Live-path tests require a real Supabase backend; the offline path
+// (isSupabaseConfigured === false) is what CI exercises here. Key contracts:
+//   - hydrateAnnouncements: no-op when not configured (store untouched)
+//   - publishAnnouncement: prepends a well-formed announcement to the store
+
+const DEMO_ASOC = 'asoc-test';
+
+const SEED: Announcement[] = [
+  {
+    id: 'a-1',
+    asociatie_id: DEMO_ASOC,
+    author_user_id: 'u-admin',
+    title: 'First',
+    body_html: '<p>First body</p>',
+    category: 'informativ',
+    audience: { type: 'all' },
+    scheduled_at: null,
+    published_at: '2026-01-01T10:00:00.000Z',
+    expires_at: null,
+    created_at: '2026-01-01T10:00:00.000Z',
+    updated_at: '2026-01-01T10:00:00.000Z',
+  },
+];
+
+beforeEach(() => {
+  useAnnouncementsStore.setState({ byAsociatie: { [DEMO_ASOC]: [...SEED] }, reads: {} });
+});
+
+describe('useAnnouncementsStore — replaceForAsociatie', () => {
+  it('replaces the list for one asociație', () => {
+    const fresh: Announcement[] = [
+      {
+        id: 'a-99',
+        asociatie_id: DEMO_ASOC,
+        author_user_id: 'u-admin',
+        title: 'Fresh',
+        body_html: '<p>Fresh</p>',
+        category: 'urgent',
+        audience: { type: 'all' },
+        scheduled_at: null,
+        published_at: '2026-01-02T10:00:00.000Z',
+        expires_at: null,
+        created_at: '2026-01-02T10:00:00.000Z',
+        updated_at: '2026-01-02T10:00:00.000Z',
+      },
+    ];
+    useAnnouncementsStore.getState().replaceForAsociatie(DEMO_ASOC, fresh);
+    expect(useAnnouncementsStore.getState().byAsociatie[DEMO_ASOC]).toHaveLength(1);
+    expect(useAnnouncementsStore.getState().byAsociatie[DEMO_ASOC][0].id).toBe('a-99');
+  });
+
+  it('does not touch other asociatii', () => {
+    useAnnouncementsStore.getState().replaceForAsociatie('other-asoc', []);
+    expect(useAnnouncementsStore.getState().byAsociatie[DEMO_ASOC]).toHaveLength(1);
+  });
+
+  it('replaceForAsociatie with empty array clears the list', () => {
+    useAnnouncementsStore.getState().replaceForAsociatie(DEMO_ASOC, []);
+    expect(useAnnouncementsStore.getState().byAsociatie[DEMO_ASOC]).toHaveLength(0);
+  });
+});
+
+describe('hydrateAnnouncements', () => {
+  it('is a no-op when Supabase is not configured (offline/CI)', async () => {
+    const before = useAnnouncementsStore.getState().byAsociatie[DEMO_ASOC];
+    await hydrateAnnouncements(DEMO_ASOC);
+    expect(useAnnouncementsStore.getState().byAsociatie[DEMO_ASOC]).toBe(before);
+  });
+
+  it('is a no-op when asociatieId is empty', async () => {
+    const before = useAnnouncementsStore.getState().byAsociatie[DEMO_ASOC];
+    await hydrateAnnouncements('');
+    expect(useAnnouncementsStore.getState().byAsociatie[DEMO_ASOC]).toBe(before);
+  });
+});
+
+describe('publishAnnouncement', () => {
+  it('prepends a new announcement to the store', () => {
+    publishAnnouncement(DEMO_ASOC, 'u-admin', {
+      title: 'New notice',
+      body_html: '<p>Body</p>',
+      category: 'important',
+    });
+    const items = useAnnouncementsStore.getState().byAsociatie[DEMO_ASOC];
+    expect(items).toHaveLength(2);
+    expect(items[0].title).toBe('New notice');
+    expect(items[0].category).toBe('important');
+    expect(items[0].asociatie_id).toBe(DEMO_ASOC);
+    expect(items[0].author_user_id).toBe('u-admin');
+  });
+
+  it('keeps pre-existing announcements after publish', () => {
+    publishAnnouncement(DEMO_ASOC, 'u-admin', {
+      title: 'Second',
+      body_html: '<p>x</p>',
+      category: 'informativ',
+    });
+    const items = useAnnouncementsStore.getState().byAsociatie[DEMO_ASOC];
+    expect(items.map((a) => a.title)).toContain('First');
+    expect(items.map((a) => a.title)).toContain('Second');
+  });
+
+  it('multiple publishes all land in the store', () => {
+    publishAnnouncement(DEMO_ASOC, 'u-admin', {
+      title: 'A',
+      body_html: '<p>a</p>',
+      category: 'informativ',
+    });
+    publishAnnouncement(DEMO_ASOC, 'u-admin', {
+      title: 'B',
+      body_html: '<p>b</p>',
+      category: 'urgent',
+    });
+    const items = useAnnouncementsStore.getState().byAsociatie[DEMO_ASOC];
+    expect(items).toHaveLength(3);
+  });
+
+  it('published_at is set to a non-null ISO string', () => {
+    publishAnnouncement(DEMO_ASOC, 'u-admin', {
+      title: 'Timed',
+      body_html: '<p>x</p>',
+      category: 'eveniment',
+    });
+    const item = useAnnouncementsStore.getState().byAsociatie[DEMO_ASOC][0];
+    expect(item.published_at).not.toBeNull();
+    expect(new Date(item.published_at!).getTime()).toBeGreaterThan(0);
+  });
+});

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { AlertCircle, Plus, Clock } from 'lucide-react';
@@ -14,8 +14,9 @@ import { formatDateTime } from '@/shared/lib/format';
 import type { TicketSeverity, TicketStatus } from '@/shared/types/domain';
 import { useAuthStore } from '@/shared/store/authStore';
 import { DEMO_CURRENT_USER_ID } from '@/shared/demo/demoData';
-import { useAsociatieTickets, useTicketsStore } from './ticketsStore';
+import { useAsociatieTickets } from './ticketsStore';
 import { isSlaBreached } from './ticketLogic';
+import { hydrateTickets, submitTicket } from './ticketsApi';
 
 const statusTone: Record<TicketStatus, 'neutral' | 'primary' | 'warning' | 'success' | 'danger'> = {
   primit: 'neutral',
@@ -34,8 +35,11 @@ export default function TicketsPage() {
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
   const reporterUserId = useAuthStore((s) => s.profile?.id) ?? DEMO_CURRENT_USER_ID;
   const items = useAsociatieTickets();
-  const add = useTicketsStore((s) => s.add);
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (asociatieId) void hydrateTickets(asociatieId);
+  }, [asociatieId]);
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -46,7 +50,7 @@ export default function TicketsPage() {
 
   const submit = () => {
     if (!asociatieId || !form.title.trim() || !form.description.trim()) return;
-    add(asociatieId, reporterUserId, form);
+    submitTicket(asociatieId, reporterUserId, form);
     toast.success(t('tickets.submitted'));
     setOpen(false);
     setForm({ title: '', description: '', category: 'electric', severity: 'medium', location: '' });

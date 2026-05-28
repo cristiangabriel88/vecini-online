@@ -15,6 +15,8 @@ interface TicketsState {
   byAsociatie: TicketsByAsociatie;
   /** Submit a sesizare into one asociație, reported by the given user. */
   add: (asociatieId: string, reporterUserId: string, input: NewTicketInput) => void;
+  /** Replace the full list for one asociație (used by live hydration). */
+  replaceForAsociatie: (asociatieId: string, items: Ticket[]) => void;
   /** The tickets for one asociație (stable reference). */
   forAsociatie: (asociatieId: string | null) => Ticket[];
 }
@@ -35,6 +37,8 @@ export const useTicketsStore = create<TicketsState>((set, get) => ({
         newTicket(input, asociatieId, reporterUserId),
       ),
     })),
+  replaceForAsociatie: (asociatieId, items) =>
+    set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: items } })),
   forAsociatie: (asociatieId) => ticketsForAsociatie(get().byAsociatie, asociatieId),
 }));
 

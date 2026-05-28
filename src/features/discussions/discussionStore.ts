@@ -24,6 +24,8 @@ interface DiscussionState {
   postMessage: (asociatieId: string, threadId: string, body: string, author: MessageAuthor) => void;
   togglePin: (asociatieId: string, threadId: string) => void;
   deleteMessage: (asociatieId: string, threadId: string, messageId: string) => void;
+  /** Replace the full thread list for one asociație (used by live hydration). */
+  replaceForAsociatie: (asociatieId: string, threads: DiscussionThread[]) => void;
   /** The threads for one asociație (stable reference). */
   forAsociatie: (asociatieId: string | null) => DiscussionThread[];
 }
@@ -54,6 +56,8 @@ export const useDiscussionStore = create<DiscussionState>((set, get) => ({
     set((s) => ({ byAsociatie: togglePinIn(s.byAsociatie, asociatieId, threadId) })),
   deleteMessage: (asociatieId, threadId, messageId) =>
     set((s) => ({ byAsociatie: deleteMessageIn(s.byAsociatie, asociatieId, threadId, messageId) })),
+  replaceForAsociatie: (asociatieId, threads) =>
+    set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: threads } })),
   forAsociatie: (asociatieId) => threadsForAsociatie(get().byAsociatie, asociatieId),
 }));
 

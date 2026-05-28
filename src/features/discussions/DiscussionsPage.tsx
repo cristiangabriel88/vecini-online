@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { MessagesSquare, Plus, Pin, Trash2, Send } from 'lucide-react';
@@ -12,8 +12,15 @@ import { Modal } from '@/shared/components/Modal';
 import { formatDateTime } from '@/shared/lib/format';
 import { useAuthStore } from '@/shared/store/authStore';
 import { DEMO_CURRENT_USER_ID, DEMO_CURRENT_USER_NAME } from '@/shared/demo/demoData';
-import { useAsociatieThreads, useDiscussionStore } from './discussionStore';
+import { useAsociatieThreads } from './discussionStore';
 import { isValidMessage, isValidThread, sortThreads } from './discussionLogic';
+import {
+  addThread,
+  deleteMessage,
+  hydrateThreads,
+  postMessage,
+  togglePin,
+} from './discussionApi';
 
 export default function DiscussionsPage() {
   const { t } = useTranslation();
@@ -24,12 +31,15 @@ export default function DiscussionsPage() {
     name: profile?.full_name ?? DEMO_CURRENT_USER_NAME,
   };
   const threads = useAsociatieThreads();
-  const { addThread, postMessage, togglePin, deleteMessage } = useDiscussionStore();
   const [openId, setOpenId] = useState<string | null>(null);
   const [reply, setReply] = useState('');
   const [newOpen, setNewOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [topic, setTopic] = useState('');
+
+  useEffect(() => {
+    if (asociatieId) void hydrateThreads(asociatieId);
+  }, [asociatieId]);
 
   const ordered = sortThreads(threads);
 
