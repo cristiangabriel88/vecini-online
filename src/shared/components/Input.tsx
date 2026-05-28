@@ -12,14 +12,25 @@ interface FieldProps {
   label?: ReactNode;
   hint?: string;
   error?: string;
+  suffix?: ReactNode;
 }
 
 export const Input = forwardRef<
   HTMLInputElement,
   InputHTMLAttributes<HTMLInputElement> & FieldProps
->(function Input({ label, hint, error, className, id, ...rest }, ref) {
+>(function Input({ label, hint, error, suffix, className, id, ...rest }, ref) {
   const autoId = useId();
   const fieldId = id ?? autoId;
+  const inputNode = (
+    <input
+      ref={ref}
+      id={fieldId}
+      aria-invalid={!!error}
+      aria-describedby={error ? `${fieldId}-err` : undefined}
+      className={cn('input', suffix && 'input--with-suffix', className)}
+      {...rest}
+    />
+  );
   return (
     <div className="field">
       {label && (
@@ -27,14 +38,14 @@ export const Input = forwardRef<
           {label}
         </label>
       )}
-      <input
-        ref={ref}
-        id={fieldId}
-        aria-invalid={!!error}
-        aria-describedby={error ? `${fieldId}-err` : undefined}
-        className={cn('input', className)}
-        {...rest}
-      />
+      {suffix ? (
+        <div className="input-wrap">
+          {inputNode}
+          <span className="input-wrap__suffix">{suffix}</span>
+        </div>
+      ) : (
+        inputNode
+      )}
       {hint && !error && <p className="field__hint">{hint}</p>}
       {error && (
         <p id={`${fieldId}-err`} className="field__error">

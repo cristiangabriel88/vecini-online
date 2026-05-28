@@ -179,8 +179,20 @@ select.input {
 }
 
 .input--with-icon { padding-left: 36px; }
+.input--with-suffix { padding-right: 38px; }
 .input-wrap { position: relative; }
 .input-wrap > svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+.input-wrap__suffix {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  transition: color 150ms var(--ease-out);
+}
+.input-wrap__suffix:hover { color: var(--text-primary); }
 
 /* ── Badge ─────────────────────────────────────────────── */
 .badge {

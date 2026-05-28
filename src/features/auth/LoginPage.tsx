@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { ArrowUpRight, Building2, Globe, Mail, MailCheck, Moon, Send, ShieldCheck, Smartphone, Sun } from 'lucide-react';
+import { ArrowUpRight, Building2, Eye, EyeOff, Globe, Mail, MailCheck, Moon, Send, ShieldCheck, Smartphone, Sun } from 'lucide-react';
 import { DevRoleSwitcher } from '@/shared/components/DevRoleSwitcher';
 import type { Role } from '@/shared/types/domain';
 import { Button } from '@/shared/components/Button';
@@ -115,6 +115,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   // Off by default (the secure default): the session is dropped when the browser
   // closes unless the resident opts into a persistent, "remembered" session.
@@ -614,12 +615,21 @@ export default function LoginPage() {
               {mode !== 'forgot' && (
                 <Input
                   label={t('auth.password')}
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   autoComplete={mode === 'signUp' ? 'new-password' : 'current-password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   hint={mode === 'signUp' ? t('auth.passwordHint') : undefined}
                   required
+                  suffix={
+                    <button
+                      type="button"
+                      aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
+                      onClick={() => setShowPassword((v) => !v)}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  }
                 />
               )}
               {assessment && <PasswordStrengthMeter assessment={assessment} />}
@@ -629,12 +639,21 @@ export default function LoginPage() {
               {mode === 'signUp' && (
                 <Input
                   label={t('auth.confirmPassword')}
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   autoComplete="new-password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   error={showMismatch ? t('auth.err.passwordMismatch') : undefined}
                   required
+                  suffix={
+                    <button
+                      type="button"
+                      aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
+                      onClick={() => setShowPassword((v) => !v)}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  }
                 />
               )}
               <Button

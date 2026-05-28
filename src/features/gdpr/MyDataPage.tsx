@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Download, FileJson, FileSpreadsheet, ShieldAlert, Trash2, History } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
+import { Modal } from '@/shared/components/Modal';
 import { Badge } from '@/shared/components/Badge';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { useAuthStore } from '@/shared/store/authStore';
@@ -108,6 +109,8 @@ export default function MyDataPage() {
   const consentHistory = useConsentStore((s) => s.history);
   const securityEvents = useSecurityStore((s) => s.events);
 
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
   const requests = useGdprStore((s) => s.requests);
   const fileRequest = useGdprStore((s) => s.request);
   const actionRequest = useGdprStore((s) => s.action);
@@ -203,6 +206,7 @@ export default function MyDataPage() {
   };
 
   const requestErasure = () => {
+    setConfirmOpen(false);
     if (erasurePending) {
       toast(t('gdpr.alreadyRequested'));
       return;
@@ -272,7 +276,7 @@ export default function MyDataPage() {
           </ul>
         </div>
         <div style={{ marginTop: 14 }}>
-          <Button variant="danger" onClick={requestErasure} disabled={erasurePending}>
+          <Button variant="danger" onClick={() => setConfirmOpen(true)} disabled={erasurePending}>
             <Trash2 size={15} /> {t('gdpr.requestErasure')}
           </Button>
           {erasurePending && (
@@ -282,6 +286,26 @@ export default function MyDataPage() {
           )}
         </div>
       </Card>
+
+      <Modal
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        title={t('gdpr.erasureConfirmTitle')}
+        footer={
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+            <Button variant="secondary" onClick={() => setConfirmOpen(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button variant="danger" onClick={requestErasure}>
+              <Trash2 size={15} /> {t('gdpr.requestErasure')}
+            </Button>
+          </div>
+        }
+      >
+        <p className="text-sm" style={{ margin: 0 }}>
+          {t('gdpr.erasureConfirmBody')}
+        </p>
+      </Modal>
 
       <Card title={t('gdpr.myRequestsTitle')} className="mt-4">
         {myRequests.length === 0 ? (
