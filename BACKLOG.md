@@ -150,8 +150,7 @@ Done: `seedProfile` gains an optional `locale?: Locale` parameter (spreads over 
 
 ### ✅ T163 — [P3] Distinguish row warnings from blocking errors in the CSV import summary
 
-### ⬜ T158 — [P3] Remove orphaned `onboarding.import/invite/csv*` locale keys
-Surfaced in T154: the wizard lost its CSV-import step (step 1) and bulk-invite step (step 4). Their locale keys (`onboarding.import`, `onboarding.invite`, `onboarding.csvHelp`, `onboarding.csvParsed`, `onboarding.csvError`, `onboarding.inviteEmails`) are no longer consumed by any component. Confirm no other file references them (ripgrep), then remove the dead keys from both `ro.json` and `en.json`. Trivial, backend-free. Coordinates with T145 (the parallel `join.*` cleanup).
+### ✅ T158 — [P3] Remove orphaned `onboarding.import/invite/csv*` locale keys
 
 ### ⬜ T145 — [P3] Remove the now-unused `join.*` locale keys
 Surfaced in T124: `JoinAsociatiePage` was superseded by `AccountSetupPage` and deleted, but its `join.*` translation block (`title`/`subtitle`/`codeLabel`/`codeHint`/`submit`/`success`/`err_*`/`createPrompt`/`createLink`) remains in `ro.json` + `en.json` with no consumer, while the new landing uses its own `setup.*` keys. Remove the dead `join.*` keys from both locale files (confirm nothing else references them first) so the locale files do not accumulate orphaned strings. Trivial, backend-free. Prereq: T124.

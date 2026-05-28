@@ -8,6 +8,9 @@ the live `BACKLOG.md` carries only the protocol and the open (⬜) queue.
 > task (read it only when a task's prerequisite or history is genuinely needed).
 > `RESUME.md` §0 remains the dated chronological summary.
 
+### ✅ T158 — [P3] Remove orphaned `onboarding.import/invite/csv*` locale keys
+Done: confirmed zero source references via ripgrep; removed 6 dead keys (`import`, `invite`, `csvHelp`, `csvParsed`, `csvError`, `inviteEmails`) from the `onboarding` section in both `ro.json` and `en.json`. 149 files / 1381 tests / build green.
+
 ### ✅ T164 — [P3] Seed the new invitee's profile locale from the active UI language
 Done: `seedProfile` gains an optional `locale?: Locale` parameter (spreads over `emptyProfile`'s `'ro'` default only when provided); `AccountSetupPage` offline path narrows `i18n.language` to `Locale` (`'en'` or `'ro'`) and passes it to `seedProfile`; 2 new locale tests in `profileLogic.test.ts`. 149 files / 1381 tests / build green.
 
