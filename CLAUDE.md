@@ -22,6 +22,10 @@ When you receive **`make progress`**, follow the protocol defined in `BACKLOG.md
 7. Commit (conventional message + `Co-Authored-By` trailer) and `git push origin main`.
 8. Stop after one task. Do not chain tasks in interactive mode — the overnight script handles repetition.
 
+Two sibling triggers exist for the same one-task unit and are defined in `BACKLOG.md`:
+- **`make task`** — identical to `make progress` except step 6 is skipped, so no new tasks are added to the queue. Use it to draw the queue down without growing it. See `## The make task protocol`.
+- **`make mvp`** — picks from the dedicated `## MVP presentation spine` at the top of the queue and also never creates new tasks. See `## The make mvp protocol`.
+
 ## Non-negotiables
 - Work directly on `main`. Do not create feature branches.
 - Never use the em dash character in code or docs.
