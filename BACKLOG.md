@@ -239,8 +239,8 @@ Surfaced building the easier-2FA channels: the client per-channel `otpThrottle` 
 ### ⬜ T113 — [P3] Carry a return-to through the AAL2 step-up
 Surfaced in T112: when a re-gated session completes the in-app step-up on the security page it navigates to `/app`, dropping whatever deep route it was originally headed for (the path `useMfaEnforcement` redirected it away from). Capture the originally-requested location when the gate steers a session to `/app/securitate` (e.g. via router `state` or a stored `from`) and, after a successful step-up, return the session there instead of the home route, so the 2FA re-gate is transparent. Keep the redirect decision pure. Behind `isSupabaseConfigured`; demo stays ungated. Prereq: T112.
 
-### ⬜ T08 — [P1] E2E suite green + CI
-Install Playwright browsers, make `tests/e2e` pass (smoke + per-feature happy paths), and add specs for auth + 2FA + tenant isolation. Wire a CI workflow that runs lint/typecheck/unit/build/E2E on push. Once done, E2E joins the per-task gate.
+### ✅ T08 — [P1] E2E suite green + CI
+Done: `.github/workflows/ci.yml` added (lint + typecheck + unit + build job then Playwright E2E job for chromium); `tests/e2e/isolation.spec.ts` added (unauthenticated `/app` and nested-route redirect to `/`, sign-out returns to login + demo button visible); lint/typecheck/1426 unit tests/build all green.
 
 ### ⬜ T14 — [P1] Email notification channel (live)
 Wire the real email channel into the notification fan-out (Supabase/SMTP), bilingual templated emails, respecting per-user channel preferences and quiet hours (urgent/alert bypasses). Unsubscribe + preference management.
