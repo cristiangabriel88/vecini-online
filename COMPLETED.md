@@ -8,6 +8,9 @@ the live `BACKLOG.md` carries only the protocol and the open (⬜) queue.
 > task (read it only when a task's prerequisite or history is genuinely needed).
 > `RESUME.md` §0 remains the dated chronological summary.
 
+### ✅ T56 — [P2] Live activation: per-asociație feature flags read/write (`asociatie_features`)
+Done: new `src/shared/features/featureApi.ts` with `hydrateFeatureFlags` (reads all `asociatie_features` rows, calls `setAll` on the store, no-op offline) and `setFeatureFlagLive` (calls `setFlag` synchronously + best-effort upsert on `(asociatie_id, feature_key)` conflict target when Supabase is configured). `FeaturesAdminPage` wired: `useEffect` hydrates flags on mount / asociatie change; `setFlag` calls replaced with `setFeatureFlagLive` in both the triage-enable path and the per-feature Switch `onChange`. 7 new tests in `featureApi.test.ts`. 150 files / 1388 tests / build green. Live smoke pending credentials.
+
 ### ✅ T145 — [P3] Remove the now-unused `join.*` locale keys
 Done: confirmed zero source references via ripgrep; removed the 13-key `join.*` block (`title`, `subtitle`, `codeLabel`, `codeHint`, `submit`, `success`, `err_expired`, `err_used`, `err_revoked`, `err_unknown`, `createPrompt`, `createLink`) from both `ro.json` and `en.json`. 149 files / 1381 tests / build green.
 

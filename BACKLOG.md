@@ -166,8 +166,7 @@ Done: `seedProfile` gains an optional `locale?: Locale` parameter (spreads over 
 
 > Each requires external provisioning (a Supabase project, env vars, a deployed function, a registered bot) and so must never block overnight progress. They layer the live path onto a slice whose local/demo version already works.
 
-### ⬜ T56 — [P2] Live activation: per-asociație feature flags read/write (`asociatie_features`)
-Load the active asociație's flags from `asociatie_features` on hydrate and persist admin toggles back, behind `isSupabaseConfigured`, with the T43 local store as the offline fallback. Prereq: T43.
+### ✅ T56 — [P2] Live activation: per-asociație feature flags read/write (`asociatie_features`)
 
 ### ⬜ T57 — [P2] Live activation: content slices read/write Supabase (Anunțuri / Discuții / Sesizări)
 Wire the T47/T48/T49 stores to read/write `announcements` / `discussion_threads`+`discussion_messages` / `tickets` under RLS, scoped by `asociatie_id`, behind `isSupabaseConfigured`, demo store as fallback. Prereq: T47, T48, T49.

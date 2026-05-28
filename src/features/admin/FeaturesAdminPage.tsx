@@ -19,7 +19,8 @@ import {
   type FeatureCategory,
 } from '@/shared/features/registry';
 import { summarizeRequests } from '@/shared/features/featureRequestLogic';
-import { useAsociatieFlags, useFeatureStore } from '@/shared/features/featureStore';
+import { useAsociatieFlags } from '@/shared/features/featureStore';
+import { hydrateFeatureFlags, setFeatureFlagLive } from '@/shared/features/featureApi';
 import { useFeatureRequestStore } from '@/shared/store/featureRequestStore';
 import { useAuthStore } from '@/shared/store/authStore';
 import { recordAudit } from '@/shared/store/auditStore';
@@ -28,7 +29,6 @@ export default function FeaturesAdminPage() {
   const { t } = useTranslation();
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
   const flags = useAsociatieFlags();
-  const setFlag = useFeatureStore((s) => s.setFlag);
   const categories = Object.keys(FEATURE_CATEGORIES) as FeatureCategory[];
 
   const requests = useFeatureRequestStore((s) => s.requests);
@@ -38,8 +38,12 @@ export default function FeaturesAdminPage() {
   // The module key whose dismissal is awaiting confirmation, or null.
   const [pendingDismiss, setPendingDismiss] = useState<string | null>(null);
 
-  // Live: pull the full tenant slice the admin read policy exposes. Offline this
-  // is a no-op and the persisted store already holds the demo queue.
+  // Live: hydrate feature flags and feature requests from the backend when
+  // Supabase is configured. Both are no-ops offline; the persisted stores hold
+  // the source of truth in demo/local mode.
+  useEffect(() => {
+    if (asociatieId) void hydrateFeatureFlags(asociatieId);
+  }, [asociatieId]);
   useEffect(() => {
     if (asociatieId) void hydrateRequests(asociatieId);
   }, [asociatieId, hydrateRequests]);
@@ -52,7 +56,7 @@ export default function FeaturesAdminPage() {
 
   const enableRequested = (featureKey: string) => {
     if (!asociatieId) return;
-    setFlag(asociatieId, featureKey, true);
+    setFeatureFlagLive(asociatieId, featureKey, true);
     clearRequests(asociatieId, featureKey);
     recordAudit({
       action: 'feature.enabled',
@@ -171,7 +175,7 @@ export default function FeaturesAdminPage() {
                     disabled={!asociatieId}
                     onChange={(v) => {
                       if (!asociatieId) return;
-                      setFlag(asociatieId, f.key, v);
+                      setFeatureFlagLive(asociatieId, f.key, v);
                       // Enabling a module here satisfies any pending resident
                       // requests for it, exactly as the triage "enable" action
                       // does, so the demand is cleared regardless of which
