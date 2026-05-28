@@ -73,8 +73,13 @@ case "$cmd" in
     fi
     ;;
 
+  seed)
+    echo "==> Seeding one Supabase auth user per role (DEV stage only)"
+    node scripts/pi-seed.mjs "${@:2}"
+    ;;
+
   *)
-    echo "Usage: scripts/pi.sh {build|start|stop|logs|migrate}"
+    echo "Usage: scripts/pi.sh {build|start|stop|logs|migrate|seed}"
     exit 1
     ;;
 esac

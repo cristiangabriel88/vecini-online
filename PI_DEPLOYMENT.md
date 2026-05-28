@@ -96,6 +96,17 @@ A fresh `supabase db reset` also works end to end: the migrations are ordered so
 the older `audit_log` table from `init_core.sql` is upgraded in place, and
 `is_super_admin()` is defined before any policy references it.
 
+Seed one auth user per role so every role is reachable without invite emails:
+
+```bash
+npm run pi:seed             # == node scripts/pi-seed.mjs
+npm run pi:seed -- --password mySecret   # custom password
+```
+
+The script creates (or skips if already present) seven Supabase auth users, all
+sharing the same dev password. See [DEV users (pi:seed)](#dev-users-piseed) for
+the full role / email / password table.
+
 ---
 
 ## 4. Build the app and the webhook service
@@ -206,6 +217,36 @@ watchdogs, uptime monitors or the reverse proxy health check:
 ```bash
 curl -s http://127.0.0.1:8787/health
 ```
+
+---
+
+## DEV users (pi:seed)
+
+`npm run pi:seed` (or `node scripts/pi-seed.mjs [--password <pwd>]`) creates one
+Supabase auth user per role in the local stack. All users share the same dev
+password (default `dev-password`; overridable via `--password` or
+`VITE_DEV_PASSWORD` in `.env`).
+
+| Role | Email | Membership |
+| --- | --- | --- |
+| `admin` | `admin@dev.local` | tenant `admin` in the seeded asociatie |
+| `presedinte` | `presedinte@dev.local` | tenant `presedinte` |
+| `comitet` | `comitet@dev.local` | tenant `comitet` |
+| `cenzor` | `cenzor@dev.local` | tenant `cenzor` |
+| `proprietar` | `proprietar@dev.local` | tenant `proprietar` |
+| `chirias` | `chirias@dev.local` | tenant `chirias` |
+| `super_admin` | `super.admin@dev.local` | `platform_admins` grant (no tenant membership) |
+
+The script is **idempotent**: re-running it on an existing database skips
+creation and re-applies any missing membership / platform grant.
+
+**Guards** (both must pass or the script aborts):
+- `VITE_APP_STAGE` must equal `dev`
+- `VITE_SUPABASE_URL` must not match `*.supabase.co` (prevents cloud seeding)
+
+After seeding, use `npm run dev:pi` and log in with any of the emails above, or
+click the floating role switcher -- it calls `signInAsDevUser(role)` which signs
+in as `{role}@dev.local` using the same `VITE_DEV_PASSWORD`.
 
 ---
 

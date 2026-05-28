@@ -23,7 +23,8 @@
     "pi:start": "bash scripts/pi.sh start",
     "pi:stop": "bash scripts/pi.sh stop",
     "pi:logs": "bash scripts/pi.sh logs",
-    "pi:migrate": "bash scripts/pi.sh migrate"
+    "pi:migrate": "bash scripts/pi.sh migrate",
+    "pi:seed": "bash scripts/pi.sh seed"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
