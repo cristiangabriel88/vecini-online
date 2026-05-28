@@ -19,8 +19,9 @@ under `docs/`, despite references to the contrary). The product is
 > Finished tasks' full done-notes are archived in `COMPLETED.md` (newest first);
 > §0 below stays the dated chronological summary.
 
-## 0. Current status (updated 2026-05-28, T08 done -- CI workflow + tenant-isolation E2E spec, 153 files / 1426 tests green)
+## 0. Current status (updated 2026-05-28, T111 done -- drop super_admin from memberships role check, 154 files / 1430 tests green)
 
+- **2026-05-28 — T111 (P2) Drop super_admin from memberships role check.** Migration drops+recreates `memberships_role_check` with 6 tenant roles only; parse-based regression test added (4 assertions). 154 files / 1430 tests green.
 - **2026-05-28 — T08 (P1) E2E suite green + CI.** `.github/workflows/ci.yml` added (check job: lint + typecheck + unit + build; e2e job: chromium Playwright with artifact on failure). `tests/e2e/isolation.spec.ts` added: 3 isolation tests (unauthenticated redirect from `/app` and `/app/anunturi`, sign-out via UserMenu). 153 files / 1426 tests green.
 - **2026-05-28 — T100 (P1) Mandatory hardened MFA for super_admin platform accounts.** `platformAuthLogic.ts` adds `mfa-enrollment-required` state + `supabaseConfigured`/`mfaLoaded`/`mfaEnrolled` inputs. `RequirePlatformAdmin` renders a blocking TOTP enrollment screen (begin/confirm/cancel/recovery-codes) when superadmin is not enrolled; `PlatformLoginPage` adds a `pendingMfa` challenge step after password sign-in (live + demo). `platform.mfa.*` + `backToSignIn` locale keys added. 6 new tests. 153 files / 1426 tests green.
 - **2026-05-28 — T57 (P2) Live activation: content slices read/write Supabase.** Migration adds `title` to `discussion_threads` and `author_name` to `discussion_messages`. Three new API modules (`announcementsApi`, `discussionApi`, `ticketsApi`) with hydrate + write functions; stores gain `replaceForAsociatie`; pages wired with `useEffect` hydration + API-routed mutations. 32 new tests. 153 files / 1420 tests green.

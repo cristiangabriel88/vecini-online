@@ -8,6 +8,9 @@ the live `BACKLOG.md` carries only the protocol and the open (⬜) queue.
 > task (read it only when a task's prerequisite or history is genuinely needed).
 > `RESUME.md` §0 remains the dated chronological summary.
 
+### ✅ T111 — [P2] Drop `super_admin` from the per-asociație `memberships` role check (offline)
+Done: migration `20260528000002_drop_super_admin_from_memberships_role.sql` drops and recreates `memberships_role_check` with exactly the six tenant roles (admin/presedinte/comitet/cenzor/proprietar/chirias), eliminating the second, weaker source of truth for the platform tier. `tests/unit/membershipRoleConstraint.test.ts` added (4 assertions: drop idempotent, effective constraint excludes `super_admin`, covers all six roles, no `has_role` with `super_admin` in RLS). 154 files / 1430 tests / build green.
+
 ### ✅ T08 — [P1] E2E suite green + CI
 Done: `.github/workflows/ci.yml` added with a `check` job (lint + typecheck + unit tests + build) and an `e2e` job (chromium-only Playwright, triggered after `check`; installs `--with-deps chromium`; uploads `playwright-report` artifact on failure). `tests/e2e/isolation.spec.ts` added: three tests -- unauthenticated `/app` redirects to `/` (login button visible), unauthenticated `/app/anunturi` redirects to `/`, and sign-out via the UserMenu ("Meniu cont" button + "Deconectare" menuitem) returns to `/` and re-shows the demo entry point. 153 files / 1426 tests / build green.
 
