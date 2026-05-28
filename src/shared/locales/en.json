@@ -406,7 +406,9 @@
     "createPrompt": "Are you the administrator?",
     "createLink": "Create a new association",
     "noTokenTitle": "Invalid invitation link",
-    "noTokenBody": "This invitation link is missing or invalid. Ask your administrator for a new invitation link."
+    "noTokenBody": "This invitation link is missing or invalid. Ask your administrator for a new invitation link.",
+    "invalidTitle": "Invitation unavailable",
+    "contactAdmin": "Contact your association administrator to receive a new invitation link."
   },
   "features": {
     "title": "Features",

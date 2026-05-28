@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { AlertCircle, Building2, Loader2, ShieldCheck, Ticket, UserPlus } from 'lucide-react';
+import { AlertCircle, Building2, Loader2, ShieldCheck, UserPlus } from 'lucide-react';
 import { Button } from '@/shared/components/Button';
 import { Card } from '@/shared/components/Card';
 import { Input } from '@/shared/components/Input';
@@ -21,6 +21,7 @@ import {
 import {
   type ResolvedOnboarding,
   evaluateAccountForm,
+  isInvalidTokenState,
   postSetupRoute,
   resolveOnboarding,
 } from './accountSetupLogic';
@@ -163,6 +164,8 @@ export default function AccountSetupPage() {
     return null;
   })();
 
+  const invalidState = isInvalidTokenState(resolved, resolving, isSupabaseConfigured);
+
   const canSubmit =
     form.ok &&
     resolved?.status === 'ok' &&
@@ -237,6 +240,28 @@ export default function AccountSetupPage() {
     }
   };
 
+  // Invalid token: error-only state, no form inputs, no create-asoc link.
+  if (invalidState) {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-12">
+        <div className="mb-6 text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-danger/10 text-danger">
+            <AlertCircle className="h-6 w-6" />
+          </div>
+          <h1 className="text-2xl font-semibold">{t('setup.invalidTitle')}</h1>
+          {tokenError && <p className="mt-1 text-muted">{tokenError}</p>}
+          <p className="mt-2 text-sm text-muted">{t('setup.contactAdmin')}</p>
+        </div>
+        <p className="mt-6 text-center text-sm text-muted">
+          {t('auth.haveAccount')}{' '}
+          <Link to="/" className="auth-link">
+            {t('auth.login')}
+          </Link>
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-lg px-4 py-12">
       <div className="mb-6 text-center">
@@ -285,9 +310,6 @@ export default function AccountSetupPage() {
               {t('setup.resolving')}
             </p>
           )}
-          {tokenError && (
-            <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">{tokenError}</p>
-          )}
 
           <Input
             label={t('setup.name')}
@@ -334,13 +356,6 @@ export default function AccountSetupPage() {
       </Card>
 
       <p className="mt-6 text-center text-sm text-muted">
-        {t('setup.createPrompt')}{' '}
-        <Link to="/onboarding" className="auth-link">
-          <Ticket className="mr-1 inline h-3.5 w-3.5" />
-          {t('setup.createLink')}
-        </Link>
-      </p>
-      <p className="mt-2 text-center text-sm text-muted">
         {t('auth.haveAccount')}{' '}
         <Link to="/" className="auth-link">
           {t('auth.login')}

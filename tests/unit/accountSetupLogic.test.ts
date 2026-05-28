@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  type ResolvedOnboarding,
   type SetupProvisionLike,
   NAME_MAX_LENGTH,
   evaluateAccountForm,
+  isInvalidTokenState,
   isValidName,
   postSetupRoute,
   resolveOnboarding,
@@ -164,6 +166,46 @@ describe('evaluateAccountForm', () => {
     });
     expect(r.ok).toBe(true);
     expect(r.nameInvalid).toBe(false);
+  });
+});
+
+describe('isInvalidTokenState', () => {
+  const okResolved: ResolvedOnboarding = {
+    kind: 'invite',
+    status: 'ok',
+    asociatieId: 'asoc-1',
+    asociatieName: null,
+    role: 'proprietar',
+  };
+  const expiredResolved: ResolvedOnboarding = { ...okResolved, status: 'expired', asociatieId: '' };
+
+  it('returns false while the live RPC is still resolving', () => {
+    expect(isInvalidTokenState(null, true, true)).toBe(false);
+    expect(isInvalidTokenState(expiredResolved, true, true)).toBe(false);
+  });
+
+  it('returns false when resolved ok after live resolving completes', () => {
+    expect(isInvalidTokenState(okResolved, false, true)).toBe(false);
+  });
+
+  it('returns false when resolved ok in offline mode', () => {
+    expect(isInvalidTokenState(okResolved, false, false)).toBe(false);
+  });
+
+  it('returns true when resolved is null after live resolving completes', () => {
+    expect(isInvalidTokenState(null, false, true)).toBe(true);
+  });
+
+  it('returns true when resolved is null in offline mode', () => {
+    expect(isInvalidTokenState(null, false, false)).toBe(true);
+  });
+
+  it('returns true for non-ok statuses once resolved', () => {
+    for (const status of ['expired', 'used', 'revoked', 'unknown'] as const) {
+      const r: ResolvedOnboarding = { ...okResolved, status, asociatieId: '' };
+      expect(isInvalidTokenState(r, false, true)).toBe(true);
+      expect(isInvalidTokenState(r, false, false)).toBe(true);
+    }
   });
 });
 

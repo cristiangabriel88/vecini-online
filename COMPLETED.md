@@ -4,6 +4,12 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T179 P0 ✅ — Hide signup form + remove create-asoc CTA for invalid invite tokens
+- api/code: `isInvalidTokenState(resolved, resolving, isLive)` pure helper in `accountSetupLogic.ts`; `AccountSetupPage` renders error-only state (AlertCircle icon + `setup.invalidTitle` + status-specific `setup.err_<status>` body + `setup.contactAdmin` + login link) when token is invalid/expired/used/revoked/unknown after resolution, with no form inputs visible; `setup.createPrompt` / `setup.createLink` (the `/onboarding` self-service CTA) removed unconditionally
+- locales: `setup.invalidTitle` + `setup.contactAdmin` in RO + EN
+- tests: +7 `isInvalidTokenState` cases added to existing `accountSetupLogic.test.ts`
+- result: 165 files / 1536 tests / build+pi+demo green
+
 ### T129 P2 ✅ — F04 private messaging Supabase live activation
 - api/code: `adminChatApi.ts` `startThread`/`reply`/`toggleStatus` accept `onError?`, microtask callback on write fail; `markRead` silent. `AdminChatPage.tsx` passes `toast.error(t('adminChat.writeFailed'))`
 - locales: `adminChat.writeFailed` EN+RO

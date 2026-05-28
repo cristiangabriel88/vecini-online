@@ -169,6 +169,21 @@ export function postSetupRoute(kind: OnboardingKind): string {
 }
 
 /**
+ * Returns true when the token has been fully resolved and is not usable.
+ *
+ * Used to gate the error-only render path in AccountSetupPage: while the live
+ * RPC is in flight the state is not yet invalid, even if resolved is null.
+ */
+export function isInvalidTokenState(
+  resolved: ResolvedOnboarding | null,
+  resolving: boolean,
+  isLive: boolean,
+): boolean {
+  if (isLive && resolving) return false;
+  return resolved === null || resolved.status !== 'ok';
+}
+
+/**
  * Evaluate the account-creation form: a valid email, a password that clears the
  * full policy (`passwordPolicy.evaluatePassword`), and a matching confirmation.
  * Pure so the page's submit gate is unit-testable.

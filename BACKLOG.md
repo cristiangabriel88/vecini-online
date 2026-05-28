@@ -108,7 +108,7 @@ T12 (F67) keeps each resident's home layout offline in `homeLayoutStore` and the
 
 ## Main queue
 
-### ⬜ T179 — [P0] Hide signup form when invite token is invalid + remove self-service create-asoc CTA on `/configurare-cont`
+### ✅ T179 — [P0] Hide signup form when invite token is invalid + remove self-service create-asoc CTA on `/configurare-cont`
 Scanning an invalid/expired/used/revoked invite still renders the full name+email+password form, the (disabled) submit button, and a "Creează o nouă asociație" link at the bottom, even though the server RPC would reject any submit. The UX implies the form is fillable and offers a self-service escape into `/onboarding`. Restructure `AccountSetupPage` so an invalid `tokenError` renders an error-only state (icon + headline + status-specific `setup.err_<status>` body + new `setup.contactAdmin` guidance + the existing login link), with no form inputs and no create-asoc link. Remove the create-asoc CTA unconditionally; new asociatii are only minted by the platform superadmin (`provision-asociatie` Netlify function), so a self-service link on the signup page is a security/business-model leak. Add a pure `isInvalidTokenState(resolved, resolving, isLive)` helper in `accountSetupLogic.ts` with unit tests; add `setup.invalidTitle` + `setup.contactAdmin` strings in RO + EN. Pairs with T180; can ship independently.
 
 ### ⬜ T180 — [P0] Gate `/onboarding` so only a provisioned admin can run the wizard in PROD

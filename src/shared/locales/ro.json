@@ -406,7 +406,9 @@
     "createPrompt": "Tu administrezi asociația?",
     "createLink": "Creează o asociație nouă",
     "noTokenTitle": "Link de invitație invalid",
-    "noTokenBody": "Linkul de invitație lipsește sau este invalid. Contactează administratorul pentru un nou link de invitație."
+    "noTokenBody": "Linkul de invitație lipsește sau este invalid. Contactează administratorul pentru un nou link de invitație.",
+    "invalidTitle": "Invitație indisponibilă",
+    "contactAdmin": "Contactează administratorul asociației tale pentru un nou link de invitație."
   },
   "features": {
     "title": "Funcționalități",

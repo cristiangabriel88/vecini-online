@@ -5,16 +5,22 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-28
-- last_task: T129 (P2) F04 private messaging mirrors hardened + RLS regression test
+- last_task: T179 (P0) Hide signup form + remove create-asoc CTA for invalid invite tokens
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 165 files / 1523 tests
+- counts: 165 files / 1536 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T130 link admin-initiated F04 threads to resident's live account
+- next: T180 gate /onboarding so only a provisioned admin can run the wizard in PROD
 - features: 65/65 built end-to-end; F66+F67 (Cat-9 personalization) done
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T179 P0 ✅ 2026-05-28 — Invalid invite token: error-only state + remove create-asoc CTA
+- api/code: `isInvalidTokenState` pure helper in `accountSetupLogic.ts`; `AccountSetupPage` shows error-only UI (icon + title + status body + contactAdmin) when token is invalid, no form, no create-asoc link; create-asoc CTA removed unconditionally
+- locales: `setup.invalidTitle` + `setup.contactAdmin` EN+RO
+- tests: +7 `isInvalidTokenState` cases in `accountSetupLogic.test.ts`
+- result: 165 files / 1536 tests / build+pi+demo green
 
 ### T129 P2 ✅ 2026-05-28 — F04 private messaging mirrors hardened
 - api/code: `adminChatApi.ts` (`startThread`/`reply`/`toggleStatus` accept optional `onError`), `AdminChatPage` passes `toast.error(t('adminChat.writeFailed'))`
