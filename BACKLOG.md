@@ -155,6 +155,10 @@ Done: migration adds `resend_message_id text` to `invite_codes`; `resend.ts` ret
 ### ✅ T128 — [P0/MVP] Token-security hardening: hash onboarding/invite tokens at rest + rate-limit + audit redemption
 Done: migration `20260528000003_token_security_hardening.sql`: pgcrypto enabled; existing tokens hashed in-place; `token_redemption_attempts` table (RLS, no public policy); `resolve_onboarding_token` and `redeem_onboarding_token` updated to hash before lookup + rate-limit (10/15 min per token hash) + audit `invite.redeemed` on success. `inviteWriteApi.ts` stores hash via Web Crypto. `RedeemRpcResult` adds `'rate_limited'`; `AUDIT_ACTIONS` adds `'invite.redeemed'`; locale + tone keys added. 11 new tests. 156 files / 1452 tests / build green.
 
+
+### ✅ T100 — [P0/MVP] Mandatory hardened MFA for super_admin accounts
+Done: `platformAuthLogic.ts` gains `mfa-enrollment-required` as a sixth `PlatformAccess` state; `RequirePlatformAdmin` renders a mandatory TOTP enrollment screen; `PlatformLoginPage` gains a `pendingMfa` challenge step. 6 new unit tests. 153 files / 1426 tests / build green.
+
 ### ✅ T117 — [P2] Reconcile embedded `persons` with account-linked `apartment_residents`
 Done: `ApartmentPerson` gains optional `claimed_user_id?: string | null`; migration `20260527000006` updates `redeem_onboarding_token` (CREATE OR REPLACE) to set `claimed_user_id` in the matching persons entry via jsonb_set -- name match (case-insensitive trim) first, role fallback second, both passes skip already-claimed entries; pure `isPersonClaimed` + `claimPersonInList` helpers in `apartmentsLogic.ts` mirror the server match logic; `ApartmentFormPage` persons editor shows a "Account linked / Cont înregistrat" badge on claimed entries and makes the name field read-only for them; bilingual `personLinked` locale keys added. 21 new tests. 146 files / 1344 tests / build green.
 
@@ -307,8 +311,6 @@ When the live notification channels land (T14 email, T15 Telegram), make every n
 
 ### ✅ T111 — [P2] Drop `super_admin` from the per-asociație `memberships` role check (offline)
 Done: migration `20260528000002_drop_super_admin_from_memberships_role.sql` drops and recreates `memberships_role_check` with exactly the six tenant roles (admin/presedinte/comitet/cenzor/proprietar/chirias), no `super_admin`. `tests/unit/membershipRoleConstraint.test.ts` added with 4 regression assertions: drop is idempotent, last effective constraint excludes `super_admin`, covers all six roles exactly, and no `has_role(..., 'super_admin')` appears in RLS policies. `ROLE_RANK` keeps `super_admin` (TypeScript exhaustiveness over `Role`); no `has_role` with `super_admin` existed. 154 files / 1430 tests / build green.
-
-### ✅ T100 — [P1] Mandatory hardened MFA for super_admin accounts
 
 ### ⬜ T88 — [P2] F33 real file upload, role-gated (offline data-URL; live Storage in T89)
 F33 Document arhivă has a page, store and `documents` table (with an unused `storage_path`) but only stores a title, category and free text — there is no real file. Add real document upload so an admin/comitet can upload the building's documents (statut, regulament, contracte cu salubritate/apă/gaz, cadastru) and every member can view + download them, while only admin/comitet can upload or delete. Offline (demo, no backend): persist the file as a size-capped, type-allowlisted base64 data URL in the `documents` store so demo keeps working and a download/open works fully offline; the page shows the upload control only to admin/comitet (`activeRole()`), the download button to everyone. Keep the logic pure + unit-tested, add one E2E and RO/EN strings, and emit a `document.uploaded`/`document.deleted` audit event (extends T09/T85). No backend required. Prereq: T09; coordinates with T51 (role selectors).
