@@ -30,6 +30,20 @@ export interface SendEmailResult {
 
 const RESEND_ENDPOINT = 'https://api.resend.com/emails';
 
+export type MailMode = 'resend' | 'log' | 'disabled';
+
+/**
+ * Reads the MAIL_MODE env var.
+ * - `resend`   (default) — live send via Resend API
+ * - `log`      — write to email_outbox table + console.info; no external call
+ * - `disabled` — silently accept the call; nothing is sent or stored
+ */
+export function getMailMode(): MailMode {
+  const val = process.env.MAIL_MODE;
+  if (val === 'log' || val === 'disabled') return val;
+  return 'resend';
+}
+
 /** True when the Resend env is present so the live send can be attempted. */
 export function isResendConfigured(): boolean {
   return Boolean(process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL);

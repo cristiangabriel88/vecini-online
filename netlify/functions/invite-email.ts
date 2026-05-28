@@ -27,7 +27,7 @@
 import QRCode from 'qrcode';
 import { buildAdminInviteEmail, buildInviteEmail } from '../../src/shared/lib/inviteEmail';
 import { buildOnboardingLink } from '../../src/shared/lib/inviteCode';
-import { isResendConfigured, sendEmail } from './_shared/resend';
+import { getMailMode, isResendConfigured, sendEmail } from './_shared/resend';
 import {
   isSupabaseAdminConfigured,
   supabaseAdmin,
@@ -64,8 +64,12 @@ const UUID_RE =
 export default async (req: Request): Promise<Response> => {
   if (req.method !== 'POST') return json(405, { error: 'method-not-allowed' });
 
-  // Both the email provider and the service-role backend must be present.
-  if (!isResendConfigured()) return json(503, { error: 'email-not-configured' });
+  const mailMode = getMailMode();
+
+  // Live sends require Resend credentials. Log/disabled modes bypass the check.
+  if (mailMode === 'resend' && !isResendConfigured()) {
+    return json(503, { error: 'email-not-configured' });
+  }
   if (!isSupabaseAdminConfigured()) return json(503, { error: 'backend-not-configured' });
 
   // ── Auth: resolve the caller from the bearer token ───────────────────────
@@ -149,6 +153,25 @@ export default async (req: Request): Promise<Response> => {
     });
   }
 
+  // ── Mail mode branching ───────────────────────────────────────────────────
+  if (mailMode === 'disabled') {
+    return json(200, { delivered: false, reason: 'mail_disabled' });
+  }
+
+  if (mailMode === 'log') {
+    void supabaseAdmin()
+      .from('email_outbox')
+      .insert({
+        asociatie_id: invite.asociatie_id,
+        to_email: invite.invitee_email,
+        subject: email.subject,
+        body: email.text,
+      });
+    console.info('[mail:log] invite email queued', inviteId);
+    return json(200, { delivered: false, logged: true });
+  }
+
+  // mailMode === 'resend': live send
   const result = await sendEmail({
     to: invite.invitee_email,
     subject: email.subject,

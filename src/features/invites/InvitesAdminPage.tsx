@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
@@ -13,7 +13,7 @@ import { Badge } from '@/shared/components/Badge';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { QrCode } from '@/shared/components/QrCode';
 import { formatDate } from '@/shared/lib/format';
-import { env } from '@/shared/lib/env';
+import { env, isProd } from '@/shared/lib/env';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useInviteStore } from '@/shared/store/inviteStore';
 import { recordAudit } from '@/shared/store/auditStore';
@@ -29,7 +29,7 @@ import {
 } from '@/features/invites/inviteLogic';
 import { sendInviteEmail } from '@/features/invites/inviteEmailApi';
 import { hydrateInviteDelivery } from '@/features/invites/inviteWriteApi';
-import { isSupabaseConfigured } from '@/shared/lib/supabase';
+import { isSupabaseConfigured, supabase } from '@/shared/lib/supabase';
 import type { Role } from '@/shared/types/domain';
 
 /** Prefill carried in router state when the apartment surface jumps here to
@@ -71,6 +71,22 @@ export default function InvitesAdminPage() {
   const [singleUse, setSingleUse] = useState(true);
   /** Set of invite IDs whose QR panel is currently open. */
   const [openQrs, setOpenQrs] = useState<Set<string>>(() => new Set());
+
+  // DEV/DEMO: email outbox panel (MAIL_MODE=log)
+  const [outboxOpen, setOutboxOpen] = useState(false);
+  const [outboxRows, setOutboxRows] = useState<
+    { id: string; to_email: string; subject: string; created_at: string }[]
+  >([]);
+  const fetchOutbox = useCallback(async () => {
+    if (!asociatieId || !isSupabaseConfigured) return;
+    const { data } = await supabase
+      .from('email_outbox')
+      .select('id, to_email, subject, created_at')
+      .eq('asociatie_id', asociatieId)
+      .order('created_at', { ascending: false })
+      .limit(20);
+    if (data) setOutboxRows(data as typeof outboxRows);
+  }, [asociatieId]);
 
   const apartments = useAsociatieApartments();
 
@@ -353,6 +369,44 @@ export default function InvitesAdminPage() {
               </Card>
             );
           })}
+        </div>
+      )}
+
+      {!isProd() && (
+        <div className="mt-6">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              if (!outboxOpen) void fetchOutbox();
+              setOutboxOpen((o) => !o);
+            }}
+          >
+            {t('invites.outboxToggle')}
+          </Button>
+          {outboxOpen && (
+            <Card className="mt-2">
+              <h3 className="mb-3 text-sm font-semibold text-muted">
+                {t('invites.outboxTitle')}
+              </h3>
+              {outboxRows.length === 0 ? (
+                <p className="text-sm text-muted">{t('invites.outboxEmpty')}</p>
+              ) : (
+                <ul className="space-y-2">
+                  {outboxRows.map((row) => (
+                    <li key={row.id} className="text-sm">
+                      <span className="font-mono text-xs text-muted">
+                        {new Date(row.created_at).toLocaleString()}
+                      </span>{' '}
+                      <span className="text-muted">{row.to_email}</span>
+                      {' — '}
+                      {row.subject}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+          )}
         </div>
       )}
     </div>

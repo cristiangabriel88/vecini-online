@@ -8,6 +8,9 @@ the live `BACKLOG.md` carries only the protocol and the open (⬜) queue.
 > task (read it only when a task's prerequisite or history is genuinely needed).
 > `RESUME.md` §0 remains the dated chronological summary.
 
+### ✅ T175 — [P1] `MAIL_MODE=resend|log|disabled` for the invite-email function
+Done: `getMailMode(): MailMode` added to `resend.ts` (reads `MAIL_MODE` env, defaults `'resend'`; `isResendConfigured()` kept). `invite-email.ts` branches: `disabled` returns 200 `{delivered:false, reason:'mail_disabled'}`; `log` inserts into `email_outbox` + `console.info` + returns 200 `{delivered:false, logged:true}`; `resend` keeps the existing path (503 only in resend mode when unconfigured). Migration `20260529000001_email_outbox.sql`: `email_outbox` table with RLS scoped to admin/presedinte of the asociatie. `MAIL_MODE=log` in `.env.pi.example`, `MAIL_MODE=resend` in `.env.example`. `InvitesAdminPage` gains collapsible "Outbox (DEV)" section when `!isProd()` fetching the last 20 rows. 5 new tests in `mailMode.test.ts`. 160 files / 1485 tests / build / build:pi / build:demo all green.
+
 ### ✅ T174 — [P1] Auto-bypass login in DEMO + remember last role
 Done: `DemoEntry` component added to `router.tsx`; root `/` route is `isDemo() ? <DemoEntry /> : <S><LoginPage /></S>`. `DemoEntry` reads `localStorage['iv.demo.role']` via exported `readLastDemoRole()` (validates against all 7 roles, falls back to `'admin'`), calls `enterDemo(role)`, and navigates to `/app` replacing history. `enterDemo` in `authStore.ts` now writes `localStorage.setItem('iv.demo.role', role)` so every role-switch from `DevRoleSwitcher` is persisted automatically. `LoginPage` unchanged. 13 new tests in `demoEntry.test.ts`. 159 files / 1480 tests / build / build:pi / build:demo all green.
 
