@@ -134,9 +134,15 @@
     "signUp": "Create account",
     "enterDemo": "Enter demo mode",
     "demoPreviewAs": "Preview demo as",
+    "roleSwitcher": "Switch role",
     "demoRole": {
       "admin": "Administrator",
       "superAdmin": "Superadmin",
+      "presedinte": "President",
+      "comitet": "Committee",
+      "cenzor": "Auditor",
+      "proprietar": "Owner",
+      "chirias": "Tenant",
       "locatar": "Resident"
     },
     "noAccount": "No account yet?",

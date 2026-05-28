@@ -21,6 +21,7 @@ import { useMfaEnforcement } from './useMfaEnforcement';
 import { useIdleTimeout } from './useIdleTimeout';
 import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
 import { cn } from '@/shared/lib/cn';
+import { DevRoleSwitcher } from '@/shared/components/DevRoleSwitcher';
 
 function initials(name: string) {
   return name
@@ -562,6 +563,7 @@ export function AppLayout() {
       </main>
       <BottomNav />
       <AssistantWidget />
+      <DevRoleSwitcher />
     </div>
   );
 }

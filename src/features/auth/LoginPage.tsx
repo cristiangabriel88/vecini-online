@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { ArrowUpRight, Building2, Globe, Mail, MailCheck, Moon, Send, ShieldCheck, Smartphone, Sun } from 'lucide-react';
+import { DevRoleSwitcher } from '@/shared/components/DevRoleSwitcher';
 import type { Role } from '@/shared/types/domain';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
@@ -676,32 +677,7 @@ export default function LoginPage() {
                 className="mt-4 pt-4"
                 style={{ borderTop: '1px solid var(--border-subtle)' }}
               >
-                <p className="mb-2 text-center text-xs font-medium uppercase tracking-wide text-muted">
-                  {t('auth.demoPreviewAs')}
-                </p>
-                <div className="grid grid-cols-3 gap-2">
-                  <Button
-                    variant="secondary"
-                    className="w-full"
-                    onClick={() => void enterDemoAs('admin')}
-                  >
-                    {t('auth.demoRole.admin')}
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    className="w-full"
-                    onClick={() => void enterDemoAs('super_admin')}
-                  >
-                    {t('auth.demoRole.superAdmin')}
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    className="w-full"
-                    onClick={() => void enterDemoAs('proprietar')}
-                  >
-                    {t('auth.demoRole.locatar')}
-                  </Button>
-                </div>
+                <DevRoleSwitcher variant="inline" onSelect={(role) => void enterDemoAs(role)} />
               </div>
             )}
           </>

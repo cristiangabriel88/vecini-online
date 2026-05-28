@@ -8,6 +8,9 @@ the live `BACKLOG.md` carries only the protocol and the open (⬜) queue.
 > task (read it only when a task's prerequisite or history is genuinely needed).
 > `RESUME.md` §0 remains the dated chronological summary.
 
+### ✅ T173 — [P1] Floating dev role switcher (DEV + DEMO, hidden in PROD)
+Done: `DevRoleSwitcher.tsx` added (`src/shared/components/`) with `floating` (fixed top-right chip-bar, default) and `inline` (LoginPage) variants. Lists all 7 roles; active role highlighted via `aria-pressed` + `data-active`. In DEMO calls `enterDemo(role)` + navigate; in DEV calls new `signInAsDevUser(role)` (signs in as `{role}@dev.local` using `VITE_DEV_PASSWORD`). `super_admin` uses `super.admin@dev.local`. `signInAsDevUser` added to `AuthState` + `authStore.ts`. Mounted in `AppLayout.tsx` (no-op in PROD). LoginPage inline buttons extracted to `<DevRoleSwitcher variant="inline" onSelect={...} />`. Shell CSS block added. 5 new locale keys per language. 9 new tests. 158 files / 1467 tests / build / build:pi / build:demo all green.
+
 ### ✅ T172 — [P1] Stage-specific build/dev scripts (`build:pi`, `build:demo`, `dev:demo`, `dev:pi`)
 Done: `build:prod` (alias), `build:pi`, `build:demo`, `dev:pi`, `dev:demo` added to `package.json` (using same typecheck pattern as `build`). `.env.pi` + `.env.demo` committed with safe placeholder values; `.gitignore` gains `!.env.pi` + `!.env.demo` exceptions. Both new build scripts produce a working `dist/` (single output directory). lint / typecheck / 1458 tests / build / build:pi / build:demo all green.
 

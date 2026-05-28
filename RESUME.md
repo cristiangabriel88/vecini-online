@@ -19,10 +19,11 @@ under `docs/`, despite references to the contrary). The product is
 > Finished tasks' full done-notes are archived in `COMPLETED.md` (newest first);
 > §0 below stays the dated chronological summary.
 
-## 0. Current status (updated 2026-05-28, T172 done -- stage-specific build/dev scripts live; `build:pi`, `build:demo`, `dev:pi`, `dev:demo` all green; 157 files / 1458 tests)
+## 0. Current status (updated 2026-05-28, T173 done -- floating dev role switcher live in DEV + DEMO; all 7 roles; 158 files / 1467 tests)
 
-The app builds and dev-serves in all three stages: `npm run build` / `build:prod` (PROD), `npm run build:pi` / `dev:pi` (DEV/Pi), `npm run build:demo` / `dev:demo` (DEMO). Committed `.env.pi` and `.env.demo` carry safe placeholder values so the scripts work out of the box. The verification pipeline now includes `build:pi` + `build:demo` alongside `build` for every subsequent task.
+The three-stage model (PROD/DEV/DEMO) is fully operational. A floating role-switcher chip-bar now appears in DEV and DEMO stages, letting the operator flip between all 7 roles from any page without returning to login. In PROD it is absent entirely. LoginPage role buttons are now served by the same shared component.
 
+- **2026-05-28 — T173 (P1) Floating dev role switcher.** `DevRoleSwitcher.tsx` with `floating`/`inline` variants; `signInAsDevUser` added to authStore. Mounted in AppLayout; LoginPage buttons extracted. 5 new locale keys per language. 9 new tests. 158 files / 1467 tests / build / build:pi / build:demo green.
 - **2026-05-28 — T172 (P1) Stage-specific build/dev scripts.** `build:prod`, `build:pi`, `build:demo`, `dev:pi`, `dev:demo` added to `package.json`. `.env.pi` + `.env.demo` committed; `.gitignore` updated with `!.env.pi` + `!.env.demo`. 157 files / 1458 tests / build / build:pi / build:demo green.
 - **2026-05-28 — T171 (P1) Three-stage deployment model.** `AppStage` type + `appStage` field added to `ClientEnv`; `resolveAppStage()` pure helper + `getStage()`/`isProd()`/`isDev()`/`isDemo()` exported. `.env.demo.example` created; `.env.example` + `.env.pi.example` updated with `VITE_APP_STAGE`. 8 new tests. BACKLOG.md / CLAUDE.md protocol updated. 157 files / 1458 tests green.
 - **2026-05-28 — T128 (P0/MVP) Token-security hardening.** Migration `20260528000003` enables pgcrypto, hashes existing plaintext tokens in-place, creates `token_redemption_attempts` table (RLS, no public policy), updates both onboarding RPCs to hash before lookup + rate-limit (10/15 min) + audit `invite.redeemed` on success. `inviteWriteApi.ts` uses Web Crypto to store hash only. `RedeemRpcResult` adds `'rate_limited'`; `AUDIT_ACTIONS` + `ACTION_TONE` + locales updated. MVP spine complete. 156 files / 1452 tests green.

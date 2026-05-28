@@ -134,9 +134,15 @@
     "signUp": "Creează cont",
     "enterDemo": "Intră în modul demonstrativ",
     "demoPreviewAs": "Vizualizează demo ca",
+    "roleSwitcher": "Schimbă rolul",
     "demoRole": {
       "admin": "Administrator",
       "superAdmin": "Superadmin",
+      "presedinte": "Președinte",
+      "comitet": "Comitet",
+      "cenzor": "Cenzor",
+      "proprietar": "Proprietar",
+      "chirias": "Chiriaș",
       "locatar": "Locatar"
     },
     "noAccount": "Nu ai cont?",
