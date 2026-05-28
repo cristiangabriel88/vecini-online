@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet, useLocation, useNavigate, NavLink } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate, NavLink, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Home, Megaphone, Zap, Menu, User, Bell, Moon, Sun, Settings, Search, ChevronDown, Info, Phone, Siren, ArrowUpRight, Globe, KeyRound, ShieldCheck, ClipboardList, ScrollText, Building2, LayoutDashboard, Activity, TriangleAlert, UserCog, MessagesSquare } from 'lucide-react';
 import { FEATURES, FEATURE_CATEGORIES, categoryLabel, featureTitle, type FeatureCategory } from '@/shared/features/registry';
@@ -397,7 +397,7 @@ function Topbar() {
 
   return (
     <header className="topbar">
-      <div className="topbar__brand">
+      <Link to="/app" className="topbar__brand">
         <div className="topbar__logo" aria-hidden="true">
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
             <path
@@ -419,7 +419,7 @@ function Topbar() {
         <div className="topbar__wordmark">
           vecini<em>.online</em>
         </div>
-      </div>
+      </Link>
 
       <div className="topbar__sep" />
 

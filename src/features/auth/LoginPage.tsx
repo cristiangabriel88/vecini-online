@@ -377,23 +377,23 @@ export default function LoginPage() {
     mode === 'signIn' ? 'auth.signInTitle' : mode === 'signUp' ? 'auth.signUpTitle' : 'auth.forgotTitle';
 
   return (
-    <div className="relative z-[1] flex min-h-screen flex-col items-center justify-center px-4">
+    <div className="relative z-[1] flex min-h-[100dvh] flex-col items-center justify-center px-4 pt-20 sm:pt-0">
       <Atmosphere />
       <div className="login-controls">
         <ThemeToggle />
         <LangToggle />
       </div>
-      <div className="mb-7 flex flex-col items-center text-center">
+      <div className="mb-4 flex flex-col items-center text-center sm:mb-7">
         <div
-          className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl text-white"
+          className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl text-white sm:mb-4 sm:h-14 sm:w-14"
           style={{
             background: 'linear-gradient(135deg, var(--primary) 0%, var(--accent-700) 100%)',
             boxShadow: 'var(--shadow-md), inset 0 1px 0 0 oklch(100% 0 0 / 0.2)',
           }}
         >
-          <Building2 className="h-7 w-7" />
+          <Building2 className="h-5 w-5 sm:h-7 sm:w-7" />
         </div>
-        <h1 className="text-4xl text-text" style={{ fontFamily: 'var(--font-serif)', fontWeight: 500, letterSpacing: '-0.02em' }}>
+        <h1 className="text-3xl text-text sm:text-4xl" style={{ fontFamily: 'var(--font-serif)', fontWeight: 500, letterSpacing: '-0.02em' }}>
           vecini
           <em style={{ fontStyle: 'italic', fontWeight: 400, color: 'var(--primary)' }}>.online</em>
         </h1>

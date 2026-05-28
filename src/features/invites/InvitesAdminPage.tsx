@@ -2,13 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { KeyRound, Link2, Mail, QrCode as QrCodeIcon, Ticket, Trash2 } from 'lucide-react';
+import { Link2, Mail, QrCode as QrCodeIcon, Ticket, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
-import { Input } from '@/shared/components/Input';
-import { Select } from '@/shared/components/Select';
-import { Switch } from '@/shared/components/Switch';
 import { Badge } from '@/shared/components/Badge';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { QrCode } from '@/shared/components/QrCode';
@@ -19,9 +16,7 @@ import { useInviteStore } from '@/shared/store/inviteStore';
 import { recordAudit } from '@/shared/store/auditStore';
 import { useAsociatieApartments } from '@/features/admin/apartmentsStore';
 import {
-  type ExpiryPreset,
   type InviteStatus,
-  INVITABLE_ROLES,
   buildInviteLink,
   canEmailInvite,
   expiryFromPreset,
@@ -42,8 +37,6 @@ interface InvitePrefill {
   autoIssue?: boolean;
 }
 
-const EXPIRY_PRESETS: ExpiryPreset[] = ['24h', '7d', '30d', '90d', 'never'];
-
 const STATUS_TONE: Record<InviteStatus, 'success' | 'warning' | 'neutral' | 'danger'> = {
   ok: 'success',
   expired: 'warning',
@@ -63,12 +56,6 @@ export default function InvitesAdminPage() {
   const revoke = useInviteStore((s) => s.revoke);
   const markEmailSent = useInviteStore((s) => s.markEmailSent);
 
-  const [role, setRole] = useState<Role>('proprietar');
-  const [apartmentId, setApartmentId] = useState('');
-  const [inviteeName, setInviteeName] = useState('');
-  const [inviteeEmail, setInviteeEmail] = useState('');
-  const [expiry, setExpiry] = useState<ExpiryPreset>('30d');
-  const [singleUse, setSingleUse] = useState(true);
   /** Set of invite IDs whose QR panel is currently open. */
   const [openQrs, setOpenQrs] = useState<Set<string>>(() => new Set());
 
@@ -106,10 +93,6 @@ export default function InvitesAdminPage() {
     const prefill = (location.state as { prefill?: InvitePrefill } | null)?.prefill;
     if (!prefill || !asociatieId) return;
     prefillApplied.current = true;
-    if (prefill.role) setRole(prefill.role);
-    setApartmentId(prefill.apartmentId ?? '');
-    setInviteeName(prefill.inviteeName ?? '');
-    setInviteeEmail(prefill.inviteeEmail ?? '');
     if (prefill.autoIssue) {
       const invite = issue({
         asociatieId,
@@ -151,27 +134,6 @@ export default function InvitesAdminPage() {
       </div>
     );
   }
-
-  const onIssue = () => {
-    const invite = issue({
-      asociatieId,
-      role,
-      apartmentId: apartmentId || null,
-      expiresAt: expiryFromPreset(expiry),
-      singleUse,
-      createdBy: userId,
-      inviteeName: inviteeName.trim() || null,
-      inviteeEmail: inviteeEmail.trim() || null,
-    });
-    recordAudit({
-      action: 'invite.issued',
-      entity: 'invite',
-      entity_label: invite.code,
-      before: null,
-      after: invite.role,
-    });
-    toast.success(t('invites.issued'));
-  };
 
   const onRevoke = (id: string, code: string) => {
     revoke(id);
@@ -232,72 +194,6 @@ export default function InvitesAdminPage() {
     <div>
       <PageHeader title={t('invites.title')} subtitle={t('invites.subtitle')} />
 
-      <Card className="mb-6">
-        <h2 className="mb-4 text-lg font-semibold">{t('invites.issueTitle')}</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Select
-            label={t('invites.role')}
-            value={role}
-            onChange={(e) => setRole(e.target.value as Role)}
-          >
-            {INVITABLE_ROLES.map((r) => (
-              <option key={r} value={r}>
-                {t(`invites.role_${r}`)}
-              </option>
-            ))}
-          </Select>
-          <Select
-            label={t('invites.apartment')}
-            value={apartmentId}
-            onChange={(e) => setApartmentId(e.target.value)}
-          >
-            <option value="">{t('invites.anyApartment')}</option>
-            {apartments.map((a) => (
-              <option key={a.id} value={a.id}>
-                {t('invites.aptShort', { number: a.numar_apartament, scara: a.scara })}
-              </option>
-            ))}
-          </Select>
-          <Input
-            label={t('invites.inviteeName')}
-            value={inviteeName}
-            onChange={(e) => setInviteeName(e.target.value)}
-          />
-          <Input
-            type="email"
-            label={t('invites.inviteeEmail')}
-            value={inviteeEmail}
-            onChange={(e) => setInviteeEmail(e.target.value)}
-          />
-          <Select
-            label={t('invites.expiry')}
-            value={expiry}
-            onChange={(e) => setExpiry(e.target.value as ExpiryPreset)}
-          >
-            {EXPIRY_PRESETS.map((preset) => (
-              <option key={preset} value={preset}>
-                {t(`invites.expiry_${preset}`)}
-              </option>
-            ))}
-          </Select>
-          <label className="flex items-center gap-3 self-end pb-1">
-            <Switch
-              label={t('invites.singleUse')}
-              checked={singleUse}
-              onChange={setSingleUse}
-            />
-            <span className="text-sm">
-              {singleUse ? t('invites.singleUse') : t('invites.reusable')}
-            </span>
-          </label>
-        </div>
-        <div className="mt-4">
-          <Button onClick={onIssue}>
-            <KeyRound className="h-4 w-4" /> {t('invites.issue')}
-          </Button>
-        </div>
-      </Card>
-
       <h2 className="mb-2 text-lg font-semibold">{t('invites.listTitle')}</h2>
       {list.length === 0 ? (
         <EmptyState icon={<Ticket className="h-6 w-6" />} body={t('invites.empty')} />
@@ -354,10 +250,10 @@ export default function InvitesAdminPage() {
                   {invite.expiresAt === null
                     ? t('invites.neverExpires')
                     : t('invites.expiresOn', { date: formatDate(invite.expiresAt) })}
-                  {invite.consumedAt !== null &&
-                    ` · ${t('invites.consumedOn', { date: formatDate(invite.consumedAt) })}`}
                   {invite.emailSentAt !== null &&
                     ` · ${t('invites.emailSentOn', { date: formatDate(invite.emailSentAt) })}`}
+                  {invite.consumedAt !== null &&
+                    ` · ${t('invites.consumedOn', { date: formatDate(invite.consumedAt) })}`}
                   {invite.emailDeliveredAt !== null &&
                     ` · ${t('invites.emailDeliveredOn', { date: formatDate(invite.emailDeliveredAt) })}`}
                 </p>

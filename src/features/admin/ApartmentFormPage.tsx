@@ -422,7 +422,6 @@ export default function ApartmentFormPage() {
                   style={{ marginBottom: 6, flexShrink: 0 }}
                 >
                   <Trash2 size={15} />
-                  {t('apartments.removePerson')}
                 </Button>
               </div>
             ))}

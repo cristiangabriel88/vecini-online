@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Check } from 'lucide-react';
 import { Button } from '@/shared/components/Button';
 import { Card } from '@/shared/components/Card';
-import { Input, Textarea } from '@/shared/components/Input';
+import { Input } from '@/shared/components/Input';
 import { Switch } from '@/shared/components/Switch';
 import { Badge } from '@/shared/components/Badge';
 import {
@@ -27,7 +27,7 @@ import { useAuthStore } from '@/shared/store/authStore';
  * live here has moved to ApartmentsPage; the bulk-invite step has moved to
  * InvitesAdminPage.
  */
-const STEPS = ['profile', 'features', 'branding'] as const;
+const STEPS = ['profile', 'features'] as const;
 
 export default function OnboardingWizard() {
   const { t } = useTranslation();
@@ -40,8 +40,6 @@ export default function OnboardingWizard() {
   const [selected, setSelected] = useState<Record<string, boolean>>(
     Object.fromEntries(RECOMMENDED_FEATURES.map((k) => [k, true])),
   );
-  const [branding, setBranding] = useState({ color: '#2563eb', welcome: '' });
-
   const finish = () => {
     // Create the asociatie locally (founder becomes its admin and it is selected
     // as active), so the user clears the RequireAsociatie gate and lands in a
@@ -99,12 +97,7 @@ export default function OnboardingWizard() {
                 onChange={(e) => setProfile({ ...profile, regNumber: e.target.value })}
               />
             </div>
-            <p className="border-t border-border pt-4 text-sm text-muted">
-              {t('onboarding.haveCode')}{' '}
-              <Link to="/configurare-cont" className="auth-link">
-                {t('onboarding.joinLink')}
-              </Link>
-            </p>
+
           </div>
         )}
 
@@ -134,29 +127,6 @@ export default function OnboardingWizard() {
                 </div>
               </div>
             ))}
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold">{t('onboarding.branding')}</h2>
-            <div>
-              <label htmlFor="brand-color" className="block text-sm font-medium">
-                {t('onboarding.primaryColor')}
-              </label>
-              <input
-                id="brand-color"
-                type="color"
-                value={branding.color}
-                onChange={(e) => setBranding({ ...branding, color: e.target.value })}
-                className="mt-1 h-11 w-20 rounded border border-border"
-              />
-            </div>
-            <Textarea
-              label={t('onboarding.welcomeMessage')}
-              value={branding.welcome}
-              onChange={(e) => setBranding({ ...branding, welcome: e.target.value })}
-            />
           </div>
         )}
 

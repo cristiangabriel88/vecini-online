@@ -901,8 +901,8 @@
     }
   },
   "invites": {
-    "title": "Coduri de invitație",
-    "subtitle": "Generează coduri prin care vecinii se alătură asociației. Fiecare cod este legat de asociația activă și poate avea un rol, un apartament și o dată de expirare.",
+    "title": "Invitații",
+    "subtitle": "Gestionează codurile de invitație emise. Vizualizează statusul, copiază linkul, trimite pe email sau revocă accesul.",
     "issueTitle": "Generează un cod nou",
     "listTitle": "Coduri emise",
     "role": "Rol acordat",
@@ -2449,7 +2449,7 @@
     "features": "Funcționalități",
     "apartments": "Apartamente",
     "building": "Configurarea asociației",
-    "invites": "Coduri de invitație",
+    "invites": "Invitații",
     "dataRequests": "Cereri date personale",
     "processing": "Prelucrarea datelor (DPA)",
     "breaches": "Incidente de securitate",
