@@ -19,10 +19,11 @@ under `docs/`, despite references to the contrary). The product is
 > Finished tasks' full done-notes are archived in `COMPLETED.md` (newest first);
 > §0 below stays the dated chronological summary.
 
-## 0. Current status (updated 2026-05-28, T176 done -- npm run pi:seed seeds one auth user per role on the Pi DEV stack; 161 files / 1495 tests)
+## 0. Current status (updated 2026-05-28, T177 done -- stage banner chip in DEV/DEMO app shell; 163 files / 1500 tests)
 
-The three-stage model (PROD/DEV/DEMO) is fully operational. The Pi DEV stage has email disabled (`MAIL_MODE=log`) and a seed script to provision one auth user per role so every role is reachable without invite flows.
+The three-stage model (PROD/DEV/DEMO) is fully operational. A fixed bottom-left stage banner (amber for DEV, warm-graphite for DEMO) makes each stage immediately recognizable. Next: T178 documentation pass for the three-stage model.
 
+- **2026-05-28 — T177 (P2) Visible stage banner.** `StageBanner.tsx`: fixed bottom-left pill, amber (`--warning-soft`) for DEV, warm-graphite (`--bg-inverse`) for DEMO, hidden in PROD. CSS + bilingual locale keys + 5 new tests. 163 files / 1500 tests / build / build:pi / build:demo green.
 - **2026-05-28 — T176 (P1) npm run pi:seed.** `scripts/pi-seed.mjs`: 7 dev auth users (`{role}@dev.local`, `super.admin@dev.local`), upserts memberships + platform_admins, `--password` override, stage + cloud-URL guards. `seed` subcommand in `pi.sh`; `pi:seed` in `package.json`; `PI_DEPLOYMENT.md` documents role/email/password table. 10 new tests. 161 files / 1495 tests / build / build:pi / build:demo green.
 - **2026-05-28 — T175 (P1) MAIL_MODE=resend|log|disabled for invite-email.** `getMailMode()` added to `resend.ts`; `invite-email.ts` branches on mode; migration `20260529000001_email_outbox.sql`; `.env.pi.example` gains `MAIL_MODE=log`; `InvitesAdminPage` gains collapsible outbox panel. 5 new tests. 160 files / 1485 tests / build / build:pi / build:demo green.
 - **2026-05-28 — T174 (P1) Auto-bypass login in DEMO + remember last role.** `DemoEntry` in `router.tsx`; root `/` route skips LoginPage in DEMO, reads `localStorage['iv.demo.role']` via `readLastDemoRole()`, enters demo, navigates to `/app`. `enterDemo` persists role on every switch. 13 new tests. 159 files / 1480 tests / build / build:pi / build:demo green.

@@ -135,6 +135,10 @@
     "enterDemo": "Intră în modul demonstrativ",
     "demoPreviewAs": "Vizualizează demo ca",
     "roleSwitcher": "Schimbă rolul",
+    "stageBanner": {
+      "dev": "DEV (Pi)",
+      "demo": "DEMO"
+    },
     "demoRole": {
       "admin": "Administrator",
       "superAdmin": "Superadmin",

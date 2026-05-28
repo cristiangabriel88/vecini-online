@@ -8,6 +8,9 @@ the live `BACKLOG.md` carries only the protocol and the open (⬜) queue.
 > task (read it only when a task's prerequisite or history is genuinely needed).
 > `RESUME.md` §0 remains the dated chronological summary.
 
+### ✅ T177 — [P2] Visible stage banner in the app shell (DEV / DEMO only)
+Done: `StageBanner.tsx` added (`src/shared/components/`): returns null in PROD, renders a fixed bottom-left pill with `--warning-soft`/`--warning-text` in DEV and `--bg-inverse`/`--text-inverse` (warm-graphite) in DEMO. CSS block added to `shell.css` using `iv-fade-in` animation; `prefers-reduced-motion` guard added. Mounted in `AppLayout.tsx` next to `<DevRoleSwitcher />`. `auth.stageBanner.dev` + `auth.stageBanner.demo` keys added to both locale files. 5 new tests. 163 files / 1500 tests / build / build:pi / build:demo green.
+
 ### ✅ T176 — [P1] `npm run pi:seed` — one Supabase user per role with a known dev password
 Done: `scripts/pi-seed.mjs` reads `.env` (lite parser, no extra deps), guards against non-dev stage + cloud URL, creates/skips one auth user per role (`admin@dev.local`, `presedinte@dev.local`, `comitet@dev.local`, `cenzor@dev.local`, `proprietar@dev.local`, `chirias@dev.local`, `super.admin@dev.local`) using `supabase.auth.admin.createUser`, upserts `users` + `memberships` rows for the 6 tenant roles, upserts a `platform_admins` row for super_admin. `--password` CLI flag + `VITE_DEV_PASSWORD` env override supported. Idempotent. `seed` subcommand added to `scripts/pi.sh`; `pi:seed` added to `package.json`. Role/email/password table + guards documented in new `## DEV users (pi:seed)` section of `PI_DEPLOYMENT.md`. 10 static-analysis tests in `piSeed.test.ts`. 161 files / 1495 tests / build / build:pi / build:demo all green.
 

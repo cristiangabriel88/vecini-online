@@ -135,6 +135,10 @@
     "enterDemo": "Enter demo mode",
     "demoPreviewAs": "Preview demo as",
     "roleSwitcher": "Switch role",
+    "stageBanner": {
+      "dev": "DEV (Pi)",
+      "demo": "DEMO"
+    },
     "demoRole": {
       "admin": "Administrator",
       "superAdmin": "Superadmin",
