@@ -4,6 +4,13 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T180 P0 ✅ — Gate /onboarding to provisioned admins only in PROD
+- api/code: `onboardingGateLogic.ts` (`PROVISIONAL_ASOCIATIE_NAME` + `findProvisionalAdminMembership(memberships, localAsociatii)` pure); `RequireOnboardingEntry` component wraps `/onboarding` route (DEMO/DEV pass through; PROD requires provisional admin membership, else redirect to / + toast); `RequireAsociatie` member-less users sent to / (+ toast) in PROD instead of /onboarding; defensive `useEffect` guard inside `OnboardingWizard` redirects to /app if wizard already completed this session
+- router: `/onboarding` now wrapped in `RequireAuth` + `RequireOnboardingEntry`
+- locales: `auth.noValidInvite` EN+RO
+- tests: `onboardingGateLogic.test.ts` 8 cases covering offline provisional, live provisional, established admin, multi-membership
+- result: 165 files / 1538 tests / build+pi+demo green
+
 ### T179 P0 ✅ — Hide signup form + remove create-asoc CTA for invalid invite tokens
 - api/code: `isInvalidTokenState(resolved, resolving, isLive)` pure helper in `accountSetupLogic.ts`; `AccountSetupPage` renders error-only state (AlertCircle icon + `setup.invalidTitle` + status-specific `setup.err_<status>` body + `setup.contactAdmin` + login link) when token is invalid/expired/used/revoked/unknown after resolution, with no form inputs visible; `setup.createPrompt` / `setup.createLink` (the `/onboarding` self-service CTA) removed unconditionally
 - locales: `setup.invalidTitle` + `setup.contactAdmin` in RO + EN

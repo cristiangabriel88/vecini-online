@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
@@ -18,6 +18,8 @@ import {
 } from '@/shared/features/registry';
 import { useFeatureStore } from '@/shared/features/featureStore';
 import { useAuthStore } from '@/shared/store/authStore';
+import { isProd } from '@/shared/lib/env';
+import { PROVISIONAL_ASOCIATIE_NAME } from './onboardingGateLogic';
 
 /**
  * Three-step wizard that an admin lands on after accepting their setup link
@@ -34,6 +36,15 @@ export default function OnboardingWizard() {
   const navigate = useNavigate();
   const setAll = useFeatureStore((s) => s.setAll);
   const createLocalAsociatie = useAuthStore((s) => s.createLocalAsociatie);
+  const localAsociatii = useAuthStore((s) => s.localAsociatii);
+
+  // Defensive: in PROD, if the wizard was already completed this session
+  // (evidenced by a localAsociatii entry with a real name), redirect to /app.
+  useEffect(() => {
+    if (isProd() && localAsociatii.some((a) => a.name !== PROVISIONAL_ASOCIATIE_NAME)) {
+      navigate('/app', { replace: true });
+    }
+  }, [localAsociatii, navigate]);
 
   const [step, setStep] = useState(0);
   const [profile, setProfile] = useState({ name: '', address: '', cui: '', regNumber: '' });

@@ -173,6 +173,7 @@
     "registerAdmin": "Înregistrare administrator",
     "noAsociatie": "Nu ai încă o asociație configurată.",
     "createFirst": "Creează prima asociație",
+    "noValidInvite": "Nicio invitație validă. Contactează echipa platformei.",
     "invalidCredentials": "Email sau parolă incorecte.",
     "demoMode": "Mod demonstrativ — fără backend configurat. Datele afișate sunt exemple.",
     "lockout": "Prea multe încercări eșuate. Contul este blocat temporar. Reîncearcă peste aproximativ {{minutes}} min.",

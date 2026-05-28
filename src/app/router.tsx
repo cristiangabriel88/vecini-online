@@ -7,6 +7,7 @@ import { RequireAsociatie } from './RequireAsociatie';
 import { RequireWelcome } from './RequireWelcome';
 import { RequireAdmin } from './RequireAdmin';
 import { RequireSuperAdmin } from './RequireSuperAdmin';
+import { RequireOnboardingEntry } from './RequireOnboardingEntry';
 import { RouteFallback } from '@/shared/components/RouteFallback';
 import { useAuthStore } from '@/shared/store/authStore';
 import { isDemo } from '@/shared/lib/env';
@@ -156,7 +157,16 @@ export const router = createBrowserRouter([
   { path: '/termeni', element: <S><TermsPage /></S> },
   { path: '/cookies', element: <S><CookiePolicyPage /></S> },
   { path: '/protectia-consumatorului', element: <S><ConsumerRightsPage /></S> },
-  { path: '/onboarding', element: <S><OnboardingWizard /></S> },
+  {
+    path: '/onboarding',
+    element: (
+      <RequireAuth>
+        <RequireOnboardingEntry>
+          <S><OnboardingWizard /></S>
+        </RequireOnboardingEntry>
+      </RequireAuth>
+    ),
+  },
   { path: '/configurare-cont', element: <S><AccountSetupPage /></S> },
   { path: '/confirma-2fa', element: <S><Confirm2faPage /></S> },
   { path: '/onboarding/alatura', element: <LegacyJoinRedirect /> },

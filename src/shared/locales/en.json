@@ -173,6 +173,7 @@
     "registerAdmin": "Register administrator",
     "noAsociatie": "You don't have an association configured yet.",
     "createFirst": "Create your first association",
+    "noValidInvite": "No valid invitation. Contact the platform team.",
     "invalidCredentials": "Incorrect email or password.",
     "demoMode": "Demo mode — no backend configured. Displayed data is sample data.",
     "lockout": "Too many failed attempts. Your account is temporarily locked. Try again in about {{minutes}} min.",

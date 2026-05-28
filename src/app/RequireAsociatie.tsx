@@ -1,9 +1,10 @@
 import { type ReactNode, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
 import { useAuthStore } from '@/shared/store/authStore';
 import { hasNoActiveAsociatie, resolveAsociatieRoute } from '@/features/auth/hydrationLogic';
-import { env } from '@/shared/lib/env';
+import { env, isProd } from '@/shared/lib/env';
 
 /**
  * Gate that distinguishes "authenticated" from "authenticated with an active
@@ -37,6 +38,14 @@ export function RequireAsociatie({ children }: { children: ReactNode }) {
     }
   }, [route]);
 
+  // In PROD, a member-less authenticated user has no self-service path to create
+  // an asociatie -- they must receive a valid invite from the platform team. Show
+  // a toast and send them to the login page instead of /onboarding.
+  const needsInviteToast = route === 'onboarding' && isProd();
+  useEffect(() => {
+    if (needsInviteToast) toast.error(t('auth.noValidInvite'));
+  }, [needsInviteToast, t]);
+
   // Wait for hydration to finish before deciding, so we never bounce a user who
   // does have memberships (or a superadmin status) still being fetched.
   if (session && hydrating) {
@@ -50,6 +59,10 @@ export function RequireAsociatie({ children }: { children: ReactNode }) {
   if (route === 'platform-redirect') return null;
   // Only a member-less, non-superadmin user is redirected out to onboarding; the
   // superadmin and ordinary members both render the shell.
-  if (route === 'onboarding') return <Navigate to="/onboarding" replace />;
+  if (route === 'onboarding') {
+    // In PROD there is no self-service onboarding; the platform team provisions
+    // every new asociatie and sends an invite. Redirect to / (login page).
+    return isProd() ? <Navigate to="/" replace /> : <Navigate to="/onboarding" replace />;
+  }
   return <>{children}</>;
 }
