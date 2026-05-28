@@ -9,7 +9,7 @@
  * so the gate component stays declarative and is unit-testable in isolation.
  */
 
-/** The five mutually-exclusive states the platform gate can resolve to. */
+/** The six mutually-exclusive states the platform gate can resolve to. */
 export type PlatformAccess =
   // The shared session is still being restored (initial load).
   | 'loading'
@@ -19,7 +19,10 @@ export type PlatformAccess =
   | 'verifying'
   // A live session exists but the account is not a platform superadmin.
   | 'denied'
-  // Demo, or a verified live superadmin: the console is reachable.
+  // Verified superadmin but no second factor enrolled (T100). The gate blocks
+  // console access and shows a mandatory enrollment screen.
+  | 'mfa-enrollment-required'
+  // Demo, or a verified live superadmin with 2FA enrolled: the console is reachable.
   | 'granted';
 
 export interface PlatformAccessInput {
@@ -33,6 +36,12 @@ export interface PlatformAccessInput {
   verifying: boolean;
   /** Result of the server-side check: null until it has run. */
   isSuperAdmin: boolean | null;
+  /** True when a real Supabase backend is configured (T100). */
+  supabaseConfigured?: boolean;
+  /** True once the MFA enrollment status has been resolved at least once (T100). */
+  mfaLoaded?: boolean;
+  /** True when the account has a verified second factor enrolled (T100). */
+  mfaEnrolled?: boolean;
 }
 
 /**
@@ -47,5 +56,12 @@ export function resolvePlatformAccess(input: PlatformAccessInput): PlatformAcces
   if (input.loading) return 'loading';
   if (!input.hasSession) return 'unauthenticated';
   if (input.verifying || input.isSuperAdmin === null) return 'verifying';
-  return input.isSuperAdmin ? 'granted' : 'denied';
+  if (!input.isSuperAdmin) return 'denied';
+  // T100: a verified superadmin must have a second factor enrolled before the
+  // console is reachable. Only enforced on the live path; demo mode is exempt so
+  // the showcase remains fully navigable without a backend.
+  if (input.supabaseConfigured && input.mfaLoaded && !input.mfaEnrolled) {
+    return 'mfa-enrollment-required';
+  }
+  return 'granted';
 }

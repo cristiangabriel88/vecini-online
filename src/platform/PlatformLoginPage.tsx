@@ -8,8 +8,10 @@ import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
 import { Card } from '@/shared/components/Card';
 import { useAuthStore } from '@/shared/store/authStore';
+import { useMfaStore } from '@/shared/store/mfaStore';
 import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import { isValidEmail, mapAuthError } from '@/features/auth/authLogic';
+import { isValidTotpFormat, mfaErrorKey } from '@/features/auth/mfaLogic';
 import { usePlatformAuthStore } from './platformAuthStore';
 
 /** Round a remaining-lockout duration up to whole minutes for the message. */
@@ -50,14 +52,26 @@ export default function PlatformLoginPage() {
   const navigate = useNavigate();
   const signIn = useAuthStore((s) => s.signIn);
   const enterDemo = usePlatformAuthStore((s) => s.enterDemo);
+  const challengeRequired = useMfaStore((s) => s.challengeRequired);
+  const verifyChallenge = useMfaStore((s) => s.verifyChallenge);
+  const challengeLockMs = useMfaStore((s) => s.challengeLockMs);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  // After password sign-in, if the account has a TOTP factor, we gate on the
+  // challenge before navigating to the console (T100). 'demo' uses the same UI
+  // against the locally-stored demo TOTP secret.
+  const [pendingMfa, setPendingMfa] = useState<'demo' | 'live' | null>(null);
+  const [mfaCode, setMfaCode] = useState('');
 
-  const enterDemoConsole = () => {
-    enterDemo();
-    navigate('/consola');
+  const enterDemoConsole = async () => {
+    if (await challengeRequired()) {
+      setPendingMfa('demo');
+    } else {
+      enterDemo();
+      navigate('/consola');
+    }
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -77,8 +91,42 @@ export default function PlatformLoginPage() {
         toast.error(t(`auth.err.${mapAuthError(error)}`));
         return;
       }
-      // The gate re-verifies super_admin server-side; a non-operator is denied
-      // there rather than here, so the login flow never leaks who is an operator.
+      // If the account has a TOTP factor enrolled, require the challenge before
+      // reaching the console. The gate re-verifies super_admin server-side.
+      if (await challengeRequired()) {
+        setPendingMfa('live');
+      } else {
+        navigate('/consola');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const submitChallenge = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isValidTotpFormat(mfaCode) && mfaCode.length < 6) return;
+    const lockRemaining = challengeLockMs();
+    if (lockRemaining > 0) {
+      toast.error(t('auth.lockout', { minutes: lockoutMinutes(lockRemaining) }));
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error, lockedMs } = await verifyChallenge(mfaCode);
+      if (lockedMs > 0) {
+        toast.error(t('auth.lockout', { minutes: lockoutMinutes(lockedMs) }));
+        return;
+      }
+      if (error) {
+        toast.error(t(`auth.mfa.err.${mfaErrorKey(error)}`));
+        return;
+      }
+      if (pendingMfa === 'demo') {
+        enterDemo();
+      }
+      setMfaCode('');
+      setPendingMfa(null);
       navigate('/consola');
     } finally {
       setLoading(false);
@@ -109,7 +157,33 @@ export default function PlatformLoginPage() {
       </div>
 
       <Card className="w-full max-w-sm">
-        {isSupabaseConfigured ? (
+        {pendingMfa ? (
+          <form onSubmit={submitChallenge} className="space-y-4">
+            <div>
+              <h2 className="text-lg font-semibold">{t('auth.mfa.challengeTitle')}</h2>
+              <p className="mt-1 text-sm text-muted">{t('auth.mfa.challengeBody')}</p>
+            </div>
+            <Input
+              label={t('auth.mfa.codeLabel')}
+              hint={t('auth.mfa.challengeHint')}
+              value={mfaCode}
+              onChange={(e) => setMfaCode(e.target.value)}
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              autoFocus
+            />
+            <Button type="submit" className="w-full" loading={loading} disabled={mfaCode.length < 6}>
+              {t('auth.mfa.verify')}
+            </Button>
+            <button
+              type="button"
+              className="w-full text-sm text-muted underline-offset-4 hover:text-text hover:underline"
+              onClick={() => { setPendingMfa(null); setMfaCode(''); }}
+            >
+              {t('platform.login.backToSignIn')}
+            </button>
+          </form>
+        ) : isSupabaseConfigured ? (
           <form onSubmit={submit} className="space-y-4">
             <div>
               <h2 className="text-lg font-semibold">{t('platform.login.title')}</h2>
@@ -141,7 +215,7 @@ export default function PlatformLoginPage() {
             <p className="rounded-lg bg-warning/10 px-3 py-2 text-sm text-warning">
               {t('platform.login.demoNotice')}
             </p>
-            <Button className="w-full" onClick={enterDemoConsole}>
+            <Button className="w-full" onClick={() => void enterDemoConsole()}>
               {t('platform.login.enterDemo')}
             </Button>
           </div>

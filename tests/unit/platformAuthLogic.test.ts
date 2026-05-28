@@ -8,9 +8,9 @@ import {
   platformTotals,
 } from '@/platform/demoPlatform';
 
-// T93 — the platform (superadmin) app shell. The gate's behaviour is driven by a
-// single pure decision (resolvePlatformAccess) so it can be exhaustively checked
-// offline, and the demo overview totals are derived purely.
+// T93/T100 — the platform (superadmin) app shell. The gate's behaviour is driven
+// by a single pure decision (resolvePlatformAccess) so it can be exhaustively
+// checked offline, and the demo overview totals are derived purely.
 
 const base: PlatformAccessInput = {
   loading: false,
@@ -18,6 +18,15 @@ const base: PlatformAccessInput = {
   hasSession: false,
   verifying: false,
   isSuperAdmin: null,
+};
+
+const liveGranted: PlatformAccessInput = {
+  ...base,
+  hasSession: true,
+  isSuperAdmin: true,
+  supabaseConfigured: true,
+  mfaLoaded: true,
+  mfaEnrolled: true,
 };
 
 describe('resolvePlatformAccess (T93)', () => {
@@ -46,10 +55,8 @@ describe('resolvePlatformAccess (T93)', () => {
     ).toBe('verifying');
   });
 
-  it('grants a verified platform superadmin', () => {
-    expect(
-      resolvePlatformAccess({ ...base, hasSession: true, isSuperAdmin: true }),
-    ).toBe('granted');
+  it('grants a verified platform superadmin with 2FA enrolled', () => {
+    expect(resolvePlatformAccess(liveGranted)).toBe('granted');
   });
 
   it('denies a live session whose super_admin check returned false', () => {
@@ -62,6 +69,58 @@ describe('resolvePlatformAccess (T93)', () => {
     const access = resolvePlatformAccess({ ...base, hasSession: true, isSuperAdmin: null });
     expect(access).not.toBe('denied');
     expect(access).toBe('verifying');
+  });
+});
+
+describe('resolvePlatformAccess — mandatory MFA enrollment (T100)', () => {
+  it('requires enrollment when superadmin is live and 2FA is not enrolled', () => {
+    expect(
+      resolvePlatformAccess({
+        ...liveGranted,
+        mfaEnrolled: false,
+      }),
+    ).toBe('mfa-enrollment-required');
+  });
+
+  it('grants the console once 2FA is enrolled', () => {
+    expect(resolvePlatformAccess(liveGranted)).toBe('granted');
+  });
+
+  it('does not require enrollment when MFA status is not yet loaded (avoids flash)', () => {
+    // mfaLoaded: false => the gate should not block while the status resolves
+    expect(
+      resolvePlatformAccess({
+        ...liveGranted,
+        mfaLoaded: false,
+        mfaEnrolled: false,
+      }),
+    ).toBe('granted');
+  });
+
+  it('does not require enrollment in demo mode regardless of enrollment status', () => {
+    // Demo always short-circuits to granted.
+    expect(
+      resolvePlatformAccess({
+        ...liveGranted,
+        demo: true,
+        mfaEnrolled: false,
+      }),
+    ).toBe('granted');
+  });
+
+  it('does not require enrollment when Supabase is not configured (offline)', () => {
+    expect(
+      resolvePlatformAccess({
+        ...liveGranted,
+        supabaseConfigured: false,
+        mfaEnrolled: false,
+      }),
+    ).toBe('granted');
+  });
+
+  it('does not require enrollment when supabaseConfigured is absent (legacy callers)', () => {
+    const { supabaseConfigured: _sc, mfaLoaded: _ml, mfaEnrolled: _me, ...legacy } = liveGranted;
+    expect(resolvePlatformAccess(legacy)).toBe('granted');
   });
 });
 

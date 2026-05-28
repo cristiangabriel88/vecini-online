@@ -2524,7 +2524,8 @@
       "subtitle": "Acces restricționat operatorilor platformei.",
       "signIn": "Intră în consolă",
       "demoNotice": "Mod demonstrativ — fără backend configurat. Intri în consolă cu date exemplu.",
-      "enterDemo": "Intră în consola demo"
+      "enterDemo": "Intră în consola demo",
+      "backToSignIn": "Înapoi la autentificare"
     },
     "access": {
       "verifying": "Se verifică accesul...",
@@ -2684,6 +2685,11 @@
         "provisionFailed": "Eroare la creare. Verificați configurarea și încercați din nou.",
         "forbidden": "Acces interzis. Contul nu are drepturi de superadmin."
       }
+    },
+    "mfa": {
+      "enrollTitle": "Autentificare în doi pași obligatorie",
+      "enrollBody": "Conturile operatorilor platformei trebuie să aibă autentificarea în doi pași (2FA) activată înainte de a accesa consola. Aceasta protejează platforma chiar dacă parola este compromisă.",
+      "enrolledNotice": "2FA este obligatorie pentru operatorii platformei și nu poate fi dezactivată cât timp rolul este deținut."
     }
   }
 }

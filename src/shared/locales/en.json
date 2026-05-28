@@ -2522,7 +2522,8 @@
       "subtitle": "Restricted to platform operators.",
       "signIn": "Enter console",
       "demoNotice": "Demo mode — no backend configured. You enter the console with sample data.",
-      "enterDemo": "Enter demo console"
+      "enterDemo": "Enter demo console",
+      "backToSignIn": "Back to sign-in"
     },
     "access": {
       "verifying": "Checking access...",
@@ -2677,6 +2678,11 @@
         "provisionFailed": "Error creating invitation. Check your configuration and try again.",
         "forbidden": "Access denied. Account does not have superadmin rights."
       }
+    },
+    "mfa": {
+      "enrollTitle": "Two-factor authentication required",
+      "enrollBody": "Platform operator accounts must have two-factor authentication (2FA) enabled before accessing the console. This protects the platform even if your password is compromised.",
+      "enrolledNotice": "2FA is mandatory for platform operators and cannot be disabled while the role is held."
     }
   }
 }
