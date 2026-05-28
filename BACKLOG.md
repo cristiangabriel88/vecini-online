@@ -53,6 +53,7 @@ The existing GDPR / security / legal tasks (T06, T21, T22, T23, …) are **kept,
 
 Do these steps, in order, every time:
 
+0. **Sync with main.** `git fetch origin main && git pull origin main` before reading any file or writing any code. Always start from the latest state of the branch.
 1. **Pick the task.** Read this file. The current task is the **highest-priority unchecked task whose prerequisites are met** — i.e. the topmost `⬜` in `## Task queue` (the queue is kept sorted by priority). If the verification pipeline is currently red, fixing it *is* the task and outranks everything.
 2. **Re-establish only what this task needs.** Read just the slice of context the task touches, not all of every doc: the relevant `RESUME.md` §0 status entry / counts, the relevant `FEATURES.md` row, and the relevant code. **Read a doc only if the task touches its domain** — skip `FEATURES.md` for a non-feature task, don't read the whole status log when one entry suffices, and consult `COMPLETED.md` only when a prerequisite's history is genuinely needed. Match existing conventions exactly.
 3. **Implement it fully.** No TODOs, no placeholders, no commented-out code. Follow the established per-feature pattern: logic module → Zustand demo store seeded from `src/shared/demo/demoData.ts` → feature page → flip `registry.ts` toggle to `implemented` → add route → `/command` bot help → RO/EN locales → unit test → one E2E happy-path. UI must be **fully bilingual (RO + EN)** and meet the **premium-feel** bar.
@@ -66,7 +67,7 @@ Do these steps, in order, every time:
    - **improvement or new feature worth having** (something that would make the app more secure, stable, or helpful to a building).
 
    Turn each into a **new task** and insert it into `## Task queue` **at the position matching its priority** (see the rubric below) — not merely at the bottom. Give it the next free `T##` id, a one-line goal, and a `[P#]` tag. Re-sort the queue if needed so the highest priority is always on top.
-7. **Commit + push.** One focused conventional commit (`feat(...)`, `fix(...)`, `chore(...)`, `docs(...)`), end the message with the `Co-Authored-By` trailer, then `git push origin main`. Work directly on `main`.
+7. **Commit + push to main.** One focused conventional commit (`feat(...)`, `fix(...)`, `chore(...)`, `docs(...)`), end the message with the `Co-Authored-By` trailer, then `git push origin main`. Work directly on `main`.
 8. **Stop.** One task per `make progress`. The overnight script handles repetition; do **not** start the next task yourself in interactive mode.
 
 ## The `make task` protocol
@@ -75,13 +76,14 @@ Do these steps, in order, every time:
 
 Do these steps, in order, every time:
 
+0. **Sync with main.** `git fetch origin main && git pull origin main` before reading any file or writing any code. Always start from the latest state of the branch.
 1. **Pick the task.** Same as `make progress` step 1 — the topmost `⬜` in `## Task queue` whose prerequisites are met. If the verification pipeline is red, fixing it *is* the task and outranks everything. (If the MVP spine still has open tasks and is the right priority focus, use `make mvp` instead — `make task` does not special-case the spine.)
 2. **Re-establish only what this task needs** (same as `make progress` step 2).
 3. **Implement it fully.** No TODOs, no placeholders, no commented-out code. Follow the established per-feature pattern.
 4. **Verify — all must be green.** `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run build:pi`, `npm run build:demo`. Never weaken a test to pass it.
 5. **Update the docs.** Mark the task `✅` and move its block (heading + done-note) to the top of `COMPLETED.md`; update `FEATURES.md` (if a feature) and `RESUME.md` status.
 6. **Do NOT feed the loop.** `make task` does **not** create new tasks. If you find a genuine bug or gap, fix it inline if it blocks the current task, otherwise note it in the task done-note for later — but do not add `T##` entries to the queue. (This is the one explicit difference from `make progress`.)
-7. **Commit + push.** One focused conventional commit ending with the `Co-Authored-By` trailer, then `git push origin main`. Work directly on `main`.
+7. **Commit + push to main.** One focused conventional commit ending with the `Co-Authored-By` trailer, then `git push origin main`. Work directly on `main`.
 8. **Stop.** One task per `make task`.
 
 ## The `make mvp` protocol
@@ -90,13 +92,14 @@ Do these steps, in order, every time:
 
 Do these steps, in order, every time:
 
+0. **Sync with main.** `git fetch origin main && git pull origin main` before reading any file or writing any code. Always start from the latest state of the branch.
 1. **Pick the task.** The current task is the **topmost `⬜` in `## MVP presentation spine`** (the dedicated section at the top of the queue). Only if that section is empty do you fall through to the normal `## Task queue`. If the verification pipeline is red, fixing it *is* the task and outranks everything.
 2. **Re-establish only what this task needs** (same as `make progress` step 2).
 3. **Implement it fully.** No TODOs, no placeholders, no commented-out code. The goal is the **presentation working end-to-end with real email + real accounts**; do not gold-plate validation/hardening that the spine task does not call for (those stay deferred in the normal queue).
-4. **Verify — all must be green.** `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run build:pi`, `npm run build:demo`. The demo runs on a real build, so keep the pipeline green. Never weaken a test to pass it. (Note: `build:pi` and `build:demo` scripts land in T172 -- skip those two commands until T172 is complete.)
+4. **Verify — all must be green.** `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run build:pi`, `npm run build:demo`. The demo runs on a real build, so keep the pipeline green. Never weaken a test to pass it.
 5. **Update the docs.** Mark the task `✅` and move its block (heading + one-line done-note) to the top of `COMPLETED.md`; update `FEATURES.md`/`RESUME.md` where applicable.
 6. **Do NOT feed the loop.** `make mvp` does **not** create new tasks. If you find a genuine bug or gap, fix it inline if it blocks the spine, otherwise note it in the task done-note for later — but do not add `T##` entries to the queue. (This is the one explicit difference from `make progress`.)
-7. **Commit + push.** One focused conventional commit ending with the `Co-Authored-By` trailer, then `git push origin main`. Work directly on `main`.
+7. **Commit + push to main.** One focused conventional commit ending with the `Co-Authored-By` trailer, then `git push origin main`. Work directly on `main`.
 8. **Stop.** One task per `make mvp`.
 
 ### Priority rubric (how to rank a task)

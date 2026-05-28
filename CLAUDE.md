@@ -13,6 +13,7 @@ It is a **self-improving loop**: solving a task surfaces problems and ideas, whi
 
 When you receive **`make progress`**, follow the protocol defined in `BACKLOG.md` (`## The make progress protocol`) precisely:
 
+0. **Sync first:** `git fetch origin main && git pull origin main` before reading any file or writing any code.
 1. Pick the **highest-priority unchecked task whose prerequisites are met** (the topmost `⬜` in the priority-sorted queue). If the pipeline is red, fixing it is the task and outranks everything.
 2. Re-establish only what the task needs: the relevant `RESUME.md` §0 status entry/counts, the relevant `FEATURES.md` row, and the relevant code. Read a doc only if the task touches its domain (skip `FEATURES.md` for a non-feature task; consult `COMPLETED.md` only when a prerequisite's history is needed). Match existing conventions.
 3. Implement it fully — no TODOs, no placeholders, no commented-out code.
