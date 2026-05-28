@@ -19,8 +19,11 @@ under `docs/`, despite references to the contrary). The product is
 > Finished tasks' full done-notes are archived in `COMPLETED.md` (newest first);
 > §0 below stays the dated chronological summary.
 
-## 0. Current status (updated 2026-05-28, T128 done -- token-security hardening: hash at rest + rate-limit + audit, 156 files / 1452 tests green)
+## 0. Current status (updated 2026-05-28, T171 done -- three-stage deployment model (PROD/DEV/DEMO) introduced; `VITE_APP_STAGE` + `getStage()`/`isProd()`/`isDev()`/`isDemo()` helpers live; 157 files / 1458 tests green)
 
+The app now distinguishes three deployment stages: **PROD** (cloud Supabase + Resend), **DEV** (local Pi Supabase), and **DEMO** (frontend-only offline seed). The stage flag `VITE_APP_STAGE` is read at startup via `resolveAppStage()` with a safe default (`prod` when Supabase is configured, `demo` otherwise), so existing deployments are unaffected. Stage build scripts (`build:pi`, `build:demo`) land in T172 and will complete the verification pipeline.
+
+- **2026-05-28 — T171 (P1) Three-stage deployment model.** `AppStage` type + `appStage` field added to `ClientEnv`; `resolveAppStage()` pure helper + `getStage()`/`isProd()`/`isDev()`/`isDemo()` exported. `.env.demo.example` created; `.env.example` + `.env.pi.example` updated with `VITE_APP_STAGE`. 8 new tests. BACKLOG.md / CLAUDE.md protocol updated. 157 files / 1458 tests green.
 - **2026-05-28 — T128 (P0/MVP) Token-security hardening.** Migration `20260528000003` enables pgcrypto, hashes existing plaintext tokens in-place, creates `token_redemption_attempts` table (RLS, no public policy), updates both onboarding RPCs to hash before lookup + rate-limit (10/15 min) + audit `invite.redeemed` on success. `inviteWriteApi.ts` uses Web Crypto to store hash only. `RedeemRpcResult` adds `'rate_limited'`; `AUDIT_ACTIONS` + `ACTION_TONE` + locales updated. MVP spine complete. 156 files / 1452 tests green.
 - **2026-05-28 — T111 (P2) Drop super_admin from memberships role check.** Migration drops+recreates `memberships_role_check` with 6 tenant roles only; parse-based regression test added (4 assertions). 154 files / 1430 tests green.
 - **2026-05-28 — T08 (P1) E2E suite green + CI.** `.github/workflows/ci.yml` added (check job: lint + typecheck + unit + build; e2e job: chromium Playwright with artifact on failure). `tests/e2e/isolation.spec.ts` added: 3 isolation tests (unauthenticated redirect from `/app` and `/app/anunturi`, sign-out via UserMenu). 153 files / 1426 tests green.

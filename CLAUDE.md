@@ -33,6 +33,7 @@ Two sibling triggers exist for the same one-task unit and are defined in `BACKLO
 - Every new table has RLS scoped by `asociatie_id`. Personal data is handled per the GDPR tasks. Never log secrets or PII.
 - Platform/superadmin privileged operations (cross-tenant reads, account provisioning, impersonation) must be re-checked server-side (`is_super_admin()` + service-role Netlify functions); never trust a client-supplied role. The superadmin tier is a separate app on its own origin/subdomain (`src/platform/*`) and must never be reachable from the resident/admin origin.
 - Keep demo mode working so the app always runs offline and E2E stays executable.
+- All three stages (PROD / DEV / DEMO, T171) must build and run after every task once T172 lands (`npm run build:pi` + `npm run build:demo` added to the verification pipeline).
 - Hold the **premium-feel** bar: smooth eased motion, tasteful restraint, warm-graphite dark mode.
 - Don't ask the user questions mid-task; decide, record in `DECISIONS.md`, continue.
 
