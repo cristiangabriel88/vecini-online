@@ -5,6 +5,8 @@ on a Raspberry Pi (or any Debian-based single board / mini PC). It runs the same
 codebase as the Netlify + Supabase cloud deployment; nothing here breaks cloud
 compatibility, and demo/offline mode keeps working.
 
+> Three-stage context: this guide covers the **DEV** stage (`VITE_APP_STAGE=dev`). For the cloud PROD stage see `RUNBOOK-MVP.md`. For the browser-only DEMO stage run `npm run dev:demo` (no backend needed). The rationale for three stages is in `DECISIONS.md` under "Three-stage deployment model".
+
 > Conventions used below (match your Pi): the app lives at
 > `/home/cristi/vecini.online`, run by the `cristi` user; the systemd units are
 > `vecini-online.service` (frontend) and `vecini-online-telegram.service`
@@ -250,6 +252,19 @@ in as `{role}@dev.local` using the same `VITE_DEV_PASSWORD`.
 
 ---
 
+## DEV email workflow (MAIL_MODE=log)
+
+The Pi uses `MAIL_MODE=log` (set in `.env`) so invite emails are never sent via Resend during local development. Instead, `invite-email.ts` inserts a row into the `email_outbox` table and writes the template to the function console.
+
+1. **Trigger an invite** -- import a CSV on the Apartamente page or click "Trimite invitatie" on the Invitații page.
+2. **Read the outbox** -- log in as `admin@dev.local` or `presedinte@dev.local` and open the Invitații page. The collapsible "Outbox (DEV)" panel shows the last 20 outbound emails (hidden in PROD).
+3. **Follow the invite link** -- each outbox row carries the full HTML body. Extract the `?token=` URL and open it in a browser, or navigate to `/configurare-cont?token=<token>` directly. The complete invite/onboarding flow then runs exactly as in PROD.
+4. **Switch to real delivery** -- set `MAIL_MODE=resend` in `.env` and fill in `RESEND_API_KEY` + `RESEND_FROM_EMAIL` once a Resend account and a verified sender domain are ready.
+
+`MAIL_MODE=disabled` suppresses both delivery and logging -- useful when email is not part of the test assertion.
+
+---
+
 ## File storage
 
 Supabase Storage is excluded on the Pi, so object/file uploads are controlled by
@@ -305,8 +320,13 @@ code — it is never hardcoded in the app.
 | `VITE_SUPABASE_ANON_KEY` | Local anon key from `supabase start`. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Local service-role key (server-side only). |
 | `SUPABASE_DB_URL` | Direct Postgres URL (:54322) for backups/migrations. |
-| `VITE_STORAGE_MODE` | `supabase` \| `local` \| `none` — object storage behaviour. |
-| `VITE_SECURITY_ENFORCEMENT` | `strict` (default/production) \| `relaxed` (self-hosted) — see [Security enforcement](#security-enforcement). |
+| `VITE_APP_STAGE` | `dev` for the Pi. Controls stage-specific UI (role switcher, stage banner, DEV outbox panel). Must be `dev` for `pi:seed` to run. |
+| `VITE_STORAGE_MODE` | `supabase` \| `local` \| `none` -- object storage behaviour. |
+| `VITE_SECURITY_ENFORCEMENT` | `strict` (default/production) \| `relaxed` (self-hosted) -- see [Security enforcement](#security-enforcement). |
+| `MAIL_MODE` | `log` (Pi default) captures invite emails in `email_outbox` + console instead of sending; `resend` sends via Resend; `disabled` suppresses all email. See [DEV email workflow](#dev-email-workflow-mail_modelog). |
+| `RESEND_API_KEY` | Resend API key. Required only when `MAIL_MODE=resend`. |
+| `RESEND_FROM_EMAIL` | Verified Resend sender address. Required only when `MAIL_MODE=resend`. |
+| `VITE_DEV_PASSWORD` | Shared password for all `{role}@dev.local` accounts (default `dev-password`). Used by `pi:seed` and the floating role switcher. |
 | `TELEGRAM_BOT_TOKEN` | Bot token from @BotFather. |
 | `TELEGRAM_BOT_USERNAME` | Bot username (for deep links). |
 | `TELEGRAM_WEBHOOK_SECRET` | Secret matched against the Telegram secret header. |

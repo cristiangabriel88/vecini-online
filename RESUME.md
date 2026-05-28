@@ -19,9 +19,9 @@ under `docs/`, despite references to the contrary). The product is
 > Finished tasks' full done-notes are archived in `COMPLETED.md` (newest first);
 > §0 below stays the dated chronological summary.
 
-## 0. Current status (updated 2026-05-28, T177 done -- stage banner chip in DEV/DEMO app shell; 163 files / 1500 tests)
+## 0. Current status (updated 2026-05-28, T178 done -- three-stage model documentation pass; 163 files / 1500 tests)
 
-The three-stage model (PROD/DEV/DEMO) is fully operational. A fixed bottom-left stage banner (amber for DEV, warm-graphite for DEMO) makes each stage immediately recognizable. Next: T178 documentation pass for the three-stage model.
+The three-stage deployment model (PROD / DEV / DEMO) is fully formalized and documented. **PROD** runs on Netlify + cloud Supabase + Resend (MFA strict). **DEV** runs on a Raspberry Pi with a local Supabase stack (`VITE_APP_STAGE=dev`), one seeded auth user per role (`npm run pi:seed`), and `MAIL_MODE=log` so invite emails are captured in `email_outbox` and inspectable in the app. **DEMO** runs browser-only (`VITE_APP_STAGE=demo`): auto-bypasses login, reads demo seed data, floating role switcher on every page. The stage is set at build time via `VITE_APP_STAGE`; `getStage()`/`isProd()`/`isDev()`/`isDemo()` helpers are available everywhere. Stage identity is shown by the bottom-left banner (amber for DEV, warm-graphite for DEMO, hidden in PROD). Rationale is in `DECISIONS.md`; Pi setup is in `PI_DEPLOYMENT.md`. Next: T129 (live activation: F04 private messaging read/write Supabase).
 
 - **2026-05-28 — T177 (P2) Visible stage banner.** `StageBanner.tsx`: fixed bottom-left pill, amber (`--warning-soft`) for DEV, warm-graphite (`--bg-inverse`) for DEMO, hidden in PROD. CSS + bilingual locale keys + 5 new tests. 163 files / 1500 tests / build / build:pi / build:demo green.
 - **2026-05-28 — T176 (P1) npm run pi:seed.** `scripts/pi-seed.mjs`: 7 dev auth users (`{role}@dev.local`, `super.admin@dev.local`), upserts memberships + platform_admins, `--password` override, stage + cloud-URL guards. `seed` subcommand in `pi.sh`; `pi:seed` in `package.json`; `PI_DEPLOYMENT.md` documents role/email/password table. 10 new tests. 161 files / 1495 tests / build / build:pi / build:demo green.

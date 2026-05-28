@@ -8,6 +8,9 @@ the live `BACKLOG.md` carries only the protocol and the open (⬜) queue.
 > task (read it only when a task's prerequisite or history is genuinely needed).
 > `RESUME.md` §0 remains the dated chronological summary.
 
+### ✅ T178 — [P2] Documentation pass for the three-stage model
+Done: `DECISIONS.md` gains "Three-stage deployment model (PROD / DEV / DEMO)" entry (why three not two, compile-time flag over build artifact split, one seeded user per role over bypass, MAIL_MODE=log over disabled). `PI_DEPLOYMENT.md` gains a three-stage intro callout pointing to `DECISIONS.md`, a new "DEV email workflow (MAIL_MODE=log)" section with step-by-step invite-link extraction, and three new env var rows (`VITE_APP_STAGE`, `MAIL_MODE`, `VITE_DEV_PASSWORD`). `.env.pi.example` gains the `VITE_DEV_PASSWORD=dev-password` entry. `RESUME.md` §0 paragraph replaced with a complete three-stage anchor. `BACKLOG.md` sanity-checked: no stale "demo = missing creds" references. `FEATURES.md` confirmed no row to flip (operational, not a feature). 163 files / 1500 tests / build / build:pi / build:demo green.
+
 ### ✅ T177 — [P2] Visible stage banner in the app shell (DEV / DEMO only)
 Done: `StageBanner.tsx` added (`src/shared/components/`): returns null in PROD, renders a fixed bottom-left pill with `--warning-soft`/`--warning-text` in DEV and `--bg-inverse`/`--text-inverse` (warm-graphite) in DEMO. CSS block added to `shell.css` using `iv-fade-in` animation; `prefers-reduced-motion` guard added. Mounted in `AppLayout.tsx` next to `<DevRoleSwitcher />`. `auth.stageBanner.dev` + `auth.stageBanner.demo` keys added to both locale files. 5 new tests. 163 files / 1500 tests / build / build:pi / build:demo green.
 

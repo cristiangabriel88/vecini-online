@@ -2,6 +2,13 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## Three-stage deployment model (PROD / DEV / DEMO) -- T171-T177
+
+- **Three stages, not two.** The original "demo mode" (frontend-only, seeded data, no backend) was already the offline fallback detected by absent Supabase creds. Adding a local Pi backend (DEV) created a third distinct mode: real authentication, real DB, but no external email. A binary with-/without-backend flag cannot cleanly express this; a named `VITE_APP_STAGE` enum can, without changing any existing `isSupabaseConfigured()` guards.
+- **Stage is a compile-time flag, not a separate build artifact.** `VITE_APP_STAGE` is a Vite env variable compiled into the bundle. The same source produces three builds (`build:prod`, `build:pi`, `build:demo`) from one set of entry points; helpers like `isDemo()` tree-shake the dead branches at compile time. A separate demo entry point would duplicate router setup for no benefit.
+- **One seeded user per role on Pi (`pi:seed`) instead of a superuser bypass.** `signInAsDevUser(role)` calls `supabase.auth.signInWithPassword` exactly as a real user does. The floating role switcher is rendered only in DEV/DEMO stages (never in PROD), so the `{role}@dev.local` accounts are unreachable on the cloud build. A fixed bypass cookie or dev token would test a code path that never runs in production and hide real auth bugs.
+- **`MAIL_MODE=log` over disabling email for DEV.** A `disabled` mode would make the invite/onboarding flow untestable on the Pi end-to-end. `log` mode inserts a row into the `email_outbox` table (admin-scoped RLS) and writes the template body to the function console, so the full invite flow can be exercised locally: read the invite link from the "Outbox (DEV)" panel on the Invites page, open it, and complete onboarding exactly as a real resident would. Switch to `MAIL_MODE=resend` once a Resend account and verified sender domain are ready.
+
 ## Production MVP launch: full hardening gates the launch + hub on its own origin
 
 - **This is a real production launch handling residents' personal data, not a
