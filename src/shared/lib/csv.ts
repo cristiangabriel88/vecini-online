@@ -1,4 +1,5 @@
 import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 import { isValidEmail } from '@/features/auth/authLogic';
 import type { Apartment, ApartmentPerson } from '@/shared/types/domain';
 
@@ -42,36 +43,82 @@ function num(v: string | undefined): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-/** Coerce a CSV string value to boolean: "true"/"1"/"da"/"yes" -> true, else false. */
+/** Coerce a CSV/XLSX cell value to boolean: "Da"/"da"/"true"/"1"/"yes" -> true, else false. */
 function bool(v: string | undefined): boolean {
   if (v == null) return false;
   return ['true', '1', 'da', 'yes'].includes(v.trim().toLowerCase());
 }
 
+// Romanian-only header used by the downloadable templates (CSV + .xlsx).
+// `nume` replaces the old `name` column; `trimite_invitatie` replaces `opt_in`.
+const TEMPLATE_HEADERS = [
+  'scara',
+  'numar_apartament',
+  'nume',
+  'email',
+  'numar_persoane',
+  'proprietar',
+  'trimite_invitatie',
+] as const;
+
+// Sample rows shared by the CSV and .xlsx templates. Booleans rendered as
+// "Da"/"Nu" to match what a non-technical Romanian admin expects.
+const TEMPLATE_SAMPLE_ROWS: ReadonlyArray<readonly string[]> = [
+  ['A', '1', 'Ionescu Maria', 'maria.ionescu@exemplu.ro', '2', 'Da', 'Da'],
+  ['A', '2', 'Popescu Ion', 'ion.popescu@exemplu.ro', '3', 'Da', 'Da'],
+  ['B', '3', 'Dumitrescu Elena', '', '1', 'Nu', 'Nu'],
+];
+
 /**
  * Generate the UTF-8 CSV template for the apartment bulk-import.
- * Header: scara,numar_apartament,name,email,numar_persoane,proprietar,opt_in
+ * Header: scara,numar_apartament,nume,email,numar_persoane,proprietar,trimite_invitatie
  * Returns a CRLF-delimited string suitable for a Blob download.
  */
 export function generateApartmentsCsvTemplate(): string {
-  const header = 'scara,numar_apartament,name,email,numar_persoane,proprietar,opt_in';
-  const rows = [
-    'A,1,Ionescu Maria,maria.ionescu@exemplu.ro,2,true,true',
-    'A,2,Popescu Ion,ion.popescu@exemplu.ro,3,true,true',
-    'B,3,Dumitrescu Elena,,1,false,false',
-  ];
+  const header = TEMPLATE_HEADERS.join(',');
+  const rows = TEMPLATE_SAMPLE_ROWS.map((r) => r.join(','));
   return [header, ...rows].join('\r\n');
+}
+
+/**
+ * Generate a real .xlsx workbook for the apartment bulk-import, mirroring the
+ * CSV template's header and sample rows. Returned as bytes ready for a Blob
+ * download (`application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`).
+ */
+export function generateApartmentsXlsxTemplate(): Uint8Array<ArrayBuffer> {
+  const aoa: string[][] = [
+    [...TEMPLATE_HEADERS],
+    ...TEMPLATE_SAMPLE_ROWS.map((r) => [...r]),
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Apartamente');
+  // SheetJS's `type: 'array'` returns ArrayBuffer in some builds, Uint8Array
+  // or number[] in others. Normalise via the Uint8Array constructor (which
+  // accepts all three) and re-copy into a fresh ArrayBuffer-backed view so
+  // Blob/parser call sites stay cast-free.
+  const raw = XLSX.write(wb, { bookType: 'xlsx', type: 'array' }) as
+    | ArrayBuffer
+    | Uint8Array
+    | number[];
+  const view = new Uint8Array(raw as ArrayBuffer);
+  const out = new Uint8Array(view.length);
+  out.set(view);
+  return out;
 }
 
 /**
  * Parse an apartment-list CSV into typed rows, collecting per-row errors.
  *
- * Accepts both the new template columns (name, email, numar_persoane, proprietar,
- * opt_in) and the legacy columns (proprietar_principal_name, etaj,
- * suprafata_utila, cota_parte_indiviza). When both `name` and
- * `proprietar_principal_name` are present, `name` takes precedence.
+ * Accepts the current Romanian-only template columns (`nume`, `email`,
+ * `numar_persoane`, `proprietar`, `trimite_invitatie`) and falls back to the
+ * legacy English aliases (`name` -> `nume`, `opt_in` -> `trimite_invitatie`,
+ * `proprietar_principal_name` -> `nume`) plus the very-old legacy columns
+ * (`etaj`, `suprafata_utila`, `cota_parte_indiviza`). New aliases take
+ * precedence when both are present.
  *
- * Boolean columns (`proprietar`, `opt_in`) accept "true"/"1"/"da"/"yes".
+ * Boolean columns (`proprietar`, `trimite_invitatie`) accept
+ * "Da"/"da"/"true"/"1"/"yes" as true; anything else (including "Nu") is false.
  */
 export function parseApartmentsCsv(text: string): ImportResult {
   const parsed = Papa.parse<Record<string, string>>(text.trim(), {
@@ -89,8 +136,14 @@ export function parseApartmentsCsv(text: string): ImportResult {
       errors.push(`Rândul ${i + 1}: lipsește ${missing.join(', ')}`);
       return;
     }
-    // Accept `name` (new template) or `proprietar_principal_name` (legacy alias).
-    const name = raw.name?.trim() || raw.proprietar_principal_name?.trim() || '';
+    // Preferred Romanian column `nume`, with English/legacy fallbacks so a
+    // previously-downloaded template still imports.
+    const name =
+      raw.nume?.trim() ||
+      raw.name?.trim() ||
+      raw.proprietar_principal_name?.trim() ||
+      '';
+    const optIn = raw.trimite_invitatie ?? raw.opt_in;
     rows.push({
       scara: raw.scara?.trim() ?? '',
       etaj: num(raw.etaj),
@@ -101,11 +154,31 @@ export function parseApartmentsCsv(text: string): ImportResult {
       email: raw.email?.trim() ?? '',
       numar_persoane: num(raw.numar_persoane),
       proprietar: bool(raw.proprietar),
-      opt_in: bool(raw.opt_in),
+      opt_in: bool(optIn),
     });
   });
 
   return { rows, errors };
+}
+
+/**
+ * Parse an apartment-list .xlsx workbook into the same typed rows produced by
+ * `parseApartmentsCsv`. The first worksheet is read, converted to CSV, then
+ * funnelled through the CSV parser so column-mapping and validation logic stay
+ * in one place.
+ */
+export function parseApartmentsXlsx(buffer: ArrayBuffer): ImportResult {
+  // SheetJS's `type: 'array'` expects an index-able byte sequence (Uint8Array
+  // or number[]), not a raw ArrayBuffer; wrapping is required or every byte
+  // reads as zero.
+  const wb = XLSX.read(new Uint8Array(buffer), { type: 'array' });
+  const firstSheetName = wb.SheetNames[0];
+  if (!firstSheetName) {
+    return { rows: [], errors: ['Fișierul nu conține nicio foaie de lucru.'] };
+  }
+  const ws = wb.Sheets[firstSheetName];
+  const csv = XLSX.utils.sheet_to_csv(ws, { FS: ',', blankrows: false });
+  return parseApartmentsCsv(csv);
 }
 
 export interface ImportBatchResult {
