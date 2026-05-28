@@ -99,15 +99,36 @@ as T08.
 
 - Supabase Auth with the **PKCE** flow; email verification required on sign-up;
   password reset via emailed recovery link.
-- Password policy (`passwordPolicy`, T03): minimum length, bcrypt-72 cap,
-  character variety, offline breached/common-password blocklist, email-echo
-  rejection, strength scoring. Client-side today; server-side parity
-  (Supabase minimum length + leaked-password protection) is queued as T32.
-- Login rate limiting with escalating temporary lockout per normalised email
-  (`loginThrottle`, T03). Server-backed lockout is queued as T33.
+- **Password policy -- client layer** (`passwordPolicy`, T03): minimum 10 chars
+  (`MIN_POLICY_LENGTH`), bcrypt-72 cap, character variety, offline common/breached-
+  password blocklist, email-echo rejection, strength scoring (weak/fair/good/strong).
+- **Password policy -- server layer** (T32, Supabase dashboard settings required):
+  - `Authentication > Settings > Password Security > Minimum password length`: **10**
+    (matches `MIN_POLICY_LENGTH`; rejects weak passwords at the API layer, bypassing
+    the client UI is no longer sufficient).
+  - `Authentication > Settings > Password Security > Password strength`: **Medium**
+    (length + character variety enforced server-side).
+  - `Authentication > Settings > Password Security > Prohibit use of leaked passwords`:
+    **enabled** -- Supabase calls the HaveIBeenPwned (HIBP) k-anonymity API on every
+    password-set/reset. Only the first 5 hex chars of the SHA-1 hash are sent (k-anon
+    model; the full password never leaves the project). This is the server-authoritative
+    complement to the offline `COMMON_PASSWORDS` blocklist.
+  - Exact path and current values are also documented in `.env.example`.
+- **Login rate limiting** (`loginThrottle`, T03): escalating client-side lockout --
+  5 failures in a 15-minute sliding window triggers a 1-minute lockout, doubling on each
+  subsequent exhaustion, capped at 30 minutes. Persisted in `localStorage` so it
+  survives reload but can be cleared by an attacker. Server-backed lockout is queued
+  as T33.
+- **Server-side auth rate limits** (T32, Supabase dashboard settings required):
+  - `Authentication > Rate Limits > Sign-in`: **30 per IP per hour** (Supabase default).
+  - `Authentication > Rate Limits > Email rate limit` (password-reset / magic-link
+    emails): set to **5 per IP per hour** (recommended; Supabase default 60 is too
+    permissive for production abuse prevention).
+  - These are the authoritative backstop; the client throttle gives immediate UX
+    feedback but is bypassed by a direct API call.
 - Two-factor authentication (TOTP, RFC 6238) with single-use recovery codes
   stored only as SHA-256 hashes; **enforced** for privileged roles
-  (`admin`/`comitet`/`cenzor`). MFA challenge throttling is queued as T31.
+  (`admin`/`comitet`/`cenzor`). MFA challenge throttling (T31) is in place.
 - `signOutEverywhere` revokes all sessions (`scope: 'global'`).
 - Privacy-safe auth audit stream (`auth_audit_events`): login, failed login,
   MFA change, password change. Emails are masked (`a***@domain`); passwords,
@@ -161,12 +182,16 @@ controller; vecini.online is the processor.
 
 These are deliberate, queued follow-ups rather than accepted risks:
 
-- Client-side auth policy/throttle is bypassable by a direct API call until
-  server parity lands — T32, T33.
-- MFA challenge step is not yet attempt-throttled — T31.
-- Live recovery-code login needs a server routine to reach AAL2 — T29.
-- Live cross-tenant isolation tests against real Postgres — T08; static
-  RLS-coverage guard — T35.
+- **Server auth-policy settings (T32)**: the exact Supabase Auth settings (password
+  minimum length 10, HIBP leaked-password check, email rate limit 5/hr) are documented
+  in this file and in `.env.example`. They must be applied on the provisioned project's
+  Auth dashboard before the server becomes the authoritative backstop. Until then a
+  direct API call can bypass the client-side password/throttle policy.
+- Client-side login throttle is clearable by an attacker (localStorage) -- T33
+  queues a server-backed lockout once the backend is provisioned.
+- Live recovery-code login needs a server routine to reach AAL2 -- T29.
+- Live cross-tenant isolation tests against real Postgres -- T08; static
+  RLS-coverage guard -- T35.
 
-Last reviewed: 2026-05-26 (T137 anonymous-message within-tenant privacy; prior
-T04 RLS & tenant-isolation audit 2026-05-22).
+Last reviewed: 2026-05-29 (T32 server-side auth-policy parity documented; T137
+anonymous-message within-tenant privacy 2026-05-26; T04 RLS audit 2026-05-22).

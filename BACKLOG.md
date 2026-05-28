@@ -126,7 +126,7 @@ Surfaced in T74: the new `ropaLogic` guard proves every declared `FeatureDef.pro
 ### ⬜ T29 — [P1] Live recovery-code login (server routine)
 2FA recovery codes are generated, hashed and stored (`mfa_recovery_codes`, T02) and fully work in demo mode, but in the live path a recovery code cannot client-side step a session up to AAL2 — Supabase grants AAL2 only via an MFA verify. Add a privileged server routine (Supabase Edge Function using the service-role/admin API) that verifies a submitted recovery code against the stored hash, consumes it single-use, and completes the second factor, then wire `verifyChallenge`'s live branch to it. Until then a privileged user who loses their authenticator is locked out in production. **Reuse the `session_elevations` table + Custom Access Token Hook elevation primitive from T141/T142** (the same "service-role function verifies an app-managed secret, then elevates the session via the `app_2fa_at` claim") rather than inventing a second mechanism. Prereq: T02, T28; build after T141/T142.
 
-### ⬜ T32 — [P1] Server-side auth-policy parity
+### ✅ T32 — [P1] Server-side auth-policy parity
 T03's password strength/breach policy and login throttle run client-side, so they harden the UX but are bypassable by a direct API call. Bring the backend into line: enable Supabase Auth's minimum-password-length and leaked-password (HIBP) protection, confirm/raise the server-side auth rate limits, and document the exact dashboard settings in `.env.example` and `SECURITY.md` (the latter lands with T04). The client policy stays as the first line; the server becomes the authority. Prereq: T01, T03.
 
 ### ⬜ T33 — [P2] Server-backed login lockout

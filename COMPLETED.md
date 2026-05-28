@@ -4,6 +4,11 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T32 P1 ✅ — Server-side auth-policy parity
+- docs: `.env.example` expanded with exact Supabase Auth dashboard settings: minimum password length 10 (`MIN_POLICY_LENGTH`), "Medium" strength, HIBP leaked-password check enabled, sign-in rate limit 30/hr, email rate limit 5/hr
+- `SECURITY.md` Authentication section rewritten to cover both client and server policy layers with exact dashboard paths; Known gaps updated (T32 is now "settings documented, apply on provisioned project" rather than a silent gap)
+- no code changes; verification pipeline unchanged (165 files / 1538 tests / build+pi+demo green)
+
 ### T180 P0 ✅ — Gate /onboarding to provisioned admins only in PROD
 - api/code: `onboardingGateLogic.ts` (`PROVISIONAL_ASOCIATIE_NAME` + `findProvisionalAdminMembership(memberships, localAsociatii)` pure); `RequireOnboardingEntry` component wraps `/onboarding` route (DEMO/DEV pass through; PROD requires provisional admin membership, else redirect to / + toast); `RequireAsociatie` member-less users sent to / (+ toast) in PROD instead of /onboarding; defensive `useEffect` guard inside `OnboardingWizard` redirects to /app if wizard already completed this session
 - router: `/onboarding` now wrapped in `RequireAuth` + `RequireOnboardingEntry`

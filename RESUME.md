@@ -4,17 +4,22 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 
 ## 0. Current status
 
-- date: 2026-05-28
-- last_task: T180 (P0) Gate /onboarding to provisioned admins only in PROD
+- date: 2026-05-29
+- last_task: T32 (P1) Server-side auth-policy parity documented
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
 - counts: 165 files / 1538 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T78 Erasure/export must cover Storage photo objects
+- next: T33 server-backed login lockout (needs provisioned backend) or T88 F33 real file upload
 - features: 65/65 built end-to-end; F66+F67 (Cat-9 personalization) done
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T32 P1 ✅ 2026-05-29 — Server-side auth-policy parity
+- docs: `.env.example` + `SECURITY.md` updated with exact Supabase Auth dashboard settings (min password length 10, HIBP check, rate limits); Known gaps updated
+- no code changes (documentation task; settings applied operationally on the provisioned project)
+- result: 165 files / 1538 tests / build+pi+demo green
 
 ### T180 P0 ✅ 2026-05-28 — Gate /onboarding to provisioned admins only in PROD
 - api/code: `onboardingGateLogic.ts` (`PROVISIONAL_ASOCIATIE_NAME` + `findProvisionalAdminMembership`); `RequireOnboardingEntry` route guard; `RequireAsociatie` sends member-less PROD users to / with toast; defensive guard in `OnboardingWizard`
