@@ -8,6 +8,9 @@ the live `BACKLOG.md` carries only the protocol and the open (⬜) queue.
 > task (read it only when a task's prerequisite or history is genuinely needed).
 > `RESUME.md` §0 remains the dated chronological summary.
 
+### ✅ T172 — [P1] Stage-specific build/dev scripts (`build:pi`, `build:demo`, `dev:demo`, `dev:pi`)
+Done: `build:prod` (alias), `build:pi`, `build:demo`, `dev:pi`, `dev:demo` added to `package.json` (using same typecheck pattern as `build`). `.env.pi` + `.env.demo` committed with safe placeholder values; `.gitignore` gains `!.env.pi` + `!.env.demo` exceptions. Both new build scripts produce a working `dist/` (single output directory). lint / typecheck / 1458 tests / build / build:pi / build:demo all green.
+
 ### ✅ T171 — [P1] Introduce `VITE_APP_STAGE` + `getStage()` and extend the protocol gate to three stages
 Done: `AppStage = 'prod' | 'dev' | 'demo'` type + `appStage` field added to `ClientEnv`; pure `resolveAppStage(rawStage, supabaseConfigured)` helper exported; `getStage()` / `isProd()` / `isDev()` / `isDemo()` helpers exported. `VITE_APP_STAGE=prod` added to `.env.example`; `VITE_APP_STAGE=dev` added to `.env.pi.example`; `.env.demo.example` created (no Supabase creds, frontend-only comment). `tests/unit/env.test.ts` added (8 tests covering all three stages + default + invalid values). BACKLOG.md step 4 updated in all three protocol blocks to include `build:pi` + `build:demo` with T172 skip note. CLAUDE.md non-negotiable bullet added. RESUME.md §0 updated with three-stage model anchor sentence. 157 files / 1458 tests / build green.
 

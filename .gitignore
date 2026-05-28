@@ -8,6 +8,8 @@ dist-ssr
 !.env.example
 !.env.pi.example
 !.env.demo.example
+!.env.pi
+!.env.demo
 .DS_Store
 coverage
 playwright-report

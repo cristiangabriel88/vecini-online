@@ -5,7 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:pi": "vite --mode pi",
+    "dev:demo": "vite --mode demo",
     "build": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit && vite build",
+    "build:prod": "npm run build",
+    "build:pi": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit && vite build --mode pi",
+    "build:demo": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit && vite build --mode demo",
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
