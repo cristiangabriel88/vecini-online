@@ -7,6 +7,7 @@
  * cooldown) are driven via the explicit `now` parameter so assertions are
  * deterministic regardless of wall-clock speed.
  */
+// @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // These tests target the offline/demo OTP channel path. Force `isSupabaseConfigured`
