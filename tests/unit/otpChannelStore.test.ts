@@ -7,7 +7,16 @@
  * cooldown) are driven via the explicit `now` parameter so assertions are
  * deterministic regardless of wall-clock speed.
  */
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+// These tests target the offline/demo OTP channel path. Force `isSupabaseConfigured`
+// to false so `challengeRequired()` reads `demoEnabledChannels` instead of the
+// live AAL query.
+vi.mock('@/shared/lib/supabase', () => ({
+  isSupabaseConfigured: false,
+  supabase: { auth: { mfa: {} } },
+}));
+
 import { useMfaStore } from '@/shared/store/mfaStore';
 import { MAX_FAILURES } from '@/features/auth/loginThrottle';
 import { OTP_RESEND_COOLDOWN_MS, OTP_TTL_MS } from '@/features/auth/otpChannelLogic';

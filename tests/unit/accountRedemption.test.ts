@@ -1,4 +1,12 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+// These tests target the offline/demo path in authStore. Force `isSupabaseConfigured`
+// to false so the demo branch is taken regardless of any local `.env` credentials.
+vi.mock('@/shared/lib/supabase', () => ({
+  isSupabaseConfigured: false,
+  supabase: { auth: { mfa: {} } },
+}));
+
 import { useAuthStore } from '@/shared/store/authStore';
 import { useInviteStore } from '@/shared/store/inviteStore';
 import { usePlatformAsociatiiStore } from '@/platform/platformAsociatiiStore';

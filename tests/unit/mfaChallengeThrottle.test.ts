@@ -1,4 +1,13 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+// These tests target the offline/demo MFA path. Force `isSupabaseConfigured` to
+// false so verifyChallenge takes the demo branch (TOTP/recovery) instead of the
+// live Supabase-backed branch.
+vi.mock('@/shared/lib/supabase', () => ({
+  isSupabaseConfigured: false,
+  supabase: { auth: { mfa: {} } },
+}));
+
 import { useMfaStore } from '@/shared/store/mfaStore';
 import { generateRecoveryCodes, hashRecoveryCodes } from '@/features/auth/mfaLogic';
 import { MAX_FAILURES, emptyThrottle } from '@/features/auth/loginThrottle';
