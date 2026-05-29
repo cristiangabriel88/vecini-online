@@ -29,7 +29,7 @@ Two sibling triggers exist for the same one-task unit and are defined in `BACKLO
 
 ## Non-negotiables
 - Work directly on `main`. Do not create feature branches.
-- Never use the em dash character in code or docs.
+- Never use the em dash character in code (source, comments, strings). Prose in markdown docs may use it.
 - Every user-facing surface is **fully bilingual (RO + EN)** via i18n; code/backend stay English. Romanian uses real diacritics.
 - Every new table has RLS scoped by `asociatie_id`. Personal data is handled per the GDPR tasks. Never log secrets or PII.
 - Platform/superadmin privileged operations (cross-tenant reads, account provisioning, impersonation) must be re-checked server-side (`is_super_admin()` + service-role Netlify functions); never trust a client-supplied role. The superadmin tier is a separate app on its own origin/subdomain (`src/platform/*`) and must never be reachable from the resident/admin origin.

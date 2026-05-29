@@ -1,6 +1,8 @@
 # Features — vecini.online
 
-Every feature below has a unique key (F01-F67). The admin can toggle each one on or off during onboarding and at any time afterwards. When Claude Code completes a feature, mark it with ✅ next to the title and a one-line note about the implementation.
+Every feature below has a unique key (F01-F67). The admin can toggle each one on or off during onboarding and at any time afterwards.
+
+> **Canonical status lives in the "Implementation tracking" table near the bottom of this file**, not on the spec headings below. The headings in this catalog are the original product spec (what the feature should do); the table records what is actually built and how far it is wired live.
 
 Each feature follows this structure:
 - **Key:** F##
@@ -15,7 +17,7 @@ Each feature follows this structure:
 
 ## Category 1 — Communication (F01-F08)
 
-### F01 — Anunțuri oficiale ✅
+### F01 — Anunțuri oficiale
 - **Implementation:** compose/publish + read receipts + category badges, scoped per active asociație (T47): `announcementsLogic` (pure, unit-tested) + per-asociație `announcementsStore` (`byAsociatie`, seeded for demo) + `useAsociatieAnnouncements()` selector. Demo store is the offline source of truth; live read/write against `announcements` under RLS is T57. Scheduling, attachments and targeted broadcast remain later refinements.
 - **Audience:** admin/comitet write; everyone reads
 - **Description:** Official building-wide announcements with read receipts. Supports rich text, attachments (PDF/images), and targeted broadcast (all / specific scara / specific floors / specific apartments). Each announcement has a category: `urgent`, `important`, `informativ`, `eveniment`.
@@ -517,14 +519,14 @@ Each feature follows this structure:
 > and the home shell rather than introducing new domain data. Both F66 (profile
 > editor) and F67 (customizable home) are built end-to-end (offline + live-ready).
 
-### F66 — Profil complet (complete profile editor) ✅
+### F66 — Profil complet (complete profile editor)
 - **Audience:** every resident (own profile); admin can view/edit any profile in their asociație
 - **Description:** A rich, full-page profile editor — not the minimal current profile screen. The resident sets a **profile photo** (pick from gallery / take photo / crop to a circle, with a generated initials avatar as fallback) and fills a structured set of **standard fields**: full name, display name, phone, email, apartament (linked to the apartments registry), scara, etaj, număr mașină / plăcuță (car plate, feeding F28 Parcare), adresă completă, contact de urgență (name + phone + relationship), date of birth (feeding F63 Aniversări opt-in), preferred language (RO/EN), and notification preferences summary. Beyond the standard set, the resident can add **arbitrary extra fields** by pressing a `+ Adaugă câmp` button: they give the field an explicit label and pick its **type** from a typed catalog — `text scurt`, `text lung`, `număr`, `telefon`, `email`, `dată`, `bifă (da/nu)`, `selecție dintr-o listă`, `link`, `adresă`. Each custom field can be marked **private** (only owner + admin) or **vizibil vecinilor** (surfaces in F36 Locator directory subject to its consent rules). Fields are reorderable (drag), editable, and deletable. The whole thing validates per-type, autosaves drafts, and shows completeness (`profil 80% complet`) to nudge filling it in.
 - **Acceptance:** Photo upload with crop + fallback avatar. All standard fields present with per-type validation (plate format, phone, email, date). `+ Adaugă câmp` flow: name the field, choose its type from the catalog, set visibility, save — it persists and renders with the correct input control. Custom fields reorder/edit/delete. Plate auto-syncs to F28; birthday respects F63 opt-in; visible fields respect F36 consent. Admin can open any resident's profile read/write; resident sees only their own. Completeness indicator and autosave work. Fully bilingual (RO/EN).
 - **Telegram:** `/profil` shows the resident's profile summary and a deep link into the Mini App editor; inline quick-edit for phone and plate.
 - **Data:** extend `profiles` with the standard columns; `profile_custom_fields` (owner_id, label, field_type, value, visibility, sort_order) for the dynamic fields; profile photo in the `storage` bucket. RLS: owner read/write own; admin read/write within asociație; visible-flagged fields exposed to F36 per its consent table.
 
-### F67 — Acasă personalizabil (customizable home screen) ✅
+### F67 — Acasă personalizabil (customizable home screen)
 - **Audience:** every resident (own home layout)
 - **Description:** The home screen becomes **editable per resident**. A **pencil icon** in the top corner of the home flips it into edit mode, where the resident chooses which **cards** (feature widgets) they see and in what order — show only the functions that interest them. In edit mode each available card can be toggled on/off, reordered (drag), and where a card supports it, sized (e.g., compact vs. expanded) — so someone who only cares about Anunțuri, Sesizări and Plăți pins those to the top and hides the rest. The catalog of available cards is the set of features the **admin has enabled** for the asociație (a resident can never surface a disabled feature), each exposing a small home-widget (latest announcement, my open tickets, next event, active polls, etc.). A `Resetează la implicit` restores the admin's default layout. The layout persists per resident across devices; tapping the pencil again (or `Gata`) exits edit mode.
 - **Acceptance:** Pencil icon toggles edit mode. In edit mode: per-card show/hide, drag-reorder, optional size, live preview. Card catalog is exactly the asociație's enabled features (disabling a feature removes its card and any pinned instance). Layout persists per resident and syncs across sessions/devices. `Resetează la implicit` restores defaults. Smooth, eased enter/exit of edit mode in keeping with the premium-feel mandate. Fully bilingual (RO/EN).
@@ -535,10 +537,12 @@ Each feature follows this structure:
 
 ## Implementation tracking
 
-Status legend: ✅ implemented UI end-to-end · 🟦 schema + RLS + registered/toggleable, UI not yet built in this session · ⬜ planned for a future session, not yet specced into the schema.
+Status legend (two axes — built, and wired live):
+- **✅ demo-complete** — built end-to-end in demo mode: real page, pure unit-tested logic, seeded offline store, RO/EN strings, schema + RLS in `supabase/migrations/`, toggleable. This is the status in the table below; every F01-F67 is here.
+- **🟦 schema only** — table + RLS exist but the UI is not built yet (none currently).
+- **⬜ planned** — not yet specced into the schema (none currently).
 
-Every feature has its database table(s) with RLS in `supabase/migrations/` and is
-toggleable from the admin panel. See `DECISIONS.md` for the scope boundary.
+**Live-wired** (reads/writes Supabase under RLS in PROD today, beyond demo): **F01, F02, F04, F05, F17, F33**, plus the auth, invites and onboarding plumbing. Every other feature is offline-first; its live activation is tracked per-row in the Notes column and in `BACKLOG.md` under the live-activation track. See `DECISIONS.md` for the scope boundary.
 
 | Key | Title | Status | Notes |
 |-----|-------|--------|-------|

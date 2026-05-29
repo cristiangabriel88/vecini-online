@@ -5,6 +5,18 @@ Compact, machine-readable log of non-trivial choices. Newest first. Format:
 
 ## 2026-05-29
 
+### Asociatie accounting (intretinere / plati / restante) is out of product scope
+- choice: vecini.online does not build internal accounting — no calcul intretinere / liste de plata, no payment processing, no restante/debtor ledger, no chitante/facturi generation. The product stays a communication / governance / maintenance / records / safety / community platform; associations keep their accounting in a dedicated external tool.
+- why: Romanian asociatie accounting is a regulated, high-liability domain (Legea 196/2018 financial reporting, fond de rulment/reparatii, cenzor audit) that would dominate the roadmap and the compliance surface; the platform's value is the 65 community/governance features, not double-entry bookkeeping. F35 already shows a "finance-module-disabled" empty state for the payments card by design.
+- alternatives rejected: (a) build a full billing/GL module — too large, regulated, off-mission; (b) light "track who paid" flags — partial truth invites misuse as the system of record.
+- note: T19/T110 are **SaaS-subscription** billing (vecini.online charging the asociatie for the platform), unrelated to asociatie-internal resident accounting. No F68+ accounting feature is planned. Revisit only on explicit owner decision.
+
+### Documentation status model corrected; stale task-number refs annotated (doc audit)
+- choice: status is two-axis — **demo-complete** (offline UI + pure logic + tests, all 65) vs **live-wired** (reads/writes Supabase under RLS: F01/F02/F04/F05/F17/F33 + auth/invites/onboarding). `README.md`, `RESUME.md` §0 and the `FEATURES.md` legend were rewritten to say this; `FEATURES.md`'s "Implementation tracking" table is the single source of per-feature status (spec headings are no longer status-marked).
+- why: the docs had drifted into three conflicting snapshots (README "6 features", RESUME "65/65 end-to-end", FEATURES table all-✅), because "implemented" silently meant "demo-built" in one place and "live-wired" in another. The audit also found the BACKLOG queue carried 21 already-archived ✅ tasks and 40/44 open tasks tagged P2; the queue was re-ranked and the duplicates removed.
+- note on old task numbers: the **T88-T100 / T93** references in the dated blocks below were a 2026-05-23 planning pass and the original platform breakdown. They were later renumbered/resolved — platform-shell access E2E is now **T119**, the provisioning console live-wiring is **T120/T121**, and superadmin oversight is **T95-T99**; the platform app shell + provisioning (former T93/T94) are done. Those historical blocks are kept verbatim for the record; trust `BACKLOG.md` + `COMPLETED.md` for current numbering.
+- em-dash rule scoped to code only (source/comments/strings); markdown prose may use it. Updated in `CLAUDE.md` + `BACKLOG.md` to match reality.
+
 ### Per-asociatie column vs grouping in the art. 15 export (T101)
 - choice: add `asociatie` column to rows that carry an `asociatie_id` (tickets/discussions/adminchat); emit one profile row per asociație (not a grouped document-per-tenant); `asociatiiNames: Record<string, string>` + `apartments: Record<string, string|null>` in `CollectInput` replace the old single-string fields.
 - why: flat sections with a labeling column work in both JSON and CSV without restructuring `DataSubjectExport`; one-profile-row-per-asociație is the clearest CSV representation for human reading; keeps `collectPersonalData` pure and its signature stable for future live activation.

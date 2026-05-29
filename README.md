@@ -19,20 +19,26 @@ community life — every feature individually toggleable per asociație.
 
 ## Project status
 
-This is a working **foundation** that builds, type-checks, lints clean, and
-passes its unit tests:
+A working product that builds, type-checks, lints clean, and passes ~1700 unit
+tests across three deployment stages (PROD / DEV / DEMO). Status has two axes:
+what is built and what is wired to a live backend.
 
-- **Implemented end-to-end:** F01 Anunțuri, F03 Alerte, F08 Evenimente,
-  F09 Voturi, F17 Sesizări, F56 Numere de urgență, plus the onboarding wizard,
-  admin feature-flag panel, apartment registry, auth, and home/profile.
+- **All 65 features are demo-complete:** each has a real page, pure
+  unit-tested logic, a seeded offline store, RO/EN strings, and a registry
+  toggle. The app runs the full feature set offline in demo mode. Per-feature
+  notes live in the `FEATURES.md` "Implementation tracking" table.
+- **Live Supabase wiring is partial.** A core subset reads/writes Supabase
+  under RLS today (F01 Anunțuri, F02 Discuții, F04 Mesagerie privată,
+  F05 Mesaj anonim, F17 Sesizări, F33 Documente, plus auth, invites and
+  onboarding). The remaining features are offline-first and are being wired
+  live under the "live-activation" track in `BACKLOG.md`.
 - **Full database:** core + all 65 feature tables with RLS in
   `supabase/migrations/`.
-- **Telegram:** webhook function with secret + Mini App `initData` validation.
-- **Registered (not yet built UI):** the remaining features are toggleable and
-  appear in navigation with a clear "page not in this build" state.
+- **Telegram:** webhook function with secret + Mini App `initData` validation;
+  bot go-live is deferred post-MVP (see `BACKLOG.md`).
 
-See `DECISIONS.md` for the exact scope boundary and `FEATURES.md` for per-feature
-status.
+See `DECISIONS.md` for the scope boundary, `FEATURES.md` for per-feature status,
+and `BACKLOG.md` for the open work queue.
 
 ## Run it locally (no backend needed)
 
