@@ -5,16 +5,21 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-29
-- last_task: T105 (P3) Drag-and-drop reorder for profile custom fields
+- last_task: T107 (P3) Touch-friendly pointer drag for the customizable home cards
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
 - counts: 175 files / 1704 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T107 touch-friendly pointer drag for customizable home cards (prereq T12 done)
+- next: T108 rich per-card home widgets (prereq T12 done) or T51 activeRole() migration (prereq T28 done)
 - features: 65/65 built end-to-end; F28/F36/F66 cross-feature glue wired (T104)
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T107 P3 ✅ 2026-05-29 -- Touch-friendly pointer drag for the customizable home cards
+- new: `useHomeReorder.ts` (pointer/touch/pen unified gesture, press-and-hold touch activation, scroll-intent cancel), `reorderGeometry.ts` (pure `insertionFromPoint`, DOM-free), `tests/unit/reorderGeometry.test.ts` (5 cases)
+- updated: `homeLayoutLogic.ts` (`moveCardTo` + `moveCardToInsertion`), `homeLayoutLogic.test.ts` (+`moveCardTo`/`moveCardToInsertion` cases), `HomePage.tsx` (HTML5 dnd removed; pointer handlers + drop carets wired), `globals.css` (drag states, spring-in caret animation, reduced-motion guard)
+- result: 175 files / 1704 tests / build+pi+demo green
 
 ### T105 P3 ✅ 2026-05-29 -- Drag-and-drop reorder for profile custom fields
 - new: `reorderCustomField` in profileLogic.ts; tests in profileLogic.test.ts (+1 test / 6 cases)

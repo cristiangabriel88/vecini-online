@@ -168,7 +168,7 @@ Surfaced in T11: the profile editor captures `car_plate` (with an F28 note) and 
 ### ✅ T105 — [P3] Drag-and-drop reorder for profile custom fields
 Surfaced in T11: custom fields are reordered with accessible up/down buttons (`moveCustomField`), which is complete and keyboard-friendly but not the "drag" the F66 spec describes. Add pointer/touch drag-reorder on top of the existing pure `moveCustomField`/`sortedCustomFields` ops (keeping the buttons as the accessible fallback), with smooth eased motion per the premium-feel mandate. Pure ordering logic stays unit-tested; the drag is a UI layer. Prereq: T11.
 
-### ⬜ T107 — [P3] Touch-friendly pointer drag for the customizable home cards
+### ✅ T107 — [P3] Touch-friendly pointer drag for the customizable home cards
 Surfaced in T12: the F67 home edit mode reorders cards with native HTML5 drag-and-drop, which works on a desktop pointer but is poor on touch, plus accessible up/down buttons as the fallback. Replace (or augment) the native DnD with a pointer/touch drag layer over the existing pure `moveCard`/`moveCardTo` ops (keeping the buttons as the accessible fallback), with smooth eased motion per the premium-feel mandate. Pure ordering logic stays unit-tested; the drag is a UI layer. Shares the approach with T105 (profile custom-field drag). Prereq: T12.
 
 ### ⬜ T108 — [P3] Rich per-card home widgets (beyond feature-shortcut links)

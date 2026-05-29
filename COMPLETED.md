@@ -4,6 +4,16 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T107 P3 ✅ -- Touch-friendly pointer drag for the customizable home cards
+- new: `src/features/home/useHomeReorder.ts` -- `useHomeReorder(onReorder)` hook; unified Pointer Events gesture (mouse/touch/pen); mouse activates on movement past 6px threshold; touch activates on press-and-hold (180ms) with haptic tick and scroll-intent cancel (12px scroll = hand off to page scroll); `touchmove` guarded non-passive once a drag is live to veto browser scroll; pointer capture on the dragging element; `insertionFromPoint` called live on every move to resolve the drop slot
+- new: `src/features/home/reorderGeometry.ts` -- pure `insertionFromPoint(items, x, y)` geometry; resolves the insertion slot in a wrapping grid by row-band intersection + horizontal half-point; falls back to nearest-centre when the pointer is outside every row; DOM-free so unit-testable
+- new: `tests/unit/reorderGeometry.test.ts` -- 5 cases: empty grid, before/after from pointer side, gutter resolves to slot between cards, row-constrained pick, below-all-rows fallback
+- updated: `src/features/home/homeLayoutLogic.ts` -- added `moveCardToInsertion(layout, key, insertAt)` for the gap-aware drop commit; added `moveCardTo(layout, key, toIndex)` for direct index moves
+- updated: `tests/unit/homeLayoutLogic.test.ts` -- added `moveCardTo` and `moveCardToInsertion` test cases
+- updated: `src/features/home/HomePage.tsx` -- HTML5 drag-and-drop removed; `useHomeReorder` wired; `EditableCard` gets all four pointer handlers + `dragging`/`dropBefore`/`dropAfter` props; drop carets inserted as `home-drop-caret--before/--after` spans; caret suppressed when drop would be a no-op
+- updated: `src/styles/globals.css` -- `.home-card-drag` (grab cursor, touch-action, user-select), `.home-card-drag[data-dragging]` (opacity 0.45, scale 0.97, dashed outline), `.home-drop-caret` spring-in animation (200ms `var(--ease-spring)`), `@media (prefers-reduced-motion)` removes animation + transform
+- result: 175 files / 1704 tests / build+pi+demo green
+
 ### T105 P3 ✅ -- Drag-and-drop reorder for profile custom fields
 - new: `reorderCustomField(fields, id, toIndex)` pure function in `profileLogic.ts` -- moves a field to an arbitrary target index, reassigning sortOrders for the whole sequence; returns original reference on no-op
 - updated: `profileLogic.test.ts` -- added import + 1 test with 6 cases (first-to-last, last-to-first, middle, no-op, unknown-id, out-of-bounds)
