@@ -5,16 +5,22 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-29
-- last_task: T144 (P2) server-side OTP attempt-limit parity -- confirmed server lock cannot be cleared from browser; 5 reconciliation tests added
+- last_task: T14 (P1) email notification channel -- bilingual templates, quiet-hours gate, per-user prefs store + UI, notify-email Netlify function, DB migration, 42 new tests
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 176 files / 1630 tests
+- counts: 173 files / 1657 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T113 carry a return-to through the AAL2 step-up
+- next: T16 realtime updates via Supabase Realtime
 - features: 65/65 built end-to-end; F33 now has role-gated file upload/download/delete
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T14 P1 ✅ 2026-05-29 — Email notification channel (live)
+- new: notifPrefsLogic.ts (shouldSendEmailNotif, hourInTimezone, isInQuietHours, isValidQuietHour), notificationEmail.ts (3-kind bilingual builders + unsubscribe footer), notifPrefsStore.ts (persisted prefs per user), notify-email.ts (service-role Netlify function with consent gate + MAIL_MODE tri-modal), migration 20260529000004_notification_preferences.sql
+- updated: NotificationsPage with NotifPrefsPanel (email toggle + quiet-hours form + one-click unsubscribe); RO+EN pref* locale strings
+- tests: +26 notifPrefsLogic.test.ts + +16 notificationEmail.test.ts
+- result: 173 files / 1657 tests / build+pi+demo green
 
 ### T144 P2 ✅ 2026-05-29 — Server-side OTP attempt-limit parity
 - new: `mfaOtpServerLockReconcile.test.ts` (+5 tests): confirmed `challenge-locked` from server returns `channel-locked` lockedMs > 0; otpThrottles NOT updated on server lock; localStorage wipe doesn't bypass server lock; invalid-code increments client throttle; success resets it

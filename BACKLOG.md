@@ -147,7 +147,7 @@ Surfaced building the easier-2FA channels: the client per-channel `otpThrottle` 
 ### ⬜ T113 — [P3] Carry a return-to through the AAL2 step-up
 Surfaced in T112: when a re-gated session completes the in-app step-up on the security page it navigates to `/app`, dropping whatever deep route it was originally headed for (the path `useMfaEnforcement` redirected it away from). Capture the originally-requested location when the gate steers a session to `/app/securitate` (e.g. via router `state` or a stored `from`) and, after a successful step-up, return the session there instead of the home route, so the 2FA re-gate is transparent. Keep the redirect decision pure. Behind `isSupabaseConfigured`; demo stays ungated. Prereq: T112.
 
-### ⬜ T14 — [P1] Email notification channel (live)
+### ✅ T14 — [P1] Email notification channel (live)
 Wire the real email channel into the notification fan-out (Supabase/SMTP), bilingual templated emails, respecting per-user channel preferences and quiet hours (urgent/alert bypasses). Unsubscribe + preference management.
 
 ### ⬜ T16 — [P1] Realtime updates

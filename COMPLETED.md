@@ -4,6 +4,18 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T14 P1 ✅ — Email notification channel (live)
+- new: `src/shared/lib/notifPrefsLogic.ts` -- pure `NotifEmailPrefs` model, `hourInTimezone`, `isInQuietHours`, `shouldSendEmailNotif` (urgent always bypasses; quiet-hours suppresses non-urgent; email disabled suppresses); `isValidQuietHour` validator
+- new: `src/shared/lib/notificationEmail.ts` -- bilingual (RO+EN) email builders for `membership.joined`, `announcement.published`, `generic` notification kinds; footer with preferences link + one-click `?action=unsubscribe-email` unsubscribe link; follows `inviteEmail.ts` pattern (pure, dep-free, importable by Netlify functions)
+- new: `src/shared/store/notifPrefsStore.ts` -- persisted Zustand store (`vecini.notif-prefs`) keyed by userId; `getPrefs`, `setEmailEnabled`, `setQuietHours`
+- new: `netlify/functions/notify-email.ts` -- service-role Netlify function; bearer-auth caller; resolves recipient email + locale from DB (never from request body); reads `notification_preferences`; checks `shouldSendEmailNotif`; consent gate (essential/urgent bypass; community checks `consent_records.choices.preferences`); renders bilingual template; MAIL_MODE tri-modal (`resend`/`log`/`disabled`)
+- new: `supabase/migrations/20260529000004_notification_preferences.sql` -- `notification_preferences` table (user_id PK, email_enabled, quiet_hours_start/end 0-23, timezone, updated_at); owner-scoped RLS; constraints on hour range
+- new: `src/shared/lib/notifPrefsLogic.test.ts` (+26 tests) -- `hourInTimezone`, `isInQuietHours` (non-wrapping/wrapping/all-day), `shouldSendEmailNotif` (urgent bypass, email off, quiet hours, combinations), `isValidQuietHour`
+- new: `src/shared/lib/notificationEmail.test.ts` (+16 tests) -- all three kinds x RO+EN; fallbacks; CTA links; unsubscribe footer; HTML doctype; locale resolution
+- updated: `NotificationsPage.tsx` -- added `NotifPrefsPanel` (email toggle + quiet-hours form with save/clear); one-click unsubscribe on `?action=unsubscribe-email` param; uses `Card`, `Moon`, `Mail`, `MailX` icons
+- updated: RO+EN locales -- `notifications.pref*` strings for preference panel + unsubscribe banner
+- result: 173 files / 1657 tests / build+pi+demo green
+
 ### T144 P2 ✅ — Live activation: server-side OTP attempt-limit parity
 - new: `tests/unit/mfaOtpServerLockReconcile.test.ts` (+5 tests) -- live-branch `verifyOtp` reconciliation: `challenge-locked` from server returns `channel-locked` with `lockedMs > 0`; `otpThrottles` NOT updated on server lock (server is authoritative); clearing `otpThrottles` (simulated localStorage wipe) still hits the server lock; `invalid-code` increments client throttle; success resets client throttle
 - confirmed: `mfa-otp-verify.ts` attempt counter is per-challenge DB row (not resetable from browser); resend cooldown + hourly ceiling in `mfa-otp-request.ts` prevent farming new challenges; all three second-factor brute-force budgets (login/T33, recovery/T81, OTP/T144) are server-held
