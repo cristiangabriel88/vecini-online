@@ -5,16 +5,22 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-29
-- last_task: T101 (P3) Per-asociatie labeling in art. 15 export
+- last_task: T88 (P2) F33 real file upload, role-gated
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 165 files / 1542 tests
+- counts: 165 files / 1525 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T109 ROPA processing override semantic guard or T88 F33 real file upload
-- features: 65/65 built end-to-end; F66+F67 (Cat-9 personalization) done
+- next: T104 wire F66 profile into F28/F36 or T51 migrate role-gated UI to activeRole()
+- features: 65/65 built end-to-end; F33 now has role-gated file upload/download/delete
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T88 P2 ✅ 2026-05-29 — F33 real file upload, role-gated
+- api/code: `DocumentRecord` gains `file_name/file_size/file_type/file_data_url` fields; `documentLogic.ts` adds `DOCUMENT_MAX_BYTES` (10 MB), `DOCUMENT_ALLOWED_TYPES`, `DOCUMENT_ACCEPT`, `validateDocumentFile`, `canManageDocuments`, `formatFileSize`, `readFileAsDataUrl`; `documentsStore` converted to persisted store with `remove(id)` + updated `add(asociatieId, input)`; `DocumentsPage` role-gated upload (admin/presedinte/comitet), hidden `<input type="file">`, download button for all, delete with confirm modal; `document.uploaded`/`document.deleted` audit events + `'document'` entity in `auditLogic` + `ACTION_TONE`; DEMO_DOCUMENTS updated
+- locales: `documents.fileLabel/fileHint/chooseFile/removeFile/download/delete/deleteTitle/deleteBody/deleted/too_large/bad_type/readFailed` RO+EN; `audit.action.document.uploaded/deleted` + `audit.entity.document` RO+EN
+- tests: +7 in `documentLogic.test.ts` (validateDocumentFile x4, canManageDocuments x2, formatFileSize x1); E2E T88 happy path
+- result: 165 files / 1525 tests / build+pi+demo green
 
 ### T101 P3 ✅ 2026-05-29 — Per-asociatie labeling in art. 15 export
 - api/code: `CollectInput` gains `apartments: Record<string,string|null>` + `asociatiiNames: Record<string,string>` (replacing single-string fields); `DataSubjectExport.subject.asociatii: string[]` (was singular); profile section emits one row per asociatie; tickets/discussions/adminchat rows gain `asociatie` column; `toExportCsv` header joins all names; `MyDataPage.buildExport` builds both maps

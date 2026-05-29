@@ -492,6 +492,11 @@ export interface DocumentRecord {
   category: string;
   title: string;
   storage_path: string | null;
+  file_name: string | null;
+  file_size: number | null;
+  file_type: string | null;
+  /** Base64 data URL stored offline in the local store; null in the live path (T89). */
+  file_data_url: string | null;
   version: number;
   content_text: string | null;
   created_at: string;

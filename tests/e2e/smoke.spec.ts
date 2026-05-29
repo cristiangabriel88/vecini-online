@@ -707,6 +707,34 @@ test('T140: enable email 2FA channel -> sign in -> enter on-screen code -> reach
   await expect(page).toHaveURL(/\/app$/, { timeout: 8000 });
 });
 
+test('T88: admin uploads a document file; resident sees download but not upload', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/documente');
+  await expect(page.getByRole('heading', { name: 'Documente' })).toBeVisible();
+  // Admin role: the "Adaugă document" button is visible.
+  await expect(page.getByRole('button', { name: /Adaugă document/i })).toBeVisible();
+
+  // Open the modal and add a document with a file.
+  await page.getByRole('button', { name: /Adaugă document/i }).click();
+  await page.getByLabel('Titlu').fill('Regulament parcare E2E');
+  await page.locator('input[type="file"]').setInputFiles({
+    name: 'regulament-parcare.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.from('%PDF-1.4 regulament parcare test'),
+  });
+  await expect(page.getByText(/regulament-parcare.pdf/i)).toBeVisible();
+  await page.getByRole('button', { name: /Salvează/i }).click();
+
+  // The new card appears with a download button.
+  await expect(page.getByText('Regulament parcare E2E')).toBeVisible();
+  await expect(page.getByRole('button', { name: /Descarcă/i }).first()).toBeVisible();
+
+  // Delete the document.
+  await page.getByRole('button', { name: /Șterge/i }).first().click();
+  await page.getByRole('button', { name: /Șterge/i, exact: true }).last().click();
+  await expect(page.getByText('Regulament parcare E2E')).toBeHidden();
+});
+
 test('home page has no critical accessibility violations', async ({ page }) => {
   await enterDemo(page);
   const results = await new AxeBuilder({ page })

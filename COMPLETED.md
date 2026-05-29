@@ -4,6 +4,12 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T88 P2 ✅ — F33 real file upload, role-gated (offline data-URL)
+- api/code: `DocumentRecord` gains `file_name/file_size/file_type/file_data_url` optional fields (null in live path until T89); `documentLogic.ts` adds `DOCUMENT_MAX_BYTES` (10 MB), `DOCUMENT_ALLOWED_TYPES`/`DOCUMENT_ACCEPT`, `validateDocumentFile`, `canManageDocuments`, `formatFileSize`, `readFileAsDataUrl`; `documentsStore` converted to `persist('vecini.documents', v1)` with `remove(id)` + updated `add(asociatieId, input)` accepting file fields; `DocumentsPage` reads `activeRole()` + role-gates upload (admin/presedinte/comitet) via hidden `<input type="file">`, shows per-card download button (all users, only when `file_data_url` set) + delete-with-confirm-modal (managers only); emits `document.uploaded`/`document.deleted` audit events; `auditLogic` gains 2 actions + `'document'` entity; `AuditLogPage.ACTION_TONE` updated; DEMO_DOCUMENTS updated with null file fields
+- locales: 13 new `documents.*` keys + `audit.action.document.uploaded/deleted` + `audit.entity.document` RO+EN
+- tests: +7 in `documentLogic.test.ts` (validateDocumentFile x4, canManageDocuments x2, formatFileSize x1); E2E T88 happy path (upload with Buffer, download visible, delete)
+- result: 165 files / 1525 tests / build+pi+demo green
+
 ### T101 P3 ✅ — Label each export section's asociație for a multi-asociație resident
 - api/code: `CollectInput.apartment` renamed to `apartments: Record<string, string | null>` (per-asociatie_id map); `CollectInput.asociatieName` renamed to `asociatiiNames: Record<string, string>`. `DataSubjectExport.subject.asociatie: string` changed to `asociatii: string[]`. Profile section emits one row per asociatie (apartment + name from their respective records). Tickets/discussions/adminchat rows gain an `asociatie` column resolved from `asociatiiNames[row.asociatie_id]`. `toExportCsv` header joins all asociatii names. `MyDataPage.buildExport` builds both maps: `asociatiiNames` from `subjectAsociatieIds`+`localAsociatii`, `apartments` from demo data (live to follow with T103). Decision recorded in `DECISIONS.md`.
 - tests: emptyInput updated; 4 new T101 tests (ticket labeling, discussion labeling, multi-row profile, subject.asociatii); existing assertions updated to `asociatii: []` array and multi-column profile row

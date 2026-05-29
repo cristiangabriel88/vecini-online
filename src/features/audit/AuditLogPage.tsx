@@ -46,6 +46,8 @@ const ACTION_TONE: Record<AuditAction, 'success' | 'danger' | 'warning' | 'neutr
   'building.updated': 'neutral',
   'asociatie.provisioned': 'success',
   'admin.provisioned': 'success',
+  'document.uploaded': 'success',
+  'document.deleted': 'danger',
 };
 
 /** Trigger a client-side download of a text document. */

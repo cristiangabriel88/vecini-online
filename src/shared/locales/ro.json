@@ -1063,7 +1063,19 @@
     "searchPlaceholder": "Caută după titlu sau conținut…",
     "added": "Document adăugat.",
     "empty": "Niciun document găsit. Modifică filtrele sau adaugă unul nou.",
-    "attachmentsUnavailable": "Atașamentele de fișiere nu sunt disponibile în această instalare, așa că documentele sunt păstrate doar ca text căutabil. Poți adăuga în continuare titluri, categorii și descrieri."
+    "attachmentsUnavailable": "Atașamentele de fișiere nu sunt disponibile în această instalare, așa că documentele sunt păstrate doar ca text căutabil. Poți adăuga în continuare titluri, categorii și descrieri.",
+    "fileLabel": "Fișier atașat (opțional)",
+    "fileHint": "PDF, imagine sau Word/Excel, max 10 MB",
+    "chooseFile": "Selectează fișier",
+    "removeFile": "Elimină",
+    "download": "Descarcă",
+    "delete": "Șterge",
+    "deleteTitle": "Șterge document",
+    "deleteBody": "Sigur dorești să ștergi acest document? Acțiunea este ireversibilă.",
+    "deleted": "Document șters.",
+    "too_large": "Fișierul depășește limita de 10 MB.",
+    "bad_type": "Tipul de fișier nu este acceptat (PDF, imagine, Word, Excel).",
+    "readFailed": "Nu s-a putut citi fișierul."
   },
   "fileStorage": {
     "unavailableTitle": "Stocarea fișierelor indisponibilă",
@@ -2436,7 +2448,9 @@
       "apartment.deleted": "Apartament șters",
       "building.updated": "Date clădire actualizate",
       "asociatie.provisioned": "Asociație provizionată",
-      "admin.provisioned": "Administrator provizionat"
+      "admin.provisioned": "Administrator provizionat",
+      "document.uploaded": "Document încărcat",
+      "document.deleted": "Document șters"
     },
     "entity": {
       "feature": "Funcționalitate",
@@ -2447,7 +2461,8 @@
       "apartment": "Apartament",
       "building": "Clădire",
       "asociatie": "Asociație",
-      "admin": "Administrator"
+      "admin": "Administrator",
+      "document": "Document"
     }
   },
   "chrome": {

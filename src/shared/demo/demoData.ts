@@ -442,10 +442,10 @@ export const DEMO_FEEDBACK: PlatformFeedback[] = [
 
 // F33 — Document arhivă.
 export const DEMO_DOCUMENTS: DocumentRecord[] = [
-  { id: 'doc-1', asociatie_id: 'demo-asoc', category: 'statut', title: 'Statutul asociației de proprietari', storage_path: null, version: 2, content_text: 'Statut adoptat în AGA din 2019, actualizat 2023.', created_at: '2023-03-15T09:00:00Z' },
-  { id: 'doc-2', asociatie_id: 'demo-asoc', category: 'regulament', title: 'Regulament de ordine interioară', storage_path: null, version: 1, content_text: 'Reguli privind liniștea, spațiile comune, animalele de companie și parcarea.', created_at: '2022-09-01T09:00:00Z' },
-  { id: 'doc-3', asociatie_id: 'demo-asoc', category: 'contract', title: 'Contract salubritate 2026', storage_path: null, version: 1, content_text: 'Contract cu firma de salubritate, ridicare de două ori pe săptămână.', created_at: '2026-01-10T09:00:00Z' },
-  { id: 'doc-4', asociatie_id: 'demo-asoc', category: 'cadastru', title: 'Plan cadastral teren', storage_path: null, version: 1, content_text: 'Documentație cadastrală pentru terenul aferent blocului.', created_at: '2020-05-20T09:00:00Z' },
+  { id: 'doc-1', asociatie_id: 'demo-asoc', category: 'statut', title: 'Statutul asociației de proprietari', storage_path: null, file_name: null, file_size: null, file_type: null, file_data_url: null, version: 2, content_text: 'Statut adoptat în AGA din 2019, actualizat 2023.', created_at: '2023-03-15T09:00:00Z' },
+  { id: 'doc-2', asociatie_id: 'demo-asoc', category: 'regulament', title: 'Regulament de ordine interioară', storage_path: null, file_name: null, file_size: null, file_type: null, file_data_url: null, version: 1, content_text: 'Reguli privind liniștea, spațiile comune, animalele de companie și parcarea.', created_at: '2022-09-01T09:00:00Z' },
+  { id: 'doc-3', asociatie_id: 'demo-asoc', category: 'contract', title: 'Contract salubritate 2026', storage_path: null, file_name: null, file_size: null, file_type: null, file_data_url: null, version: 1, content_text: 'Contract cu firma de salubritate, ridicare de două ori pe săptămână.', created_at: '2026-01-10T09:00:00Z' },
+  { id: 'doc-4', asociatie_id: 'demo-asoc', category: 'cadastru', title: 'Plan cadastral teren', storage_path: null, file_name: null, file_size: null, file_type: null, file_data_url: null, version: 1, content_text: 'Documentație cadastrală pentru terenul aferent blocului.', created_at: '2020-05-20T09:00:00Z' },
 ];
 
 // F34 — Furnizori / contracte. Contract ends straddle "now" (2026-05).

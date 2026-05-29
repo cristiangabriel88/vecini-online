@@ -1061,7 +1061,19 @@
     "searchPlaceholder": "Search by title or content…",
     "added": "Document added.",
     "empty": "No documents found. Adjust the filters or add a new one.",
-    "attachmentsUnavailable": "File attachments are unavailable in this deployment, so documents are stored as searchable text only. You can still add titles, categories and descriptions."
+    "attachmentsUnavailable": "File attachments are unavailable in this deployment, so documents are stored as searchable text only. You can still add titles, categories and descriptions.",
+    "fileLabel": "Attached file (optional)",
+    "fileHint": "PDF, image or Word/Excel, max 10 MB",
+    "chooseFile": "Choose file",
+    "removeFile": "Remove",
+    "download": "Download",
+    "delete": "Delete",
+    "deleteTitle": "Delete document",
+    "deleteBody": "Are you sure you want to delete this document? This action cannot be undone.",
+    "deleted": "Document deleted.",
+    "too_large": "File exceeds the 10 MB limit.",
+    "bad_type": "File type not accepted (PDF, image, Word, Excel).",
+    "readFailed": "Could not read the file."
   },
   "fileStorage": {
     "unavailableTitle": "File storage unavailable",
@@ -2434,7 +2446,9 @@
       "apartment.deleted": "Apartment deleted",
       "building.updated": "Building details updated",
       "asociatie.provisioned": "Association provisioned",
-      "admin.provisioned": "Administrator provisioned"
+      "admin.provisioned": "Administrator provisioned",
+      "document.uploaded": "Document uploaded",
+      "document.deleted": "Document deleted"
     },
     "entity": {
       "feature": "Feature",
@@ -2445,7 +2459,8 @@
       "apartment": "Apartment",
       "building": "Building",
       "asociatie": "Association",
-      "admin": "Administrator"
+      "admin": "Administrator",
+      "document": "Document"
     }
   },
   "chrome": {

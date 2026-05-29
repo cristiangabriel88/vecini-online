@@ -156,7 +156,7 @@ Live updates via Supabase Realtime under RLS for announcements, tickets, votes, 
 ### ⬜ T26 — [P1] Consent-gate enforcement in the fan-out
 When the live notification channels land (T14 email; Telegram T15 is deferred), make every non-essential dispatch path call `mayNotify` (the T05 gate) and add tests proving a resident who refused a category receives nothing of that kind while essential alerts (F03) always go through. Prereq: T14.
 
-### ⬜ T88 — [P2] F33 real file upload, role-gated (offline data-URL; live Storage in T89)
+### ✅ T88 — [P2] F33 real file upload, role-gated (offline data-URL; live Storage in T89)
 F33 Document arhivă has a page, store and `documents` table (with an unused `storage_path`) but only stores a title, category and free text — there is no real file. Add real document upload so an admin/comitet can upload the building's documents (statut, regulament, contracte cu salubritate/apă/gaz, cadastru) and every member can view + download them, while only admin/comitet can upload or delete. Offline (demo, no backend): persist the file as a size-capped, type-allowlisted base64 data URL in the `documents` store so demo keeps working and a download/open works fully offline; the page shows the upload control only to admin/comitet (`activeRole()`), the download button to everyone. Keep the logic pure + unit-tested, add one E2E and RO/EN strings, and emit a `document.uploaded`/`document.deleted` audit event (extends T09/T85). No backend required. Prereq: T09; coordinates with T51 (role selectors).
 
 ### ⬜ T89 — [P2] Live activation: Supabase Storage for F33 documents
