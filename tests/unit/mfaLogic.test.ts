@@ -164,7 +164,6 @@ describe('mfaErrorKey', () => {
   it('maps internal codes and Supabase messages to stable keys', () => {
     expect(mfaErrorKey('invalid-code')).toBe('invalidCode');
     expect(mfaErrorKey('Invalid TOTP code entered')).toBe('invalidCode');
-    expect(mfaErrorKey('recovery-live-unavailable')).toBe('recoveryLiveUnavailable');
     expect(mfaErrorKey('not-enrolled')).toBe('notEnrolled');
     expect(mfaErrorKey('boom')).toBe('generic');
     expect(mfaErrorKey(null)).toBe('generic');

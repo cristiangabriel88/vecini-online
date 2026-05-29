@@ -5,9 +5,9 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-29
-- last_task: T142 (P2) Email OTP service-role functions (mfa-otp-request + mfa-otp-verify)
+- last_task: T29 (P1) Live recovery-code login server routine (mfa-recovery-verify Netlify function)
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 169 files / 1562 tests
+- counts: 172 files / 1572 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
 - next: T143 wire mfaStore live branches to OTP functions + claim-aware enforcement (prereqs T142 done)
@@ -15,6 +15,13 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T29 P1 ✅ 2026-05-29 — Live recovery-code login server routine
+- new: `mfa-recovery-verify.ts` (bearer-auth, per-session rate limit, constant-time hash compare, delete consumed code, upsert session_elevations/recovery); `recoveryVerifyApi.ts` (client API module)
+- wire: `mfaStore.verifyChallenge` live branch now calls the function for non-TOTP input + refreshes session on success
+- cleanup: removed `recoveryLiveUnavailable` dead code from `MfaErrorKey`, `mfaErrorKey`, locale strings, test
+- tests: +10 in `mfaRecoveryVerify.test.ts`
+- result: 172 files / 1572 tests / build+pi+demo green
 
 ### T142 P2 ✅ 2026-05-29 — Email OTP service-role functions
 - new: `otpEmail.ts` (bilingual template), `mfa-otp-request.ts` (mint+deliver), `mfa-otp-verify.ts` (verify+elevate session); reuses existing `supabaseAdmin.ts`, `resend.ts`, `otpChannelLogic.ts`

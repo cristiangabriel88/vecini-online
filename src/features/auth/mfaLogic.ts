@@ -337,7 +337,6 @@ export function mfaEnforcementRedirect(input: MfaEnforcementInput): string | nul
 /** Stable i18n keys (under `auth.mfa.err`) for the 2FA error states we surface. */
 export type MfaErrorKey =
   | 'invalidCode'
-  | 'recoveryLiveUnavailable'
   | 'notEnrolled'
   | 'expiredCode'
   | 'noChannel'
@@ -357,7 +356,6 @@ export type MfaErrorKey =
 export function mfaErrorKey(error: string | null | undefined): MfaErrorKey {
   if (!error) return 'generic';
   const e = error.toLowerCase();
-  if (e.includes('recovery-live-unavailable')) return 'recoveryLiveUnavailable';
   if (e.includes('not-enrolled')) return 'notEnrolled';
   if (e.includes('expired')) return 'expiredCode';
   if (e.includes('no-channel')) return 'noChannel';

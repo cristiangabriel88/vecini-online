@@ -28,6 +28,7 @@ import {
   isDeliveredChannel,
   OTP_TTL_MS,
 } from '@/features/auth/otpChannelLogic';
+import { verifyRecoveryCodeLive } from '@/features/auth/recoveryVerifyApi';
 import {
   type ThrottleState,
   emptyThrottle,
@@ -447,10 +448,17 @@ export const useMfaStore = create<MfaState>()(
             return { error: null };
           }
 
-          // Live: only an authenticator code can step the session up to aal2.
-          // Recovery-code login requires a privileged server routine and is wired
-          // separately (see T29); offline/demo recovery is fully functional.
-          if (!isValidTotpFormat(input)) return { error: 'recovery-live-unavailable' };
+          // Live: TOTP steps the native session up to aal2; recovery codes go
+          // through the privileged mfa-recovery-verify Netlify function (T29)
+          // which consumes the code and upserts a session_elevations row so the
+          // Custom Access Token Hook (T141) injects the app_2fa_at claim.
+          if (!isValidTotpFormat(input)) {
+            const result = await verifyRecoveryCodeLive(input);
+            if (!result.ok) return { error: result.error ?? 'invalid-code' };
+            // Refresh the session so the new app_2fa_at claim is picked up.
+            await supabase.auth.refreshSession();
+            return { error: null };
+          }
           const factorId = await verifiedTotpFactorId();
           if (!factorId) return { error: 'not-enrolled' };
           const { data: ch, error: chErr } = await supabase.auth.mfa.challenge({ factorId });
@@ -469,8 +477,9 @@ export const useMfaStore = create<MfaState>()(
         }
 
         // Only a wrong-credential guess counts toward the brute-force budget;
-        // config/availability errors (not-enrolled, recovery-live-unavailable,
-        // challenge-failed) are not attacker probes and must not lock anyone out.
+        // config/availability errors (not-enrolled, challenge-failed) and server-
+        // side lock responses (attempt-limit-exceeded) are not attacker probes
+        // and must not lock anyone out client-side.
         if (mfaErrorKey(error) === 'invalidCode') {
           const next = throttleFail(get().challengeThrottle, now);
           set({ challengeThrottle: next });

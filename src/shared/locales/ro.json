@@ -265,7 +265,6 @@
       "stepUpDone": "Identitate confirmată. Poți continua.",
       "err": {
         "invalidCode": "Cod incorect. Încearcă din nou.",
-        "recoveryLiveUnavailable": "Conectarea cu un cod de recuperare nu este încă disponibilă online. Folosește aplicația de autentificare.",
         "notEnrolled": "Autentificarea în doi pași nu este activată.",
         "expiredCode": "Codul a expirat. Solicită unul nou.",
         "noChannel": "Acest canal nu este activat. Activează-l din setările de Securitate.",
