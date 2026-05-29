@@ -192,6 +192,12 @@ These are deliberate, queued follow-ups rather than accepted risks:
 - Live recovery-code login needs a server routine to reach AAL2 -- T29.
 - Live cross-tenant isolation tests against real Postgres -- T08; static
   RLS-coverage guard -- T35.
+- Email OTP service-role functions (T142) are deployed; live activation requires
+  `SUPABASE_SERVICE_ROLE_KEY` + `RESEND_API_KEY` + `RESEND_FROM_EMAIL` + `APP_URL`
+  in the Netlify environment, and the Custom Access Token Hook (T141) must be
+  enabled in Authentication > Hooks before the `app_2fa_at` claim reaches clients.
+  Until then, email OTP works in demo mode only. Server-side attempt limits and
+  session elevation require the provisioned backend.
 
-Last reviewed: 2026-05-29 (T32 server-side auth-policy parity documented; T137
-anonymous-message within-tenant privacy 2026-05-26; T04 RLS audit 2026-05-22).
+Last reviewed: 2026-05-29 (T142 email OTP service-role functions shipped; T32
+server-side auth-policy parity documented; T137 2026-05-26; T04 RLS audit 2026-05-22).

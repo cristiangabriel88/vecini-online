@@ -42,7 +42,7 @@ export function isDeliveredChannel(channel: MfaChannel): boolean {
 }
 
 /** The Web Crypto implementation (browser and Node 18+ both expose it). */
-function webcrypto(): Crypto {
+function webcrypto() {
   return globalThis.crypto;
 }
 

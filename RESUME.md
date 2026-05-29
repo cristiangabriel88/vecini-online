@@ -5,16 +5,23 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-29
-- last_task: T33 (P2) Server-backed login lockout
+- last_task: T142 (P2) Email OTP service-role functions (mfa-otp-request + mfa-otp-verify)
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 166 files / 1535 tests
+- counts: 169 files / 1562 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T142 live OTP service-role functions (prereqs T140+T141 done) or T81 server MFA throttle (needs T29)
+- next: T143 wire mfaStore live branches to OTP functions + claim-aware enforcement (prereqs T142 done)
 - features: 65/65 built end-to-end; F33 now has role-gated file upload/download/delete
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T142 P2 ✅ 2026-05-29 — Email OTP service-role functions
+- new: `otpEmail.ts` (bilingual template), `mfa-otp-request.ts` (mint+deliver), `mfa-otp-verify.ts` (verify+elevate session); reuses existing `supabaseAdmin.ts`, `resend.ts`, `otpChannelLogic.ts`
+- fix: pre-existing TS error in `otpChannelLogic.ts` (removed `: Crypto` return type annotation)
+- live activation: needs 4 env vars + Custom Access Token Hook enabled; documented in SECURITY.md
+- tests: +27 in `mfaOtpFunctions.test.ts`
+- result: 169 files / 1562 tests / build+pi+demo green
 
 ### T33 P2 ✅ 2026-05-29 — Server-backed login lockout
 - mig: `login_attempt_locks` table + SECURITY DEFINER RPCs `check_login_lock`/`record_login_failure`/`clear_login_lock`; RLS enabled; escalating lock mirrors client constants (5 failures/15min, 1min base doubling to 30min cap)
