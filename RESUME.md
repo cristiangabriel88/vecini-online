@@ -5,16 +5,21 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-29
-- last_task: T113 (P3) Return-to through AAL2 step-up -- useMfaEnforcement passes from state; SecurityPage navigates returnTo after step-up
+- last_task: T89 (P2) Live activation: Supabase Storage for F33 documents -- documentsApi.ts (hydrateDocuments, addDocumentLive, addDocumentMetadataLive, removeDocumentLive, getDocumentSignedUrl); store adds addRecord + replaceForAsociatie; page wires live upload/download/delete/hydration with demo fallback
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 178 files / 1690 tests
+- counts: 179 files / 1690 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T89 live Supabase Storage for F33 documents (prereq T88 done)
-- features: 65/65 built end-to-end; F33 now has role-gated file upload/download/delete
+- next: T104 wire F66 profile into F28 Parcare + F36 directory (prereq T11 done)
+- features: 65/65 built end-to-end; F33 Storage live path wired (T89)
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T89 P2 ✅ 2026-05-29 -- Live activation: Supabase Storage for F33 documents
+- new: documentsApi.ts (hydrateDocuments, addDocumentLive, addDocumentMetadataLive, removeDocumentLive, getDocumentSignedUrl); all behind isSupabaseConfigured
+- updated: documentsStore.ts (addRecord, replaceForAsociatie); DocumentsPage.tsx (live upload, signed-URL download, live delete, on-mount hydration, PendingFile keeps raw File ref); locales (+3 keys)
+- result: 179 files / 1690 tests / build+pi+demo green
 
 ### T113 P3 ✅ 2026-05-29 -- Return-to through AAL2 step-up
 - updated: useMfaEnforcement.ts (pass state.from = pathname+search when redirecting to security page); SecurityPage.tsx (read returnTo from location.state, navigate there after step-up)

@@ -4,6 +4,13 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T89 P2 ✅ -- Live activation: Supabase Storage for F33 documents
+- new: `src/features/documents/documentsApi.ts` -- `hydrateDocuments` (SELECT from `documents` table, `replaceForAsociatie` in store); `addDocumentLive` (Storage upload to `<asociatie_id>/<doc_id>/<filename>`, then INSERT row; removes orphan on DB failure); `addDocumentMetadataLive` (INSERT row without file); `removeDocumentLive` (Storage remove + DELETE row); `getDocumentSignedUrl` (1-hour signed URL from `documents` bucket). All gated behind `isSupabaseConfigured`. Bucket + RLS already created by `supabase/migrations/20260121000003_storage.sql`.
+- updated: `src/features/documents/documentsStore.ts` -- added `addRecord(record)` (prepend a pre-built record) and `replaceForAsociatie(asociatieId, records)` (replace all rows for one tenant, keep others) actions
+- updated: `src/features/documents/DocumentsPage.tsx` -- `useEffect` hydrates on mount; `PendingFile` keeps the raw `File` reference; in live mode skips data-URL conversion (large files not base64-encoded); `submit()` is async: with-file path calls `addDocumentLive`, no-file path does optimistic `addRecord` + `addDocumentMetadataLive` (rollback on failure); `handleDownload` calls `getDocumentSignedUrl` when `storage_path` is set; `confirmDelete` calls `removeDocumentLive` when live; demo offline path unchanged. Download button shows for either `file_data_url` (demo) or `storage_path` (live).
+- updated: `src/shared/locales/ro.json` + `en.json` -- added `documents.uploading`, `documents.uploadFailed`, `documents.downloadFailed`
+- result: 179 files / 1690 tests / build+pi+demo green
+
 ### T113 P3 ✅ -- Carry a return-to through the AAL2 step-up
 - updated: `src/app/useMfaEnforcement.ts` -- destructure `search` alongside `pathname` from `useLocation()`; pass `state: { from: pathname + search }` when navigating to the security page; add `search` to the effect deps
 - updated: `src/features/auth/SecurityPage.tsx` -- import `useLocation`; read `returnTo` from `location.state.from` (fallback `/app`); navigate to `returnTo` after a successful step-up instead of the hardcoded `/app`

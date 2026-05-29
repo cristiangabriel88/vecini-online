@@ -1091,7 +1091,10 @@
     "deleted": "Document șters.",
     "too_large": "Fișierul depășește limita de 10 MB.",
     "bad_type": "Tipul de fișier nu este acceptat (PDF, imagine, Word, Excel).",
-    "readFailed": "Nu s-a putut citi fișierul."
+    "readFailed": "Nu s-a putut citi fișierul.",
+    "uploading": "Se încarcă…",
+    "uploadFailed": "Încărcarea a eșuat. Încearcă din nou.",
+    "downloadFailed": "Nu s-a putut genera linkul de descărcare."
   },
   "fileStorage": {
     "unavailableTitle": "Stocarea fișierelor indisponibilă",

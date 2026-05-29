@@ -1089,7 +1089,10 @@
     "deleted": "Document deleted.",
     "too_large": "File exceeds the 10 MB limit.",
     "bad_type": "File type not accepted (PDF, image, Word, Excel).",
-    "readFailed": "Could not read the file."
+    "readFailed": "Could not read the file.",
+    "uploading": "Uploading…",
+    "uploadFailed": "Upload failed. Please try again.",
+    "downloadFailed": "Could not generate the download link."
   },
   "fileStorage": {
     "unavailableTitle": "File storage unavailable",

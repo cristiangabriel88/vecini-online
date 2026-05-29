@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Download, FileText, Plus, Trash2, Upload } from 'lucide-react';
@@ -12,9 +12,17 @@ import { EmptyState } from '@/shared/components/EmptyState';
 import { Modal } from '@/shared/components/Modal';
 import { formatDate } from '@/shared/lib/format';
 import { useAuthStore } from '@/shared/store/authStore';
+import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import { DEMO_ASOCIATIE } from '@/shared/demo/demoData';
 import { recordAudit } from '@/shared/store/auditStore';
 import { useDocumentsStore } from './documentsStore';
+import {
+  hydrateDocuments,
+  addDocumentLive,
+  addDocumentMetadataLive,
+  removeDocumentLive,
+  getDocumentSignedUrl,
+} from './documentsApi';
 import {
   DOCUMENT_ACCEPT,
   DOCUMENT_CATEGORIES,
@@ -30,12 +38,15 @@ interface PendingFile {
   name: string;
   size: number;
   type: string;
-  dataUrl: string;
+  /** Base64 data URL -- populated in demo mode; null in live (Storage) mode. */
+  dataUrl: string | null;
+  /** Raw File reference -- used for Storage upload in live mode. */
+  file: File;
 }
 
-function triggerDownload(dataUrl: string, fileName: string): void {
+function triggerDownload(url: string, fileName: string): void {
   const a = document.createElement('a');
-  a.href = dataUrl;
+  a.href = url;
   a.download = fileName;
   document.body.appendChild(a);
   a.click();
@@ -44,7 +55,7 @@ function triggerDownload(dataUrl: string, fileName: string): void {
 
 export default function DocumentsPage() {
   const { t } = useTranslation();
-  const { documents, add, remove } = useDocumentsStore();
+  const { documents, add, addRecord, remove } = useDocumentsStore();
   const asociatieId = useAuthStore((s) => s.currentAsociatieId) ?? DEMO_ASOCIATIE.id;
   const role = useAuthStore((s) => s.activeRole());
   const canManage = canManageDocuments(role);
@@ -58,7 +69,12 @@ export default function DocumentsPage() {
   const [pendingFile, setPendingFile] = useState<PendingFile | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    void hydrateDocuments(asociatieId);
+  }, [asociatieId]);
 
   const results = searchDocuments(documents, query, category);
   const valid = isValidDocument(title);
@@ -74,8 +90,10 @@ export default function DocumentsPage() {
       return;
     }
     try {
-      const dataUrl = await readFileAsDataUrl(file);
-      setPendingFile({ name: file.name, size: file.size, type: file.type, dataUrl });
+      // In live mode skip data URL conversion -- the raw File is uploaded to Storage.
+      // In demo mode read the file as a data URL for offline persistence.
+      const dataUrl = isSupabaseConfigured ? null : await readFileAsDataUrl(file);
+      setPendingFile({ name: file.name, size: file.size, type: file.type, dataUrl, file });
     } catch {
       setFileError(t('documents.readFailed'));
     }
@@ -91,26 +109,91 @@ export default function DocumentsPage() {
     setFileError(null);
   };
 
-  const submit = () => {
-    if (!valid) return;
-    add(asociatieId, {
-      title,
-      category: newCategory,
-      content_text: content,
-      file_name: pendingFile?.name ?? null,
-      file_size: pendingFile?.size ?? null,
-      file_type: pendingFile?.type ?? null,
-      file_data_url: pendingFile?.dataUrl ?? null,
-    });
-    recordAudit({ action: 'document.uploaded', entity: 'document', entity_label: title.trim() });
-    toast.success(t('documents.added'));
-    clearModal();
+  const submit = async () => {
+    if (!valid || saving) return;
+    setSaving(true);
+    try {
+      const docId = `doc-${Date.now()}`;
+      if (isSupabaseConfigured) {
+        if (pendingFile) {
+          // Live path with file: upload to Storage + insert DB row.
+          const record = await addDocumentLive(
+            asociatieId,
+            docId,
+            title,
+            newCategory,
+            content,
+            pendingFile.file,
+          );
+          if (!record) {
+            toast.error(t('documents.uploadFailed'));
+            return;
+          }
+          addRecord(record);
+        } else {
+          // Live path without file: insert metadata-only row, optimistic update.
+          const metaRecord = {
+            id: docId,
+            asociatie_id: asociatieId,
+            category: newCategory,
+            title: title.trim(),
+            storage_path: null as null,
+            file_name: null as null,
+            file_size: null as null,
+            file_type: null as null,
+            file_data_url: null as null,
+            version: 1,
+            content_text: content.trim() || null,
+            created_at: new Date().toISOString(),
+          };
+          addRecord(metaRecord);
+          const ok = await addDocumentMetadataLive(asociatieId, docId, title, newCategory, content);
+          if (!ok) {
+            toast.error(t('documents.uploadFailed'));
+            remove(docId);
+            return;
+          }
+        }
+      } else {
+        // Demo / offline path: persist as base64 data URL in the local store.
+        add(asociatieId, {
+          title,
+          category: newCategory,
+          content_text: content,
+          file_name: pendingFile?.name ?? null,
+          file_size: pendingFile?.size ?? null,
+          file_type: pendingFile?.type ?? null,
+          file_data_url: pendingFile?.dataUrl ?? null,
+        });
+      }
+      recordAudit({ action: 'document.uploaded', entity: 'document', entity_label: title.trim() });
+      toast.success(t('documents.added'));
+      clearModal();
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const confirmDelete = () => {
+  const handleDownload = async (storagePath: string | null, dataUrl: string | null, fileName: string) => {
+    if (isSupabaseConfigured && storagePath) {
+      const url = await getDocumentSignedUrl(storagePath);
+      if (url) {
+        triggerDownload(url, fileName);
+      } else {
+        toast.error(t('documents.downloadFailed'));
+      }
+    } else if (dataUrl) {
+      triggerDownload(dataUrl, fileName);
+    }
+  };
+
+  const confirmDelete = async () => {
     if (!deleteId) return;
     const doc = documents.find((d) => d.id === deleteId);
     remove(deleteId);
+    if (isSupabaseConfigured && doc) {
+      void removeDocumentLive(doc.id, doc.storage_path);
+    }
     if (doc) {
       recordAudit({ action: 'document.deleted', entity: 'document', entity_label: doc.title });
     }
@@ -168,11 +251,11 @@ export default function DocumentsPage() {
                 )}
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
-                {d.file_data_url && d.file_name && (
+                {d.file_name && (d.file_data_url || d.storage_path) && (
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => triggerDownload(d.file_data_url!, d.file_name!)}
+                    onClick={() => void handleDownload(d.storage_path, d.file_data_url, d.file_name!)}
                     aria-label={t('documents.download')}
                   >
                     <Download className="h-4 w-4" /> {t('documents.download')}
@@ -201,11 +284,11 @@ export default function DocumentsPage() {
         title={t('documents.new')}
         footer={
           <>
-            <Button variant="ghost" onClick={clearModal}>
+            <Button variant="ghost" onClick={clearModal} disabled={saving}>
               {t('common.cancel')}
             </Button>
-            <Button onClick={submit} disabled={!valid}>
-              {t('common.save')}
+            <Button onClick={() => void submit()} disabled={!valid || saving}>
+              {saving ? t('documents.uploading') : t('common.save')}
             </Button>
           </>
         }
@@ -233,7 +316,7 @@ export default function DocumentsPage() {
               accept={DOCUMENT_ACCEPT}
               className="sr-only"
               aria-label={t('documents.fileLabel')}
-              onChange={handleFileChange}
+              onChange={(e) => void handleFileChange(e)}
             />
             {pendingFile ? (
               <div className="flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-sm">
@@ -277,7 +360,7 @@ export default function DocumentsPage() {
             <Button variant="ghost" onClick={() => setDeleteId(null)}>
               {t('common.cancel')}
             </Button>
-            <Button variant="danger" onClick={confirmDelete}>
+            <Button variant="danger" onClick={() => void confirmDelete()}>
               {t('documents.delete')}
             </Button>
           </>

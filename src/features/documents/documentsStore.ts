@@ -16,7 +16,9 @@ export interface NewDocument {
 interface DocumentsState {
   documents: DocumentRecord[];
   add: (asociatieId: string, input: NewDocument) => void;
+  addRecord: (record: DocumentRecord) => void;
   remove: (id: string) => void;
+  replaceForAsociatie: (asociatieId: string, records: DocumentRecord[]) => void;
 }
 
 export const useDocumentsStore = create<DocumentsState>()(
@@ -43,8 +45,17 @@ export const useDocumentsStore = create<DocumentsState>()(
             ...s.documents,
           ],
         })),
+      addRecord: (record) =>
+        set((s) => ({ documents: [record, ...s.documents] })),
       remove: (id) =>
         set((s) => ({ documents: s.documents.filter((d) => d.id !== id) })),
+      replaceForAsociatie: (asociatieId, records) =>
+        set((s) => ({
+          documents: [
+            ...records,
+            ...s.documents.filter((d) => d.asociatie_id !== asociatieId),
+          ],
+        })),
     }),
     {
       name: 'vecini.documents',
