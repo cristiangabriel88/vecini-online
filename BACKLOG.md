@@ -150,7 +150,7 @@ Surfaced in T112: when a re-gated session completes the in-app step-up on the se
 ### ✅ T14 — [P1] Email notification channel (live)
 Wire the real email channel into the notification fan-out (Supabase/SMTP), bilingual templated emails, respecting per-user channel preferences and quiet hours (urgent/alert bypasses). Unsubscribe + preference management.
 
-### ⬜ T16 — [P1] Realtime updates
+### ✅ T16 — [P1] Realtime updates
 Live updates via Supabase Realtime under RLS for announcements, tickets, votes, and chat surfaces, with optimistic UI and graceful reconnection. Falls back cleanly in demo mode.
 
 ### ⬜ T26 — [P1] Consent-gate enforcement in the fan-out

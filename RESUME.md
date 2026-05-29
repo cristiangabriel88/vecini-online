@@ -5,16 +5,22 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-29
-- last_task: T14 (P1) email notification channel -- bilingual templates, quiet-hours gate, per-user prefs store + UI, notify-email Netlify function, DB migration, 42 new tests
+- last_task: T16 (P1) Realtime updates -- announcements/tickets/private-threads/messages subscribed per-asociatie; pure apply helpers + 25 tests; no-op in demo
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 173 files / 1657 tests
+- counts: 177 files / 1682 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T16 realtime updates via Supabase Realtime
+- next: T26 consent-gate enforcement in the notification fan-out (prereq T14 done)
 - features: 65/65 built end-to-end; F33 now has role-gated file upload/download/delete
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T16 P1 ✅ 2026-05-29 — Realtime updates
+- new: realtimeLogic.ts (8 pure apply helpers for INSERT/UPDATE/DELETE events on announcements, tickets, private_threads, private_messages); useRealtimeSync.ts (hook, subscribes to all 4 tables on one channel per asociatieId, no-op offline)
+- updated: AppLayout calls useRealtimeSync(currentAsociatieId)
+- tests: +25 realtimeSync.test.ts
+- result: 177 files / 1682 tests / build+pi+demo green
 
 ### T14 P1 ✅ 2026-05-29 — Email notification channel (live)
 - new: notifPrefsLogic.ts (shouldSendEmailNotif, hourInTimezone, isInQuietHours, isValidQuietHour), notificationEmail.ts (3-kind bilingual builders + unsubscribe footer), notifPrefsStore.ts (persisted prefs per user), notify-email.ts (service-role Netlify function with consent gate + MAIL_MODE tri-modal), migration 20260529000004_notification_preferences.sql

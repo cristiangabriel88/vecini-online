@@ -4,6 +4,13 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T16 P1 ✅ — Realtime updates (announcements, tickets, private messaging)
+- new: `src/app/realtimeLogic.ts` -- pure event-apply helpers: `applyAnnouncementChange` (INSERT dedup by id + UPDATE replace), `applyAnnouncementDelete`, `applyTicketChange`, `applyTicketDelete`, `applyThreadInsert` (dedup), `applyThreadStatusUpdate` (patches status, preserves messages), `applyThreadDelete`, `applyMessageInsert` (appends to parent thread, dedup by id)
+- new: `src/app/useRealtimeSync.ts` -- React hook; subscribes to `announcements`, `tickets`, `private_threads`, `private_messages` postgres_changes on a single channel per asociatieId (each table filtered by `asociatie_id=eq.${aid}`); Supabase Realtime handles reconnection automatically; no-op when `!isSupabaseConfigured` or `asociatieId` is null (demo/offline falls back cleanly); votes surfaces deferred to T80 (live read path not yet built)
+- updated: `AppLayout.tsx` -- calls `useRealtimeSync(currentAsociatieId)` so the subscription is active for the full app session; reads `currentAsociatieId` from `authStore` (already available in the component)
+- tests: `tests/unit/realtimeSync.test.ts` (+25 tests) -- INSERT prepend + dedup, UPDATE replace + no-op-when-absent, DELETE remove + no-op-when-absent for announcements and tickets; thread INSERT dedup, status UPDATE (preserves messages, isolates other threads), thread DELETE; message INSERT (appends, dedup, multi-thread isolation, unknown-thread no-op)
+- result: 177 files / 1682 tests / lint+typecheck+build+pi+demo green
+
 ### T14 P1 ✅ — Email notification channel (live)
 - new: `src/shared/lib/notifPrefsLogic.ts` -- pure `NotifEmailPrefs` model, `hourInTimezone`, `isInQuietHours`, `shouldSendEmailNotif` (urgent always bypasses; quiet-hours suppresses non-urgent; email disabled suppresses); `isValidQuietHour` validator
 - new: `src/shared/lib/notificationEmail.ts` -- bilingual (RO+EN) email builders for `membership.joined`, `announcement.published`, `generic` notification kinds; footer with preferences link + one-click `?action=unsubscribe-email` unsubscribe link; follows `inviteEmail.ts` pattern (pure, dep-free, importable by Netlify functions)

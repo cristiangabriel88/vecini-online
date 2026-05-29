@@ -23,6 +23,7 @@ import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
 import { cn } from '@/shared/lib/cn';
 import { DevRoleSwitcher } from '@/shared/components/DevRoleSwitcher';
 import { StageBanner } from '@/shared/components/StageBanner';
+import { useRealtimeSync } from './useRealtimeSync';
 
 function initials(name: string) {
   return name
@@ -545,8 +546,10 @@ function Footer() {
 
 export function AppLayout() {
   const { pathname } = useLocation();
+  const currentAsociatieId = useAuthStore((s) => s.currentAsociatieId);
   useMfaEnforcement();
   useIdleTimeout();
+  useRealtimeSync(currentAsociatieId);
   return (
     <div className="shell">
       <Atmosphere />
