@@ -9,6 +9,48 @@ import {
   type ProcessingProfile,
 } from '@/shared/features/registry';
 
+/* ----------------------- Semantic ROPA guards (T109) ----------------------- */
+
+/**
+ * Financial data may only be processed under legal obligation or contract
+ * performance -- not under legitimate interest or consent.
+ */
+const FINANCIAL_VALID_BASES = new Set(['ropa.basis.legal', 'ropa.basis.contract']);
+
+/**
+ * Returns one violation message per implemented feature whose resolved profile
+ * includes `financial` in its data categories but resolves a basis other than
+ * legal or contract. A future financial feature filed under the wrong category
+ * would silently inherit an inaccurate art. 30 basis without this guard.
+ */
+export function financialBasisViolations(features: FeatureDef[]): string[] {
+  return features
+    .filter((f) => f.implemented)
+    .flatMap((f) => {
+      const p = profileFor(f);
+      return p.data.includes('financial') && !FINANCIAL_VALID_BASES.has(p.basisKey)
+        ? [`${f.key}: financial data on ${p.basisKey} (must be legal or contract)`]
+        : [];
+    });
+}
+
+/**
+ * Returns one violation message per implemented feature whose resolved profile
+ * uses `consent` as its lawful basis but does not include `optional` in its
+ * data categories. Consent-based processing applies to opt-in personal data,
+ * always flagged with the `optional` category in this registry.
+ */
+export function consentOptionalViolations(features: FeatureDef[]): string[] {
+  return features
+    .filter((f) => f.implemented)
+    .flatMap((f) => {
+      const p = profileFor(f);
+      return p.basisKey === 'ropa.basis.consent' && !p.data.includes('optional')
+        ? [`${f.key}: consent basis without 'optional' in data (should be opt-in)`]
+        : [];
+    });
+}
+
 /**
  * Records of Processing Activities (GDPR art. 30) + the controller/processor
  * split that backs the Data Processing Agreement (art. 28).

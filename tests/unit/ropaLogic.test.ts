@@ -3,11 +3,15 @@ import {
   CATEGORY_DEFAULTS,
   FEATURES,
   FEATURE_MAP,
+  type FeatureDef,
+  type FeatureKey,
   type RopaDataCategory,
 } from '@/shared/features/registry';
 import {
   PLATFORM_ACTIVITIES,
   buildRopa,
+  consentOptionalViolations,
+  financialBasisViolations,
   profileFor,
   ropaToCsv,
   ropaToJson,
@@ -131,5 +135,91 @@ describe('ropaLogic', () => {
     expect(parsed.register).toBe('art. 30 GDPR');
     expect(parsed.asociatie).toBe('Bloc A1');
     expect(parsed.activities).toHaveLength(1);
+  });
+
+  describe('semantic ROPA guards (T109)', () => {
+    it('no implemented feature processes financial data under a non-legal/contract basis', () => {
+      expect(financialBasisViolations(FEATURES)).toEqual([]);
+    });
+
+    it('no implemented feature uses consent basis without optional data', () => {
+      expect(consentOptionalViolations(FEATURES)).toEqual([]);
+    });
+
+    it('financialBasisViolations catches a feature with financial data and legitimate basis', () => {
+      const bad: FeatureDef = {
+        key: 'F99' as FeatureKey,
+        title: 'test',
+        category: 'information', // default: ropa.basis.legitimate
+        icon: 'test',
+        audience: ['all'],
+        description: 'test',
+        implemented: true,
+        processing: { data: ['identity', 'financial'] },
+      };
+      const violations = financialBasisViolations([bad]);
+      expect(violations).toHaveLength(1);
+      expect(violations[0]).toContain('F99');
+      expect(violations[0]).toContain('financial');
+    });
+
+    it('financialBasisViolations accepts a feature with financial data and legal basis', () => {
+      const good: FeatureDef = {
+        key: 'F99' as FeatureKey,
+        title: 'test',
+        category: 'governance', // default: ropa.basis.legal
+        icon: 'test',
+        audience: ['all'],
+        description: 'test',
+        implemented: true,
+        processing: { data: ['identity', 'apartment', 'financial'] },
+      };
+      expect(financialBasisViolations([good])).toEqual([]);
+    });
+
+    it('consentOptionalViolations catches a consent-basis feature with no optional data', () => {
+      const bad: FeatureDef = {
+        key: 'F99' as FeatureKey,
+        title: 'test',
+        category: 'communication', // default: ropa.basis.legitimate, data: identity+content
+        icon: 'test',
+        audience: ['all'],
+        description: 'test',
+        implemented: true,
+        processing: { basisKey: 'ropa.basis.consent' }, // overrides basis but data still lacks optional
+      };
+      const violations = consentOptionalViolations([bad]);
+      expect(violations).toHaveLength(1);
+      expect(violations[0]).toContain('F99');
+      expect(violations[0]).toContain('consent');
+    });
+
+    it('consentOptionalViolations accepts a community feature (inherits optional from default)', () => {
+      const good: FeatureDef = {
+        key: 'F99' as FeatureKey,
+        title: 'test',
+        category: 'community', // default: consent + optional
+        icon: 'test',
+        audience: ['all'],
+        description: 'test',
+        implemented: true,
+      };
+      expect(consentOptionalViolations([good])).toEqual([]);
+    });
+
+    it('both guards ignore non-implemented features', () => {
+      const draft: FeatureDef = {
+        key: 'F99' as FeatureKey,
+        title: 'test',
+        category: 'information',
+        icon: 'test',
+        audience: ['all'],
+        description: 'test',
+        implemented: false,
+        processing: { data: ['financial'] },
+      };
+      expect(financialBasisViolations([draft])).toEqual([]);
+      expect(consentOptionalViolations([draft])).toEqual([]);
+    });
   });
 });

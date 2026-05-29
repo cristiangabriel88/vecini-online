@@ -5,16 +5,21 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-29
-- last_task: T88 (P2) F33 real file upload, role-gated
+- last_task: T109 (P3) Semantic ROPA guards
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 165 files / 1525 tests
+- counts: 165 files / 1531 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T104 wire F66 profile into F28/F36 or T51 migrate role-gated UI to activeRole()
+- next: T29 live recovery-code login (prereq T142 now done) or T33 server-backed login lockout
 - features: 65/65 built end-to-end; F33 now has role-gated file upload/download/delete
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T109 P3 ✅ 2026-05-29 — Semantic ROPA guards
+- api/code: `ropaLogic.ts` adds `financialBasisViolations` + `consentOptionalViolations` -- two pure guard functions that scan the resolved processing profile of every implemented feature and return violation messages; guards check that `financial` data only appears with `legal`/`contract` basis and that `consent` basis always includes `optional` data
+- tests: +6 in `ropaLogic.test.ts` -- zero-violation assertions on all current FEATURES; synthetic bad/good feature pairs for each rule; guard ignores non-implemented features
+- result: 165 files / 1531 tests / build+pi+demo green
 
 ### T88 P2 ✅ 2026-05-29 — F33 real file upload, role-gated
 - api/code: `DocumentRecord` gains `file_name/file_size/file_type/file_data_url` fields; `documentLogic.ts` adds `DOCUMENT_MAX_BYTES` (10 MB), `DOCUMENT_ALLOWED_TYPES`, `DOCUMENT_ACCEPT`, `validateDocumentFile`, `canManageDocuments`, `formatFileSize`, `readFileAsDataUrl`; `documentsStore` converted to persisted store with `remove(id)` + updated `add(asociatieId, input)`; `DocumentsPage` role-gated upload (admin/presedinte/comitet), hidden `<input type="file">`, download button for all, delete with confirm modal; `document.uploaded`/`document.deleted` audit events + `'document'` entity in `auditLogic` + `ACTION_TONE`; DEMO_DOCUMENTS updated
