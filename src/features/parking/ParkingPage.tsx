@@ -9,12 +9,16 @@ import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Modal } from '@/shared/components/Modal';
+import { useMyIdentity, useProfileStore } from '@/features/profile/profileStore';
 import { useParkingStore } from './parkingStore';
-import { countFree, isOccupied, isValidSpot, searchSpots, sortSpots } from './parkingLogic';
+import { countFree, isOccupied, isValidSpot, residentPlateSuggestion, searchSpots, sortSpots } from './parkingLogic';
 
 export default function ParkingPage() {
   const { t } = useTranslation();
   const { spots, add } = useParkingStore();
+  const { userId, email } = useMyIdentity();
+  const profileGet = useProfileStore((s) => s.get);
+  const myPlate = residentPlateSuggestion(profileGet(userId, email).carPlate);
 
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
@@ -28,16 +32,20 @@ export default function ParkingPage() {
   const free = countFree(spots);
   const valid = isValidSpot(label);
 
+  const openModal = () => {
+    setLabel('');
+    setZone('');
+    setIsVisitor(false);
+    setApartmentLabel('');
+    setLicensePlate(myPlate ?? '');
+    setOpen(true);
+  };
+
   const submit = () => {
     if (!valid) return;
     add({ label, zone, isVisitor, apartmentLabel, licensePlate });
     toast.success(t('parking.added'));
     setOpen(false);
-    setLabel('');
-    setZone('');
-    setIsVisitor(false);
-    setApartmentLabel('');
-    setLicensePlate('');
   };
 
   return (
@@ -46,7 +54,7 @@ export default function ParkingPage() {
         title={t('parking.title')}
         subtitle={t('parking.subtitle')}
         action={
-          <Button onClick={() => setOpen(true)}>
+          <Button onClick={openModal}>
             <Plus className="h-4 w-4" /> {t('parking.new')}
           </Button>
         }
@@ -116,7 +124,12 @@ export default function ParkingPage() {
             {t('parking.isVisitor')}
           </label>
           <Input label={t('parking.apartment')} value={apartmentLabel} onChange={(e) => setApartmentLabel(e.target.value)} />
-          <Input label={t('parking.plate')} value={licensePlate} onChange={(e) => setLicensePlate(e.target.value)} />
+          <div>
+            <Input label={t('parking.plate')} value={licensePlate} onChange={(e) => setLicensePlate(e.target.value)} />
+            {myPlate && licensePlate === myPlate && (
+              <p className="mt-1 text-xs text-muted">{t('parking.plateFromProfile')}</p>
+            )}
+          </div>
         </div>
       </Modal>
     </div>

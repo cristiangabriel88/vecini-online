@@ -1,6 +1,12 @@
 import type { ParkingSpot } from '@/shared/types/domain';
 import { normalizeSearch } from '@/features/faq/faqLogic';
 
+/** Pre-fill suggestion for the plate field from the resident's F66 profile. */
+export function residentPlateSuggestion(carPlate: string): string | null {
+  const trimmed = carPlate.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 /** A spot is occupied when an apartment is assigned to it. */
 export function isOccupied(spot: ParkingSpot): boolean {
   return spot.apartment_label !== null && spot.apartment_label.trim().length > 0;

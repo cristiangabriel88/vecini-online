@@ -675,7 +675,9 @@
     "show_phone": "Telefonul",
     "show_email": "Emailul",
     "searchPlaceholder": "Caută după nume sau apartament…",
-    "empty": "Niciun vecin listat încă. Fii primul care optează mai sus."
+    "empty": "Niciun vecin listat încă. Fii primul care optează mai sus.",
+    "viewProfile": "Profil complet",
+    "residentProfile": "Profilul locatarului"
   },
   "profile": {
     "subtitle": "Profilul tău complet: fotografie, date personale și câmpuri proprii.",
@@ -1284,6 +1286,7 @@
     "isVisitor": "Loc pentru vizitatori",
     "apartment": "Apartament",
     "plate": "Număr de înmatriculare",
+    "plateFromProfile": "Preluat din profilul tău.",
     "unassigned": "Neatribuit",
     "visitor": "Vizitatori",
     "occupied": "Ocupat",

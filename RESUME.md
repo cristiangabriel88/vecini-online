@@ -5,16 +5,24 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-29
-- last_task: T89 (P2) Live activation: Supabase Storage for F33 documents -- documentsApi.ts (hydrateDocuments, addDocumentLive, addDocumentMetadataLive, removeDocumentLive, getDocumentSignedUrl); store adds addRecord + replaceForAsociatie; page wires live upload/download/delete/hydration with demo fallback
+- last_task: T104 (P2) Wire F66 profile into F28 Parcare + F36 directory + admin profile view
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 179 files / 1690 tests
+- counts: 179 files / 1696 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T104 wire F66 profile into F28 Parcare + F36 directory (prereq T11 done)
-- features: 65/65 built end-to-end; F33 Storage live path wired (T89)
+- next: T105 drag-and-drop for profile custom fields (prereq T11 done)
+- features: 65/65 built end-to-end; F28/F36/F66 cross-feature glue wired (T104)
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T104 P2 ✅ 2026-05-29 -- Wire F66 profile into F28 Parcare + F36 directory + admin profile view
+- updated: parkingLogic.ts (residentPlateSuggestion); ParkingPage.tsx (pre-fill plate from profile, hint label)
+- updated: directoryLogic.ts (DirectoryCustomField, VisibleEntry.customFields, visibleEntry signature, searchDirectory neighbourFieldsMap); DirectoryPage.tsx (look up neighbour-visible custom fields per entry, render them; admin ChevronRight button + ResidentProfileModal)
+- updated: profileLogic.ts (canViewAnyProfile); profileStore.ts (DEMO_PROFILE_FALLBACKS for u-res2/u-res3; demoProfile carPlate)
+- updated: locales (+2 RO/EN keys each: directory.viewProfile/residentProfile, parking.plateFromProfile)
+- new tests: parkingLogic.test.ts (residentPlateSuggestion); directoryLogic.test.ts (customFields in VisibleEntry); profileLogic.test.ts (canViewAnyProfile)
+- result: 179 files / 1696 tests / build+pi+demo green
 
 ### T89 P2 ✅ 2026-05-29 -- Live activation: Supabase Storage for F33 documents
 - new: documentsApi.ts (hydrateDocuments, addDocumentLive, addDocumentMetadataLive, removeDocumentLive, getDocumentSignedUrl); all behind isSupabaseConfigured

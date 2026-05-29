@@ -675,7 +675,9 @@
     "show_phone": "Phone",
     "show_email": "Email",
     "searchPlaceholder": "Search by name or apartment…",
-    "empty": "No neighbours listed yet. Be the first to opt in above."
+    "empty": "No neighbours listed yet. Be the first to opt in above.",
+    "viewProfile": "Full profile",
+    "residentProfile": "Resident profile"
   },
   "profile": {
     "subtitle": "Your complete profile: photo, personal details and your own fields.",
@@ -1282,6 +1284,7 @@
     "isVisitor": "Visitor spot",
     "apartment": "Apartment",
     "plate": "Licence plate",
+    "plateFromProfile": "Pre-filled from your profile.",
     "unassigned": "Unassigned",
     "visitor": "Visitor",
     "occupied": "Occupied",

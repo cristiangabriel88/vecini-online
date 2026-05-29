@@ -20,8 +20,36 @@ function demoProfile(): ProfileData {
     apartmentId: DEMO_CURRENT_APARTMENT_ID,
     scara: 'A',
     etaj: '1',
+    carPlate: 'B 12 ABC',
   };
 }
+
+const DEMO_PROFILE_FALLBACKS: Record<string, () => ProfileData> = {
+  'u-res2': () => ({
+    ...emptyProfile('u-res2', 'elena.g@example.ro'),
+    fullName: 'Georgescu Elena',
+    displayName: 'Elena',
+    phone: '+40 722 333 444',
+    scara: 'B',
+    etaj: '2',
+    carPlate: 'B 99 XYZ',
+    customFields: [
+      { id: 'cf-e1', label: 'Ocupație', type: 'text', value: 'Profesoară', options: [], visibility: 'neighbours', sortOrder: 0 },
+      { id: 'cf-e2', label: 'Limbi vorbite', type: 'text', value: 'Română, franceză', options: [], visibility: 'neighbours', sortOrder: 1 },
+    ],
+  }),
+  'u-res3': () => ({
+    ...emptyProfile('u-res3', 'gabriela.stan@example.ro'),
+    fullName: 'Stan Gabriela',
+    displayName: 'Gabriela',
+    phone: '+40 723 555 666',
+    scara: 'C',
+    etaj: '4',
+    customFields: [
+      { id: 'cf-g1', label: 'Hobby', type: 'text', value: 'Grădinărit', options: [], visibility: 'neighbours', sortOrder: 0 },
+    ],
+  }),
+};
 
 interface ProfileState {
   /** Profiles keyed by user id. */
@@ -42,7 +70,10 @@ export const useProfileStore = create<ProfileState>()(
   persist(
     (set, get) => ({
       byUser: { [DEMO_CURRENT_USER_ID]: demoProfile() },
-      get: (userId, email) => get().byUser[userId] ?? emptyProfile(userId, email),
+      get: (userId, email) =>
+        get().byUser[userId] ??
+        DEMO_PROFILE_FALLBACKS[userId]?.() ??
+        emptyProfile(userId, email),
       save: (profile) =>
         set((s) => ({ byUser: { ...s.byUser, [profile.userId]: profile } })),
     }),

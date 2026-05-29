@@ -4,6 +4,7 @@ import {
   CUSTOM_FIELD_TYPES,
   addCustomField,
   avatarThumbDim,
+  canViewAnyProfile,
   completeness,
   emptyProfile,
   firstName,
@@ -270,5 +271,20 @@ describe('avatar crop maths', () => {
     expect(avatarThumbDim(1000)).toBe(AVATAR_MAX_DIM);
     expect(avatarThumbDim(120)).toBe(120);
     expect(avatarThumbDim(0)).toBe(1);
+  });
+});
+
+describe('canViewAnyProfile', () => {
+  it('allows admin, presedinte, comitet, cenzor, super_admin', () => {
+    expect(canViewAnyProfile('admin')).toBe(true);
+    expect(canViewAnyProfile('presedinte')).toBe(true);
+    expect(canViewAnyProfile('comitet')).toBe(true);
+    expect(canViewAnyProfile('cenzor')).toBe(true);
+    expect(canViewAnyProfile('super_admin')).toBe(true);
+  });
+  it('denies proprietar, chirias, and null', () => {
+    expect(canViewAnyProfile('proprietar')).toBe(false);
+    expect(canViewAnyProfile('chirias')).toBe(false);
+    expect(canViewAnyProfile(null)).toBe(false);
   });
 });

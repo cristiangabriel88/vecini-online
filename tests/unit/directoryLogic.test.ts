@@ -17,6 +17,13 @@ describe('directory consent', () => {
     expect(v.phone).toBe('+40 700 000 000');
     expect(v.apartment).toBeNull();
     expect(v.email).toBeNull();
+    expect(v.customFields).toEqual([]);
+  });
+
+  it('includes neighbour-visible custom fields when provided', () => {
+    const fields = [{ label: 'Ocupație', value: 'Profesor' }];
+    const v = visibleEntry(entry({ show_name: true }), fields);
+    expect(v.customFields).toEqual(fields);
   });
 
   it('lists only residents exposing their name', () => {
@@ -33,5 +40,12 @@ describe('directory consent', () => {
     expect(searchDirectory(entries, '').map((v) => v.id)).toEqual(['1', '2']);
     expect(searchDirectory(entries, 'popescu').map((v) => v.id)).toEqual(['1']);
     expect(searchDirectory(entries, 'ap. 5').map((v) => v.id)).toEqual(['1']);
+  });
+
+  it('passes custom fields from the neighbourFieldsMap', () => {
+    const entries = [entry({ id: '1', show_name: true })];
+    const map = { '1': [{ label: 'Hobby', value: 'Grădinărit' }] };
+    const result = searchDirectory(entries, '', map);
+    expect(result[0].customFields).toEqual([{ label: 'Hobby', value: 'Grădinărit' }]);
   });
 });

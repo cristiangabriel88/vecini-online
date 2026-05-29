@@ -4,6 +4,16 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T104 P2 ✅ -- Wire F66 profile into F28 Parcare + F36 directory + admin profile view
+- updated: `src/features/parking/parkingLogic.ts` -- added `residentPlateSuggestion(carPlate)` pure helper (returns trimmed plate or null); unit-tested
+- updated: `src/features/parking/ParkingPage.tsx` -- imports `useMyIdentity` + `useProfileStore`; `openModal()` pre-fills `licensePlate` from `residentPlateSuggestion(profile.carPlate)`; hint label rendered when plate matches the profile value
+- updated: `src/features/directory/directoryLogic.ts` -- new `DirectoryCustomField` interface; `VisibleEntry` gains `customFields: DirectoryCustomField[]`; `visibleEntry` accepts optional `neighbourFields` param; `searchDirectory` accepts optional `neighbourFieldsMap` (keyed by entry.id)
+- updated: `src/features/directory/DirectoryPage.tsx` -- builds `neighbourFieldsMap` by calling `profileGet(entry.user_id, entry.email)` + `neighbourVisibleFields` for each entry; renders custom fields in each card; admin/comitet see a `ChevronRight` button that opens `ResidentProfileModal` (all fields incl. private, using `canViewAnyProfile`)
+- updated: `src/features/profile/profileLogic.ts` -- added `canViewAnyProfile(role)`: true for admin/presedinte/comitet/cenzor/super_admin; imports `Role`
+- updated: `src/features/profile/profileStore.ts` -- `DEMO_PROFILE_FALLBACKS` for u-res2 (Elena, 2 neighbour-visible custom fields) and u-res3 (Gabriela, 1 field); `get()` falls back to DEMO_PROFILE_FALLBACKS before emptyProfile; `demoProfile()` gains `carPlate: 'B 12 ABC'`
+- updated: `src/shared/locales/ro.json` + `en.json` -- `directory.viewProfile`, `directory.residentProfile`, `parking.plateFromProfile`
+- tests: `parkingLogic.test.ts` (+2), `directoryLogic.test.ts` (+2), `profileLogic.test.ts` (+1 describe / 2 assertions) -- 6 new test cases covering all new pure helpers
+
 ### T89 P2 ✅ -- Live activation: Supabase Storage for F33 documents
 - new: `src/features/documents/documentsApi.ts` -- `hydrateDocuments` (SELECT from `documents` table, `replaceForAsociatie` in store); `addDocumentLive` (Storage upload to `<asociatie_id>/<doc_id>/<filename>`, then INSERT row; removes orphan on DB failure); `addDocumentMetadataLive` (INSERT row without file); `removeDocumentLive` (Storage remove + DELETE row); `getDocumentSignedUrl` (1-hour signed URL from `documents` bucket). All gated behind `isSupabaseConfigured`. Bucket + RLS already created by `supabase/migrations/20260121000003_storage.sql`.
 - updated: `src/features/documents/documentsStore.ts` -- added `addRecord(record)` (prepend a pre-built record) and `replaceForAsociatie(asociatieId, records)` (replace all rows for one tenant, keep others) actions

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { countFree, isOccupied, isValidSpot, searchSpots, sortSpots } from '@/features/parking/parkingLogic';
+import { countFree, isOccupied, isValidSpot, residentPlateSuggestion, searchSpots, sortSpots } from '@/features/parking/parkingLogic';
 import type { ParkingSpot } from '@/shared/types/domain';
 
 const spots: ParkingSpot[] = [
@@ -30,5 +30,15 @@ describe('sortSpots / countFree', () => {
   it('sorts numerically and counts free resident spots', () => {
     expect(sortSpots(spots).map((s) => s.label)).toEqual(['P2', 'P10', 'V1']);
     expect(countFree(spots)).toBe(1);
+  });
+});
+
+describe('residentPlateSuggestion', () => {
+  it('returns the plate when non-blank', () => {
+    expect(residentPlateSuggestion('B 12 ABC')).toBe('B 12 ABC');
+  });
+  it('returns null for blank or empty', () => {
+    expect(residentPlateSuggestion('')).toBeNull();
+    expect(residentPlateSuggestion('   ')).toBeNull();
   });
 });

@@ -162,7 +162,7 @@ F33 Document arhivă has a page, store and `documents` table (with an unused `st
 ### ✅ T89 — [P2] Live activation: Supabase Storage for F33 documents
 Wire T88's upload/download to a real Supabase Storage bucket behind `isSupabaseConfigured`: create a per-asociație-scoped bucket (or path prefix), upload on add, store the `storage_path`, serve downloads via signed URLs, and add Storage RLS so admin/comitet write and members read, scoped by `asociatie_id`, with the demo data-URL path as the offline fallback. Fold the document objects into the GDPR Storage erasure scope. Requires a provisioned project; document the apply steps. Prereq: T88; coordinates with T78 (Storage erasure).
 
-### ⬜ T104 — [P2] Wire the F66 profile into F28 Parcare + F36 directory (and admin profile view)
+### ✅ T104 — [P2] Wire the F66 profile into F28 Parcare + F36 directory (and admin profile view)
 Surfaced in T11: the profile editor captures `car_plate` (with an F28 note) and lets a resident mark custom fields "visible to neighbours" (F36), and `profileLogic.neighbourVisibleFields` already exposes them, but nothing consumes either yet. Wire the resident's `car_plate` into the F28 Parcare registry (auto-suggest/link the resident's plate rather than re-typing it) and surface their neighbour-visible custom fields in the F36 directory entry, subject to F36's existing consent rules. Add the admin/comitet read path so a controller can open any resident's profile in their asociație (live: RLS resolving membership; offline: from the local store). Keep the cross-feature glue pure + unit-tested. Mostly offline; the live admin read folds into T103. Prereq: T11; coordinates with T51 (role selectors).
 
 ### ⬜ T105 — [P3] Drag-and-drop reorder for profile custom fields
