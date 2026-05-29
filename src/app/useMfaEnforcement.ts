@@ -25,7 +25,7 @@ import { hasAppElevation } from '@/features/auth/otpChannelApi';
  */
 export function useMfaEnforcement(): void {
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const role = useAuthStore((s) => s.memberships[0]?.role ?? null);
   const loaded = useMfaStore((s) => s.loaded);
   const enrolled = useMfaStore((s) => s.enrolled);
@@ -73,10 +73,10 @@ export function useMfaEnforcement(): void {
         pathname,
         enforcement,
       });
-      if (active && target) navigate(target, { replace: true });
+      if (active && target) navigate(target, { replace: true, state: { from: pathname + search } });
     })();
     return () => {
       active = false;
     };
-  }, [loaded, enrolled, role, pathname, challengeRequired, navigate]);
+  }, [loaded, enrolled, role, pathname, search, challengeRequired, navigate]);
 }

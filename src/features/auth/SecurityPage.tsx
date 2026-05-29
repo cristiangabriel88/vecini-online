@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import {
@@ -50,6 +50,10 @@ function downloadCodes(codes: string[]) {
 export default function SecurityPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
+  // The path to return to after a successful step-up (set by useMfaEnforcement
+  // when it steers the session here; falls back to /app when navigated directly).
+  const returnTo: string = (location.state as { from?: string } | null)?.from ?? '/app';
   const profile = useAuthStore((s) => s.profile);
   const session = useAuthStore((s) => s.session);
   const role = useAuthStore((s) => s.memberships[0]?.role ?? null);
@@ -331,7 +335,7 @@ export default function SecurityPage() {
       setStepUpCode('');
       setNeedsStepUp(false);
       toast.success(t('auth.mfa.stepUpDone'));
-      navigate('/app');
+      navigate(returnTo);
     } finally {
       setBusy(false);
     }

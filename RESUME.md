@@ -5,16 +5,20 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-29
-- last_task: T26 (P1) Consent-gate fan-out enforcement -- notify-email uses shared mayNotify; notificationStore.emitGated added; tsconfig.node.json gets @/ paths; +8 gate tests
+- last_task: T113 (P3) Return-to through AAL2 step-up -- useMfaEnforcement passes from state; SecurityPage navigates returnTo after step-up
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 178 files / 1698 tests
+- counts: 178 files / 1690 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T89 live Supabase Storage for F33 documents (prereq T88 done) or T113 return-to through AAL2 step-up
+- next: T89 live Supabase Storage for F33 documents (prereq T88 done)
 - features: 65/65 built end-to-end; F33 now has role-gated file upload/download/delete
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T113 P3 ✅ 2026-05-29 -- Return-to through AAL2 step-up
+- updated: useMfaEnforcement.ts (pass state.from = pathname+search when redirecting to security page); SecurityPage.tsx (read returnTo from location.state, navigate there after step-up)
+- result: 178 files / 1690 tests / build+pi+demo green
 
 ### T26 P1 ✅ 2026-05-29 -- Consent-gate enforcement in the notification fan-out
 - updated: notify-email.ts (replaced local isConsentAllowed with shared mayNotify; constructs ConsentRecord from DB choices); notificationStore.ts (added emitGated method); tsconfig.node.json (added @/ paths for netlify function type-checking)

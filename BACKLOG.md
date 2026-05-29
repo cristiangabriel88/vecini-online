@@ -144,7 +144,7 @@ Surfaced building the easier-2FA channels: wire the live branches behind `isSupa
 ### ✅ T144 — [P2] Live activation: server-side OTP attempt-limit parity (folds into T81)
 Surfaced building the easier-2FA channels: the client per-channel `otpThrottle` (T140) is clearable client-side, like the T33 login lockout and the T81 MFA-challenge throttle. The authoritative limit must be the server: confirm the `mfa-otp-verify` attempt counter + lockout (T142) cannot be reset from the browser and reconcile it with the client `otpThrottle`, alongside the recovery-code (T29) and login (T33) server lockouts so all second-factor brute-force budgets are server-held. Behind `isSupabaseConfigured`. Prereq: T142; coordinates with T81, T29, T33.
 
-### ⬜ T113 — [P3] Carry a return-to through the AAL2 step-up
+### ✅ T113 — [P3] Carry a return-to through the AAL2 step-up
 Surfaced in T112: when a re-gated session completes the in-app step-up on the security page it navigates to `/app`, dropping whatever deep route it was originally headed for (the path `useMfaEnforcement` redirected it away from). Capture the originally-requested location when the gate steers a session to `/app/securitate` (e.g. via router `state` or a stored `from`) and, after a successful step-up, return the session there instead of the home route, so the 2FA re-gate is transparent. Keep the redirect decision pure. Behind `isSupabaseConfigured`; demo stays ungated. Prereq: T112.
 
 ### ✅ T14 — [P1] Email notification channel (live)

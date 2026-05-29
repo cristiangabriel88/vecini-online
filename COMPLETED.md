@@ -4,6 +4,11 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T113 P3 ✅ -- Carry a return-to through the AAL2 step-up
+- updated: `src/app/useMfaEnforcement.ts` -- destructure `search` alongside `pathname` from `useLocation()`; pass `state: { from: pathname + search }` when navigating to the security page; add `search` to the effect deps
+- updated: `src/features/auth/SecurityPage.tsx` -- import `useLocation`; read `returnTo` from `location.state.from` (fallback `/app`); navigate to `returnTo` after a successful step-up instead of the hardcoded `/app`
+- result: 178 files / 1690 tests / build+pi+demo green
+
 ### T26 P1 ✅ -- Consent-gate enforcement in the notification fan-out
 - updated: `netlify/functions/notify-email.ts` -- replaced the local `isConsentAllowed()` duplicate with the shared `mayNotify()` from `consentGate.ts`; constructs a `ConsentRecord` from the DB choices row; removed the local helper; updated header comment
 - updated: `src/shared/store/notificationStore.ts` -- added `emitGated(n, consentKind, record)` method: calls `mayNotify(record, consentKind)` and only appends the notification when the gate passes; imports `mayNotify` + `ConsentGateKind` from `consentGate.ts` and `ConsentRecord` from `consentLogic.ts`
