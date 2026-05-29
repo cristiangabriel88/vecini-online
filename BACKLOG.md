@@ -132,7 +132,7 @@ T03's password strength/breach policy and login throttle run client-side, so the
 ### ✅ T33 — [P2] Server-backed login lockout
 The T03 login lockout state lives in `localStorage` (so a temporary lock survives reload), but a determined attacker can clear it between attempts. Once a backend is provisioned, record failed-attempt counters server-side (keyed by account, behind RLS or an Edge Function) so the lockout cannot be reset client-side, and reconcile it with the client throttle. Prereq: T03, T28.
 
-### ⬜ T81 — [P2] Server-side MFA challenge attempt limiting (parity)
+### ✅ T81 — [P2] Server-side MFA challenge attempt limiting (parity)
 The T31 MFA challenge throttle lives in `localStorage` (persisted so a reload can't reset it), but like the T33 login lockout it can be cleared client-side between attempts. Once a backend is provisioned, enforce the second-factor attempt limit server-side — confirm/raise Supabase Auth's MFA verify rate limits and, for the recovery-code path, count and lock failed attempts in the privileged server routine (the T29 recovery verify) so the brute-force budget cannot be reset from the browser. Reconcile with the client `challengeThrottle`. Behind `isSupabaseConfigured`; coordinate with T29 (live recovery) and T33 (server-backed login lockout). Prereq: T31, T29.
 
 ### ✅ T142 — [P2] Live activation: service-role functions for email/Telegram OTP (request + verify, elevate session)

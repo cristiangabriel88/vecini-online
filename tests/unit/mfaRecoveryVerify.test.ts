@@ -1,7 +1,10 @@
-// Unit tests for T29: mfa-recovery-verify Netlify function helpers.
+// Unit tests for T29/T81: mfa-recovery-verify Netlify function helpers.
 //
-// Backend-free: covers extractBearerToken, the rate-limit guard, and the
-// recoveryVerifyApi offline path. Supabase calls are not exercised here.
+// Backend-free: covers extractBearerToken. Attempt counting is now DB-backed
+// (T81) via `mfa_recovery_attempt_counts` + `increment_recovery_attempts` RPC
+// in the Netlify function; that logic is exercised by integration tests against
+// a live Supabase project. The checkSlidingWindow tests below test the shared
+// rateLimiter utility, which is still used by the invite-email rate limit.
 
 import { describe, it, expect } from 'vitest';
 import { extractBearerToken } from '../../netlify/functions/mfa-recovery-verify';
@@ -38,10 +41,12 @@ describe('extractBearerToken', () => {
   });
 });
 
-// ── Per-session attempt rate limiter ──────────────────────────────────────
-// Tests the checkSlidingWindow helper as used by mfa-recovery-verify.
+// ── checkSlidingWindow (shared rateLimiter utility) ───────────────────────
+// The recovery-verify function now uses DB-backed counting (T81). This suite
+// tests the checkSlidingWindow utility that is still used for the invite-email
+// rate limit (checkInviteRateLimit in rateLimiter.ts).
 
-describe('checkSlidingWindow (recovery attempt budget)', () => {
+describe('checkSlidingWindow (rateLimiter utility)', () => {
   const MAX = 5;
   const WINDOW_MS = 15 * 60 * 1000;
 
@@ -68,7 +73,6 @@ describe('checkSlidingWindow (recovery attempt budget)', () => {
     for (let i = 0; i < MAX; i++) {
       checkSlidingWindow(store, 'session-c', now + i, WINDOW_MS, MAX);
     }
-    // All timestamps are now outside the window.
     const future = now + WINDOW_MS + 1000;
     expect(checkSlidingWindow(store, 'session-c', future, WINDOW_MS, MAX)).toBe(true);
   });
@@ -79,7 +83,6 @@ describe('checkSlidingWindow (recovery attempt budget)', () => {
     for (let i = 0; i < MAX; i++) {
       checkSlidingWindow(store, 'session-x', now + i, WINDOW_MS, MAX);
     }
-    // A different session key is still within budget.
     expect(checkSlidingWindow(store, 'session-y', now, WINDOW_MS, MAX)).toBe(true);
   });
 });

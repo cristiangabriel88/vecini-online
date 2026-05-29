@@ -5,9 +5,9 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-29
-- last_task: T29 (P1) Live recovery-code login server routine (mfa-recovery-verify Netlify function)
+- last_task: T81 (P2) Server-side MFA challenge attempt limiting -- DB-backed recovery attempt counts
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 172 files / 1572 tests
+- counts: 173 files / 1607 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
 - next: T143 wire mfaStore live branches to OTP functions + claim-aware enforcement (prereqs T142 done)
@@ -15,6 +15,14 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T81 P2 ✅ 2026-05-29 — Server-side MFA challenge attempt limiting
+- mig: `mfa_recovery_attempt_counts` table + `increment_recovery_attempts` SECURITY DEFINER RPC (atomic upsert-increment)
+- fn: `mfa-recovery-verify.ts` now reads DB attempt count and increments via RPC on wrong code; removed in-memory `_attemptStore`
+- store: `mfaStore.verifyChallenge` returns `lockedMs = 15min` when server signals `attempt-limit-exceeded`; `challengeThrottle` intentionally not updated (TOTP must not be blocked by recovery lock)
+- fix: `env.ts` `window.location.origin` guard for node-environment tests
+- tests: new `mfaServerLockReconcile.test.ts` (+4); updated `mfaRecoveryVerify.test.ts`
+- result: 173 files / 1607 tests / build+pi+demo green
 
 ### T29 P1 ✅ 2026-05-29 — Live recovery-code login server routine
 - new: `mfa-recovery-verify.ts` (bearer-auth, per-session rate limit, constant-time hash compare, delete consumed code, upsert session_elevations/recovery); `recoveryVerifyApi.ts` (client API module)

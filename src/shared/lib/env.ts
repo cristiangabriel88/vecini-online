@@ -63,7 +63,9 @@ export function resolveAppStage(
   return supabaseConfigured ? 'prod' : 'demo';
 }
 
-const appUrl = import.meta.env.VITE_APP_URL ?? window.location.origin;
+const appUrl =
+  import.meta.env.VITE_APP_URL ??
+  (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173');
 
 /** True when Supabase credentials are present. In their absence the app runs
  *  in a read-only demo mode so the UI is still inspectable without a backend. */

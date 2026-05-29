@@ -41,6 +41,11 @@ import { useSecurityStore } from './securityStore';
 
 const ISSUER = 'vecini.online';
 
+// Display hint returned to the UI when the server has locked the recovery-code
+// path (T81). The server has no time-based unlock, but showing a countdown
+// communicates "try again later" without misrepresenting the exact window.
+const RECOVERY_SERVER_LOCK_DISPLAY_MS = 15 * 60_000;
+
 interface OpResult {
   error: string | null;
 }
@@ -477,15 +482,21 @@ export const useMfaStore = create<MfaState>()(
         }
 
         // Only a wrong-credential guess counts toward the brute-force budget;
-        // config/availability errors (not-enrolled, challenge-failed) and server-
-        // side lock responses (attempt-limit-exceeded) are not attacker probes
-        // and must not lock anyone out client-side.
+        // config/availability errors (not-enrolled, challenge-failed) do not.
         if (mfaErrorKey(error) === 'invalidCode') {
           const next = throttleFail(get().challengeThrottle, now);
           set({ challengeThrottle: next });
           const lockedMs = remainingLockMs(next, now);
           sec.log(lockedMs > 0 ? 'mfaChallengeLocked' : 'mfaChallengeFailed');
           return { error, lockedMs };
+        }
+        // Server-locked recovery path (T81): the DB counter is exhausted.
+        // Return a non-zero lockedMs so the UI shows the locked state. The
+        // challengeThrottle is not updated -- only wrong-credential guesses
+        // count locally; other factor types (TOTP) must not be blocked here.
+        if (error === 'attempt-limit-exceeded') {
+          sec.log('mfaChallengeLocked');
+          return { error, lockedMs: RECOVERY_SERVER_LOCK_DISPLAY_MS };
         }
         return { error, lockedMs: 0 };
       },

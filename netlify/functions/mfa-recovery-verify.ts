@@ -5,8 +5,9 @@
 //  - user_id is resolved server-side via service-role auth.getUser() -- never
 //    trusted from the client.
 //  - session_id is extracted from the JWT payload (not supplied by the client).
-//  - Per-session in-memory rate limit: max 5 wrong attempts per 15 minutes.
-//    A DB-backed global counter follows in T81 (T144 equivalent for recovery codes).
+//  - Per-session DB-backed attempt limit: max 5 wrong attempts per session (T81).
+//    The counter lives in `mfa_recovery_attempt_counts` so it is global across
+//    Lambda instances and cannot be reset by clearing localStorage.
 //  - Constant-time comparison (timingSafeEqualHex) prevents timing-oracle attacks.
 //  - On success: the matched mfa_recovery_codes row is deleted (single-use) and
 //    a session_elevations row is upserted (channel='recovery') so the Custom
@@ -21,16 +22,11 @@
 import { timingSafeEqualHex } from '../../src/features/auth/otpChannelLogic';
 import { extractSessionId } from './mfa-otp-request';
 import { isSupabaseAdminConfigured, supabaseAdmin } from './_shared/supabaseAdmin';
-import { checkSlidingWindow } from './_shared/rateLimiter';
 
-// Maximum wrong-code attempts per session within the rate-limit window.
+// Maximum wrong-code attempts per session before recovery is locked.
 const MAX_ATTEMPTS = 5;
-const ATTEMPT_WINDOW_MS = 15 * 60 * 1000;
 // How long an app-managed session elevation lasts (24 hours, matching OTP path).
 const ELEVATION_TTL_MS = 24 * 60 * 60 * 1000;
-
-/** In-memory attempt store; keyed by session_id. Instance-scoped (T81 will add DB backing). */
-const _attemptStore = new Map<string, { timestamps: number[] }>();
 
 // ── Recovery-code hashing (inlined from mfaLogic to avoid @/ alias in node) ──
 
@@ -76,6 +72,10 @@ interface RecoveryCodeRow {
   code_hash: string;
 }
 
+interface RecoveryAttemptRow {
+  attempts: number;
+}
+
 export default async (req: Request): Promise<Response> => {
   if (req.method !== 'POST') return json(405, { error: 'method-not-allowed' });
   if (!isSupabaseAdminConfigured()) return json(503, { error: 'backend-not-configured' });
@@ -91,12 +91,20 @@ export default async (req: Request): Promise<Response> => {
   const sessionId = extractSessionId(rawToken);
   if (!sessionId) return json(422, { error: 'no-session' });
 
-  // ── Per-session rate limit (wrong-attempts budget) ────────────────────────
-  // Counts every attempt in this window. A correct user spends 1 of 5 credits.
-  // A brute-forcer exhausts 5 per 15 minutes per instance. T81 adds DB backing.
-  const limitKey = `recovery:${sessionId}`;
-  const allowed = checkSlidingWindow(_attemptStore, limitKey, Date.now(), ATTEMPT_WINDOW_MS, MAX_ATTEMPTS);
-  if (!allowed) return json(429, { error: 'attempt-limit-exceeded' });
+  // ── DB-backed per-session attempt limit (T81) ─────────────────────────────
+  // Reads the persisted wrong-attempt counter from `mfa_recovery_attempt_counts`
+  // so the budget survives Lambda cold starts and cannot be reset client-side.
+  const { data: attemptRow } = await supabaseAdmin()
+    .from('mfa_recovery_attempt_counts')
+    .select('attempts')
+    .eq('user_id', userId)
+    .eq('session_id', sessionId)
+    .maybeSingle();
+
+  const currentAttempts = (attemptRow as RecoveryAttemptRow | null)?.attempts ?? 0;
+  if (currentAttempts >= MAX_ATTEMPTS) {
+    return json(429, { error: 'attempt-limit-exceeded' });
+  }
 
   // ── Parse body ────────────────────────────────────────────────────────────
   let body: RequestBody;
@@ -125,6 +133,11 @@ export default async (req: Request): Promise<Response> => {
   );
 
   if (!match) {
+    // Increment the DB-backed attempt counter (atomic upsert via SECURITY DEFINER RPC).
+    await supabaseAdmin().rpc('increment_recovery_attempts', {
+      p_user_id: userId,
+      p_session_id: sessionId,
+    });
     return json(422, { error: 'invalid-code' });
   }
 
