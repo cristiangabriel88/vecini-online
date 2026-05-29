@@ -5,16 +5,22 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-29
-- last_task: T39 (P2) CSP hardening: exact Supabase origin + violation reporting
+- last_task: T105 (P3) Drag-and-drop reorder for profile custom fields
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 175 files / 1703 tests
+- counts: 175 files / 1704 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T51 migrate role-gated UI to activeRole() / currentAsociatieId (prereq T28 done)
+- next: T107 touch-friendly pointer drag for customizable home cards (prereq T12 done)
 - features: 65/65 built end-to-end; F28/F36/F66 cross-feature glue wired (T104)
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T105 P3 ✅ 2026-05-29 -- Drag-and-drop reorder for profile custom fields
+- new: `reorderCustomField` in profileLogic.ts; tests in profileLogic.test.ts (+1 test / 6 cases)
+- updated: ProfilePage.tsx (GripVertical drag handle, pointer capture, initial-rect hit-testing, displayFields preview, lifted visual)
+- updated: ro.json + en.json (profile.dragReorder)
+- result: 175 files / 1704 tests / build+pi+demo green
 
 ### T39 P2 ✅ 2026-05-29 -- CSP hardening: exact Supabase origin + violation reporting
 - new: `scripts/cspHeaders.ts` (buildCsp, buildHeadersFileContent, CSP_REPORT_PATH)

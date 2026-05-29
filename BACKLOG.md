@@ -165,7 +165,7 @@ Wire T88's upload/download to a real Supabase Storage bucket behind `isSupabaseC
 ### ✅ T104 — [P2] Wire the F66 profile into F28 Parcare + F36 directory (and admin profile view)
 Surfaced in T11: the profile editor captures `car_plate` (with an F28 note) and lets a resident mark custom fields "visible to neighbours" (F36), and `profileLogic.neighbourVisibleFields` already exposes them, but nothing consumes either yet. Wire the resident's `car_plate` into the F28 Parcare registry (auto-suggest/link the resident's plate rather than re-typing it) and surface their neighbour-visible custom fields in the F36 directory entry, subject to F36's existing consent rules. Add the admin/comitet read path so a controller can open any resident's profile in their asociație (live: RLS resolving membership; offline: from the local store). Keep the cross-feature glue pure + unit-tested. Mostly offline; the live admin read folds into T103. Prereq: T11; coordinates with T51 (role selectors).
 
-### ⬜ T105 — [P3] Drag-and-drop reorder for profile custom fields
+### ✅ T105 — [P3] Drag-and-drop reorder for profile custom fields
 Surfaced in T11: custom fields are reordered with accessible up/down buttons (`moveCustomField`), which is complete and keyboard-friendly but not the "drag" the F66 spec describes. Add pointer/touch drag-reorder on top of the existing pure `moveCustomField`/`sortedCustomFields` ops (keeping the buttons as the accessible fallback), with smooth eased motion per the premium-feel mandate. Pure ordering logic stays unit-tested; the drag is a UI layer. Prereq: T11.
 
 ### ⬜ T107 — [P3] Touch-friendly pointer drag for the customizable home cards

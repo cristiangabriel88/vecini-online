@@ -725,6 +725,7 @@
     "optionsHint": "One option per line.",
     "moveUp": "Move up",
     "moveDown": "Move down",
+    "dragReorder": "Reorder field",
     "removeField": "Delete field",
     "notifications": "Notification preferences",
     "security": "Account security",

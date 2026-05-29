@@ -4,6 +4,13 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T105 P3 ✅ -- Drag-and-drop reorder for profile custom fields
+- new: `reorderCustomField(fields, id, toIndex)` pure function in `profileLogic.ts` -- moves a field to an arbitrary target index, reassigning sortOrders for the whole sequence; returns original reference on no-op
+- updated: `profileLogic.test.ts` -- added import + 1 test with 6 cases (first-to-last, last-to-first, middle, no-op, unknown-id, out-of-bounds)
+- updated: `ProfilePage.tsx` -- added `useMemo`, `GripVertical` imports; drag state (`dragId`, `dropIdx`); `rowRefs`/`initialRects` refs; `displayFields` memoized from fields + drag state; `dragStart`/`dragMove`/`dragEnd` handlers using initial-rect hit-testing (stable, no oscillation); `CustomFieldRow` extended with `isDragging`, `onRowRef`, `onDragStart`/`onDragMove`/`onDragEnd` props; `GripVertical` drag handle with `touch-action: none` + pointer capture; lifted visual (`opacity-50 shadow-lg`) on dragged row
+- updated: `ro.json` + `en.json` -- added `profile.dragReorder` ("Reordonează câmpul" / "Reorder field")
+- result: 175 files / 1704 tests / build+pi+demo green
+
 ### T39 P2 ✅ -- CSP hardening: exact Supabase origin + violation reporting
 - new: `scripts/cspHeaders.ts` -- pure `buildCsp(supabaseUrl)` and `buildHeadersFileContent(supabaseUrl)` functions; generates `dist/_headers` at build time with exact Supabase project origin replacing the `*.supabase.co` wildcard; adds `report-to csp-endpoint` + `report-uri` directives; includes `Report-To` + `Reporting-Endpoints` headers
 - updated: `vite.config.ts` -- added `cspHeadersPlugin()` Vite plugin that calls `buildHeadersFileContent` in `closeBundle` and writes `dist/_headers`; demo build uses `connect-src 'self'` only (no Supabase connections)

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -8,6 +8,7 @@ import {
   ChevronDown,
   ChevronUp,
   Globe,
+  GripVertical,
   LogOut,
   Plus,
   Sparkles,
@@ -42,6 +43,7 @@ import {
   isAcceptedImageType,
   moveCustomField,
   newCustomField,
+  reorderCustomField,
   removeCustomField,
   sortedCustomFields,
   updateCustomField,
@@ -66,9 +68,24 @@ export default function ProfilePage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dropIdx, setDropIdx] = useState<number | null>(null);
+  const rowRefs = useRef(new Map<string, HTMLDivElement>());
+  const initialRects = useRef(new Map<string, DOMRect>());
+
   const errors = validateStandard(profile);
   const pct = completeness(profile);
   const fields = sortedCustomFields(profile.customFields);
+
+  const displayFields = useMemo(() => {
+    if (!dragId || dropIdx === null) return fields;
+    const fromIdx = fields.findIndex((f) => f.id === dragId);
+    if (fromIdx < 0 || fromIdx === dropIdx) return fields;
+    const arr = [...fields];
+    const [item] = arr.splice(fromIdx, 1);
+    arr.splice(dropIdx, 0, item);
+    return arr;
+  }, [fields, dragId, dropIdx]);
 
   /** Autosave: persist every change (even partially-valid drafts) and flash "saved". */
   function update(patch: Partial<ProfileData>) {
@@ -82,6 +99,44 @@ export default function ProfilePage() {
 
   function updateFields(customFields: CustomField[]) {
     update({ customFields });
+  }
+
+  function dragStart(e: React.PointerEvent, id: string) {
+    e.preventDefault();
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    initialRects.current = new Map(
+      [...rowRefs.current.entries()].map(([rid, el]) => [rid, el.getBoundingClientRect()]),
+    );
+    setDragId(id);
+    setDropIdx(fields.findIndex((f) => f.id === id));
+  }
+
+  function dragMove(e: React.PointerEvent, id: string) {
+    if (!dragId || dragId !== id) return;
+    const entries = [...initialRects.current.entries()]
+      .filter(([rid]) => rid !== id)
+      .map(([rid, rect]) => ({ id: rid, rect }))
+      .sort((a, b) => a.rect.top - b.rect.top);
+    let next = entries.length;
+    for (let i = 0; i < entries.length; i++) {
+      if (e.clientY < entries[i].rect.top + entries[i].rect.height / 2) {
+        next = i;
+        break;
+      }
+    }
+    if (next !== dropIdx) setDropIdx(next);
+  }
+
+  function dragEnd(id: string) {
+    if (dragId === id && dropIdx !== null) {
+      const fromIdx = fields.findIndex((f) => f.id === id);
+      if (fromIdx !== dropIdx) {
+        updateFields(reorderCustomField(profile.customFields, id, dropIdx));
+      }
+    }
+    setDragId(null);
+    setDropIdx(null);
+    initialRects.current.clear();
   }
 
   async function onPickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
@@ -329,18 +384,26 @@ export default function ProfilePage() {
           {fields.length === 0 ? (
             <EmptyState body={t('profile.emptyCustom')} />
           ) : (
-            <div className="space-y-4">
-              {fields.map((f, idx) => (
+            <div className={`space-y-4 ${dragId ? 'select-none' : ''}`}>
+              {displayFields.map((f, idx) => (
                 <CustomFieldRow
                   key={f.id}
                   field={f}
                   isFirst={idx === 0}
-                  isLast={idx === fields.length - 1}
+                  isLast={idx === displayFields.length - 1}
+                  isDragging={dragId === f.id}
+                  onRowRef={(el) => {
+                    if (el) rowRefs.current.set(f.id, el);
+                    else rowRefs.current.delete(f.id);
+                  }}
                   onChange={(patch) =>
                     updateFields(updateCustomField(profile.customFields, f.id, patch))
                   }
                   onMove={(dir) => updateFields(moveCustomField(profile.customFields, f.id, dir))}
                   onRemove={() => updateFields(removeCustomField(profile.customFields, f.id))}
+                  onDragStart={(e) => dragStart(e, f.id)}
+                  onDragMove={(e) => dragMove(e, f.id)}
+                  onDragEnd={() => dragEnd(f.id)}
                 />
               ))}
             </div>
@@ -406,24 +469,50 @@ function CustomFieldRow({
   field,
   isFirst,
   isLast,
+  isDragging,
+  onRowRef,
   onChange,
   onMove,
   onRemove,
+  onDragStart,
+  onDragMove,
+  onDragEnd,
 }: {
   field: CustomField;
   isFirst: boolean;
   isLast: boolean;
+  isDragging: boolean;
+  onRowRef: (el: HTMLDivElement | null) => void;
   onChange: (patch: Partial<Omit<CustomField, 'id'>>) => void;
   onMove: (dir: 'up' | 'down') => void;
   onRemove: () => void;
+  onDragStart: (e: React.PointerEvent) => void;
+  onDragMove: (e: React.PointerEvent) => void;
+  onDragEnd: () => void;
 }) {
   const { t } = useTranslation();
   const error = validateCustomFieldValue(field.type, field.value);
 
   return (
-    <div className="rounded-lg border border-border p-3">
+    <div
+      ref={onRowRef}
+      className={`rounded-lg border border-border p-3 transition-[opacity,box-shadow] duration-150 ease-out ${
+        isDragging ? 'opacity-50 shadow-lg' : ''
+      }`}
+    >
       <div className="mb-2 flex items-center justify-between gap-2">
-        <div className="min-w-0">
+        <button
+          className="iconbtn shrink-0 cursor-grab active:cursor-grabbing"
+          style={{ width: 32, height: 32, touchAction: 'none' }}
+          aria-label={t('profile.dragReorder')}
+          onPointerDown={onDragStart}
+          onPointerMove={onDragMove}
+          onPointerUp={onDragEnd}
+          onPointerCancel={onDragEnd}
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+        <div className="min-w-0 flex-1">
           <p className="truncate font-medium">{field.label}</p>
           <p className="text-xs text-muted">
             {t(`profile.type.${field.type}`)} ·{' '}

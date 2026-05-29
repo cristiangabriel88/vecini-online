@@ -355,6 +355,26 @@ export function moveCustomField(
   return swapped.map((f, i) => ({ ...f, sortOrder: i }));
 }
 
+/** Moves a field to an arbitrary target index (0-based in sorted order), reassigning sortOrders. */
+export function reorderCustomField(
+  fields: CustomField[],
+  id: string,
+  toIndex: number,
+): CustomField[] {
+  const ordered = sortedCustomFields(fields);
+  const fromIndex = ordered.findIndex((f) => f.id === id);
+  if (fromIndex === -1) return fields;
+  const clamped = Math.max(0, Math.min(toIndex, ordered.length - 1));
+  if (fromIndex === clamped) return fields;
+  const reordered = [...ordered];
+  const [item] = reordered.splice(fromIndex, 1);
+  reordered.splice(clamped, 0, item);
+  return fields.map((f) => {
+    const newIdx = reordered.findIndex((r) => r.id === f.id);
+    return { ...f, sortOrder: newIdx };
+  });
+}
+
 /** Custom fields in display order (ascending `sortOrder`). */
 export function sortedCustomFields(fields: CustomField[]): CustomField[] {
   return [...fields].sort((a, b) => a.sortOrder - b.sortOrder);

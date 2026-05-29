@@ -16,6 +16,7 @@ import {
   neighbourVisibleFields,
   newCustomField,
   normalizePlate,
+  reorderCustomField,
   removeCustomField,
   sortedCustomFields,
   squareCropRect,
@@ -233,6 +234,25 @@ describe('custom-field operations (pure, non-mutating)', () => {
     expect(moveCustomField(fields, 'a', 'up')).toBe(fields);
     // unknown id is a no-op
     expect(moveCustomField(fields, 'zzz', 'down')).toBe(fields);
+  });
+
+  it('reorderCustomField moves a field to an arbitrary index', () => {
+    let fields: ProfileData['customFields'] = [];
+    fields = addCustomField(fields, newCustomField('A', 'text', 'private', fields, 'a'));
+    fields = addCustomField(fields, newCustomField('B', 'text', 'private', fields, 'b'));
+    fields = addCustomField(fields, newCustomField('C', 'text', 'private', fields, 'c'));
+    fields = addCustomField(fields, newCustomField('D', 'text', 'private', fields, 'd'));
+    const ids = (f: ProfileData['customFields']) => sortedCustomFields(f).map((x) => x.id);
+
+    expect(ids(reorderCustomField(fields, 'a', 3))).toEqual(['b', 'c', 'd', 'a']);
+    expect(ids(reorderCustomField(fields, 'd', 0))).toEqual(['d', 'a', 'b', 'c']);
+    expect(ids(reorderCustomField(fields, 'b', 2))).toEqual(['a', 'c', 'b', 'd']);
+    // same position: no-op (same reference)
+    expect(reorderCustomField(fields, 'b', 1)).toBe(fields);
+    // unknown id: no-op
+    expect(reorderCustomField(fields, 'zzz', 0)).toBe(fields);
+    // out-of-bounds clamps to last
+    expect(ids(reorderCustomField(fields, 'a', 99))).toEqual(['b', 'c', 'd', 'a']);
   });
 
   it('exposes only filled, neighbour-visible fields for the directory', () => {
