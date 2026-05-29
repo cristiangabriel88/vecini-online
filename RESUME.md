@@ -5,16 +5,21 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-29
-- last_task: T16 (P1) Realtime updates -- announcements/tickets/private-threads/messages subscribed per-asociatie; pure apply helpers + 25 tests; no-op in demo
+- last_task: T26 (P1) Consent-gate fan-out enforcement -- notify-email uses shared mayNotify; notificationStore.emitGated added; tsconfig.node.json gets @/ paths; +8 gate tests
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 177 files / 1682 tests
+- counts: 178 files / 1698 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T26 consent-gate enforcement in the notification fan-out (prereq T14 done)
+- next: T89 live Supabase Storage for F33 documents (prereq T88 done) or T113 return-to through AAL2 step-up
 - features: 65/65 built end-to-end; F33 now has role-gated file upload/download/delete
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T26 P1 ✅ 2026-05-29 -- Consent-gate enforcement in the notification fan-out
+- updated: notify-email.ts (replaced local isConsentAllowed with shared mayNotify; constructs ConsentRecord from DB choices); notificationStore.ts (added emitGated method); tsconfig.node.json (added @/ paths for netlify function type-checking)
+- new: consentGateFanout.test.ts (+8 tests)
+- result: 178 files / 1698 tests / build+pi+demo green
 
 ### T16 P1 ✅ 2026-05-29 — Realtime updates
 - new: realtimeLogic.ts (8 pure apply helpers for INSERT/UPDATE/DELETE events on announcements, tickets, private_threads, private_messages); useRealtimeSync.ts (hook, subscribes to all 4 tables on one channel per asociatieId, no-op offline)

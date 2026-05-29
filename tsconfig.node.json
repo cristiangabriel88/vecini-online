@@ -12,6 +12,10 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
     "types": ["node"]
   },
   "include": ["vite.config.ts", "netlify/functions", "server", "tests/e2e", "playwright.config.ts"]

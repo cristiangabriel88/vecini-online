@@ -4,6 +4,13 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T26 P1 ✅ -- Consent-gate enforcement in the notification fan-out
+- updated: `netlify/functions/notify-email.ts` -- replaced the local `isConsentAllowed()` duplicate with the shared `mayNotify()` from `consentGate.ts`; constructs a `ConsentRecord` from the DB choices row; removed the local helper; updated header comment
+- updated: `src/shared/store/notificationStore.ts` -- added `emitGated(n, consentKind, record)` method: calls `mayNotify(record, consentKind)` and only appends the notification when the gate passes; imports `mayNotify` + `ConsentGateKind` from `consentGate.ts` and `ConsentRecord` from `consentLogic.ts`
+- updated: `tsconfig.node.json` -- added `baseUrl` + `paths` (`@/*` -> `src/*`) so netlify functions can import shared modules that use `@/` aliases without type errors
+- new: `tests/unit/consentGateFanout.test.ts` (+8 tests) -- proves `emitGated` blocks community notifications when preferences consent is refused, blocks marketing when marketing consent is refused, does not emit when no consent decision exists, always emits essential regardless of consent state, does not disturb already-stored notifications when a subsequent emit is blocked
+- result: 178 files / 1698 tests / lint+typecheck+build+pi+demo green
+
 ### T16 P1 ✅ — Realtime updates (announcements, tickets, private messaging)
 - new: `src/app/realtimeLogic.ts` -- pure event-apply helpers: `applyAnnouncementChange` (INSERT dedup by id + UPDATE replace), `applyAnnouncementDelete`, `applyTicketChange`, `applyTicketDelete`, `applyThreadInsert` (dedup), `applyThreadStatusUpdate` (patches status, preserves messages), `applyThreadDelete`, `applyMessageInsert` (appends to parent thread, dedup by id)
 - new: `src/app/useRealtimeSync.ts` -- React hook; subscribes to `announcements`, `tickets`, `private_threads`, `private_messages` postgres_changes on a single channel per asociatieId (each table filtered by `asociatie_id=eq.${aid}`); Supabase Realtime handles reconnection automatically; no-op when `!isSupabaseConfigured` or `asociatieId` is null (demo/offline falls back cleanly); votes surfaces deferred to T80 (live read path not yet built)

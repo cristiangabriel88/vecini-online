@@ -6,9 +6,8 @@
 // to prevent use as an open relay.
 //
 // Consent gate: essential/urgent notifications bypass consent; community
-// notifications check the resident's most recent consent_records row.
-// A missing consent record is treated conservatively as no consent given.
-// T26 will enforce this more strictly across the full fan-out.
+// notifications check the resident's most recent consent_records row via
+// mayNotify (the T05/T26 shared gate). A missing record means no consent given.
 //
 // Privacy: never log email addresses, user ids, or notification body content.
 
@@ -18,6 +17,8 @@ import {
   defaultNotifEmailPrefs,
   type NotifEmailPrefs,
 } from '../../src/shared/lib/notifPrefsLogic';
+import { mayNotify } from '../../src/shared/notify/consentGate';
+import type { ConsentRecord, ConsentChoices } from '../../src/features/legal/consentLogic';
 import { getMailMode, isResendConfigured, sendEmail } from './_shared/resend';
 import {
   isSupabaseAdminConfigured,
@@ -47,11 +48,6 @@ function json(status: number, body: Record<string, unknown>): Response {
     status,
     headers: { 'Content-Type': 'application/json' },
   });
-}
-
-function isConsentAllowed(choices: Record<string, unknown> | null, category: string): boolean {
-  if (!choices) return false;
-  return choices[category] === true;
 }
 
 export default async (req: Request): Promise<Response> => {
@@ -126,9 +122,10 @@ export default async (req: Request): Promise<Response> => {
       .limit(1)
       .maybeSingle();
 
-    const choices = (consentRow?.choices as Record<string, unknown> | null) ?? null;
-    const consentCategory = consentKind === 'community' ? 'preferences' : 'marketing';
-    if (!isConsentAllowed(choices, consentCategory)) {
+    const record: ConsentRecord | null = consentRow?.choices
+      ? { choices: consentRow.choices as ConsentChoices, version: 1, decidedAt: '' }
+      : null;
+    if (!mayNotify(record, consentKind)) {
       return json(200, { delivered: false, reason: 'consent-denied' });
     }
   }

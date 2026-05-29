@@ -153,7 +153,7 @@ Wire the real email channel into the notification fan-out (Supabase/SMTP), bilin
 ### ✅ T16 — [P1] Realtime updates
 Live updates via Supabase Realtime under RLS for announcements, tickets, votes, and chat surfaces, with optimistic UI and graceful reconnection. Falls back cleanly in demo mode.
 
-### ⬜ T26 — [P1] Consent-gate enforcement in the fan-out
+### ✅ T26 — [P1] Consent-gate enforcement in the fan-out
 When the live notification channels land (T14 email; Telegram T15 is deferred), make every non-essential dispatch path call `mayNotify` (the T05 gate) and add tests proving a resident who refused a category receives nothing of that kind while essential alerts (F03) always go through. Prereq: T14.
 
 ### ✅ T88 — [P2] F33 real file upload, role-gated (offline data-URL; live Storage in T89)

@@ -8,6 +8,8 @@ import {
   notificationsFor,
   unreadCountFor,
 } from '@/features/notifications/notificationLogic';
+import { mayNotify, type NotificationKind as ConsentGateKind } from '@/shared/notify/consentGate';
+import type { ConsentRecord } from '@/features/legal/consentLogic';
 import { DEMO_NOTIFICATIONS } from '@/shared/demo/demoData';
 
 /**
@@ -30,6 +32,13 @@ interface NotificationState {
    * under RLS (T127); offline the local list is authoritative.
    */
   emit: (n: AppNotification) => void;
+
+  /**
+   * Consent-gated emit: checks `mayNotify(record, consentKind)` before storing.
+   * Use this for non-essential (community/marketing) in-app notifications so a
+   * resident who refused a category receives nothing of that kind.
+   */
+  emitGated: (n: AppNotification, consentKind: ConsentGateKind, record: ConsentRecord | null) => void;
 
   /** Mark a single notification read by id. */
   markRead: (id: string) => void;
@@ -68,6 +77,12 @@ export const useNotificationStore = create<NotificationState>()(
       notifications: [...DEMO_NOTIFICATIONS],
 
       emit: (n) => set({ notifications: [...get().notifications, n] }),
+
+      emitGated: (n, consentKind, record) => {
+        if (mayNotify(record, consentKind)) {
+          set({ notifications: [...get().notifications, n] });
+        }
+      },
 
       markRead: (id) => {
         const now = Date.now();
