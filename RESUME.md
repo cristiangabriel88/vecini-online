@@ -5,16 +5,24 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-29
-- last_task: T81 (P2) Server-side MFA challenge attempt limiting -- DB-backed recovery attempt counts
+- last_task: T143 (P2) wire mfaStore live branches to OTP functions + claim-aware enforcement
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 173 files / 1607 tests
+- counts: 175 files / 1625 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T143 wire mfaStore live branches to OTP functions + claim-aware enforcement (prereqs T142 done)
+- next: T144 server-side OTP attempt-limit parity (prereqs T142/T81 done)
 - features: 65/65 built end-to-end; F33 now has role-gated file upload/download/delete
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T143 P2 ✅ 2026-05-29 — Live activation: wire mfaStore to OTP functions + claim-aware enforcement
+- new: `otpChannelApi.ts` (requestOtpLive/verifyOtpLive Netlify wrappers + hasAppElevation JWT decoder)
+- store: loadChannels reads mfa_channels; enableChannel/disableChannel write/delete live (email only); requestOtp/verifyOtp/verifyConfirmToken use live functions + refreshSession on success; challengeRequired checks app_2fa_at before native AAL; enabledChannels uses liveEnabledChannels
+- hook: useMfaEnforcement passes app2faSatisfied (decoded from JWT) to mfaEnforcementRedirect
+- ui: SecurityPage calls loadChannels on mount; step-up/channel display reads liveEnabledChannels in live mode
+- tests: +16 otpChannelApi.test.ts; updated mfaEnforcement + securityPageStepUp mocks
+- result: 175 files / 1625 tests / build+pi+demo green
 
 ### T81 P2 ✅ 2026-05-29 — Server-side MFA challenge attempt limiting
 - mig: `mfa_recovery_attempt_counts` table + `increment_recovery_attempts` SECURITY DEFINER RPC (atomic upsert-increment)

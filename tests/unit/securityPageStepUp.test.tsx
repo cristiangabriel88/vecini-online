@@ -26,7 +26,11 @@ vi.mock('@/shared/lib/supabase', () => ({
         }),
       },
       getUser: async () => ({ data: { user: { id: 'u1' } } }),
+      getSession: async () => ({ data: { session: null } }),
     },
+    // loadChannels() queries mfa_channels; return empty list so the demo
+    // channel state (seeded via useMfaStore.setState) drives the tests.
+    from: () => ({ select: () => Promise.resolve({ data: [], error: null }) }),
   },
 }));
 
@@ -96,6 +100,15 @@ function seedStores(opts: {
   useSecurityStore.setState({ events: [] });
   useTelegramLinkStore.setState({ links: [] });
 
+  const channelState = {
+    ...(emailEnabled ? { email: { targetHint: 'te***@example.com' } } : {}),
+    ...(telegramEnabled ? { telegram: { targetHint: '@t***' } } : {}),
+  };
+
+  // Shared stub code so requestOtp/verifyOtp can round-trip without network.
+  let lastDemoCode = '';
+  let lastDemoToken = '';
+
   useMfaStore.setState({
     loaded: true,
     enrolled,
@@ -103,16 +116,31 @@ function seedStores(opts: {
     recoveryCodes: null,
     demoSecret: null,
     demoRecoveryHashes: [],
-    demoEnabledChannels: {
-      ...(emailEnabled ? { email: { targetHint: 'te***@example.com' } } : {}),
-      ...(telegramEnabled ? { telegram: { targetHint: '@t***' } } : {}),
-    },
+    demoEnabledChannels: channelState,
+    // Live path reads liveEnabledChannels when isSupabaseConfigured=true.
+    liveEnabledChannels: channelState,
     demoOtpChallenges: {},
     demoResendAt: {},
     otpThrottles: {},
     // Override async methods so tests don't hit real Supabase.
     load: async () => {},
+    loadChannels: async () => {}, // prevent overwriting seeded liveEnabledChannels
     challengeRequired: async () => needsChallenge,
+    // Stub requestOtp/verifyOtp: mint a deterministic code without network.
+    requestOtp: async (channel) => {
+      if (!channelState[channel as keyof typeof channelState]) {
+        return { error: 'no-channel', cooldownMs: 0 };
+      }
+      lastDemoCode = String(100000 + Math.floor(Math.random() * 900000));
+      lastDemoToken = 'test-token-' + lastDemoCode;
+      return { error: null, demoCode: lastDemoCode, demoConfirmToken: lastDemoToken, cooldownMs: 0 };
+    },
+    verifyOtp: async (channel, code) => {
+      if (!channelState[channel as keyof typeof channelState]) return { error: 'no-channel', lockedMs: 0 };
+      return code === lastDemoCode
+        ? { error: null, lockedMs: 0 }
+        : { error: 'invalid-code', lockedMs: 0 };
+    },
   });
 }
 

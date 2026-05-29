@@ -4,6 +4,14 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T143 P2 ✅ — Live activation: wire mfaStore to the OTP functions + claim-aware enforcement
+- new: `src/features/auth/otpChannelApi.ts` -- `requestOtpLive` / `verifyOtpLive` fetch wrappers for the T142 Netlify functions; `hasAppElevation(token)` decodes `app_2fa_at` from a Supabase JWT for the client-side 2FA gate
+- store: `mfaStore` -- `loadChannels()` reads `mfa_channels` in live mode; `enableChannel()` upserts and `disableChannel()` deletes from `mfa_channels` (email only; Telegram deferred to T15); `requestOtp()` calls `mfa-otp-request`, `verifyOtp()` calls `mfa-otp-verify` + `refreshSession()` to pick up the `app_2fa_at` claim; `verifyConfirmToken()` calls `mfa-otp-verify` with token path; `challengeRequired()` checks `app_2fa_at` before native AAL; `enabledChannels()` reads `liveEnabledChannels` in live mode; both `enableChannel`/`disableChannel` return `Promise<{error}>` now
+- hook: `useMfaEnforcement` -- decodes `app_2fa_at` from `getSession()` to compute `app2faSatisfied`; passes both `aalSatisfied` and `app2faSatisfied` to `mfaEnforcementRedirect`
+- ui: `SecurityPage` -- calls `loadChannels()` on mount; `stepUpAvailableChannels()` + `emailEnabled`/`telegramEnabled` read from `liveEnabledChannels` in live mode; channel handlers are async (error-tolerant)
+- tests: +16 in `otpChannelApi.test.ts` (hasAppElevation + requestOtpLive + verifyOtpLive); updated `mfaEnforcement.test.tsx` (getSession in mock) + `securityPageStepUp.test.tsx` (liveEnabledChannels seed + loadChannels stub + requestOtp/verifyOtp stubs)
+- result: 175 files / 1625 tests / build+pi+demo green
+
 ### T81 P2 ✅ — Server-side MFA challenge attempt limiting (parity)
 - mig: `20260529000003_mfa_recovery_attempt_counts.sql` -- `mfa_recovery_attempt_counts` table (user_id + session_id PK, attempts int); RLS on, service-role-only; `increment_recovery_attempts(uuid, text)` SECURITY DEFINER function for atomic upsert-increment (insert 1 on first attempt, increment existing on conflict), revoked from PUBLIC
 - fn: `mfa-recovery-verify.ts` -- replaced per-Lambda-instance in-memory `_attemptStore` (Map + checkSlidingWindow) with DB-backed read+RPC pattern; reads `mfa_recovery_attempt_counts` for current count before comparison, returns 429 `attempt-limit-exceeded` if >= MAX_ATTEMPTS (5), calls `increment_recovery_attempts` RPC on a wrong code (atomic, instance-independent)

@@ -62,6 +62,7 @@ export default function SecurityPage() {
     draft,
     recoveryCodes,
     load,
+    loadChannels,
     beginEnroll,
     confirmEnroll,
     cancelEnroll,
@@ -73,6 +74,7 @@ export default function SecurityPage() {
     requestOtp,
     verifyOtp,
     demoEnabledChannels,
+    liveEnabledChannels,
     enableChannel,
     disableChannel,
   } = useMfaStore();
@@ -106,7 +108,8 @@ export default function SecurityPage() {
 
   useEffect(() => {
     void load();
-  }, [load]);
+    void loadChannels();
+  }, [load, loadChannels]);
 
   // Clean up the resend countdown timer when the component unmounts.
   useEffect(() => {
@@ -149,18 +152,15 @@ export default function SecurityPage() {
     const channels = stepUpAvailableChannels();
     if (channels.length === 1) setStepUpSelectedChannel(channels[0]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [needsStepUp, stepUpSelectedChannel, enrolled, demoEnabledChannels]);
+  }, [needsStepUp, stepUpSelectedChannel, enrolled, demoEnabledChannels, liveEnabledChannels]);
 
-  /**
-   * Channels available for the step-up. Uses `enrolled` for TOTP (correct for
-   * both live and demo modes) and `demoEnabledChannels` for delivered channels
-   * (the live path reads from `mfa_channels` via T143 once that lands).
-   */
+  /** Channels available for the step-up: TOTP when enrolled, delivered channels from live/demo state. */
   function stepUpAvailableChannels(): MfaChannel[] {
     const channels: MfaChannel[] = [];
     if (enrolled) channels.push('totp');
-    if (demoEnabledChannels['email']) channels.push('email');
-    if (demoEnabledChannels['telegram']) channels.push('telegram');
+    const activeChannels = isSupabaseConfigured ? liveEnabledChannels : demoEnabledChannels;
+    if (activeChannels['email']) channels.push('email');
+    if (activeChannels['telegram']) channels.push('telegram');
     return channels;
   }
 
@@ -200,30 +200,44 @@ export default function SecurityPage() {
   /** Whether the current user has a linked Telegram account. */
   const myTelegramLink = telegramLinks.find((l) => l.userId === currentUserId) ?? null;
 
-  const handleEnableChannel = (channel: MfaChannel) => {
-    if (channel === 'email') {
-      const hint = maskEmail(account);
-      enableChannel('email', hint);
-      toast.success(t('auth.mfa.channels.enabledToast', { channel: t('auth.mfa.channels.emailLabel') }));
-    } else if (channel === 'telegram') {
-      if (!myTelegramLink) {
-        toast.error(t('auth.mfa.channels.telegramNotLinked'));
-        return;
+  const handleEnableChannel = async (channel: MfaChannel) => {
+    setBusy(true);
+    try {
+      if (channel === 'email') {
+        const hint = maskEmail(account);
+        const { error } = await enableChannel('email', hint);
+        if (error) { fail(error); return; }
+        toast.success(t('auth.mfa.channels.enabledToast', { channel: t('auth.mfa.channels.emailLabel') }));
+      } else if (channel === 'telegram') {
+        if (!myTelegramLink) {
+          toast.error(t('auth.mfa.channels.telegramNotLinked'));
+          return;
+        }
+        const handle = myTelegramLink.username ?? myTelegramLink.firstName ?? '';
+        const hint = maskTelegram(handle);
+        const { error } = await enableChannel('telegram', hint);
+        if (error) { fail(error); return; }
+        toast.success(t('auth.mfa.channels.enabledToast', { channel: t('auth.mfa.channels.telegramLabel') }));
       }
-      const handle = myTelegramLink.username ?? myTelegramLink.firstName ?? '';
-      const hint = maskTelegram(handle);
-      enableChannel('telegram', hint);
-      toast.success(t('auth.mfa.channels.enabledToast', { channel: t('auth.mfa.channels.telegramLabel') }));
+    } finally {
+      setBusy(false);
     }
   };
 
-  const handleDisableChannel = (channel: MfaChannel) => {
-    disableChannel(channel);
-    toast.success(t('auth.mfa.channels.disabledToast'));
+  const handleDisableChannel = async (channel: MfaChannel) => {
+    setBusy(true);
+    try {
+      const { error } = await disableChannel(channel);
+      if (error) { fail(error); return; }
+      toast.success(t('auth.mfa.channels.disabledToast'));
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const emailEnabled = Boolean(demoEnabledChannels['email']);
-  const telegramEnabled = Boolean(demoEnabledChannels['telegram']);
+  const activeChannels = isSupabaseConfigured ? liveEnabledChannels : demoEnabledChannels;
+  const emailEnabled = Boolean(activeChannels['email']);
+  const telegramEnabled = Boolean(activeChannels['telegram']);
 
   const onBegin = async () => {
     setBusy(true);
@@ -692,8 +706,8 @@ export default function SecurityPage() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium">{t('auth.mfa.channels.emailLabel')}</p>
-                  {emailEnabled && demoEnabledChannels['email'] && (
-                    <p className="text-xs text-muted">{demoEnabledChannels['email'].targetHint}</p>
+                  {emailEnabled && activeChannels['email'] && (
+                    <p className="text-xs text-muted">{activeChannels['email'].targetHint}</p>
                   )}
                 </div>
                 <Button
@@ -720,8 +734,8 @@ export default function SecurityPage() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium">{t('auth.mfa.channels.telegramLabel')}</p>
-                  {telegramEnabled && demoEnabledChannels['telegram'] && (
-                    <p className="text-xs text-muted">{demoEnabledChannels['telegram'].targetHint}</p>
+                  {telegramEnabled && activeChannels['telegram'] && (
+                    <p className="text-xs text-muted">{activeChannels['telegram'].targetHint}</p>
                   )}
                   {!telegramEnabled && !myTelegramLink && (
                     <p className="text-xs text-muted">

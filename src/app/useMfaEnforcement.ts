@@ -2,9 +2,10 @@ import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useMfaStore } from '@/shared/store/mfaStore';
-import { isSupabaseConfigured } from '@/shared/lib/supabase';
+import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import { env } from '@/shared/lib/env';
 import { mfaEnforcementRedirect, requiresMfa } from '@/features/auth/mfaLogic';
+import { hasAppElevation } from '@/features/auth/otpChannelApi';
 
 /**
  * Enforce 2FA for privileged roles on the live (backed) path: a signed-in
@@ -46,9 +47,18 @@ export function useMfaEnforcement(): void {
       // resolved `false` (enrolled but still at AAL1) re-gates the shell.
       const enforcement = env.securityEnforcement;
       let aalSatisfied: boolean | undefined;
+      let app2faSatisfied: boolean | undefined;
       // The AAL probe only matters for strict enforcement; relaxed mode never
       // forces a redirect, so skip the network round-trip entirely.
       if (enforcement !== 'relaxed' && isSupabaseConfigured && loaded && enrolled && requiresMfa(role)) {
+        // Decode the app_2fa_at claim for the app-managed elevation axis (T143).
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!active) return;
+        app2faSatisfied = hasAppElevation(session?.access_token) || undefined;
+        // challengeRequired() checks both native AAL and app_2fa_at; use its
+        // result for aalSatisfied so the gate correctly reflects either path.
         const needs = await challengeRequired();
         if (!active) return;
         aalSatisfied = !needs;
@@ -59,6 +69,7 @@ export function useMfaEnforcement(): void {
         role,
         enrolled,
         aalSatisfied,
+        app2faSatisfied,
         pathname,
         enforcement,
       });

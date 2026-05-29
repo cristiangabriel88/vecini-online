@@ -27,8 +27,10 @@ import {
   resendCooldownRemainingMs,
   isDeliveredChannel,
   OTP_TTL_MS,
+  OTP_RESEND_COOLDOWN_MS,
 } from '@/features/auth/otpChannelLogic';
 import { verifyRecoveryCodeLive } from '@/features/auth/recoveryVerifyApi';
+import { requestOtpLive, verifyOtpLive, hasAppElevation } from '@/features/auth/otpChannelApi';
 import {
   type ThrottleState,
   emptyThrottle,
@@ -127,6 +129,13 @@ interface MfaState {
   demoEnabledChannels: Partial<Record<string, OtpChannelInfo>>;
 
   /**
+   * Live: channels loaded from the `mfa_channels` table. Populated by
+   * `loadChannels()` and updated by `enableChannel`/`disableChannel`. Not
+   * persisted -- always refreshed from the DB on mount.
+   */
+  liveEnabledChannels: Partial<Record<string, OtpChannelInfo>>;
+
+  /**
    * Active OTP challenges, keyed by channel. NOT persisted: a challenge expires
    * with the tab; the user must request a fresh code after a reload.
    */
@@ -169,16 +178,20 @@ interface MfaState {
   /** Remaining challenge lockout in ms (0 when a code may be submitted). */
   challengeLockMs: () => number;
 
-  // Actions -- OTP channels (T140)
+  // Actions -- OTP channels (T140/T143)
   /** Load the current channel registration status (demo reads local state; live reads DB). */
   loadChannels: () => Promise<void>;
   /**
    * Enable a delivered-code channel. The `targetHint` is the masked display
-   * (e.g. `maskEmail(email)` or `maskTelegram(handle)`) — never the raw address.
+   * (e.g. `maskEmail(email)` or `maskTelegram(handle)`) -- never the raw address.
+   * Live: writes to `mfa_channels`; returns an error on DB failure.
    */
-  enableChannel: (channel: MfaChannel, targetHint: string) => void;
-  /** Disable a delivered-code channel and clear any pending challenge for it. */
-  disableChannel: (channel: MfaChannel) => void;
+  enableChannel: (channel: MfaChannel, targetHint: string) => Promise<{ error: string | null }>;
+  /**
+   * Disable a delivered-code channel and clear any pending challenge for it.
+   * Live: deletes from `mfa_channels`; returns an error on DB failure.
+   */
+  disableChannel: (channel: MfaChannel) => Promise<{ error: string | null }>;
   /**
    * Request a one-time code for the given channel. In demo mode, mints the code
    * and hash in-memory and returns the plaintext `demoCode` + `demoConfirmToken`
@@ -261,6 +274,7 @@ export const useMfaStore = create<MfaState>()(
 
       // OTP channel initial state
       demoEnabledChannels: {},
+      liveEnabledChannels: {},
       demoOtpChallenges: {},
       demoResendAt: {},
       otpThrottles: {},
@@ -414,6 +428,14 @@ export const useMfaStore = create<MfaState>()(
           const hasChannel = Object.keys(get().demoEnabledChannels).length > 0;
           return hasTotp || hasChannel;
         }
+        // Live: check app-managed elevation first (email/Telegram OTP, T143).
+        // If the session already carries a valid app_2fa_at claim the session is
+        // elevated -- no further challenge is needed regardless of native AAL.
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (hasAppElevation(session?.access_token)) return false;
+        // Fall back to native Supabase TOTP AAL check.
         const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
         return challengeNeeded(
           (data?.currentLevel as Aal) ?? null,
@@ -506,24 +528,55 @@ export const useMfaStore = create<MfaState>()(
       // --- OTP channel actions (T140) ---
 
       loadChannels: async () => {
-        // Demo: already in state (persisted). Live (T143): read from mfa_channels.
-        // Nothing to do in demo beyond confirming channels are available in state.
-        if (isSupabaseConfigured) {
-          // Live path wired in T143; no-op here so calling loadChannels() is safe.
+        if (!isSupabaseConfigured) return; // Demo: channels already in persisted state.
+        const { data } = await supabase
+          .from('mfa_channels')
+          .select('channel, target_hint');
+        if (!data) return;
+        const channels: Partial<Record<string, OtpChannelInfo>> = {};
+        for (const row of data as Array<{ channel: string; target_hint: string }>) {
+          channels[row.channel] = { targetHint: row.target_hint };
         }
+        set({ liveEnabledChannels: channels });
       },
 
-      enableChannel: (channel, targetHint) => {
-        if (!isDeliveredChannel(channel)) return;
+      enableChannel: async (channel, targetHint) => {
+        if (!isDeliveredChannel(channel)) return { error: null };
+        // Live path: email channel writes to mfa_channels. Telegram is deferred (T15).
+        if (isSupabaseConfigured && channel === 'email') {
+          const {
+            data: { user },
+          } = await supabase.auth.getUser();
+          if (!user) return { error: 'no-session' };
+          const { error: dbErr } = await supabase.from('mfa_channels').upsert(
+            { user_id: user.id, channel, target_hint: targetHint },
+            { onConflict: 'user_id,channel' },
+          );
+          if (dbErr) return { error: dbErr.message };
+          set((s) => ({
+            liveEnabledChannels: { ...s.liveEnabledChannels, [channel]: { targetHint } },
+          }));
+          return { error: null };
+        }
+        // Demo path (or live+telegram which remains local until T15).
         set((s) => ({
-          demoEnabledChannels: {
-            ...s.demoEnabledChannels,
-            [channel]: { targetHint },
-          },
+          demoEnabledChannels: { ...s.demoEnabledChannels, [channel]: { targetHint } },
         }));
+        return { error: null };
       },
 
-      disableChannel: (channel) => {
+      disableChannel: async (channel) => {
+        // Live path: email channel deletes from mfa_channels. Telegram is deferred (T15).
+        if (isSupabaseConfigured && channel === 'email') {
+          await supabase.from('mfa_channels').delete().eq('channel', channel);
+          set((s) => {
+            const channels = { ...s.liveEnabledChannels };
+            delete channels[channel];
+            return { liveEnabledChannels: channels };
+          });
+          return { error: null };
+        }
+        // Demo path.
         set((s) => {
           const channels = { ...s.demoEnabledChannels };
           delete channels[channel];
@@ -531,25 +584,39 @@ export const useMfaStore = create<MfaState>()(
           delete challenges[channel];
           return { demoEnabledChannels: channels, demoOtpChallenges: challenges };
         });
+        return { error: null };
       },
 
       requestOtp: async (channel, now = Date.now()) => {
-        if (!isDeliveredChannel(channel)) {
-          return { error: 'no-channel', cooldownMs: 0 };
+        if (!isDeliveredChannel(channel)) return { error: 'no-channel', cooldownMs: 0 };
+
+        // Live path: email channel via Netlify function. Telegram deferred to T15.
+        if (isSupabaseConfigured && channel === 'email') {
+          if (!get().liveEnabledChannels[channel]) return { error: 'no-channel', cooldownMs: 0 };
+          // Client-side cooldown guard to avoid unnecessary round-trips.
+          const lastSent = get().demoResendAt[channel] ?? 0;
+          const cooldownMs = resendCooldownRemainingMs(lastSent, now);
+          if (cooldownMs > 0) return { error: null, cooldownMs };
+          const result = await requestOtpLive(channel);
+          if (result.error === 'resend-cooldown') {
+            set((s) => ({ demoResendAt: { ...s.demoResendAt, [channel]: now } }));
+            return { error: null, cooldownMs: OTP_RESEND_COOLDOWN_MS };
+          }
+          if (!result.ok) return { error: result.error ?? 'request-failed', cooldownMs: 0 };
+          set((s) => ({ demoResendAt: { ...s.demoResendAt, [channel]: now } }));
+          return { error: null, cooldownMs: 0 };
         }
+
+        // Demo path.
         const channelInfo = get().demoEnabledChannels[channel];
-        if (!channelInfo) {
-          return { error: 'no-channel', cooldownMs: 0 };
-        }
+        if (!channelInfo) return { error: 'no-channel', cooldownMs: 0 };
 
         // Enforce the resend cooldown.
         const lastSent = get().demoResendAt[channel] ?? 0;
         const cooldownMs = resendCooldownRemainingMs(lastSent, now);
-        if (cooldownMs > 0) {
-          return { error: null, cooldownMs };
-        }
+        if (cooldownMs > 0) return { error: null, cooldownMs };
 
-        // Mint the code and its salted hash — store only the hash.
+        // Mint the code and its salted hash -- store only the hash.
         const code = generateNumericOtp();
         const salt = generateOtpSalt();
         const codeHash = await hashOtp(code, salt);
@@ -572,8 +639,40 @@ export const useMfaStore = create<MfaState>()(
 
       verifyOtp: async (channel, code, now = Date.now()) => {
         const sec = useSecurityStore.getState();
-        const throttle = getOtpThrottle(get().otpThrottles, channel);
 
+        // Live path: email channel via Netlify function. Telegram deferred to T15.
+        if (isSupabaseConfigured && channel === 'email') {
+          if (!get().liveEnabledChannels[channel]) return { error: 'no-channel', lockedMs: 0 };
+          const throttle = getOtpThrottle(get().otpThrottles, channel);
+          const preLock = remainingLockMs(throttle, now);
+          if (preLock > 0) {
+            sec.log('mfaChallengeLocked');
+            return { error: 'channel-locked', lockedMs: preLock };
+          }
+          const result = await verifyOtpLive(channel, code);
+          if (!result.ok) {
+            const error = result.error ?? 'invalid-code';
+            if (error === 'challenge-locked') {
+              sec.log('mfaChallengeLocked');
+              return { error: 'channel-locked', lockedMs: 15 * 60_000 };
+            }
+            if (error === 'invalid-code' || error === 'invalid-format') {
+              const next = throttleFail(throttle, now);
+              set((s) => ({ otpThrottles: { ...s.otpThrottles, [channel]: next } }));
+              const lockedMs = remainingLockMs(next, now);
+              sec.log(lockedMs > 0 ? 'mfaChallengeLocked' : 'mfaChallengeFailed');
+              return { error: 'invalid-code', lockedMs };
+            }
+            return { error, lockedMs: 0 };
+          }
+          // Success: refresh session to pick up the app_2fa_at claim (T141 hook).
+          await supabase.auth.refreshSession();
+          set((s) => ({ otpThrottles: { ...s.otpThrottles, [channel]: throttleOk() } }));
+          return { error: null, lockedMs: 0 };
+        }
+
+        // Demo path.
+        const throttle = getOtpThrottle(get().otpThrottles, channel);
         const preLock = remainingLockMs(throttle, now);
         if (preLock > 0) {
           sec.log('mfaChallengeLocked');
@@ -581,19 +680,12 @@ export const useMfaStore = create<MfaState>()(
         }
 
         const challenge = get().demoOtpChallenges[channel];
-        if (!challenge) {
-          return { error: 'no-channel', lockedMs: 0 };
-        }
-        if (challenge.consumed) {
-          return { error: 'no-channel', lockedMs: 0 };
-        }
-        if (otpChallengeExpired(challenge.expiresAtMs, now)) {
-          return { error: 'expired-code', lockedMs: 0 };
-        }
+        if (!challenge) return { error: 'no-channel', lockedMs: 0 };
+        if (challenge.consumed) return { error: 'no-channel', lockedMs: 0 };
+        if (otpChallengeExpired(challenge.expiresAtMs, now)) return { error: 'expired-code', lockedMs: 0 };
 
         const matched = await verifyOtpHash(challenge.codeHash, challenge.salt, code);
         if (matched) {
-          // Consume the challenge and clear the throttle.
           set((s) => ({
             demoOtpChallenges: {
               ...s.demoOtpChallenges,
@@ -604,7 +696,6 @@ export const useMfaStore = create<MfaState>()(
           return { error: null, lockedMs: 0 };
         }
 
-        // Wrong code: increment per-channel throttle.
         const next = throttleFail(throttle, now);
         set((s) => ({ otpThrottles: { ...s.otpThrottles, [channel]: next } }));
         const lockedMs = remainingLockMs(next, now);
@@ -613,16 +704,24 @@ export const useMfaStore = create<MfaState>()(
       },
 
       verifyConfirmToken: async (channel, token, now = Date.now()) => {
+        // Live path: email channel via Netlify function. Telegram deferred to T15.
+        if (isSupabaseConfigured && channel === 'email') {
+          if (!get().liveEnabledChannels[channel]) return { error: 'no-channel', lockedMs: 0 };
+          const result = await verifyOtpLive(channel, undefined, token);
+          if (!result.ok) {
+            const error = result.error ?? 'invalid-code';
+            if (error === 'challenge-locked') return { error: 'channel-locked', lockedMs: 15 * 60_000 };
+            return { error, lockedMs: 0 };
+          }
+          await supabase.auth.refreshSession();
+          return { error: null, lockedMs: 0 };
+        }
+
+        // Demo path.
         const challenge = get().demoOtpChallenges[channel];
-        if (!challenge) {
-          return { error: 'no-channel', lockedMs: 0 };
-        }
-        if (challenge.consumed) {
-          return { error: 'no-channel', lockedMs: 0 };
-        }
-        if (otpChallengeExpired(challenge.expiresAtMs, now)) {
-          return { error: 'expired-code', lockedMs: 0 };
-        }
+        if (!challenge) return { error: 'no-channel', lockedMs: 0 };
+        if (challenge.consumed) return { error: 'no-channel', lockedMs: 0 };
+        if (otpChallengeExpired(challenge.expiresAtMs, now)) return { error: 'expired-code', lockedMs: 0 };
 
         const tokenHash = await hashConfirmToken(token);
         const matched = tokenHash === challenge.confirmTokenHash;
@@ -635,8 +734,6 @@ export const useMfaStore = create<MfaState>()(
           }));
           return { error: null, lockedMs: 0 };
         }
-        // A wrong confirm token is not the same threat model as a brute-forced
-        // code (the token space is 256-bit), so we don't throttle here.
         return { error: 'invalid-code', lockedMs: 0 };
       },
 
@@ -647,6 +744,15 @@ export const useMfaStore = create<MfaState>()(
 
       enabledChannels: () => {
         const channels: MfaChannel[] = [];
+        if (isSupabaseConfigured) {
+          // Live: TOTP from the enrolled flag; delivered channels from liveEnabledChannels.
+          if (get().enrolled) channels.push('totp');
+          const live = get().liveEnabledChannels;
+          if (live['email']) channels.push('email');
+          if (live['telegram']) channels.push('telegram');
+          return channels;
+        }
+        // Demo path.
         if (get().demoSecret != null) channels.push('totp');
         const enabled = get().demoEnabledChannels;
         if (enabled['email']) channels.push('email');

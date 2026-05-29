@@ -16,6 +16,9 @@ vi.mock('@/shared/lib/supabase', () => ({
   isSupabaseConfigured: true,
   supabase: {
     auth: {
+      // getSession is called by useMfaEnforcement (T143) to decode the app_2fa_at claim.
+      // A null session means no app-managed elevation in these tests.
+      getSession: async () => ({ data: { session: null } }),
       mfa: {
         listFactors: async () => ({ data: { totp: [] } }),
         getAuthenticatorAssuranceLevel: async () => ({
