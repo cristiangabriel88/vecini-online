@@ -5,16 +5,20 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-29
-- last_task: T143 (P2) wire mfaStore live branches to OTP functions + claim-aware enforcement
+- last_task: T144 (P2) server-side OTP attempt-limit parity -- confirmed server lock cannot be cleared from browser; 5 reconciliation tests added
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 175 files / 1625 tests
+- counts: 176 files / 1630 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T144 server-side OTP attempt-limit parity (prereqs T142/T81 done)
+- next: T113 carry a return-to through the AAL2 step-up
 - features: 65/65 built end-to-end; F33 now has role-gated file upload/download/delete
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T144 P2 ✅ 2026-05-29 — Server-side OTP attempt-limit parity
+- new: `mfaOtpServerLockReconcile.test.ts` (+5 tests): confirmed `challenge-locked` from server returns `channel-locked` lockedMs > 0; otpThrottles NOT updated on server lock; localStorage wipe doesn't bypass server lock; invalid-code increments client throttle; success resets it
+- result: 176 files / 1630 tests / build+pi+demo green
 
 ### T143 P2 ✅ 2026-05-29 — Live activation: wire mfaStore to OTP functions + claim-aware enforcement
 - new: `otpChannelApi.ts` (requestOtpLive/verifyOtpLive Netlify wrappers + hasAppElevation JWT decoder)

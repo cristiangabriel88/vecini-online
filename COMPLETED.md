@@ -4,6 +4,11 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T144 P2 ✅ — Live activation: server-side OTP attempt-limit parity
+- new: `tests/unit/mfaOtpServerLockReconcile.test.ts` (+5 tests) -- live-branch `verifyOtp` reconciliation: `challenge-locked` from server returns `channel-locked` with `lockedMs > 0`; `otpThrottles` NOT updated on server lock (server is authoritative); clearing `otpThrottles` (simulated localStorage wipe) still hits the server lock; `invalid-code` increments client throttle; success resets client throttle
+- confirmed: `mfa-otp-verify.ts` attempt counter is per-challenge DB row (not resetable from browser); resend cooldown + hourly ceiling in `mfa-otp-request.ts` prevent farming new challenges; all three second-factor brute-force budgets (login/T33, recovery/T81, OTP/T144) are server-held
+- result: 176 files / 1630 tests / build+pi+demo green
+
 ### T143 P2 ✅ — Live activation: wire mfaStore to the OTP functions + claim-aware enforcement
 - new: `src/features/auth/otpChannelApi.ts` -- `requestOtpLive` / `verifyOtpLive` fetch wrappers for the T142 Netlify functions; `hasAppElevation(token)` decodes `app_2fa_at` from a Supabase JWT for the client-side 2FA gate
 - store: `mfaStore` -- `loadChannels()` reads `mfa_channels` in live mode; `enableChannel()` upserts and `disableChannel()` deletes from `mfa_channels` (email only; Telegram deferred to T15); `requestOtp()` calls `mfa-otp-request`, `verifyOtp()` calls `mfa-otp-verify` + `refreshSession()` to pick up the `app_2fa_at` claim; `verifyConfirmToken()` calls `mfa-otp-verify` with token path; `challengeRequired()` checks `app_2fa_at` before native AAL; `enabledChannels()` reads `liveEnabledChannels` in live mode; both `enableChannel`/`disableChannel` return `Promise<{error}>` now
