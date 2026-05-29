@@ -4,6 +4,12 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T33 P2 ✅ — Server-backed login lockout
+- mig: `20260529000002_login_attempt_locks.sql` -- `login_attempt_locks` table (email_hash PK, failure_count, window_start, locked_until, lockout_count); RLS enabled, direct access revoked from anon/authenticated; three SECURITY DEFINER RPCs: `check_login_lock`, `record_login_failure` (escalating lock: 5 failures in 15min window triggers lockout mirroring client constants, doubles per round, capped 30min), `clear_login_lock`; GRANT EXECUTE to anon+authenticated
+- api/code: `serverLockout.ts` (new) -- `hashEmail(email): Promise<string>` (SHA-256 hex of normalized email, no PII to server), `reconcileLockMs(clientMs, serverMs): number` (max of both, floored 0); `securityStore.ts` gains `checkServerLock`, `recordServerFailure`, `clearServerLock` async methods (each guard-gated on `isSupabaseConfigured`, fail open returning 0); `authStore.signIn` reconciles client + server pre-lock check and post-failure counters via `reconcileLockMs`, fires `clearServerLock` best-effort on success
+- tests: +10 in `serverLockout.test.ts` -- reconcileLockMs (zero/client-only/server-only/server-larger/client-larger/negative-floor), hashEmail (64-char hex, case normalization, whitespace trim, different emails)
+- result: 166 files / 1535 tests / lint+typecheck+build+pi+demo green
+
 ### T109 P3 ✅ — Semantic ROPA guards: catch features that misstate their processing profile
 - api/code: `ropaLogic.ts` gains two new exported pure functions -- `financialBasisViolations(features)` returns a violation message for each implemented feature whose resolved profile includes `financial` data but resolves a basis other than `legal`/`contract` (legitimate interest and consent are too weak for financial records); `consentOptionalViolations(features)` returns a violation message for each consent-basis feature that lacks `optional` in its data categories (consent requires opt-in data flagged with `optional`)
 - tests: +6 in `ropaLogic.test.ts` within a new `semantic ROPA guards (T109)` block -- zero violations on current FEATURES for both rules; detection of synthetic violating features (financial+legitimate, consent without optional); acceptance of well-formed equivalents (financial+legal, community default inherits optional); both guards ignore non-implemented features

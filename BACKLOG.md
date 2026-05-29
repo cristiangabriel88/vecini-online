@@ -129,7 +129,7 @@ Surfaced in T74: the new `ropaLogic` guard proves every declared `FeatureDef.pro
 ### ✅ T32 — [P1] Server-side auth-policy parity
 T03's password strength/breach policy and login throttle run client-side, so they harden the UX but are bypassable by a direct API call. Bring the backend into line: enable Supabase Auth's minimum-password-length and leaked-password (HIBP) protection, confirm/raise the server-side auth rate limits, and document the exact dashboard settings in `.env.example` and `SECURITY.md` (the latter lands with T04). The client policy stays as the first line; the server becomes the authority. Prereq: T01, T03.
 
-### ⬜ T33 — [P2] Server-backed login lockout
+### ✅ T33 — [P2] Server-backed login lockout
 The T03 login lockout state lives in `localStorage` (so a temporary lock survives reload), but a determined attacker can clear it between attempts. Once a backend is provisioned, record failed-attempt counters server-side (keyed by account, behind RLS or an Edge Function) so the lockout cannot be reset client-side, and reconcile it with the client throttle. Prereq: T03, T28.
 
 ### ⬜ T81 — [P2] Server-side MFA challenge attempt limiting (parity)

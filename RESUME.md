@@ -5,16 +5,22 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-29
-- last_task: T109 (P3) Semantic ROPA guards
+- last_task: T33 (P2) Server-backed login lockout
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 165 files / 1531 tests
+- counts: 166 files / 1535 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T29 live recovery-code login (prereq T142 now done) or T33 server-backed login lockout
+- next: T142 live OTP service-role functions (prereqs T140+T141 done) or T81 server MFA throttle (needs T29)
 - features: 65/65 built end-to-end; F33 now has role-gated file upload/download/delete
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T33 P2 ✅ 2026-05-29 — Server-backed login lockout
+- mig: `login_attempt_locks` table + SECURITY DEFINER RPCs `check_login_lock`/`record_login_failure`/`clear_login_lock`; RLS enabled; escalating lock mirrors client constants (5 failures/15min, 1min base doubling to 30min cap)
+- api/code: `serverLockout.ts` -- `hashEmail` (SHA-256 of normalized email) + `reconcileLockMs` (max of client+server); `securityStore` gains 3 async server methods; `authStore.signIn` reconciles both locks pre-attempt and post-failure
+- tests: +10 in `serverLockout.test.ts`
+- result: 166 files / 1535 tests / build+pi+demo green
 
 ### T109 P3 ✅ 2026-05-29 — Semantic ROPA guards
 - api/code: `ropaLogic.ts` adds `financialBasisViolations` + `consentOptionalViolations` -- two pure guard functions that scan the resolved processing profile of every implemented feature and return violation messages; guards check that `financial` data only appears with `legal`/`contract` basis and that `consent` basis always includes `optional` data

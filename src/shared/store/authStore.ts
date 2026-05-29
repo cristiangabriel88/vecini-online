@@ -6,6 +6,7 @@ import type { Membership, Role, UserProfile } from '@/shared/types/domain';
 import { mergeHydration, roleFor, sortByPrivilege } from '@/features/auth/hydrationLogic';
 import { demoTenantContext } from '@/features/auth/demoTenant';
 import { rememberExpired, setRemembered } from '@/features/auth/sessionPersistence';
+import { reconcileLockMs } from '@/features/auth/serverLockout';
 import { buildFounderMembership, newLocalAsociatieId } from '@/features/onboarding/onboardingLogic';
 import {
   type InviteStatus,
@@ -350,7 +351,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return { error: null, lockedMs: 0 };
     }
     // Refuse before hitting the network while a lockout is in force.
-    const preLock = sec.lockRemainingMs(email);
+    // Reconcile client lock (localStorage) with server lock (DB) so clearing
+    // either alone cannot bypass the lockout.
+    const clientPreLock = sec.lockRemainingMs(email);
+    const serverPreLock = await sec.checkServerLock(email);
+    const preLock = reconcileLockMs(clientPreLock, serverPreLock);
     if (preLock > 0) {
       sec.log('loginLocked', email);
       return { error: 'locked', lockedMs: preLock };
@@ -360,11 +365,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     setRemembered(remember);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      const lockedMs = sec.registerFailure(email);
+      const clientLockedMs = sec.registerFailure(email);
+      const serverLockedMs = await sec.recordServerFailure(email);
+      const lockedMs = reconcileLockMs(clientLockedMs, serverLockedMs);
       sec.log(lockedMs > 0 ? 'loginLocked' : 'loginFailed', email);
       return { error: error.message, lockedMs };
     }
     sec.registerSuccess(email);
+    void sec.clearServerLock(email);
     sec.log('login', email);
     return { error: null, lockedMs: 0 };
   },

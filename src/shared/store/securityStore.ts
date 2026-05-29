@@ -15,6 +15,7 @@ import {
   remainingLockMs,
   throttleKey,
 } from '@/features/auth/loginThrottle';
+import { hashEmail } from '@/features/auth/serverLockout';
 import { useAuthStore } from './authStore';
 
 /**
@@ -41,6 +42,12 @@ interface SecurityState {
   log: (type: AuthEventType, email?: string | null) => void;
   /** Most-recent-first view of the local activity log. */
   recentEvents: () => AuthAuditEvent[];
+  /** Returns server-side remaining lock ms (0 if not locked or demo mode). Fails open. */
+  checkServerLock: (email: string) => Promise<number>;
+  /** Records a failed attempt server-side; returns remaining lock ms. Fails open. */
+  recordServerFailure: (email: string) => Promise<number>;
+  /** Clears the server lock on a successful sign-in. Best-effort. */
+  clearServerLock: (email: string) => Promise<void>;
 }
 
 /** Mirror an event into the backend audit table; never throws to the caller. */
@@ -95,6 +102,42 @@ export const useSecurityStore = create<SecurityState>()(
       },
 
       recentEvents: () => get().events,
+
+      checkServerLock: async (email) => {
+        if (!isSupabaseConfigured) return 0;
+        try {
+          const hash = await hashEmail(email);
+          const { data } = await supabase.rpc('check_login_lock', { p_email_hash: hash });
+          if (!data?.[0]) return 0;
+          const row = data[0] as { locked: boolean; remaining_ms: number };
+          return row.locked ? Math.max(0, row.remaining_ms) : 0;
+        } catch {
+          return 0;
+        }
+      },
+
+      recordServerFailure: async (email) => {
+        if (!isSupabaseConfigured) return 0;
+        try {
+          const hash = await hashEmail(email);
+          const { data } = await supabase.rpc('record_login_failure', { p_email_hash: hash });
+          if (!data?.[0]) return 0;
+          const row = data[0] as { locked: boolean; remaining_ms: number };
+          return row.locked ? Math.max(0, row.remaining_ms) : 0;
+        } catch {
+          return 0;
+        }
+      },
+
+      clearServerLock: async (email) => {
+        if (!isSupabaseConfigured) return;
+        try {
+          const hash = await hashEmail(email);
+          await supabase.rpc('clear_login_lock', { p_email_hash: hash });
+        } catch {
+          /* best-effort */
+        }
+      },
     }),
     { name: 'vecini.security' },
   ),
