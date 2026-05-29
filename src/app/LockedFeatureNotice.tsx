@@ -59,7 +59,6 @@ export function LockedFeatureNotice({
         <Lock size={26} strokeWidth={1.75} />
       </span>
 
-      {feature && <span className="locked-feature__key">{feature.key}</span>}
       <h1 className="locked-feature__title">{title}</h1>
       <p className="locked-feature__body">{t('common.featureDisabled')}</p>
       {!canEnable && <p className="locked-feature__hint">{t('common.featureDisabledHint')}</p>}

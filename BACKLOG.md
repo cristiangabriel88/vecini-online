@@ -180,7 +180,7 @@ Public accessibility-statement page describing the conformance target (WCAG 2.1 
 ### ⬜ T37 — [P2] Server-rendered proces-verbal PDF (F10 AGA)
 F10 currently downloads the legally-required proces-verbal as signature-ready Romanian plain text (a deliberate bundle-budget choice — see `DECISIONS.md`). For a polished, court-presentable deliverable, render it as a real PDF: do it server-side (Supabase Edge Function / Netlify function) so no heavy PDF engine lands in the client bundle, keep the text generator (`generateProcesVerbal`) as the single source of the content, and stamp the asociație header + Legea 196/2018 footer. Demo mode keeps the text download. Prereq: a provisioned backend.
 
-### ⬜ T39 — [P2] CSP hardening: exact Supabase origin + violation reporting
+### ✅ T39 — [P2] CSP hardening: exact Supabase origin + violation reporting
 The T04 Content-Security-Policy uses a `https://*.supabase.co` / `wss://*.supabase.co` wildcard for `connect-src` because the project URL is environment-specific. Tighten it by templating the **exact** `VITE_SUPABASE_URL` origin into the deployed header at build/deploy time (Netlify build plugin or a generated `_headers` file) so only the real project is reachable, and add a `report-to`/`report-uri` directive plus a lightweight collector (Netlify function or Sentry, coordinate with T07) so CSP violations are observed rather than silent. Re-widen `connect-src` when Sentry (T07) or the email channel (T14) need new origins. Prereq awareness: T04 (done), T07.
 
 ### ⬜ T51 — [P2] Migrate role-gated UI + scoped reads to `activeRole()` / `currentAsociatieId`

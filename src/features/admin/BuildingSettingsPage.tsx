@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
@@ -182,10 +182,7 @@ export default function BuildingSettingsPage() {
           </div>
         </div>
       </Card>
-      <div className="mt-5 flex justify-between">
-        <Button variant="ghost" onClick={() => navigate('/app/admin/apartamente')}>
-          <ArrowLeft className="h-4 w-4" /> {t('common.back')}
-        </Button>
+      <div className="mt-5 flex justify-end">
         <Button onClick={save}>
           <Check className="h-4 w-4" /> {t('common.save')}
         </Button>

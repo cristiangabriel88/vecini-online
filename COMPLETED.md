@@ -4,6 +4,14 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T39 P2 ✅ -- CSP hardening: exact Supabase origin + violation reporting
+- new: `scripts/cspHeaders.ts` -- pure `buildCsp(supabaseUrl)` and `buildHeadersFileContent(supabaseUrl)` functions; generates `dist/_headers` at build time with exact Supabase project origin replacing the `*.supabase.co` wildcard; adds `report-to csp-endpoint` + `report-uri` directives; includes `Report-To` + `Reporting-Endpoints` headers
+- updated: `vite.config.ts` -- added `cspHeadersPlugin()` Vite plugin that calls `buildHeadersFileContent` in `closeBundle` and writes `dist/_headers`; demo build uses `connect-src 'self'` only (no Supabase connections)
+- new: `netlify/functions/csp-report.ts` -- Netlify function accepting both legacy `application/csp-report` and modern `application/reports+json` violation payloads; logs non-PII directive/blocked-URI/source-file to function log; returns 204
+- updated: `tsconfig.node.json` + `tsconfig.app.json` -- added `scripts/` to include so `cspHeaders.ts` is type-checked by both node and app builds
+- updated: `tests/unit/securityHeaders.test.ts` -- 6 new `buildCsp (T39)` tests: exact origin, no wildcard, demo connect-src self-only, report-to/report-uri present, core directives invariant, headers file structure
+- result: 175 files / 1703 tests / build+pi+demo green
+
 ### T104 P2 ✅ -- Wire F66 profile into F28 Parcare + F36 directory + admin profile view
 - updated: `src/features/parking/parkingLogic.ts` -- added `residentPlateSuggestion(carPlate)` pure helper (returns trimmed plate or null); unit-tested
 - updated: `src/features/parking/ParkingPage.tsx` -- imports `useMyIdentity` + `useProfileStore`; `openModal()` pre-fills `licensePlate` from `residentPlateSuggestion(profile.carPlate)`; hint label rendered when plate matches the profile value

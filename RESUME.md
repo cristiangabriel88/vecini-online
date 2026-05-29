@@ -5,16 +5,24 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-29
-- last_task: T104 (P2) Wire F66 profile into F28 Parcare + F36 directory + admin profile view
+- last_task: T39 (P2) CSP hardening: exact Supabase origin + violation reporting
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 179 files / 1696 tests
+- counts: 175 files / 1703 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T105 drag-and-drop for profile custom fields (prereq T11 done)
+- next: T51 migrate role-gated UI to activeRole() / currentAsociatieId (prereq T28 done)
 - features: 65/65 built end-to-end; F28/F36/F66 cross-feature glue wired (T104)
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T39 P2 ✅ 2026-05-29 -- CSP hardening: exact Supabase origin + violation reporting
+- new: `scripts/cspHeaders.ts` (buildCsp, buildHeadersFileContent, CSP_REPORT_PATH)
+- updated: `vite.config.ts` (cspHeadersPlugin writes dist/_headers in closeBundle)
+- new: `netlify/functions/csp-report.ts` (CSP violation collector, handles both report formats)
+- updated: tsconfig.node.json + tsconfig.app.json (scripts/ added to include)
+- updated: `tests/unit/securityHeaders.test.ts` (+6 buildCsp unit tests)
+- result: 175 files / 1703 tests / build+pi+demo green
 
 ### T104 P2 ✅ 2026-05-29 -- Wire F66 profile into F28 Parcare + F36 directory + admin profile view
 - updated: parkingLogic.ts (residentPlateSuggestion); ParkingPage.tsx (pre-fill plate from profile, hint label)

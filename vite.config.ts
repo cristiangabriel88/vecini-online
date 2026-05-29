@@ -1,9 +1,24 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath, URL } from 'node:url';
+import { writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import type { Plugin } from 'vite';
+import { buildHeadersFileContent } from './scripts/cspHeaders';
+
+function cspHeadersPlugin(): Plugin {
+  return {
+    name: 'csp-headers',
+    apply: 'build',
+    closeBundle() {
+      const content = buildHeadersFileContent(process.env.VITE_SUPABASE_URL);
+      writeFileSync(resolve('dist', '_headers'), content, 'utf-8');
+    },
+  };
+}
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), cspHeadersPlugin()],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
