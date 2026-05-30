@@ -82,8 +82,8 @@ When two tasks share a priority: prerequisites first, then smallest-safe-step.
 
 > The cluster that makes what already exists safe and compliant for real residents before broadening scope.
 
-### ⬜ T181 — [P1] Rate-limit the `invite-email` Netlify function
-The other privileged/auth Netlify functions guard themselves with `_shared/rateLimiter.ts` (token-bucket throttling), but `netlify/functions/invite-email.ts` has no such guard, so an authenticated admin (or a leaked token) can drive unbounded invite-email sends — email-quota exhaustion and a spam/abuse vector. Confirm the gap, then add per-caller + per-IP throttling parity with the auth functions (a sensible ceiling such as N sends/minute), returning a clear 429 with a bilingual-safe error code and never logging recipients or PII. Add a unit test for the limiter wiring. Coordinates with the existing `_shared/rateLimiter.ts`.
+### ✅ T181 — [P1] Rate-limit the `invite-email` Netlify function
+Done: `checkIpRateLimit(ip, now)` added to `_shared/rateLimiter.ts` (5 sends per 60 s per IP, using the existing `checkSlidingWindow` primitive). `extractClientIp(req)` helper exported from `invite-email.ts` (reads `x-forwarded-for` then `x-real-ip`). Per-IP check added early in the handler before any DB queries; existing per-caller+asociatie limit (20/10 min) retained. Security model comment updated. 15 new assertions across 3 test blocks in `inviteEmailAuth.test.ts`. 175 files / 1715 tests / build / build:pi / build:demo all green.
 
 ### ⬜ T182 — [P1] Dev-gate console logging so PROD never logs state/PII to the browser console
 Audit surfaced `console.*` calls in stores/logic that can emit user/session state to the browser console. In a live support scenario that state (and any PII it carries) is copyable from the console. Route all diagnostic logging through a single dev-only logger (`import.meta.env.DEV` / stage-gated) so PROD is silent, sweep the existing `console.*` calls in `src/` onto it (leaving deliberate user-facing error reporting via the T07 hook intact), and add a guard test that fails on a raw `console.*` in shipped code paths. Keep demo/dev verbose.

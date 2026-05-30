@@ -4,6 +4,9 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### ✅ T181 — [P1] Rate-limit the `invite-email` Netlify function
+Done: `checkIpRateLimit(ip, now)` added to `_shared/rateLimiter.ts` (5 sends per 60 s per IP, using the existing `checkSlidingWindow` primitive). `extractClientIp(req)` helper exported from `invite-email.ts` (reads `x-forwarded-for` then `x-real-ip`). Per-IP check added early in the handler before any DB queries; existing per-caller+asociatie limit (20/10 min) retained. Security model comment updated. 15 new assertions across 3 test blocks in `inviteEmailAuth.test.ts` (per-IP logic, extractClientIp, wiring guard). 175 files / 1715 tests / build / build:pi / build:demo all green.
+
 ### T107 P3 ✅ -- Touch-friendly pointer drag for the customizable home cards
 - new: `src/features/home/useHomeReorder.ts` -- `useHomeReorder(onReorder)` hook; unified Pointer Events gesture (mouse/touch/pen); mouse activates on movement past 6px threshold; touch activates on press-and-hold (180ms) with haptic tick and scroll-intent cancel (12px scroll = hand off to page scroll); `touchmove` guarded non-passive once a drag is live to veto browser scroll; pointer capture on the dragging element; `insertionFromPoint` called live on every move to resolve the drop slot
 - new: `src/features/home/reorderGeometry.ts` -- pure `insertionFromPoint(items, x, y)` geometry; resolves the insertion slot in a wrapping grid by row-band intersection + horizontal half-point; falls back to nearest-centre when the pointer is outside every row; DOM-free so unit-testable

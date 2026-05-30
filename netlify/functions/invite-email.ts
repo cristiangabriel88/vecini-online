@@ -8,7 +8,8 @@
 //  - The invite is fetched from `invite_codes` by id -- the recipient address,
 //    name and token are resolved from the DB row, not from client-supplied fields,
 //    so the function cannot be used as an open email relay.
-//  - Rate-limited: max 20 sends per 10 minutes per caller+asociatie.
+//  - Rate-limited: 5 sends/min per IP (burst protection, before any DB query)
+//    + max 20 sends per 10 minutes per caller+asociatie.
 //
 // Two templates (T153):
 //  - kind === 'admin_setup' (or absent): polished admin invite with branded
@@ -36,7 +37,7 @@ import {
   getInviteById,
   getAsociatieName,
 } from './_shared/supabaseAdmin';
-import { checkInviteRateLimit } from './_shared/rateLimiter';
+import { checkInviteRateLimit, checkIpRateLimit } from './_shared/rateLimiter';
 
 interface InviteEmailRequest {
   /** UUID of the invite_codes row to deliver. */
@@ -61,8 +62,22 @@ function json(status: number, body: Record<string, unknown>): Response {
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+/** Extract the caller's IP from Netlify's forwarded headers. Returns null when
+ *  running behind a proxy that omits both headers (never fails the request). */
+export function extractClientIp(req: Request): string | null {
+  const fwd = req.headers.get('x-forwarded-for');
+  if (fwd) return fwd.split(',')[0].trim() || null;
+  return req.headers.get('x-real-ip');
+}
+
 export default async (req: Request): Promise<Response> => {
   if (req.method !== 'POST') return json(405, { error: 'method-not-allowed' });
+
+  // ── Per-IP rate limit (burst protection, before any DB queries) ───────────
+  const clientIp = extractClientIp(req);
+  if (clientIp && !checkIpRateLimit(clientIp)) {
+    return json(429, { error: 'rate-limited' });
+  }
 
   const mailMode = getMailMode();
 

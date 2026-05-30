@@ -56,3 +56,19 @@ const DEFAULT_MAX = 20;
 export function checkInviteRateLimit(key: string, now: number = Date.now()): boolean {
   return checkSlidingWindow(_store, key, now, DEFAULT_WINDOW_MS, DEFAULT_MAX);
 }
+
+// Per-IP store for the invite-email function.
+const _ipStore = new Map<string, Entry>();
+
+/** Max invite-email sends per IP per minute (burst protection). */
+const IP_WINDOW_MS = 60_000;
+const IP_MAX = 5;
+
+/**
+ * Record one invite-email send attempt for `ip` and return whether it is within
+ * the per-IP burst limit (5 per 60 s). A missing/null IP is always allowed (no
+ * IP could be extracted from behind a proxy).
+ */
+export function checkIpRateLimit(ip: string, now: number = Date.now()): boolean {
+  return checkSlidingWindow(_ipStore, ip, now, IP_WINDOW_MS, IP_MAX);
+}
