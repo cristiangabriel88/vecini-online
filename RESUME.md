@@ -5,9 +5,9 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-30
-- last_task: T86 (P2) Live activation: audit_log read + server-authoritative chain
+- last_task: T65 (P2) Persist the content stores offline (publish survives reload)
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 186 files / 1765 tests
+- counts: 187 files / 1774 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
 - next: T108 rich per-card home widgets (prereq T12 done) or T51 activeRole() migration (prereq T28 done)
@@ -15,6 +15,16 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T65 P2 ✅ 2026-05-30 -- Persist the content stores offline (publish survives reload)
+- updated: src/features/announcements/announcementsLogic.ts (migrateAnnouncementsState)
+- updated: src/features/tickets/ticketLogic.ts (migrateTicketsState)
+- updated: src/features/discussions/discussionLogic.ts (migrateThreadsState)
+- updated: src/features/announcements/announcementsStore.ts (persist, version 1, partialize, migrate)
+- updated: src/features/tickets/ticketsStore.ts (persist, version 1, partialize, migrate)
+- updated: src/features/discussions/discussionStore.ts (persist, version 1, partialize, migrate)
+- new: tests/unit/contentStorePersist.test.ts (9 assertions)
+- result: 187 files / 1774 tests / build+pi+demo green
 
 ### T86 P2 ✅ 2026-05-30 -- Live activation: audit_log read + server-authoritative chain
 - new: supabase/migrations/20260530000001_audit_log_chain_trigger.sql (actor_name column + seq-stamp trigger)

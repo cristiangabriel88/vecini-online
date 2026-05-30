@@ -81,6 +81,21 @@ export function newAnnouncement(
 }
 
 /**
+ * Migrate persisted state from any earlier version to the current shape.
+ * Preserves non-demo asociații so a locally-created asociație keeps its
+ * published announcements, but always reseeds the demo asociație from
+ * `DEMO_ANNOUNCEMENTS` so stale demo content is refreshed on version bump.
+ */
+export function migrateAnnouncementsState(persisted: unknown): AnnouncementsByAsociatie {
+  const state = persisted as { byAsociatie?: unknown } | null;
+  const old = state?.byAsociatie;
+  if (old && typeof old === 'object') {
+    return { ...(old as AnnouncementsByAsociatie), [DEMO_ASOCIATIE.id]: [...DEMO_ANNOUNCEMENTS] };
+  }
+  return seedAnnouncements();
+}
+
+/**
  * Prepend an announcement to one asociație's list (newest first), returning a
  * new `byAsociatie` map without mutating the input.
  */

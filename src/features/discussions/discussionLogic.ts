@@ -71,6 +71,21 @@ export function seedThreads(): ThreadsByAsociatie {
 }
 
 /**
+ * Migrate persisted state from any earlier version to the current shape.
+ * Preserves non-demo asociații so a locally-created asociație keeps its
+ * discussion threads, but always reseeds the demo asociație from
+ * `DEMO_DISCUSSIONS` so stale demo content is refreshed on version bump.
+ */
+export function migrateThreadsState(persisted: unknown): ThreadsByAsociatie {
+  const state = persisted as { byAsociatie?: unknown } | null;
+  const old = state?.byAsociatie;
+  if (old && typeof old === 'object') {
+    return { ...(old as ThreadsByAsociatie), [DEMO_ASOCIATIE.id]: [...DEMO_DISCUSSIONS] };
+  }
+  return seedThreads();
+}
+
+/**
  * The threads for one asociație. Returns the stored list (a stable reference) or
  * a shared frozen empty list when the asociație has none yet or none is active.
  */

@@ -116,7 +116,7 @@ Surfaced in T09: the store mirrors entries to `audit_log` best-effort but the li
 
 > Finishing committed feature behaviour and tenant scoping in demo/offline mode, ahead of (and decoupled from) backend provisioning.
 
-### ⬜ T65 — [P2] Persist the content stores offline (publish survives reload)
+### ✅ T65 — [P2] Persist the content stores offline (publish survives reload)
 The per-asociație content stores (`announcementsStore` from T47, and the upcoming `discussions`/`tickets` stores in T48/T49) are in-memory `create(...)` stores reseeded on every load, so a demo/local publish vanishes on refresh — the invite and feature stores already persist via `zustand/middleware`. Wrap the content stores in `persist` (a `version` + a `migrate` that reseeds the demo asociație from `DEMO_*` so a stale persisted demo list is refreshed, mirroring the T43 featureStore migration), keying by asociație so the local loop keeps published content across reloads. Keep the demo seed authoritative for the demo asociație. Coordinates with T57 (live read/write supersedes the local store when a backend exists). Prereq: T47.
 
 ### ⬜ T66 — [P2] Enforce the discussion post rate limit (anti-spam)

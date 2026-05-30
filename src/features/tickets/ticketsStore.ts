@@ -1,10 +1,12 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { Ticket } from '@/shared/types/domain';
 import { useAuthStore } from '@/shared/store/authStore';
 import {
   type NewTicketInput,
   type TicketsByAsociatie,
   addTicketIn,
+  migrateTicketsState,
   newTicket,
   seedTickets,
   ticketsForAsociatie,
@@ -28,25 +30,36 @@ interface TicketsState {
 /**
  * Sesizări / reclamații scoped per asociație (T49): the demo asociație is seeded
  * so the offline app is populated, and a submitted sesizare lands only in the
- * active asociație's list. The demo store is the offline source of truth; live
- * read/write against `tickets` under RLS is T57.
+ * active asociație's list. Persisted so submitted tickets survive reload (T65);
+ * version bumps reseed the demo asociație so stale demo content is refreshed.
+ * Live read/write against `tickets` under RLS is T57.
  */
-export const useTicketsStore = create<TicketsState>((set, get) => ({
-  byAsociatie: seedTickets(),
-  fetchError: null,
-  add: (asociatieId, reporterUserId, input) =>
-    set((s) => ({
-      byAsociatie: addTicketIn(
-        s.byAsociatie,
-        asociatieId,
-        newTicket(input, asociatieId, reporterUserId),
-      ),
-    })),
-  replaceForAsociatie: (asociatieId, items) =>
-    set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: items } })),
-  setFetchError: (msg) => set({ fetchError: msg }),
-  forAsociatie: (asociatieId) => ticketsForAsociatie(get().byAsociatie, asociatieId),
-}));
+export const useTicketsStore = create<TicketsState>()(
+  persist(
+    (set, get) => ({
+      byAsociatie: seedTickets(),
+      fetchError: null,
+      add: (asociatieId, reporterUserId, input) =>
+        set((s) => ({
+          byAsociatie: addTicketIn(
+            s.byAsociatie,
+            asociatieId,
+            newTicket(input, asociatieId, reporterUserId),
+          ),
+        })),
+      replaceForAsociatie: (asociatieId, items) =>
+        set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: items } })),
+      setFetchError: (msg) => set({ fetchError: msg }),
+      forAsociatie: (asociatieId) => ticketsForAsociatie(get().byAsociatie, asociatieId),
+    }),
+    {
+      name: 'vecini.tickets',
+      version: 1,
+      partialize: (s) => ({ byAsociatie: s.byAsociatie }),
+      migrate: (persisted) => ({ byAsociatie: migrateTicketsState(persisted) }),
+    },
+  ),
+);
 
 /** Hook: the tickets for the currently active asociație. */
 export function useAsociatieTickets(): Ticket[] {

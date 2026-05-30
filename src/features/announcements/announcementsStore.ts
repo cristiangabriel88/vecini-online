@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { Announcement } from '@/shared/types/domain';
 import { useAuthStore } from '@/shared/store/authStore';
 import {
@@ -6,6 +7,7 @@ import {
   type NewAnnouncementInput,
   addAnnouncementIn,
   announcementsForAsociatie,
+  migrateAnnouncementsState,
   newAnnouncement,
   seedAnnouncements,
 } from './announcementsLogic';
@@ -31,27 +33,41 @@ interface AnnouncementsState {
 /**
  * Announcements scoped per asociație (T47): the demo asociație is seeded so the
  * offline app is populated, and an admin publish lands only in the active
- * asociație's list. The demo store is the offline source of truth; live
- * read/write against `announcements` under RLS is T57.
+ * asociație's list. Persisted so published announcements survive reload (T65);
+ * version bumps reseed the demo asociație so stale demo content is refreshed.
+ * Live read/write against `announcements` under RLS is T57.
  */
-export const useAnnouncementsStore = create<AnnouncementsState>((set, get) => ({
-  byAsociatie: seedAnnouncements(),
-  reads: {},
-  fetchError: null,
-  add: (asociatieId, authorUserId, input) =>
-    set((s) => ({
-      byAsociatie: addAnnouncementIn(
-        s.byAsociatie,
-        asociatieId,
-        newAnnouncement(input, asociatieId, authorUserId),
-      ),
-    })),
-  replaceForAsociatie: (asociatieId, items) =>
-    set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: items } })),
-  setFetchError: (msg) => set({ fetchError: msg }),
-  markRead: (id) => set((s) => ({ reads: { ...s.reads, [id]: true } })),
-  forAsociatie: (asociatieId) => announcementsForAsociatie(get().byAsociatie, asociatieId),
-}));
+export const useAnnouncementsStore = create<AnnouncementsState>()(
+  persist(
+    (set, get) => ({
+      byAsociatie: seedAnnouncements(),
+      reads: {},
+      fetchError: null,
+      add: (asociatieId, authorUserId, input) =>
+        set((s) => ({
+          byAsociatie: addAnnouncementIn(
+            s.byAsociatie,
+            asociatieId,
+            newAnnouncement(input, asociatieId, authorUserId),
+          ),
+        })),
+      replaceForAsociatie: (asociatieId, items) =>
+        set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: items } })),
+      setFetchError: (msg) => set({ fetchError: msg }),
+      markRead: (id) => set((s) => ({ reads: { ...s.reads, [id]: true } })),
+      forAsociatie: (asociatieId) => announcementsForAsociatie(get().byAsociatie, asociatieId),
+    }),
+    {
+      name: 'vecini.announcements',
+      version: 1,
+      partialize: (s) => ({ byAsociatie: s.byAsociatie, reads: s.reads }),
+      migrate: (persisted) => ({
+        byAsociatie: migrateAnnouncementsState(persisted),
+        reads: (persisted as { reads?: Record<string, boolean> } | null)?.reads ?? {},
+      }),
+    },
+  ),
+);
 
 /** Hook: the announcements for the currently active asociație. */
 export function useAsociatieAnnouncements(): Announcement[] {

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { DiscussionThread } from '@/shared/types/domain';
 import { useAuthStore } from '@/shared/store/authStore';
 import {
@@ -8,6 +9,7 @@ import {
   addMessageIn,
   addThreadIn,
   deleteMessageIn,
+  migrateThreadsState,
   newMessage,
   newThread,
   seedThreads,
@@ -37,35 +39,48 @@ interface DiscussionState {
 /**
  * Discuții / forum scoped per asociație (T48): the demo asociație is seeded so
  * the offline app is populated, and a new thread or message lands only in the
- * active asociație's list. The demo store is the offline source of truth; live
+ * active asociație's list. Persisted so threads survive reload (T65); version
+ * bumps reseed the demo asociație so stale demo content is refreshed. Live
  * read/write against `discussion_threads` + `discussion_messages` under RLS is
  * T57.
  */
-export const useDiscussionStore = create<DiscussionState>((set, get) => ({
-  byAsociatie: seedThreads(),
-  fetchError: null,
-  addThread: (asociatieId, input) =>
-    set((s) => ({
-      byAsociatie: addThreadIn(s.byAsociatie, asociatieId, newThread(input, asociatieId)),
-    })),
-  postMessage: (asociatieId, threadId, body, author) =>
-    set((s) => ({
-      byAsociatie: addMessageIn(
-        s.byAsociatie,
-        asociatieId,
-        threadId,
-        newMessage(threadId, body, author),
-      ),
-    })),
-  togglePin: (asociatieId, threadId) =>
-    set((s) => ({ byAsociatie: togglePinIn(s.byAsociatie, asociatieId, threadId) })),
-  deleteMessage: (asociatieId, threadId, messageId) =>
-    set((s) => ({ byAsociatie: deleteMessageIn(s.byAsociatie, asociatieId, threadId, messageId) })),
-  replaceForAsociatie: (asociatieId, threads) =>
-    set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: threads } })),
-  setFetchError: (msg) => set({ fetchError: msg }),
-  forAsociatie: (asociatieId) => threadsForAsociatie(get().byAsociatie, asociatieId),
-}));
+export const useDiscussionStore = create<DiscussionState>()(
+  persist(
+    (set, get) => ({
+      byAsociatie: seedThreads(),
+      fetchError: null,
+      addThread: (asociatieId, input) =>
+        set((s) => ({
+          byAsociatie: addThreadIn(s.byAsociatie, asociatieId, newThread(input, asociatieId)),
+        })),
+      postMessage: (asociatieId, threadId, body, author) =>
+        set((s) => ({
+          byAsociatie: addMessageIn(
+            s.byAsociatie,
+            asociatieId,
+            threadId,
+            newMessage(threadId, body, author),
+          ),
+        })),
+      togglePin: (asociatieId, threadId) =>
+        set((s) => ({ byAsociatie: togglePinIn(s.byAsociatie, asociatieId, threadId) })),
+      deleteMessage: (asociatieId, threadId, messageId) =>
+        set((s) => ({
+          byAsociatie: deleteMessageIn(s.byAsociatie, asociatieId, threadId, messageId),
+        })),
+      replaceForAsociatie: (asociatieId, threads) =>
+        set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: threads } })),
+      setFetchError: (msg) => set({ fetchError: msg }),
+      forAsociatie: (asociatieId) => threadsForAsociatie(get().byAsociatie, asociatieId),
+    }),
+    {
+      name: 'vecini.discussions',
+      version: 1,
+      partialize: (s) => ({ byAsociatie: s.byAsociatie }),
+      migrate: (persisted) => ({ byAsociatie: migrateThreadsState(persisted) }),
+    },
+  ),
+);
 
 /** Hook: the discussion threads for the currently active asociație. */
 export function useAsociatieThreads(): DiscussionThread[] {

@@ -52,6 +52,21 @@ export function seedTickets(): TicketsByAsociatie {
 }
 
 /**
+ * Migrate persisted state from any earlier version to the current shape.
+ * Preserves non-demo asociații so a locally-created asociație keeps its
+ * submitted tickets, but always reseeds the demo asociație from
+ * `DEMO_TICKETS` so stale demo content is refreshed on version bump.
+ */
+export function migrateTicketsState(persisted: unknown): TicketsByAsociatie {
+  const state = persisted as { byAsociatie?: unknown } | null;
+  const old = state?.byAsociatie;
+  if (old && typeof old === 'object') {
+    return { ...(old as TicketsByAsociatie), [DEMO_ASOCIATIE.id]: [...DEMO_TICKETS] };
+  }
+  return seedTickets();
+}
+
+/**
  * The tickets for one asociație. Returns the stored list (a stable reference) or
  * a shared frozen empty list when the asociație has none yet or none is active.
  */
