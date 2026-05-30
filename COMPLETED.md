@@ -4,6 +4,9 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### ✅ T18 — [P2] Performance & Lighthouse
+Done: xlsx lazy-loaded via dynamic `import('xlsx')` in `csv.ts` -- `generateApartmentsXlsxTemplate` + `parseApartmentsXlsx` made async; `xlsx: ['xlsx']` added to vite.config `manualChunks`. ApartmentsPage bundle shrank from 451 kB to 27 kB (gzip 7.8 kB), xlsx becomes a 429 kB chunk fetched only on first use. SEO: `public/robots.txt` (Allow: /, Disallow: /app/, Sitemap pointer) + `public/sitemap.xml` (6 public routes with priority + changefreq). `index.html` extended with OG meta tags (`og:type/url/title/description/locale`), Twitter card meta, canonical link, and robots meta. 3 xlsx csv tests updated to async. New `seo.test.ts` (4 assertions). 179 files / 1733 tests / all three builds green.
+
 ### ✅ T25 — [P2] Accessibility statement (Declarație de accesibilitate)
 Done: `src/features/legal/accessibilityContent.ts` -- bilingual `accessibilityStatement(lang)` returning `LegalDoc` with 6 sections (conformance target WCAG 2.1 AA / EN 301 549, measures taken, known limitations, feedback/contact, enforcement, technical info). `AccessibilityStatementPage.tsx` renders via existing `LegalDocPage` chrome. Route `/accesibilitate` added to `router.tsx`. Footer link added to `AppLayout.tsx` using new `consent.accessibilityLink` i18n key (EN + RO). Unit test `accessibilityContent.test.ts` (4 assertions: EN structure, RO structure, no em-dashes, RO diacritics). 178 files / 1729 tests / all three builds green.
 

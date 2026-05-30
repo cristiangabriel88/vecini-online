@@ -5,9 +5,9 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-30
-- last_task: T25 (P2) Accessibility statement (Declaratie de accesibilitate)
+- last_task: T18 (P2) Performance & Lighthouse
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 178 files / 1729 tests
+- counts: 179 files / 1733 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
 - next: T108 rich per-card home widgets (prereq T12 done) or T51 activeRole() migration (prereq T28 done)
@@ -15,6 +15,16 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T18 P2 ✅ 2026-05-30 -- Performance & Lighthouse
+- updated: src/shared/lib/csv.ts (generateApartmentsXlsxTemplate + parseApartmentsXlsx async, dynamic import xlsx)
+- updated: src/features/admin/ApartmentsPage.tsx (await xlsx functions)
+- updated: vite.config.ts (xlsx manualChunk)
+- updated: tests/unit/csv.test.ts (3 xlsx tests async)
+- new: public/robots.txt, public/sitemap.xml
+- updated: index.html (OG meta, Twitter card, canonical, robots meta)
+- new: tests/unit/seo.test.ts (4 assertions)
+- result: ApartmentsPage 451kB -> 27kB; 179 files / 1733 tests / build+pi+demo green
 
 ### T25 P2 ✅ 2026-05-30 -- Accessibility statement (Declaratie de accesibilitate)
 - new: src/features/legal/accessibilityContent.ts (bilingual LegalDoc, 6 sections)

@@ -1,5 +1,4 @@
 import Papa from 'papaparse';
-import * as XLSX from 'xlsx';
 import { isValidEmail } from '@/features/auth/authLogic';
 import type { Apartment, ApartmentPerson } from '@/shared/types/domain';
 
@@ -84,8 +83,10 @@ export function generateApartmentsCsvTemplate(): string {
  * Generate a real .xlsx workbook for the apartment bulk-import, mirroring the
  * CSV template's header and sample rows. Returned as bytes ready for a Blob
  * download (`application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`).
+ * xlsx is lazy-imported so it is excluded from the initial JS bundle.
  */
-export function generateApartmentsXlsxTemplate(): Uint8Array<ArrayBuffer> {
+export async function generateApartmentsXlsxTemplate(): Promise<Uint8Array<ArrayBuffer>> {
+  const XLSX = await import('xlsx');
   const aoa: string[][] = [
     [...TEMPLATE_HEADERS],
     ...TEMPLATE_SAMPLE_ROWS.map((r) => [...r]),
@@ -166,11 +167,13 @@ export function parseApartmentsCsv(text: string): ImportResult {
  * `parseApartmentsCsv`. The first worksheet is read, converted to CSV, then
  * funnelled through the CSV parser so column-mapping and validation logic stay
  * in one place.
+ * xlsx is lazy-imported so it is excluded from the initial JS bundle.
  */
-export function parseApartmentsXlsx(buffer: ArrayBuffer): ImportResult {
+export async function parseApartmentsXlsx(buffer: ArrayBuffer): Promise<ImportResult> {
   // SheetJS's `type: 'array'` expects an index-able byte sequence (Uint8Array
   // or number[]), not a raw ArrayBuffer; wrapping is required or every byte
   // reads as zero.
+  const XLSX = await import('xlsx');
   const wb = XLSX.read(new Uint8Array(buffer), { type: 'array' });
   const firstSheetName = wb.SheetNames[0];
   if (!firstSheetName) {

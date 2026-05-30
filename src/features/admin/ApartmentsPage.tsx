@@ -338,8 +338,8 @@ export default function ApartmentsPage() {
     URL.revokeObjectURL(url);
   };
 
-  const handleDownloadExcel = () => {
-    const bytes = generateApartmentsXlsxTemplate();
+  const handleDownloadExcel = async () => {
+    const bytes = await generateApartmentsXlsxTemplate();
     const blob = new Blob([bytes], {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
@@ -367,7 +367,7 @@ export default function ApartmentsPage() {
     try {
       const isExcel = /\.(xlsx|xls)$/i.test(file.name);
       const parsed: ImportResult = isExcel
-        ? parseApartmentsXlsx(await file.arrayBuffer())
+        ? await parseApartmentsXlsx(await file.arrayBuffer())
         : parseApartmentsCsv(await file.text());
       const { rows, errors: parseErrors } = parsed;
 

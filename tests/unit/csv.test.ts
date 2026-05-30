@@ -414,9 +414,9 @@ function xlsxBytesToArrayBuffer(
 describe('generateApartmentsXlsxTemplate + parseApartmentsXlsx', () => {
   // Round-tripping the generated workbook back through the parser is the
   // strongest guarantee that a freshly-downloaded template imports cleanly.
-  it('round-trips: writing the template and parsing it yields the same 3 sample rows', () => {
-    const bytes = generateApartmentsXlsxTemplate();
-    const res = parseApartmentsXlsx(bytes.buffer);
+  it('round-trips: writing the template and parsing it yields the same 3 sample rows', async () => {
+    const bytes = await generateApartmentsXlsxTemplate();
+    const res = await parseApartmentsXlsx(bytes.buffer);
     expect(res.errors).toHaveLength(0);
     expect(res.rows).toHaveLength(3);
     expect(res.rows[0]).toMatchObject({
@@ -438,7 +438,7 @@ describe('generateApartmentsXlsxTemplate + parseApartmentsXlsx', () => {
     });
   });
 
-  it('parses a hand-built workbook with Romanian headers and Da/Nu literals', () => {
+  it('parses a hand-built workbook with Romanian headers and Da/Nu literals', async () => {
     const ws = XLSX.utils.aoa_to_sheet([
       ['numar_apartament', 'nume', 'proprietar', 'trimite_invitatie'],
       ['1', 'Test User', 'Da', 'Nu'],
@@ -446,7 +446,7 @@ describe('generateApartmentsXlsxTemplate + parseApartmentsXlsx', () => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'S1');
     const bytes = XLSX.write(wb, { bookType: 'xlsx', type: 'array' }) as Uint8Array;
-    const res = parseApartmentsXlsx(xlsxBytesToArrayBuffer(bytes));
+    const res = await parseApartmentsXlsx(xlsxBytesToArrayBuffer(bytes));
     expect(res.errors).toHaveLength(0);
     expect(res.rows[0]).toMatchObject({
       numar_apartament: '1',
@@ -456,7 +456,7 @@ describe('generateApartmentsXlsxTemplate + parseApartmentsXlsx', () => {
     });
   });
 
-  it('parses a workbook that uses the legacy English headers (name, opt_in)', () => {
+  it('parses a workbook that uses the legacy English headers (name, opt_in)', async () => {
     const ws = XLSX.utils.aoa_to_sheet([
       ['numar_apartament', 'name', 'opt_in'],
       ['7', 'Legacy User', 'true'],
@@ -464,7 +464,7 @@ describe('generateApartmentsXlsxTemplate + parseApartmentsXlsx', () => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'S1');
     const bytes = XLSX.write(wb, { bookType: 'xlsx', type: 'array' }) as Uint8Array;
-    const res = parseApartmentsXlsx(xlsxBytesToArrayBuffer(bytes));
+    const res = await parseApartmentsXlsx(xlsxBytesToArrayBuffer(bytes));
     expect(res.errors).toHaveLength(0);
     expect(res.rows[0]).toMatchObject({
       numar_apartament: '7',
