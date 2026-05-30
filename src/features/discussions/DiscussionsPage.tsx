@@ -14,7 +14,15 @@ import { formatDateTime } from '@/shared/lib/format';
 import { useAuthStore } from '@/shared/store/authStore';
 import { DEMO_CURRENT_USER_ID, DEMO_CURRENT_USER_NAME } from '@/shared/demo/demoData';
 import { useAsociatieThreads, useDiscussionStore } from './discussionStore';
-import { isValidMessage, isValidThread, sortThreads } from './discussionLogic';
+import {
+  NEW_USER_HOURLY_LIMIT,
+  canPost,
+  isValidMessage,
+  isValidThread,
+  isVettedRole,
+  prunePostTimestamps,
+  sortThreads,
+} from './discussionLogic';
 import {
   addThread,
   deleteMessage,
@@ -31,8 +39,11 @@ export default function DiscussionsPage() {
     id: profile?.id ?? DEMO_CURRENT_USER_ID,
     name: profile?.full_name ?? DEMO_CURRENT_USER_NAME,
   };
+  const role = useAuthStore((s) => s.activeRole());
   const threads = useAsociatieThreads();
   const fetchError = useDiscussionStore((s) => s.fetchError);
+  const postTimestamps = useDiscussionStore((s) => s.postTimestamps);
+  const recordPost = useDiscussionStore((s) => s.recordPost);
   const [openId, setOpenId] = useState<string | null>(null);
   const [reply, setReply] = useState('');
   const [newOpen, setNewOpen] = useState(false);
@@ -45,15 +56,33 @@ export default function DiscussionsPage() {
 
   const ordered = sortThreads(threads);
 
+  const vetted = isVettedRole(role);
+
+  const recentCount = () => {
+    const key = `${asociatieId}:${author.id}`;
+    return prunePostTimestamps(postTimestamps[key] ?? [], Date.now()).length;
+  };
+
   const send = (threadId: string) => {
     if (!asociatieId || !isValidMessage(reply)) return;
+    if (!canPost(recentCount(), vetted)) {
+      toast.error(t('discussions.rateLimited', { limit: NEW_USER_HOURLY_LIMIT }));
+      return;
+    }
     postMessage(asociatieId, threadId, reply, author);
+    recordPost(asociatieId, author.id);
     setReply('');
   };
 
   const submitThread = () => {
     if (!asociatieId || !isValidThread(title)) return;
+    if (!canPost(recentCount(), vetted)) {
+      toast.error(t('discussions.rateLimited', { limit: NEW_USER_HOURLY_LIMIT }));
+      setNewOpen(false);
+      return;
+    }
     addThread(asociatieId, { title, topic });
+    recordPost(asociatieId, author.id);
     toast.success(t('discussions.threadAdded'));
     setNewOpen(false);
     setTitle('');

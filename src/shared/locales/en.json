@@ -1552,6 +1552,7 @@
     "replyPlaceholder": "Write a message…",
     "send": "Send message",
     "threadAdded": "Thread created.",
+    "rateLimited": "You are posting too fast. You can send up to {{limit}} messages per hour.",
     "empty": "No discussion threads yet. Start the first with the button above."
   },
   "budget": {

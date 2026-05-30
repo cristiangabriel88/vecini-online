@@ -12,6 +12,7 @@ import {
   migrateThreadsState,
   newMessage,
   newThread,
+  prunePostTimestamps,
   seedThreads,
   threadsForAsociatie,
   togglePinIn,
@@ -22,6 +23,14 @@ interface DiscussionState {
   byAsociatie: ThreadsByAsociatie;
   /** Non-null when the last live fetch failed; null in demo/offline mode or after a successful fetch. */
   fetchError: string | null;
+  /**
+   * Per-author post timestamps for rate limiting, keyed by `${asociatieId}:${userId}`.
+   * Not persisted -- entries are pruned to a 1-hour window and reset on each
+   * page load, which is acceptable for a soft anti-spam guard.
+   */
+  postTimestamps: Record<string, number[]>;
+  /** Record a post (thread or message) for rate-limit accounting. */
+  recordPost: (asociatieId: string, userId: string, now?: number) => void;
   /** Open a thread in one asociație. */
   addThread: (asociatieId: string, input: NewThreadInput) => void;
   /** Post a message authored by `author` to a thread in one asociație. */
@@ -49,6 +58,7 @@ export const useDiscussionStore = create<DiscussionState>()(
     (set, get) => ({
       byAsociatie: seedThreads(),
       fetchError: null,
+      postTimestamps: {},
       addThread: (asociatieId, input) =>
         set((s) => ({
           byAsociatie: addThreadIn(s.byAsociatie, asociatieId, newThread(input, asociatieId)),
@@ -71,6 +81,16 @@ export const useDiscussionStore = create<DiscussionState>()(
       replaceForAsociatie: (asociatieId, threads) =>
         set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: threads } })),
       setFetchError: (msg) => set({ fetchError: msg }),
+      recordPost: (asociatieId, userId, now = Date.now()) =>
+        set((s) => {
+          const key = `${asociatieId}:${userId}`;
+          return {
+            postTimestamps: {
+              ...s.postTimestamps,
+              [key]: [...prunePostTimestamps(s.postTimestamps[key] ?? [], now), now],
+            },
+          };
+        }),
       forAsociatie: (asociatieId) => threadsForAsociatie(get().byAsociatie, asociatieId),
     }),
     {

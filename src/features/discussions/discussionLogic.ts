@@ -1,8 +1,29 @@
 import type { DiscussionMessage, DiscussionThread } from '@/shared/types/domain';
+import type { Role } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_DISCUSSIONS } from '@/shared/demo/demoData';
 
 /** New users are rate-limited to this many messages per hour until vetted. */
 export const NEW_USER_HOURLY_LIMIT = 10;
+
+/** Sliding window for the per-author post rate limit (1 hour). */
+export const POST_RATE_WINDOW_MS = 60 * 60_000;
+
+/**
+ * Drop timestamps that have aged out of the sliding window so the count stays
+ * accurate without accumulating unboundedly.
+ */
+export function prunePostTimestamps(timestamps: number[], now: number): number[] {
+  return timestamps.filter((t) => now - t < POST_RATE_WINDOW_MS);
+}
+
+/**
+ * Whether a role is considered vetted (trusted by the committee) and therefore
+ * exempt from the hourly post rate limit. Residents (proprietar / chirias) and
+ * unauthenticated users are unvetted.
+ */
+export function isVettedRole(role: Role | null): boolean {
+  return role !== null && role !== 'proprietar' && role !== 'chirias';
+}
 
 /** A message must have non-blank text within a sane length. */
 export function isValidMessage(body: string): boolean {

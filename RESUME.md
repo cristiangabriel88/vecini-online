@@ -5,9 +5,9 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-30
-- last_task: T65 (P2) Persist the content stores offline (publish survives reload)
+- last_task: T66 (P2) Enforce the discussion post rate limit (anti-spam)
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 187 files / 1774 tests
+- counts: 188 files / 1783 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
 - next: T108 rich per-card home widgets (prereq T12 done) or T51 activeRole() migration (prereq T28 done)
@@ -15,6 +15,14 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T66 P2 ✅ 2026-05-30 -- Enforce the discussion post rate limit (anti-spam)
+- updated: src/features/discussions/discussionLogic.ts (POST_RATE_WINDOW_MS, prunePostTimestamps, isVettedRole)
+- updated: src/features/discussions/discussionStore.ts (postTimestamps state, recordPost action)
+- updated: src/features/discussions/DiscussionsPage.tsx (rate-limit check in send + submitThread, recordPost calls)
+- updated: src/shared/locales/en.json + ro.json (discussions.rateLimited key)
+- new: tests/unit/discussionRateLimit.test.ts (9 assertions)
+- result: 188 files / 1783 tests / build+pi+demo green
 
 ### T65 P2 ✅ 2026-05-30 -- Persist the content stores offline (publish survives reload)
 - updated: src/features/announcements/announcementsLogic.ts (migrateAnnouncementsState)

@@ -1554,6 +1554,7 @@
     "replyPlaceholder": "Scrie un mesaj…",
     "send": "Trimite mesajul",
     "threadAdded": "Subiect creat.",
+    "rateLimited": "Postezi prea rapid. Poți trimite cel mult {{limit}} mesaje pe oră.",
     "empty": "Niciun subiect de discuție. Pornește primul cu butonul de mai sus."
   },
   "budget": {
