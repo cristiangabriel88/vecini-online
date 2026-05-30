@@ -5,9 +5,9 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-30
-- last_task: T85 (P1) Wire remaining state-changing features into audit trail
+- last_task: T17 (P1) Accessibility audit WCAG 2.1 AA
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 176 files / 1719 tests
+- counts: 177 files / 1725 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
 - next: T108 rich per-card home widgets (prereq T12 done) or T51 activeRole() migration (prereq T28 done)
@@ -15,6 +15,18 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T17 P1 ✅ 2026-05-30 -- Accessibility audit WCAG 2.1 AA
+- updated: Modal.tsx (focus trap, focus restore, aria-labelledby, initial focus on first interactive element)
+- updated: Select.tsx (aria-invalid, aria-describedby, error id)
+- updated: Input.tsx + Textarea (aria-describedby extended to hint text)
+- updated: EmptyState.tsx (title div to p)
+- updated: Button.tsx (aria-busy when loading)
+- updated: AppLayout.tsx (skip-link, main id, workspace aria-label, search aria-label)
+- updated: shell.css (.skip-link styles)
+- updated: en.json + ro.json (skipToContent, switchWorkspace, searchLabel)
+- new: tests/unit/Select.test.tsx (3 cases); expanded Input.test.tsx (+3 cases)
+- result: 177 files / 1725 tests / build+pi+demo green
 
 ### T85 P1 ✅ 2026-05-30 -- Wire remaining state-changing features into audit trail
 - updated: `auditLogic.ts` (+6 actions: ticket.submitted/aga.scheduled/aga.opened/aga.closed/budget.proposed/petition.created; +4 entities: ticket/aga/budget/petition)

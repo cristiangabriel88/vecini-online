@@ -14,8 +14,8 @@ export function EmptyState({ title, body, icon, action }: EmptyStateProps) {
       <div className="empty__icon" aria-hidden>
         {icon ?? <Inbox size={22} />}
       </div>
-      {title && <div className="empty__title">{title}</div>}
-      <div className="empty__desc">{body}</div>
+      {title && <p className="empty__title">{title}</p>}
+      <p className="empty__desc">{body}</p>
       {action && <div style={{ marginTop: 8 }}>{action}</div>}
     </div>
   );

@@ -2530,6 +2530,9 @@
     "footerTagline": "Platforma digitală a asociației tale de proprietari. La îndemână, mereu.",
     "createdBy": "Creat de cristiangabriel.dev",
     "language": "Limba interfeței",
+    "skipToContent": "Salt la conținut",
+    "switchWorkspace": "Schimbă spațiu de lucru",
+    "searchLabel": "Caută",
     "userMenu": {
       "title": "Meniu cont",
       "greeting": "Bine ai venit",

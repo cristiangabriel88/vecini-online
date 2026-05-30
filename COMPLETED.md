@@ -4,6 +4,9 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### ✅ T17 — [P1] Accessibility audit (WCAG 2.1 AA)
+Done: Modal — proper focus trap (Tab/Shift+Tab cycles within dialog), focus restore to trigger on close, `aria-labelledby` pointing to the `<h2>` title, initial focus on first interactive element. Select — `aria-invalid` + `aria-describedby` wired to error element with id. Input/Textarea — `aria-describedby` extended to cover hint text. EmptyState title `<div>` promoted to `<p>`. Button — `aria-busy` when loading. AppLayout — skip-link as first DOM element, `<main id="main-content">`, workspace button `aria-label`, search `aria-label`. RO/EN i18n keys added. New tests: `Select.test.tsx` (3 cases), expanded `Input.test.tsx` (+3 cases). 177 files / 1725 tests / all three builds green.
+
 ### ✅ T85 — [P1] Wire the remaining state-changing features into the audit trail
 Done: Extended `AUDIT_ACTIONS` with 6 new actions (`ticket.submitted`, `aga.scheduled`, `aga.opened`, `aga.closed`, `budget.proposed`, `petition.created`) and `AUDIT_ENTITIES` with 4 new entities (`ticket`, `aga`, `budget`, `petition`). Added matching RO/EN locale keys. Wired `recordAudit` calls in `TicketsPage.tsx` (ticket submit), `BudgetPage.tsx` (proposal add), `PetitionsPage.tsx` (petition create), and `AgaPage.tsx` (meeting schedule + open/close status advance). Added `ACTION_TONE` entries for all 6 new actions in `AuditLogPage.tsx`. 176 files / 1719 tests / all three builds green.
 

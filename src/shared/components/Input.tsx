@@ -21,12 +21,15 @@ export const Input = forwardRef<
 >(function Input({ label, hint, error, suffix, className, id, ...rest }, ref) {
   const autoId = useId();
   const fieldId = id ?? autoId;
+  const hintId = hint && !error ? `${fieldId}-hint` : undefined;
+  const errId = error ? `${fieldId}-err` : undefined;
+  const describedBy = [errId, hintId].filter(Boolean).join(' ') || undefined;
   const inputNode = (
     <input
       ref={ref}
       id={fieldId}
       aria-invalid={!!error}
-      aria-describedby={error ? `${fieldId}-err` : undefined}
+      aria-describedby={describedBy}
       className={cn('input', suffix && 'input--with-suffix', className)}
       {...rest}
     />
@@ -46,9 +49,9 @@ export const Input = forwardRef<
       ) : (
         inputNode
       )}
-      {hint && !error && <p className="field__hint">{hint}</p>}
+      {hint && !error && <p id={hintId} className="field__hint">{hint}</p>}
       {error && (
-        <p id={`${fieldId}-err`} className="field__error">
+        <p id={errId} className="field__error">
           <Info size={12} /> {error}
         </p>
       )}
@@ -62,6 +65,9 @@ export const Textarea = forwardRef<
 >(function Textarea({ label, hint, error, className, id, ...rest }, ref) {
   const autoId = useId();
   const fieldId = id ?? autoId;
+  const hintId = hint && !error ? `${fieldId}-hint` : undefined;
+  const errId = error ? `${fieldId}-err` : undefined;
+  const describedBy = [errId, hintId].filter(Boolean).join(' ') || undefined;
   return (
     <div className="field">
       {label && (
@@ -73,13 +79,13 @@ export const Textarea = forwardRef<
         ref={ref}
         id={fieldId}
         aria-invalid={!!error}
-        aria-describedby={error ? `${fieldId}-err` : undefined}
+        aria-describedby={describedBy}
         className={cn('textarea', className)}
         {...rest}
       />
-      {hint && !error && <p className="field__hint">{hint}</p>}
+      {hint && !error && <p id={hintId} className="field__hint">{hint}</p>}
       {error && (
-        <p id={`${fieldId}-err`} className="field__error">
+        <p id={errId} className="field__error">
           <Info size={12} /> {error}
         </p>
       )}

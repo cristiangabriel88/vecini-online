@@ -2,6 +2,26 @@
    vecini.online — Shell (Topbar, Sidebar, BottomNav, Layout)
    ============================================================ */
 
+/* Skip-to-content link: visually hidden until focused, then overlaid at top. */
+.skip-link {
+  position: absolute;
+  top: -9999px;
+  left: 0;
+  z-index: 9999;
+  padding: 10px 16px;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 2px solid var(--primary);
+  border-radius: 0 0 6px 0;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.skip-link:focus {
+  top: 0;
+}
+
 .shell {
   display: grid;
   grid-template-columns: 248px 1fr;

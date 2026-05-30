@@ -2528,6 +2528,9 @@
     "footerTagline": "The digital platform for your owners' association. Always at hand.",
     "createdBy": "Created by cristiangabriel.dev",
     "language": "Interface language",
+    "skipToContent": "Skip to main content",
+    "switchWorkspace": "Switch workspace",
+    "searchLabel": "Search",
     "userMenu": {
       "title": "Account menu",
       "greeting": "Welcome back",

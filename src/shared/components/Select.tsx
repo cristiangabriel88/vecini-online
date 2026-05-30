@@ -12,6 +12,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
 ) {
   const autoId = useId();
   const fieldId = id ?? autoId;
+  const errId = error ? `${fieldId}-err` : undefined;
   return (
     <div className="field">
       {label && (
@@ -19,10 +20,17 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
           {label}
         </label>
       )}
-      <select ref={ref} id={fieldId} className={cn('input', className)} {...rest}>
+      <select
+        ref={ref}
+        id={fieldId}
+        aria-invalid={!!error}
+        aria-describedby={errId}
+        className={cn('input', className)}
+        {...rest}
+      >
         {children}
       </select>
-      {error && <p className="field__error">{error}</p>}
+      {error && <p id={errId} className="field__error">{error}</p>}
     </div>
   );
 });

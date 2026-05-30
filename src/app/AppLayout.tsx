@@ -424,7 +424,7 @@ function Topbar() {
 
       <div className="topbar__sep" />
 
-      <button className="topbar__workspace" aria-haspopup="menu">
+      <button className="topbar__workspace" aria-haspopup="menu" aria-label={t('chrome.switchWorkspace')}>
         <Avatar name={asociatieName} accent />
         <span className="topbar__workspace-label">
           <span style={{ display: 'block', fontWeight: 500, color: 'var(--text-primary)', fontSize: 13, lineHeight: 1.2 }}>
@@ -439,7 +439,7 @@ function Topbar() {
       <div className="topbar__search">
         <div className="topsearch">
           <Search size={15} />
-          <input placeholder={t('chrome.searchPlaceholder')} />
+          <input placeholder={t('chrome.searchPlaceholder')} aria-label={t('chrome.searchLabel')} />
         </div>
       </div>
 
@@ -545,6 +545,7 @@ function Footer() {
 }
 
 export function AppLayout() {
+  const { t } = useTranslation();
   const { pathname } = useLocation();
   const currentAsociatieId = useAuthStore((s) => s.currentAsociatieId);
   useMfaEnforcement();
@@ -552,10 +553,11 @@ export function AppLayout() {
   useRealtimeSync(currentAsociatieId);
   return (
     <div className="shell">
+      <a href="#main-content" className="skip-link">{t('chrome.skipToContent')}</a>
       <Atmosphere />
       <Topbar />
       <Sidebar />
-      <main className="main">
+      <main id="main-content" className="main">
         <div className="main__inner" key={pathname}>
           <ErrorBoundary source="route" resetKeys={[pathname]}>
             <FeatureRouteGuard>
