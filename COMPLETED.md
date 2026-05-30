@@ -4,6 +4,9 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### ✅ T83 — [P2] Adopt the standardized loading/empty/error states across all feature pages
+Done: Audit found 77/96 pages already using `EmptyState` correctly. `MetersPage` now shows `EmptyState` for empty meter list. Live-fetch error surface: `fetchError: string | null` + `setFetchError` added to all three content stores (announcements, tickets, discussions). Hydrate functions set the error on failure and clear on success. `AnnouncementsPage`, `TicketsPage`, `DiscussionsPage` render `ErrorState` + retry button when `fetchError` is non-null. New `common.loadError` i18n key (EN + RO). Unit test `fetchErrorState.test.ts` (9 assertions). 180 files / 1742 tests / all three builds green.
+
 ### ✅ T18 — [P2] Performance & Lighthouse
 Done: xlsx lazy-loaded via dynamic `import('xlsx')` in `csv.ts` -- `generateApartmentsXlsxTemplate` + `parseApartmentsXlsx` made async; `xlsx: ['xlsx']` added to vite.config `manualChunks`. ApartmentsPage bundle shrank from 451 kB to 27 kB (gzip 7.8 kB), xlsx becomes a 429 kB chunk fetched only on first use. SEO: `public/robots.txt` (Allow: /, Disallow: /app/, Sitemap pointer) + `public/sitemap.xml` (6 public routes with priority + changefreq). `index.html` extended with OG meta tags (`og:type/url/title/description/locale`), Twitter card meta, canonical link, and robots meta. 3 xlsx csv tests updated to async. New `seo.test.ts` (4 assertions). 179 files / 1733 tests / all three builds green.
 

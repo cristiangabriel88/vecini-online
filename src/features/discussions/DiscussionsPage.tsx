@@ -8,11 +8,12 @@ import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
 import { formatDateTime } from '@/shared/lib/format';
 import { useAuthStore } from '@/shared/store/authStore';
 import { DEMO_CURRENT_USER_ID, DEMO_CURRENT_USER_NAME } from '@/shared/demo/demoData';
-import { useAsociatieThreads } from './discussionStore';
+import { useAsociatieThreads, useDiscussionStore } from './discussionStore';
 import { isValidMessage, isValidThread, sortThreads } from './discussionLogic';
 import {
   addThread,
@@ -31,6 +32,7 @@ export default function DiscussionsPage() {
     name: profile?.full_name ?? DEMO_CURRENT_USER_NAME,
   };
   const threads = useAsociatieThreads();
+  const fetchError = useDiscussionStore((s) => s.fetchError);
   const [openId, setOpenId] = useState<string | null>(null);
   const [reply, setReply] = useState('');
   const [newOpen, setNewOpen] = useState(false);
@@ -70,7 +72,17 @@ export default function DiscussionsPage() {
         }
       />
 
-      {ordered.length === 0 ? (
+      {fetchError ? (
+        <ErrorState
+          title={t('common.errorTitle')}
+          body={t('common.loadError')}
+          action={
+            <Button variant="ghost" onClick={() => { if (asociatieId) void hydrateThreads(asociatieId); }}>
+              {t('common.retry')}
+            </Button>
+          }
+        />
+      ) : ordered.length === 0 ? (
         <EmptyState body={t('discussions.empty')} icon={<MessagesSquare className="h-10 w-10" />} />
       ) : (
         <div className="space-y-3">

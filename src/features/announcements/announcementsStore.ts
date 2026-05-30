@@ -15,10 +15,14 @@ interface AnnouncementsState {
   byAsociatie: AnnouncementsByAsociatie;
   /** Read receipts keyed by (globally unique) announcement id. */
   reads: Record<string, boolean>;
+  /** Non-null when the last live fetch failed; null in demo/offline mode or after a successful fetch. */
+  fetchError: string | null;
   /** Publish an announcement into one asociație, authored by the given user. */
   add: (asociatieId: string, authorUserId: string, input: NewAnnouncementInput) => void;
   /** Replace the full list for one asociație (used by live hydration). */
   replaceForAsociatie: (asociatieId: string, items: Announcement[]) => void;
+  /** Set or clear the live-fetch error (called by the API layer). */
+  setFetchError: (msg: string | null) => void;
   markRead: (id: string) => void;
   /** The announcements for one asociație (stable reference). */
   forAsociatie: (asociatieId: string | null) => Announcement[];
@@ -33,6 +37,7 @@ interface AnnouncementsState {
 export const useAnnouncementsStore = create<AnnouncementsState>((set, get) => ({
   byAsociatie: seedAnnouncements(),
   reads: {},
+  fetchError: null,
   add: (asociatieId, authorUserId, input) =>
     set((s) => ({
       byAsociatie: addAnnouncementIn(
@@ -43,6 +48,7 @@ export const useAnnouncementsStore = create<AnnouncementsState>((set, get) => ({
     })),
   replaceForAsociatie: (asociatieId, items) =>
     set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: items } })),
+  setFetchError: (msg) => set({ fetchError: msg }),
   markRead: (id) => set((s) => ({ reads: { ...s.reads, [id]: true } })),
   forAsociatie: (asociatieId) => announcementsForAsociatie(get().byAsociatie, asociatieId),
 }));

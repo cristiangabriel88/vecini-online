@@ -18,6 +18,8 @@ import {
 interface DiscussionState {
   /** Discussion threads per asociație, keyed by asociație id. */
   byAsociatie: ThreadsByAsociatie;
+  /** Non-null when the last live fetch failed; null in demo/offline mode or after a successful fetch. */
+  fetchError: string | null;
   /** Open a thread in one asociație. */
   addThread: (asociatieId: string, input: NewThreadInput) => void;
   /** Post a message authored by `author` to a thread in one asociație. */
@@ -26,6 +28,8 @@ interface DiscussionState {
   deleteMessage: (asociatieId: string, threadId: string, messageId: string) => void;
   /** Replace the full thread list for one asociație (used by live hydration). */
   replaceForAsociatie: (asociatieId: string, threads: DiscussionThread[]) => void;
+  /** Set or clear the live-fetch error (called by the API layer). */
+  setFetchError: (msg: string | null) => void;
   /** The threads for one asociație (stable reference). */
   forAsociatie: (asociatieId: string | null) => DiscussionThread[];
 }
@@ -39,6 +43,7 @@ interface DiscussionState {
  */
 export const useDiscussionStore = create<DiscussionState>((set, get) => ({
   byAsociatie: seedThreads(),
+  fetchError: null,
   addThread: (asociatieId, input) =>
     set((s) => ({
       byAsociatie: addThreadIn(s.byAsociatie, asociatieId, newThread(input, asociatieId)),
@@ -58,6 +63,7 @@ export const useDiscussionStore = create<DiscussionState>((set, get) => ({
     set((s) => ({ byAsociatie: deleteMessageIn(s.byAsociatie, asociatieId, threadId, messageId) })),
   replaceForAsociatie: (asociatieId, threads) =>
     set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: threads } })),
+  setFetchError: (msg) => set({ fetchError: msg }),
   forAsociatie: (asociatieId) => threadsForAsociatie(get().byAsociatie, asociatieId),
 }));
 

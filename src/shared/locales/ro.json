@@ -106,6 +106,7 @@
     "errorTitle": "A apărut o eroare",
     "errorBody": "Reîncearcă sau contactează administratorul.",
     "errorRef": "Cod de referință",
+    "loadError": "Datele nu au putut fi încărcate. Verifică conexiunea și reîncearcă.",
     "retry": "Reîncearcă",
     "notImplemented": "Această funcționalitate este înregistrată, dar pagina nu este încă disponibilă în această versiune.",
     "featureDisabled": "Această funcționalitate nu este activată pentru asociația ta.",
@@ -643,7 +644,8 @@
     "errorBelowPrevious": "Indexul nu poate fi mai mic decât cel anterior.",
     "anomaly": "Consum neobișnuit de mare. Verifică valoarea — va fi marcată pentru administrator.",
     "window": "Fereastră de trimitere: 1–5 ale lunii",
-    "submitted": "Index trimis. Mulțumim!"
+    "submitted": "Index trimis. Mulțumim!",
+    "empty": "Nu există contoare configurate pentru apartamentul tău. Contactează administratorul."
   },
   "pets": {
     "title": "Animale de companie",

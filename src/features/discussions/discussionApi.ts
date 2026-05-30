@@ -71,6 +71,7 @@ function fromThreadRow(row: ThreadRow): DiscussionThread {
  *  The demo store remains the source of truth if the read fails or backend is absent. */
 export async function hydrateThreads(asociatieId: string): Promise<void> {
   if (!isSupabaseConfigured || !asociatieId) return;
+  const store = useDiscussionStore.getState();
   try {
     const { data, error } = await supabase
       .from('discussion_threads')
@@ -79,12 +80,14 @@ export async function hydrateThreads(asociatieId: string): Promise<void> {
       )
       .eq('asociatie_id', asociatieId)
       .order('created_at', { ascending: false });
-    if (error || !data) return;
-    useDiscussionStore
-      .getState()
-      .replaceForAsociatie(asociatieId, (data as ThreadRow[]).map(fromThreadRow));
+    if (error || !data) {
+      store.setFetchError('load');
+      return;
+    }
+    store.setFetchError(null);
+    store.replaceForAsociatie(asociatieId, (data as ThreadRow[]).map(fromThreadRow));
   } catch {
-    /* best-effort: the local list remains the source of truth for the UI */
+    store.setFetchError('load');
   }
 }
 

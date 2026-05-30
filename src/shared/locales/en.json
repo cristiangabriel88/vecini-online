@@ -106,6 +106,7 @@
     "errorTitle": "Something went wrong",
     "errorBody": "Try again or contact your administrator.",
     "errorRef": "Reference code",
+    "loadError": "The data could not be loaded. Check your connection and try again.",
     "retry": "Try again",
     "notImplemented": "This feature is registered but its page is not available in this build.",
     "featureDisabled": "This feature is not enabled for your association.",
@@ -643,7 +644,8 @@
     "errorBelowPrevious": "The index cannot be lower than the previous one.",
     "anomaly": "Unusually high consumption. Check the value — it will be flagged for the administrator.",
     "window": "Submission window: 1st–5th of the month",
-    "submitted": "Index submitted. Thank you!"
+    "submitted": "Index submitted. Thank you!",
+    "empty": "No meters are configured for your apartment yet. Contact your administrator."
   },
   "pets": {
     "title": "Pets",

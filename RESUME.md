@@ -5,9 +5,9 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-30
-- last_task: T18 (P2) Performance & Lighthouse
+- last_task: T83 (P2) Standardized loading/empty/error states across feature pages
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 179 files / 1733 tests
+- counts: 180 files / 1742 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
 - next: T108 rich per-card home widgets (prereq T12 done) or T51 activeRole() migration (prereq T28 done)

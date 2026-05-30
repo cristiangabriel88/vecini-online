@@ -7,6 +7,7 @@ import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
 import { Input, Textarea } from '@/shared/components/Input';
 import { Select } from '@/shared/components/Select';
@@ -14,7 +15,7 @@ import { formatDateTime } from '@/shared/lib/format';
 import type { TicketSeverity, TicketStatus } from '@/shared/types/domain';
 import { useAuthStore } from '@/shared/store/authStore';
 import { DEMO_CURRENT_USER_ID } from '@/shared/demo/demoData';
-import { useAsociatieTickets } from './ticketsStore';
+import { useAsociatieTickets, useTicketsStore } from './ticketsStore';
 import { isSlaBreached } from './ticketLogic';
 import { recordAudit } from '@/shared/store/auditStore';
 import { hydrateTickets, submitTicket } from './ticketsApi';
@@ -36,6 +37,7 @@ export default function TicketsPage() {
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
   const reporterUserId = useAuthStore((s) => s.profile?.id) ?? DEMO_CURRENT_USER_ID;
   const items = useAsociatieTickets();
+  const fetchError = useTicketsStore((s) => s.fetchError);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -69,7 +71,17 @@ export default function TicketsPage() {
         }
       />
 
-      {items.length === 0 ? (
+      {fetchError ? (
+        <ErrorState
+          title={t('common.errorTitle')}
+          body={t('common.loadError')}
+          action={
+            <Button variant="ghost" onClick={() => { if (asociatieId) void hydrateTickets(asociatieId); }}>
+              {t('common.retry')}
+            </Button>
+          }
+        />
+      ) : items.length === 0 ? (
         <EmptyState body={t('tickets.empty')} icon={<AlertCircle className="h-10 w-10" />} />
       ) : (
         <div className="space-y-3">

@@ -14,6 +14,7 @@ import { useTicketsStore } from './ticketsStore';
  *  The demo store is the source of truth if the read fails or backend is absent. */
 export async function hydrateTickets(asociatieId: string): Promise<void> {
   if (!isSupabaseConfigured || !asociatieId) return;
+  const store = useTicketsStore.getState();
   try {
     const { data, error } = await supabase
       .from('tickets')
@@ -22,10 +23,14 @@ export async function hydrateTickets(asociatieId: string): Promise<void> {
       )
       .eq('asociatie_id', asociatieId)
       .order('created_at', { ascending: false });
-    if (error || !data) return;
-    useTicketsStore.getState().replaceForAsociatie(asociatieId, data as Ticket[]);
+    if (error || !data) {
+      store.setFetchError('load');
+      return;
+    }
+    store.setFetchError(null);
+    store.replaceForAsociatie(asociatieId, data as Ticket[]);
   } catch {
-    /* best-effort: the local list remains the source of truth for the UI */
+    store.setFetchError('load');
   }
 }
 

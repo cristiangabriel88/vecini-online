@@ -8,6 +8,7 @@ import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Modal } from '@/shared/components/Modal';
 import { Input } from '@/shared/components/Input';
+import { EmptyState } from '@/shared/components/EmptyState';
 import { formatDate } from '@/shared/lib/format';
 import type { Meter } from '@/shared/types/domain';
 import { useMetersStore } from './metersStore';
@@ -41,6 +42,9 @@ export default function MetersPage() {
     <div>
       <PageHeader title={t('meters.title')} subtitle={t('meters.subtitle')} />
 
+      {meters.length === 0 ? (
+        <EmptyState body={t('meters.empty')} icon={<Gauge className="h-10 w-10" />} />
+      ) : (
       <div className="space-y-3">
         {meters.map((m) => (
           <Card key={m.id} className="flex items-center justify-between gap-3 p-4">
@@ -66,9 +70,9 @@ export default function MetersPage() {
           </Card>
         ))}
       </div>
+      )}
 
-      <Modal
-        open={!!active}
+      <Modal open={!!active}
         onClose={() => setActive(null)}
         title={active ? t(`meters.kind_${active.kind}`) : ''}
         footer={

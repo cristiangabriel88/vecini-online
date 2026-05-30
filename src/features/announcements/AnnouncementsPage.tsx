@@ -7,6 +7,7 @@ import { Button } from '@/shared/components/Button';
 import { Card } from '@/shared/components/Card';
 import { Badge } from '@/shared/components/Badge';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
 import { Input, Textarea } from '@/shared/components/Input';
 import { Select } from '@/shared/components/Select';
@@ -31,7 +32,7 @@ export default function AnnouncementsPage() {
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
   const authorUserId = useAuthStore((s) => s.profile?.id) ?? DEMO_CURRENT_USER_ID;
   const items = useAsociatieAnnouncements();
-  const { reads, markRead } = useAnnouncementsStore();
+  const { reads, markRead, fetchError } = useAnnouncementsStore();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -73,7 +74,17 @@ export default function AnnouncementsPage() {
         }
       />
 
-      {items.length === 0 ? (
+      {fetchError ? (
+        <ErrorState
+          title={t('common.errorTitle')}
+          body={t('common.loadError')}
+          action={
+            <Button variant="ghost" onClick={() => { if (asociatieId) void hydrateAnnouncements(asociatieId); }}>
+              {t('common.retry')}
+            </Button>
+          }
+        />
+      ) : items.length === 0 ? (
         <EmptyState body={t('announcements.empty')} />
       ) : (
         <div className="space-y-3">
