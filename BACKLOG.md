@@ -106,7 +106,7 @@ Done: Audit found 77/96 pages already using `EmptyState` correctly. Remaining ga
 ### ✅ T84 — [P2] Route async store-action failures through the error-reporting hook
 Surfaced in T07: T07's `reportError` hook + `installGlobalErrorHandlers` catch render-time errors and unhandled rejections, but the deliberate `try/catch` blocks in async store actions (e.g. `authStore.hydrate`, the live read/write paths landing in T55-T57, the security/audit mirrors) swallow or only locally handle failures, so observability does not yet cover data-layer errors. Wire `reportError` (with a non-PII `source` + breadcrumbs) into those catch blocks behind `isSupabaseConfigured`, so when a live sink is attached (T82) the report stream covers store/query failures, not only UI crashes. Keep demo mode silent. Prereq: T07; coordinates with T82.
 
-### ⬜ T82 — [P2] Wire a live error sink (Sentry-ready) + CSP report endpoint
+### ✅ T82 — [P2] Wire a live error sink (Sentry-ready) + CSP report endpoint
 Surfaced in T07: the `errorReporting` hook ships with a pluggable `setErrorSink` and no default sink, so in production errors are reported nowhere. When observability lands, attach a real sink (Sentry SDK or a lightweight Netlify-function collector) via `setErrorSink`, gated on an env flag, scrubbed reports only, and reconcile the `connect-src`/`report-to` CSP directives so the sink's origin is allowed and CSP violations are collected by the same path. Requires an external service (Sentry DSN or a deployed collector) so it is a documented live-activation follow-up, not an overnight blocker. Prereq: T07; coordinates with T39 (CSP report-uri) and T84.
 
 ### ⬜ T86 — [P2] Live activation: audit_log read + server-authoritative chain

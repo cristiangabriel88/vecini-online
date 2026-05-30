@@ -5,9 +5,9 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-30
-- last_task: T84 (P2) Route async store-action failures through the error-reporting hook
+- last_task: T82 (P2) Wire a live error sink (Sentry-ready) + CSP report endpoint
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 181 files / 1751 tests
+- counts: 184 files / 1758 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
 - next: T108 rich per-card home widgets (prereq T12 done) or T51 activeRole() migration (prereq T28 done)
@@ -15,6 +15,16 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T82 P2 ✅ 2026-05-30 -- Wire a live error sink (Sentry-ready) + CSP report endpoint
+- new: netlify/functions/error-report.ts (rate-limited collector; logs ref/name/source/at only)
+- new: src/shared/lib/errorSink.ts (buildFetchSink + initErrorSink; session cap 10; no-op in DEV)
+- updated: src/main.tsx (initErrorSink() called at startup)
+- updated: netlify.toml (report-to + report-uri in CSP; Report-To + Reporting-Endpoints headers)
+- updated: netlify-platform.toml (same CSP + header additions)
+- new: tests/unit/errorSink.test.ts (5 assertions)
+- updated: tests/unit/securityHeaders.test.ts (2 new assertions for report-to/report-uri and headers)
+- result: 184 files / 1758 tests / build+pi+demo green
 
 ### T18 P2 ✅ 2026-05-30 -- Performance & Lighthouse
 - updated: src/shared/lib/csv.ts (generateApartmentsXlsxTemplate + parseApartmentsXlsx async, dynamic import xlsx)

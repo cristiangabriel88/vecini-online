@@ -52,6 +52,19 @@ describe('security headers (netlify.toml) (T04)', () => {
     expect(headerValue('Cross-Origin-Opener-Policy')).toBe('same-origin');
     expect(headerValue('Cross-Origin-Resource-Policy')).toBe('same-origin');
   });
+
+  it('ships report-to and report-uri directives in the static CSP', () => {
+    const csp = headerValue('Content-Security-Policy');
+    expect(csp).toContain('report-to csp-endpoint');
+    expect(csp).toContain('report-uri /.netlify/functions/csp-report');
+  });
+
+  it('ships Report-To and Reporting-Endpoints headers for the CSP sink', () => {
+    expect(toml).toContain('Report-To');
+    expect(toml).toContain('"csp-endpoint"');
+    expect(toml).toContain('Reporting-Endpoints');
+    expect(toml).toContain('/.netlify/functions/csp-report');
+  });
 });
 
 describe('buildCsp (T39)', () => {

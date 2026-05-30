@@ -27,7 +27,9 @@
     # CDNs); the only outbound connections are to Supabase (REST + Realtime
     # WebSocket) over the project domain. Inline styles are allowed because the
     # motion layer sets element style attributes; inline scripts are not.
-    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; frame-src 'none'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests"
+    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; frame-src 'none'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; worker-src 'self' blob:; manifest-src 'self'; report-to csp-endpoint; report-uri /.netlify/functions/csp-report; upgrade-insecure-requests"
+    Report-To = '{"group":"csp-endpoint","max_age":86400,"endpoints":[{"url":"/.netlify/functions/csp-report"}]}'
+    Reporting-Endpoints = 'csp-endpoint="/.netlify/functions/csp-report"'
     # Isolate the browsing context and cross-origin resource sharing.
     Cross-Origin-Opener-Policy = "same-origin"
     Cross-Origin-Resource-Policy = "same-origin"

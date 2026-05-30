@@ -5,6 +5,7 @@ import { AppProviders } from '@/app/providers';
 import { router } from '@/app/router';
 import { useAuthStore } from '@/shared/store/authStore';
 import { installGlobalErrorHandlers } from '@/shared/lib/errorReporting';
+import { initErrorSink } from '@/shared/lib/errorSink';
 import '@/styles/globals.css';
 import '@/styles/tokens.css';
 import '@/styles/primitives.css';
@@ -14,6 +15,7 @@ import '@/styles/legal.css';
 import '@/styles/welcome.css';
 
 installGlobalErrorHandlers();
+initErrorSink();
 void useAuthStore.getState().init();
 
 createRoot(document.getElementById('root')!).render(
