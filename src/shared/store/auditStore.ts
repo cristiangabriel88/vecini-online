@@ -1,12 +1,16 @@
+import { useEffect } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import { reportError } from '@/shared/lib/errorReporting';
 import {
   type AuditEntry,
+  type AuditAction,
+  type AuditEntity,
   type AuditInput,
   appendEntry,
   buildDemoAuditChain,
+  GENESIS_HASH,
 } from '@/features/audit/auditLogic';
 import {
   DEMO_ASOCIATIE,
@@ -37,6 +41,42 @@ function chainFor(byAsociatie: AuditByAsociatie, asociatieId: string | null): Au
   return byAsociatie[asociatieId] ?? EMPTY_CHAIN;
 }
 
+/** Shape of one row returned by the audit_log Supabase query. */
+interface DbAuditRow {
+  id: string;
+  seq: number | null;
+  asociatie_id: string;
+  actor_user_id: string;
+  actor_name: string | null;
+  action: string | null;
+  entity: string | null;
+  entity_label: string | null;
+  before_value: string | null;
+  after_value: string | null;
+  created_at: string;
+  prev_hash: string | null;
+  hash: string | null;
+}
+
+/** Convert a DB row to the client AuditEntry shape. */
+function rowToEntry(row: DbAuditRow): AuditEntry {
+  return {
+    id: row.id,
+    seq: row.seq ?? 0,
+    asociatie_id: row.asociatie_id,
+    actor_user_id: row.actor_user_id,
+    actor_name: row.actor_name ?? '',
+    action: (row.action ?? 'feature.enabled') as AuditAction,
+    entity: (row.entity ?? 'feature') as AuditEntity,
+    entity_label: row.entity_label ?? '',
+    before: row.before_value,
+    after: row.after_value,
+    at: row.created_at,
+    prev_hash: row.prev_hash ?? GENESIS_HASH,
+    hash: row.hash ?? GENESIS_HASH,
+  };
+}
+
 /** Mirror a new entry into the backend; best-effort, never throws to the caller. */
 function mirrorLive(entry: AuditEntry): void {
   if (!isSupabaseConfigured) return;
@@ -45,6 +85,7 @@ function mirrorLive(entry: AuditEntry): void {
       await supabase.from('audit_log').insert({
         asociatie_id: entry.asociatie_id,
         actor_user_id: entry.actor_user_id,
+        actor_name: entry.actor_name,
         action: entry.action,
         entity: entry.entity,
         entity_label: entry.entity_label,
@@ -61,11 +102,22 @@ function mirrorLive(entry: AuditEntry): void {
 }
 
 interface AuditState {
-  /** Tamper-evident audit chains, keyed by asociație id. */
+  /** Persisted tamper-evident audit chains, keyed by asociație id. */
   byAsociatie: AuditByAsociatie;
+  /**
+   * Live chains fetched from Supabase, keyed by asociație id. Not persisted —
+   * re-fetched on each mount so the page always reflects the server state.
+   */
+  liveByAsociatie: AuditByAsociatie;
   /** Append a change to one asociație's chain (and mirror it live). */
   record: (input: AuditInput) => void;
-  /** The chain for one asociație (stable reference). */
+  /**
+   * Fetch the live audit_log from Supabase for one asociație and cache the
+   * result in `liveByAsociatie`. No-op when Supabase is not configured or the
+   * asociatieId is empty. Falls back silently on error (offline chain shown).
+   */
+  hydrateForAsociatie: (asociatieId: string) => Promise<void>;
+  /** The chain for one asociație: live when available, persisted otherwise. */
   forAsociatie: (asociatieId: string | null) => AuditEntry[];
 }
 
@@ -73,16 +125,22 @@ interface AuditState {
  * Audit-log store (T09): an append-only, tamper-evident trail of state changes
  * across the app's admin and content surfaces, scoped per asociație. The demo
  * asociație is seeded so the offline log is populated; each recorded change
- * extends the active asociație's hash chain. The local store is the offline
- * source of truth; with a backend present each entry is mirrored to `audit_log`
- * (live ordering authority is a follow-up). Persisted, unlike the content
- * stores: an audit trail must survive a reload to stay tamper-evident, so the
- * seeded chain plus any recorded entries are kept in local storage offline.
+ * extends the active asociație's hash chain.
+ *
+ * T86: when Supabase is configured, `hydrateForAsociatie` reads the live
+ * `audit_log` table (admin-read under RLS) and stores it in `liveByAsociatie`.
+ * `forAsociatie` returns the live chain when present, the persisted offline
+ * chain otherwise — so the audit page always shows the server-authoritative
+ * ordering. The seq of each entry is stamped by the DB trigger
+ * `audit_log_chain_stamp`, preventing concurrent duplicates. The hash is
+ * client-computed (non-cryptographic; the RLS append-only policy is the real
+ * tamper-evidence control) and is NOT verified for live data.
  */
 export const useAuditStore = create<AuditState>()(
   persist(
     (set, get) => ({
       byAsociatie: seedAudit(),
+      liveByAsociatie: {},
       record: (input) => {
         let appended: AuditEntry | null = null;
         set((s) => {
@@ -93,16 +151,57 @@ export const useAuditStore = create<AuditState>()(
         });
         if (appended) mirrorLive(appended);
       },
-      forAsociatie: (asociatieId) => chainFor(get().byAsociatie, asociatieId),
+      hydrateForAsociatie: async (asociatieId) => {
+        if (!isSupabaseConfigured || !asociatieId) return;
+        try {
+          const { data, error } = await supabase
+            .from('audit_log')
+            .select('*')
+            .eq('asociatie_id', asociatieId)
+            .order('seq', { ascending: true });
+          if (error) throw error;
+          const entries = (data as DbAuditRow[]).map(rowToEntry);
+          set((s) => ({
+            liveByAsociatie: { ...s.liveByAsociatie, [asociatieId]: entries },
+          }));
+        } catch (err) {
+          reportError(err, { source: 'auditStore.hydrateForAsociatie' });
+          // leave liveByAsociatie unchanged; forAsociatie falls back to local chain
+        }
+      },
+      forAsociatie: (asociatieId) => {
+        const s = get();
+        if (asociatieId && s.liveByAsociatie[asociatieId]) {
+          return s.liveByAsociatie[asociatieId];
+        }
+        return chainFor(s.byAsociatie, asociatieId);
+      },
     }),
-    { name: 'vecini.audit', version: 1 },
+    {
+      name: 'vecini.audit',
+      version: 1,
+      // Only persist the offline chain; live data is re-fetched on each mount.
+      partialize: (s) => ({ byAsociatie: s.byAsociatie }),
+    },
   ),
 );
 
-/** Hook: the audit chain for the currently active asociație. */
+/**
+ * Hook: the audit chain for the currently active asociație. When Supabase is
+ * configured, triggers a hydration on mount and asociație change so the page
+ * shows the server-authoritative ordering. Falls back to the local persisted
+ * chain when offline or on hydration error.
+ */
 export function useAsociatieAudit(): AuditEntry[] {
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
-  return useAuditStore((s) => chainFor(s.byAsociatie, asociatieId));
+
+  useEffect(() => {
+    if (asociatieId && isSupabaseConfigured) {
+      void useAuditStore.getState().hydrateForAsociatie(asociatieId);
+    }
+  }, [asociatieId]);
+
+  return useAuditStore((s) => s.forAsociatie(asociatieId));
 }
 
 /**
