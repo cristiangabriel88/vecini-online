@@ -21,6 +21,7 @@ const PrivacyPolicyPage = lazy(() => import('@/features/legal/PrivacyPolicyPage'
 const TermsPage = lazy(() => import('@/features/legal/TermsPage'));
 const CookiePolicyPage = lazy(() => import('@/features/legal/CookiePolicyPage'));
 const ConsumerRightsPage = lazy(() => import('@/features/legal/ConsumerRightsPage'));
+const AccessibilityStatementPage = lazy(() => import('@/features/legal/AccessibilityStatementPage'));
 const PrivacySettingsPage = lazy(() => import('@/features/legal/PrivacySettingsPage'));
 const ProcessingRecordsPage = lazy(() => import('@/features/legal/ProcessingRecordsPage'));
 const OnboardingWizard = lazy(() => import('@/features/onboarding/OnboardingWizard'));
@@ -157,6 +158,7 @@ export const router = createBrowserRouter([
   { path: '/termeni', element: <S><TermsPage /></S> },
   { path: '/cookies', element: <S><CookiePolicyPage /></S> },
   { path: '/protectia-consumatorului', element: <S><ConsumerRightsPage /></S> },
+  { path: '/accesibilitate', element: <S><AccessibilityStatementPage /></S> },
   {
     path: '/onboarding',
     element: (

@@ -4,6 +4,9 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### ✅ T25 — [P2] Accessibility statement (Declarație de accesibilitate)
+Done: `src/features/legal/accessibilityContent.ts` -- bilingual `accessibilityStatement(lang)` returning `LegalDoc` with 6 sections (conformance target WCAG 2.1 AA / EN 301 549, measures taken, known limitations, feedback/contact, enforcement, technical info). `AccessibilityStatementPage.tsx` renders via existing `LegalDocPage` chrome. Route `/accesibilitate` added to `router.tsx`. Footer link added to `AppLayout.tsx` using new `consent.accessibilityLink` i18n key (EN + RO). Unit test `accessibilityContent.test.ts` (4 assertions: EN structure, RO structure, no em-dashes, RO diacritics). 178 files / 1729 tests / all three builds green.
+
 ### ✅ T17 — [P1] Accessibility audit (WCAG 2.1 AA)
 Done: Modal — proper focus trap (Tab/Shift+Tab cycles within dialog), focus restore to trigger on close, `aria-labelledby` pointing to the `<h2>` title, initial focus on first interactive element. Select — `aria-invalid` + `aria-describedby` wired to error element with id. Input/Textarea — `aria-describedby` extended to cover hint text. EmptyState title `<div>` promoted to `<p>`. Button — `aria-busy` when loading. AppLayout — skip-link as first DOM element, `<main id="main-content">`, workspace button `aria-label`, search `aria-label`. RO/EN i18n keys added. New tests: `Select.test.tsx` (3 cases), expanded `Input.test.tsx` (+3 cases). 177 files / 1725 tests / all three builds green.
 

@@ -536,6 +536,9 @@ function Footer() {
         <a className="appfooter__legal" href="/protectia-consumatorului">
           {t('consent.consumerLink')}
         </a>
+        <a className="appfooter__legal" href="/accesibilitate">
+          {t('consent.accessibilityLink')}
+        </a>
         <a className="appfooter__credit" href="https://cristiangabriel.dev" target="_blank" rel="noreferrer">
           {t('chrome.createdBy')} <ArrowUpRight size={12} />
         </a>

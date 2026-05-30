@@ -94,8 +94,8 @@ Done: Extended `AUDIT_ACTIONS` with 6 new actions (`ticket.submitted`, `aga.sche
 ### ✅ T17 — [P1] Accessibility audit (WCAG 2.1 AA)
 Done: Modal — proper focus trap (Tab/Shift+Tab cycles within dialog), focus restore to trigger on close, `aria-labelledby` pointing to the `<h2>` title (bare mode uses `aria-label` fallback), initial focus lands on first interactive element. Select — `aria-invalid`, `aria-describedby` wired to error element with id. Input/Textarea — `aria-describedby` now covers hint text (not just errors). EmptyState title promoted from `<div>` to `<p>`. Button — `aria-busy` when loading. AppLayout — skip-link (`.skip-link` CSS, `href="#main-content"`) as first DOM element; `<main id="main-content">`; workspace button `aria-label`; search `aria-label`. RO/EN i18n keys for skip/workspace/search labels. Tests: 177 files / 1725 tests / all three builds green.
 
-### ⬜ T25 — [P2] Accessibility statement (Declarație de accesibilitate)
-Public accessibility-statement page describing the conformance target (WCAG 2.1 AA / EN 301 549), known limitations, and a feedback/contact route, linked from the legal footer. Lands alongside the accessibility audit. Prereq: T17.
+### ✅ T25 — [P2] Accessibility statement (Declarație de accesibilitate)
+Done: `src/features/legal/accessibilityContent.ts` — bilingual `accessibilityStatement(lang)` returning `LegalDoc` with 6 sections (conformance target WCAG 2.1 AA / EN 301 549, measures taken, known limitations, feedback/contact, enforcement, technical info). `AccessibilityStatementPage.tsx` renders via existing `LegalDocPage` chrome. Route `/accesibilitate` added to `router.tsx`. Footer link added to `AppLayout.tsx` using `consent.accessibilityLink` i18n key (EN + RO). Unit test `accessibilityContent.test.ts` (4 assertions: EN structure, RO structure, no em-dashes, RO diacritics). 178 files / 1729 tests / build + build:pi + build:demo all green.
 
 ### ⬜ T18 — [P2] Performance & Lighthouse
 Bundle and route-preload audit, image/avatar strategy, and meeting Lighthouse thresholds (Performance ≥ 85, Accessibility ≥ 95, Best Practices ≥ 90, SEO ≥ 90) on public pages.

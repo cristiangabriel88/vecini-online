@@ -5,9 +5,9 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-30
-- last_task: T17 (P1) Accessibility audit WCAG 2.1 AA
+- last_task: T25 (P2) Accessibility statement (Declaratie de accesibilitate)
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 177 files / 1725 tests
+- counts: 178 files / 1729 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
 - next: T108 rich per-card home widgets (prereq T12 done) or T51 activeRole() migration (prereq T28 done)
@@ -15,6 +15,15 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T25 P2 ✅ 2026-05-30 -- Accessibility statement (Declaratie de accesibilitate)
+- new: src/features/legal/accessibilityContent.ts (bilingual LegalDoc, 6 sections)
+- new: src/features/legal/AccessibilityStatementPage.tsx
+- new: tests/unit/accessibilityContent.test.ts (4 assertions)
+- updated: src/app/router.tsx (route /accesibilitate)
+- updated: src/app/AppLayout.tsx (footer link)
+- updated: en.json + ro.json (consent.accessibilityLink)
+- result: 178 files / 1729 tests / build+pi+demo green
 
 ### T17 P1 ✅ 2026-05-30 -- Accessibility audit WCAG 2.1 AA
 - updated: Modal.tsx (focus trap, focus restore, aria-labelledby, initial focus on first interactive element)
