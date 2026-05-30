@@ -1,5 +1,6 @@
 import type { DiscussionMessage, DiscussionThread } from '@/shared/types/domain';
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
+import { reportError } from '@/shared/lib/errorReporting';
 import {
   type MessageAuthor,
   type NewThreadInput,
@@ -81,12 +82,14 @@ export async function hydrateThreads(asociatieId: string): Promise<void> {
       .eq('asociatie_id', asociatieId)
       .order('created_at', { ascending: false });
     if (error || !data) {
+      reportError(error ?? new Error('no data'), { source: 'discussionApi.hydrate' });
       store.setFetchError('load');
       return;
     }
     store.setFetchError(null);
     store.replaceForAsociatie(asociatieId, (data as ThreadRow[]).map(fromThreadRow));
-  } catch {
+  } catch (err) {
+    reportError(err, { source: 'discussionApi.hydrate' });
     store.setFetchError('load');
   }
 }
@@ -110,8 +113,8 @@ export function addThread(asociatieId: string, input: NewThreadInput): void {
           pinned: thread.pinned,
           created_at: thread.created_at,
         });
-      } catch {
-        /* mirroring is best-effort */
+      } catch (err) {
+        reportError(err, { source: 'discussionApi.addThread' });
       }
     })();
   }
@@ -140,8 +143,8 @@ export function postMessage(
           body: msg.body,
           created_at: msg.created_at,
         });
-      } catch {
-        /* mirroring is best-effort */
+      } catch (err) {
+        reportError(err, { source: 'discussionApi.postMessage' });
       }
     })();
   }
@@ -163,8 +166,8 @@ export function togglePin(asociatieId: string, threadId: string): void {
         .from('discussion_threads')
         .update({ pinned: thread.pinned })
         .eq('id', threadId);
-    } catch {
-      /* mirroring is best-effort */
+    } catch (err) {
+      reportError(err, { source: 'discussionApi.togglePin' });
     }
   })();
 }
@@ -183,8 +186,8 @@ export function deleteMessage(
         .from('discussion_messages')
         .update({ deleted_at: new Date().toISOString() })
         .eq('id', messageId);
-    } catch {
-      /* mirroring is best-effort */
+    } catch (err) {
+      reportError(err, { source: 'discussionApi.deleteMessage' });
     }
   })();
 }

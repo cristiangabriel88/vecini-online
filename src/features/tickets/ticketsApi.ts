@@ -1,5 +1,6 @@
 import type { Ticket } from '@/shared/types/domain';
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
+import { reportError } from '@/shared/lib/errorReporting';
 import { type NewTicketInput, newTicket, ticketsForAsociatie } from './ticketLogic';
 import { useTicketsStore } from './ticketsStore';
 
@@ -24,12 +25,14 @@ export async function hydrateTickets(asociatieId: string): Promise<void> {
       .eq('asociatie_id', asociatieId)
       .order('created_at', { ascending: false });
     if (error || !data) {
+      reportError(error ?? new Error('no data'), { source: 'ticketsApi.hydrate' });
       store.setFetchError('load');
       return;
     }
     store.setFetchError(null);
     store.replaceForAsociatie(asociatieId, data as Ticket[]);
-  } catch {
+  } catch (err) {
+    reportError(err, { source: 'ticketsApi.hydrate' });
     store.setFetchError('load');
   }
 }
@@ -65,8 +68,8 @@ export function submitTicket(
           created_at: ticket.created_at,
           updated_at: ticket.updated_at,
         });
-      } catch {
-        /* mirroring is best-effort */
+      } catch (err) {
+        reportError(err, { source: 'ticketsApi.submit' });
       }
     })();
   }

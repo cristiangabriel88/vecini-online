@@ -1,5 +1,6 @@
 import type { Announcement } from '@/shared/types/domain';
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
+import { reportError } from '@/shared/lib/errorReporting';
 import {
   type NewAnnouncementInput,
   announcementsForAsociatie,
@@ -28,12 +29,14 @@ export async function hydrateAnnouncements(asociatieId: string): Promise<void> {
       .eq('asociatie_id', asociatieId)
       .order('created_at', { ascending: false });
     if (error || !data) {
+      reportError(error ?? new Error('no data'), { source: 'announcementsApi.hydrate' });
       store.setFetchError('load');
       return;
     }
     store.setFetchError(null);
     store.replaceForAsociatie(asociatieId, data as Announcement[]);
-  } catch {
+  } catch (err) {
+    reportError(err, { source: 'announcementsApi.hydrate' });
     store.setFetchError('load');
   }
 }
@@ -64,8 +67,8 @@ export function publishAnnouncement(
           created_at: item.created_at,
           updated_at: item.updated_at,
         });
-      } catch {
-        /* mirroring is best-effort */
+      } catch (err) {
+        reportError(err, { source: 'announcementsApi.publish' });
       }
     })();
   }

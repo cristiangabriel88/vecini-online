@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
+import { reportError } from '@/shared/lib/errorReporting';
 import {
   type AuthAuditEvent,
   type AuthEventType,
@@ -65,8 +66,8 @@ function mirrorLive(event: AuthAuditEvent): void {
         event_type: event.type,
         email_mask: event.emailMask,
       });
-    } catch {
-      /* audit mirroring is best-effort; the local log is authoritative for the UI */
+    } catch (err) {
+      reportError(err, { source: 'securityStore.mirrorLive' });
     }
   })();
 }
@@ -111,7 +112,8 @@ export const useSecurityStore = create<SecurityState>()(
           if (!data?.[0]) return 0;
           const row = data[0] as { locked: boolean; remaining_ms: number };
           return row.locked ? Math.max(0, row.remaining_ms) : 0;
-        } catch {
+        } catch (err) {
+          reportError(err, { source: 'securityStore.checkServerLock' });
           return 0;
         }
       },
@@ -124,7 +126,8 @@ export const useSecurityStore = create<SecurityState>()(
           if (!data?.[0]) return 0;
           const row = data[0] as { locked: boolean; remaining_ms: number };
           return row.locked ? Math.max(0, row.remaining_ms) : 0;
-        } catch {
+        } catch (err) {
+          reportError(err, { source: 'securityStore.recordServerFailure' });
           return 0;
         }
       },
@@ -134,8 +137,8 @@ export const useSecurityStore = create<SecurityState>()(
         try {
           const hash = await hashEmail(email);
           await supabase.rpc('clear_login_lock', { p_email_hash: hash });
-        } catch {
-          /* best-effort */
+        } catch (err) {
+          reportError(err, { source: 'securityStore.clearServerLock' });
         }
       },
     }),

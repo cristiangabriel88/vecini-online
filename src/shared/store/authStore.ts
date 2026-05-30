@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { Session } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
+import { reportError } from '@/shared/lib/errorReporting';
 import { env } from '@/shared/lib/env';
 import type { Membership, Role, UserProfile } from '@/shared/types/domain';
 import { mergeHydration, roleFor, sortByPrivilege } from '@/features/auth/hydrationLogic';
@@ -222,6 +223,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         // the platform surface.
         isPlatformSuperAdmin: superAdminRes.error ? false : Boolean(superAdminRes.data),
       });
+    } catch (error) {
+      reportError(error, { source: 'authStore.hydrate' });
     } finally {
       // Only the latest in-flight hydrate owns the flag; a stale one must not
       // flip it off while a newer read is still running.

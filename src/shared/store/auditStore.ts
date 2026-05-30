@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
+import { reportError } from '@/shared/lib/errorReporting';
 import {
   type AuditEntry,
   type AuditInput,
@@ -53,8 +54,8 @@ function mirrorLive(entry: AuditEntry): void {
         prev_hash: entry.prev_hash,
         hash: entry.hash,
       });
-    } catch {
-      /* mirroring is best-effort; the local chain is authoritative for the UI */
+    } catch (err) {
+      reportError(err, { source: 'auditStore.mirrorLive' });
     }
   })();
 }

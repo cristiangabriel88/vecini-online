@@ -1,5 +1,6 @@
 import type { PrivateMessage, PrivateSender, PrivateThread } from '@/shared/types/domain';
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
+import { reportError } from '@/shared/lib/errorReporting';
 import { counterpartOf } from './adminChatLogic';
 import { type NewThreadInput, useAdminChatStore } from './adminChatStore';
 
@@ -58,8 +59,8 @@ export async function hydrateThreads(asociatieId: string): Promise<void> {
     useAdminChatStore
       .getState()
       .replaceAll(asociatieId, (data as Record<string, unknown>[]).map(fromRow));
-  } catch {
-    /* best-effort: the local list remains the source of truth for the UI */
+  } catch (err) {
+    reportError(err, { source: 'adminChatApi.hydrate' });
   }
 }
 
@@ -87,7 +88,8 @@ export function startThread(
           created_at: thread.created_at,
         });
         await supabase.from('private_messages').insert(messageRow(asociatieId, thread.messages[0]));
-      } catch {
+      } catch (err) {
+        reportError(err, { source: 'adminChatApi.startThread' });
         onError?.();
       }
     })();
@@ -116,7 +118,8 @@ export function reply(
         const message = thread?.messages[thread.messages.length - 1];
         if (message) await supabase.from('private_messages').insert(messageRow(asociatieId, message));
         await supabase.from('private_threads').update({ status: 'open' }).eq('id', threadId);
-      } catch {
+      } catch (err) {
+        reportError(err, { source: 'adminChatApi.reply' });
         onError?.();
       }
     })();
@@ -135,8 +138,8 @@ export function markRead(asociatieId: string, threadId: string, viewer: PrivateS
           .update({ read: true })
           .eq('thread_id', threadId)
           .eq('sender', counterpartOf(viewer));
-      } catch {
-        /* read-mark failure is a minor UX glitch, not data loss — stay silent */
+      } catch (err) {
+        reportError(err, { source: 'adminChatApi.markRead' });
       }
     })();
   }
@@ -156,7 +159,8 @@ export function toggleStatus(asociatieId: string, threadId: string, onError?: ()
         if (thread) {
           await supabase.from('private_threads').update({ status: thread.status }).eq('id', threadId);
         }
-      } catch {
+      } catch (err) {
+        reportError(err, { source: 'adminChatApi.toggleStatus' });
         onError?.();
       }
     })();
