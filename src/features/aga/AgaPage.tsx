@@ -13,6 +13,7 @@ import { EmptyState } from '@/shared/components/EmptyState';
 import { Modal } from '@/shared/components/Modal';
 import { formatDateTime } from '@/shared/lib/format';
 import type { AgaDecision, AgaMeeting, MajorityRule } from '@/shared/types/domain';
+import { recordAudit } from '@/shared/store/auditStore';
 import { useAgaStore } from './agaStore';
 import {
   generateProcesVerbal,
@@ -71,6 +72,7 @@ export default function AgaPage() {
   const submitMeeting = () => {
     if (!meetingValid) return;
     addMeeting(title, when, location, online);
+    recordAudit({ action: 'aga.scheduled', entity: 'aga', entity_label: title.trim() });
     toast.success(t('aga.meetingAdded'));
     setOpen(false);
     setTitle('');
@@ -250,7 +252,17 @@ export default function AgaPage() {
 
                     <div className="flex flex-wrap gap-2">
                       {next && (
-                        <Button size="sm" onClick={() => advanceStatus(m.id)}>
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            advanceStatus(m.id);
+                            recordAudit({
+                              action: next === 'in_desfasurare' ? 'aga.opened' : 'aga.closed',
+                              entity: 'aga',
+                              entity_label: m.title,
+                            });
+                          }}
+                        >
                           {next === 'in_desfasurare' ? t('aga.openMeeting') : t('aga.closeMeeting')}
                         </Button>
                       )}

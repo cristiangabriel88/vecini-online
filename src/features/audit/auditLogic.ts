@@ -47,6 +47,12 @@ export const AUDIT_ACTIONS = [
   'admin.provisioned',
   'document.uploaded',
   'document.deleted',
+  'ticket.submitted',
+  'aga.scheduled',
+  'aga.opened',
+  'aga.closed',
+  'budget.proposed',
+  'petition.created',
 ] as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
@@ -63,6 +69,10 @@ export const AUDIT_ENTITIES = [
   'asociatie',
   'admin',
   'document',
+  'ticket',
+  'aga',
+  'budget',
+  'petition',
 ] as const;
 
 export type AuditEntity = (typeof AUDIT_ENTITIES)[number];

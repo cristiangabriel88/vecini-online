@@ -10,6 +10,7 @@ import { Input } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Modal } from '@/shared/components/Modal';
 import { formatLei } from '@/shared/lib/format';
+import { recordAudit } from '@/shared/store/auditStore';
 import { useBudgetStore } from './budgetStore';
 import { isFunded, isValidProposal, remainingBudget, sortByVotes } from './budgetLogic';
 
@@ -30,6 +31,7 @@ export default function BudgetPage() {
   const submit = () => {
     if (!valid) return;
     addProposal(title, costNum, DEMO_AUTHOR);
+    recordAudit({ action: 'budget.proposed', entity: 'budget', entity_label: title.trim() });
     toast.success(t('budget.added'));
     setOpen(false);
     setTitle('');

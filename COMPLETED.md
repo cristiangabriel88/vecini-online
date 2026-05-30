@@ -4,6 +4,9 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### ✅ T85 — [P1] Wire the remaining state-changing features into the audit trail
+Done: Extended `AUDIT_ACTIONS` with 6 new actions (`ticket.submitted`, `aga.scheduled`, `aga.opened`, `aga.closed`, `budget.proposed`, `petition.created`) and `AUDIT_ENTITIES` with 4 new entities (`ticket`, `aga`, `budget`, `petition`). Added matching RO/EN locale keys. Wired `recordAudit` calls in `TicketsPage.tsx` (ticket submit), `BudgetPage.tsx` (proposal add), `PetitionsPage.tsx` (petition create), and `AgaPage.tsx` (meeting schedule + open/close status advance). Added `ACTION_TONE` entries for all 6 new actions in `AuditLogPage.tsx`. 176 files / 1719 tests / all three builds green.
+
 ### ✅ T182 — [P1] Dev-gate console logging so PROD never logs state/PII to the browser console
 Done: `src/shared/lib/devLog.ts` added -- `devLog.{log,info,warn,debug}` are live console bindings when `import.meta.env.DEV || VITE_APP_STAGE !== 'prod'`, no-ops otherwise; Vite tree-shakes the no-op branches in the PROD build. Audit found zero raw `console.*` calls in `src/` outside the two allowlisted files (`errorReporting.ts` already DEV-guarded, `telegramWebhook.ts` server-side only). Guard test `devLog.test.ts` (4 assertions): scans all `src/*.ts{,x}` for raw console calls, skips the allowlist, fails the suite if any new violation is introduced. 176 files / 1719 tests / build / build:pi / build:demo all green.
 

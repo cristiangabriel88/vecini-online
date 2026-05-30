@@ -9,6 +9,7 @@ import { Badge } from '@/shared/components/Badge';
 import { Input, Textarea } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Modal } from '@/shared/components/Modal';
+import { recordAudit } from '@/shared/store/auditStore';
 import { usePetitionStore } from './petitionStore';
 import {
   isThresholdReached,
@@ -32,6 +33,7 @@ export default function PetitionsPage() {
   const submit = () => {
     if (!valid) return;
     create({ title, body });
+    recordAudit({ action: 'petition.created', entity: 'petition', entity_label: title.trim() });
     toast.success(t('petitions.created'));
     setOpen(false);
     setTitle('');

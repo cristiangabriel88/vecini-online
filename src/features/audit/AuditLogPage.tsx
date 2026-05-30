@@ -48,6 +48,12 @@ const ACTION_TONE: Record<AuditAction, 'success' | 'danger' | 'warning' | 'neutr
   'admin.provisioned': 'success',
   'document.uploaded': 'success',
   'document.deleted': 'danger',
+  'ticket.submitted': 'success',
+  'aga.scheduled': 'success',
+  'aga.opened': 'success',
+  'aga.closed': 'neutral',
+  'budget.proposed': 'success',
+  'petition.created': 'success',
 };
 
 /** Trigger a client-side download of a text document. */

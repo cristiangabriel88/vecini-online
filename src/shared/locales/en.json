@@ -2477,7 +2477,13 @@
       "asociatie.provisioned": "Association provisioned",
       "admin.provisioned": "Administrator provisioned",
       "document.uploaded": "Document uploaded",
-      "document.deleted": "Document deleted"
+      "document.deleted": "Document deleted",
+      "ticket.submitted": "Issue submitted",
+      "aga.scheduled": "AGA meeting scheduled",
+      "aga.opened": "AGA meeting opened",
+      "aga.closed": "AGA meeting closed",
+      "budget.proposed": "Budget item proposed",
+      "petition.created": "Petition created"
     },
     "entity": {
       "feature": "Feature",
@@ -2489,7 +2495,11 @@
       "building": "Building",
       "asociatie": "Association",
       "admin": "Administrator",
-      "document": "Document"
+      "document": "Document",
+      "ticket": "Issue",
+      "aga": "AGA meeting",
+      "budget": "Budget",
+      "petition": "Petition"
     }
   },
   "chrome": {

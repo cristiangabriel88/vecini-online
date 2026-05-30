@@ -16,6 +16,7 @@ import { useAuthStore } from '@/shared/store/authStore';
 import { DEMO_CURRENT_USER_ID } from '@/shared/demo/demoData';
 import { useAsociatieTickets } from './ticketsStore';
 import { isSlaBreached } from './ticketLogic';
+import { recordAudit } from '@/shared/store/auditStore';
 import { hydrateTickets, submitTicket } from './ticketsApi';
 
 const statusTone: Record<TicketStatus, 'neutral' | 'primary' | 'warning' | 'success' | 'danger'> = {
@@ -51,6 +52,7 @@ export default function TicketsPage() {
   const submit = () => {
     if (!asociatieId || !form.title.trim() || !form.description.trim()) return;
     submitTicket(asociatieId, reporterUserId, form);
+    recordAudit({ action: 'ticket.submitted', entity: 'ticket', entity_label: form.title.trim() });
     toast.success(t('tickets.submitted'));
     setOpen(false);
     setForm({ title: '', description: '', category: 'electric', severity: 'medium', location: '' });

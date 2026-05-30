@@ -2479,7 +2479,13 @@
       "asociatie.provisioned": "Asociație provizionată",
       "admin.provisioned": "Administrator provizionat",
       "document.uploaded": "Document încărcat",
-      "document.deleted": "Document șters"
+      "document.deleted": "Document șters",
+      "ticket.submitted": "Sesizare depusă",
+      "aga.scheduled": "AGA programată",
+      "aga.opened": "AGA deschisă",
+      "aga.closed": "AGA încheiată",
+      "budget.proposed": "Propunere buget adăugată",
+      "petition.created": "Petiție creată"
     },
     "entity": {
       "feature": "Funcționalitate",
@@ -2491,7 +2497,11 @@
       "building": "Clădire",
       "asociatie": "Asociație",
       "admin": "Administrator",
-      "document": "Document"
+      "document": "Document",
+      "ticket": "Sesizare",
+      "aga": "Ședință AGA",
+      "budget": "Buget",
+      "petition": "Petiție"
     }
   },
   "chrome": {

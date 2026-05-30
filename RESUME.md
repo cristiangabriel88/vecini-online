@@ -5,7 +5,7 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-30
-- last_task: T182 (P1) Dev-gate console logging -- devLog utility + guard test
+- last_task: T85 (P1) Wire remaining state-changing features into audit trail
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
 - counts: 176 files / 1719 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
@@ -15,6 +15,13 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T85 P1 ✅ 2026-05-30 -- Wire remaining state-changing features into audit trail
+- updated: `auditLogic.ts` (+6 actions: ticket.submitted/aga.scheduled/aga.opened/aga.closed/budget.proposed/petition.created; +4 entities: ticket/aga/budget/petition)
+- updated: `en.json` + `ro.json` (audit.action.* + audit.entity.* keys for all new entries)
+- updated: `TicketsPage.tsx`, `BudgetPage.tsx`, `PetitionsPage.tsx`, `AgaPage.tsx` (recordAudit calls)
+- updated: `AuditLogPage.tsx` (ACTION_TONE entries for 6 new actions)
+- result: 176 files / 1719 tests / build+pi+demo green
 
 ### T107 P3 ✅ 2026-05-29 -- Touch-friendly pointer drag for the customizable home cards
 - new: `useHomeReorder.ts` (pointer/touch/pen unified gesture, press-and-hold touch activation, scroll-intent cancel), `reorderGeometry.ts` (pure `insertionFromPoint`, DOM-free), `tests/unit/reorderGeometry.test.ts` (5 cases)
