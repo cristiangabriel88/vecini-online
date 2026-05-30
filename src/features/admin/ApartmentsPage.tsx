@@ -1,15 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { AlertTriangle, Building2, ChevronDown, Download, FileSpreadsheet, FileText, Mail, Pencil, Plus, Send, Trash2, Upload, X } from 'lucide-react';
+import { AlertTriangle, Building2, ChevronDown, ChevronUp, Download, FileSpreadsheet, FileText, Mail, Pencil, Plus, Send, Trash2, Upload, X } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Input } from '@/shared/components/Input';
 import { Modal } from '@/shared/components/Modal';
-import { formatLei } from '@/shared/lib/format';
 import {
   generateApartmentsCsvTemplate,
   generateApartmentsXlsxTemplate,
@@ -168,6 +167,74 @@ export default function ApartmentsPage() {
   const [inviteApt, setInviteApt] = useState<Apartment | null>(null);
   const [quickSelectedEmail, setQuickSelectedEmail] = useState('');
   const [quickCustomEmail, setQuickCustomEmail] = useState('');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [pendingBulkDelete, setPendingBulkDelete] = useState(false);
+  type SortKey = 'scara' | 'etaj' | 'numar_apartament' | 'proprietar_principal_name' | 'suprafata_utila' | 'cota_parte_indiviza' | 'numar_persoane';
+  type SortDir = 'asc' | 'desc';
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const selectAllRef = useRef<HTMLInputElement>(null);
+
+  const sortedApartments = useMemo(() => {
+    if (!sortKey) return apartments;
+    return [...apartments].sort((a, b) => {
+      const aVal = a[sortKey] ?? '';
+      const bVal = b[sortKey] ?? '';
+      const cmp =
+        typeof aVal === 'number' && typeof bVal === 'number'
+          ? aVal - bVal
+          : String(aVal).localeCompare(String(bVal), 'ro');
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+  }, [apartments, sortKey, sortDir]);
+
+  const allSelected = apartments.length > 0 && selectedIds.size === apartments.length;
+  const someSelected = selectedIds.size > 0 && !allSelected;
+
+  useEffect(() => {
+    if (selectAllRef.current) selectAllRef.current.indeterminate = someSelected;
+  }, [someSelected]);
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (allSelected) setSelectedIds(new Set());
+    else setSelectedIds(new Set(apartments.map((a) => a.id)));
+  };
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    else { setSortKey(key); setSortDir('asc'); }
+  };
+
+  const SortIcon = ({ col }: { col: SortKey }) =>
+    sortKey === col ? (
+      sortDir === 'asc' ? <ChevronUp className="inline h-3 w-3 ml-0.5" /> : <ChevronDown className="inline h-3 w-3 ml-0.5" />
+    ) : (
+      <span className="inline-flex flex-col ml-0.5 opacity-30" style={{ gap: 0 }}>
+        <ChevronUp className="h-2.5 w-2.5" style={{ marginBottom: -2 }} />
+        <ChevronDown className="h-2.5 w-2.5" />
+      </span>
+    );
+
+  const confirmBulkDelete = () => {
+    if (!asociatieId) return;
+    const count = selectedIds.size;
+    for (const id of selectedIds) {
+      const apt = apartments.find((a) => a.id === id);
+      if (apt) deleteApartment(asociatieId, apt, () => {});
+    }
+    toast.success(t('apartments.deletedSelected', { count }));
+    setSelectedIds(new Set());
+    setPendingBulkDelete(false);
+  };
 
   /** Apartments eligible for bulk invite: at least one person with email, not yet joined. */
   const eligibleApartments = apartments.filter((apt) => {
@@ -603,20 +670,55 @@ export default function ApartmentsPage() {
             <table className="w-full text-left text-sm">
               <thead className="bg-surface-2 text-muted">
                 <tr>
-                  <th className="px-4 py-2">{t('apartments.scara')}</th>
-                  <th className="px-4 py-2">{t('apartments.etaj')}</th>
-                  <th className="px-4 py-2">{t('apartments.number')}</th>
-                  <th className="px-4 py-2">{t('apartments.owner')}</th>
-                  <th className="px-4 py-2">{t('apartments.area')}</th>
-                  <th className="px-4 py-2">{t('apartments.share')}</th>
-                  <th className="px-4 py-2">{t('apartments.persons')}</th>
+                  <th className="w-10 px-3 py-2">
+                    <input
+                      ref={selectAllRef}
+                      type="checkbox"
+                      checked={allSelected}
+                      onChange={toggleSelectAll}
+                      aria-label={allSelected ? t('apartments.deselectAll') : t('apartments.selectAll')}
+                      className="h-4 w-4 cursor-pointer rounded accent-[hsl(var(--color-accent))]"
+                    />
+                  </th>
+                  {(
+                    [
+                      ['scara', t('apartments.scara')],
+                      ['etaj', t('apartments.etaj')],
+                      ['numar_apartament', t('apartments.number')],
+                      ['proprietar_principal_name', t('apartments.owner')],
+                      ['suprafata_utila', t('apartments.area')],
+                      ['cota_parte_indiviza', t('apartments.share')],
+                      ['numar_persoane', t('apartments.persons')],
+                    ] as [SortKey, string][]
+                  ).map(([col, label]) => (
+                    <th
+                      key={col}
+                      className="px-4 py-2 select-none cursor-pointer whitespace-nowrap hover:text-foreground transition-colors duration-150"
+                      onClick={() => toggleSort(col)}
+                    >
+                      {label}
+                      <SortIcon col={col} />
+                    </th>
+                  ))}
                   <th className="px-4 py-2 text-center">{t('apartments.statusHeader')}</th>
                   <th className="px-4 py-2 text-center">{t('common.actions')}</th>
                 </tr>
               </thead>
               <tbody>
-                {apartments.map((a) => (
-                  <tr key={a.id} className="border-t border-border">
+                {sortedApartments.map((a) => (
+                  <tr
+                    key={a.id}
+                    className={`border-t border-border transition-colors duration-100 ${selectedIds.has(a.id) ? 'bg-[hsl(var(--color-accent)/0.06)]' : ''}`}
+                  >
+                    <td className="w-10 px-3 py-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(a.id)}
+                        onChange={() => toggleSelect(a.id)}
+                        aria-label={t('apartments.edit', { label: apartmentShortLabel(a) })}
+                        className="h-4 w-4 cursor-pointer rounded accent-[hsl(var(--color-accent))]"
+                      />
+                    </td>
                     <td className="px-4 py-2">{a.scara}</td>
                     <td className="px-4 py-2">{a.etaj === 0 ? t('apartments.parter') : a.etaj}</td>
                     <td className="px-4 py-2 font-medium">{a.numar_apartament}</td>
@@ -736,13 +838,17 @@ export default function ApartmentsPage() {
             ))}
           </div>
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-            <p className="text-sm text-muted">
-              {t('apartments.monthlyFund', {
-                amount: formatLei(
-                  apartments.reduce((s, a) => s + (a.suprafata_utila ?? 0) * 0.8, 0),
-                ),
-              })}
-            </p>
+            <div className="flex items-center gap-2">
+              {selectedIds.size > 0 && (
+                <Button
+                  variant="danger"
+                  onClick={() => setPendingBulkDelete(true)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {t('apartments.deleteSelected', { count: selectedIds.size })}
+                </Button>
+              )}
+            </div>
             <Button
               variant="secondary"
               type="button"
@@ -792,6 +898,26 @@ export default function ApartmentsPage() {
           {pendingDelete
             ? t('apartments.deleteConfirm', { label: apartmentShortLabel(pendingDelete) })
             : ''}
+        </p>
+      </Modal>
+
+      <Modal
+        open={pendingBulkDelete}
+        onClose={() => setPendingBulkDelete(false)}
+        title={t('apartments.deleteSelectedTitle', { count: selectedIds.size })}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setPendingBulkDelete(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button variant="danger" onClick={confirmBulkDelete}>
+              <Trash2 className="h-4 w-4" /> {t('common.delete')}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm">
+          {t('apartments.deleteSelectedConfirm', { count: selectedIds.size })}
         </p>
       </Modal>
 
