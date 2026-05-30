@@ -5,9 +5,9 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-05-30
-- last_task: T181 (P1) Per-IP rate limit added to invite-email Netlify function
+- last_task: T182 (P1) Dev-gate console logging -- devLog utility + guard test
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 175 files / 1715 tests
+- counts: 176 files / 1719 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
 - next: T108 rich per-card home widgets (prereq T12 done) or T51 activeRole() migration (prereq T28 done)

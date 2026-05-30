@@ -4,6 +4,9 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### ✅ T182 — [P1] Dev-gate console logging so PROD never logs state/PII to the browser console
+Done: `src/shared/lib/devLog.ts` added -- `devLog.{log,info,warn,debug}` are live console bindings when `import.meta.env.DEV || VITE_APP_STAGE !== 'prod'`, no-ops otherwise; Vite tree-shakes the no-op branches in the PROD build. Audit found zero raw `console.*` calls in `src/` outside the two allowlisted files (`errorReporting.ts` already DEV-guarded, `telegramWebhook.ts` server-side only). Guard test `devLog.test.ts` (4 assertions): scans all `src/*.ts{,x}` for raw console calls, skips the allowlist, fails the suite if any new violation is introduced. 176 files / 1719 tests / build / build:pi / build:demo all green.
+
 ### ✅ T181 — [P1] Rate-limit the `invite-email` Netlify function
 Done: `checkIpRateLimit(ip, now)` added to `_shared/rateLimiter.ts` (5 sends per 60 s per IP, using the existing `checkSlidingWindow` primitive). `extractClientIp(req)` helper exported from `invite-email.ts` (reads `x-forwarded-for` then `x-real-ip`). Per-IP check added early in the handler before any DB queries; existing per-caller+asociatie limit (20/10 min) retained. Security model comment updated. 15 new assertions across 3 test blocks in `inviteEmailAuth.test.ts` (per-IP logic, extractClientIp, wiring guard). 175 files / 1715 tests / build / build:pi / build:demo all green.
 
