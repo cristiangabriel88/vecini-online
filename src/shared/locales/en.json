@@ -1655,7 +1655,8 @@
     "threadStarted": "Message sent to the administrator.",
     "threadStartedToResident": "Message sent to the resident.",
     "empty": "No conversations yet. Start one with the button above.",
-    "emptyAdmin": "No messages from residents yet. You can start a conversation with the button above."
+    "emptyAdmin": "No messages from residents yet. You can start a conversation with the button above.",
+    "saveFailed": "Message saved locally, but sync with the server failed."
   },
   "welcomeKit": {
     "title": "Welcome kit",

@@ -88,9 +88,11 @@ export default function AdminChatPage() {
     setReplyBody('');
   };
 
+  const onSyncError = () => toast.error(t('adminChat.saveFailed'));
+
   const send = (threadId: string) => {
     if (!currentAsociatieId || !isValidMessage(replyBody)) return;
-    reply(currentAsociatieId, threadId, viewer, viewer === 'admin' ? adminLabel : userName, replyBody);
+    reply(currentAsociatieId, threadId, viewer, viewer === 'admin' ? adminLabel : userName, replyBody, onSyncError);
     setReplyBody('');
   };
 
@@ -113,22 +115,32 @@ export default function AdminChatPage() {
       if (!pickedApartment) return;
       const primary =
         pickedApartment.persons.find((p) => p.is_primary) ?? pickedApartment.persons[0];
-      const created = startThread(currentAsociatieId, 'admin', {
-        subject,
-        body: firstBody,
-        residentUserId: primary?.id ?? pickedApartment.id,
-        residentName: primary?.name ?? apartmentShortLabel(pickedApartment),
-        apartmentLabel: apartmentShortLabel(pickedApartment),
-      });
+      const created = startThread(
+        currentAsociatieId,
+        'admin',
+        {
+          subject,
+          body: firstBody,
+          residentUserId: primary?.id ?? pickedApartment.id,
+          residentName: primary?.name ?? apartmentShortLabel(pickedApartment),
+          apartmentLabel: apartmentShortLabel(pickedApartment),
+        },
+        onSyncError,
+      );
       toast.success(t('adminChat.threadStartedToResident'));
       setSelectedId(created.id);
     } else {
-      const created = startThread(currentAsociatieId, 'resident', {
-        subject,
-        body: firstBody,
-        residentUserId: userId,
-        residentName: userName,
-      });
+      const created = startThread(
+        currentAsociatieId,
+        'resident',
+        {
+          subject,
+          body: firstBody,
+          residentUserId: userId,
+          residentName: userName,
+        },
+        onSyncError,
+      );
       toast.success(t('adminChat.threadStarted'));
       setSelectedId(created.id);
     }
@@ -161,7 +173,7 @@ export default function AdminChatPage() {
           replyBody={replyBody}
           onReplyChange={setReplyBody}
           onSend={() => send(selected.id)}
-          onToggleStatus={() => currentAsociatieId && toggleStatus(currentAsociatieId, selected.id)}
+          onToggleStatus={() => currentAsociatieId && toggleStatus(currentAsociatieId, selected.id, onSyncError)}
           onBack={back}
         />
       ) : ordered.length === 0 ? (

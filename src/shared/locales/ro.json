@@ -1657,7 +1657,8 @@
     "threadStarted": "Mesaj trimis către administrator.",
     "threadStartedToResident": "Mesaj trimis către locatar.",
     "empty": "Nicio conversație încă. Începe una cu butonul de mai sus.",
-    "emptyAdmin": "Niciun mesaj de la locatari încă. Poți porni tu o conversație cu butonul de mai sus."
+    "emptyAdmin": "Niciun mesaj de la locatari încă. Poți porni tu o conversație cu butonul de mai sus.",
+    "saveFailed": "Mesajul a fost salvat local, dar sincronizarea cu serverul a eșuat."
   },
   "welcomeKit": {
     "title": "Kit de bun-venit",

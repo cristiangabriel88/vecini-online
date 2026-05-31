@@ -24,10 +24,11 @@ under `docs/`, despite references to the contrary). The product is
 > done-notes are archived in `COMPLETED.md` (newest first); §0 stays the dated
 > chronological summary.
 
-## 0. Current status (updated 2026-05-31, T178 done -- three-stage model docs pass; 161 files / 1494 tests)
+## 0. Current status (updated 2026-05-31, T129 done -- F04 private messaging write errors surfaced; 162 files / 1504 tests)
 
-T178 documentation pass: DECISIONS.md gains the four-why entry for the three-stage model; RESUME.md §0 now leads with the stage model instead of the protocol description; PI_DEPLOYMENT.md gains a top-section pointer to the model; BACKLOG.md cleared of stale "demo = missing creds" language.
+T129: `adminChatApi.ts` hardened -- `startThread`, `reply`, `toggleStatus` now surface Supabase mirror failures via `onError` callback; `AdminChatPage.tsx` shows a toast; `adminChat.saveFailed` locale key added; 16 new tests in `adminChatApi.test.ts`. Live RLS activation deferred to provisioned backend.
 
+- **2026-05-31 — T129 (P2) F04 private messaging write-error surfacing.** `onError` callbacks added to `startThread`/`reply`/`toggleStatus` in `adminChatApi.ts`; `AdminChatPage` passes `onSyncError` toast callback; bilingual `saveFailed` locale keys; 16 new tests. 162 files / 1504 tests / all 3 builds green.
 - **2026-05-31 — T178 (P2) Three-stage model documentation pass.** DECISIONS.md four-why entry; RESUME.md §0 leads with stage model; PI_DEPLOYMENT.md top-section pointer; BACKLOG.md stale-language sweep. 161 files / 1494 tests / all 3 builds green.
 - **2026-05-31 — T177 (P2) Visible stage banner.** `StageBanner.tsx` fixed bottom-left chip; amber for DEV, warm-graphite for DEMO, hidden in PROD; CSS in shell.css; bilingual keys; mounted in AppLayout. 161 files / 1494 tests / all 3 builds green.
 - **2026-05-31 — T176 (P1) pi:seed one Supabase user per role.** `scripts/pi-seed.mjs` + `pi.sh seed` + `"pi:seed"` npm script; 7 users seeded (6 tenant roles + super_admin via platform_admins); safety guards + idempotent upserts; PI_DEPLOYMENT.md §3b + MAIL_MODE row. 15 new tests. 161 files / 1494 tests green.

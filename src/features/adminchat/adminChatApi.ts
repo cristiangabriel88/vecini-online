@@ -63,17 +63,20 @@ export async function hydrateThreads(asociatieId: string): Promise<void> {
   }
 }
 
-/** Open a new thread authored by `sender`; returns the created thread. */
+/** Open a new thread authored by `sender`; returns the created thread.
+ *  Calls `onError` when the backend mirror fails so the caller can surface a
+ *  user-visible toast (the local store update always succeeds). */
 export function startThread(
   asociatieId: string,
   sender: PrivateSender,
   input: NewThreadInput,
+  onError?: () => void,
 ): PrivateThread {
   const thread = useAdminChatStore.getState().startThread(asociatieId, sender, input);
   if (isSupabaseConfigured) {
     void (async () => {
       try {
-        await supabase.from('private_threads').insert({
+        const { error: te } = await supabase.from('private_threads').insert({
           id: thread.id,
           asociatie_id: thread.asociatie_id,
           resident_user_id: thread.resident_user_id,
@@ -83,22 +86,29 @@ export function startThread(
           status: thread.status,
           created_at: thread.created_at,
         });
-        await supabase.from('private_messages').insert(messageRow(asociatieId, thread.messages[0]));
+        if (te) { onError?.(); return; }
+        const { error: me } = await supabase
+          .from('private_messages')
+          .insert(messageRow(asociatieId, thread.messages[0]));
+        if (me) onError?.();
       } catch {
-        /* mirroring is best-effort */
+        onError?.();
       }
     })();
   }
   return thread;
 }
 
-/** Append a reply authored by `sender`, and reopen the thread. */
+/** Append a reply authored by `sender`, and reopen the thread.
+ *  Calls `onError` when the backend mirror fails so the caller can surface a
+ *  user-visible toast (the local store update always succeeds). */
 export function reply(
   asociatieId: string,
   threadId: string,
   sender: PrivateSender,
   senderName: string,
   body: string,
+  onError?: () => void,
 ): void {
   useAdminChatStore.getState().reply(asociatieId, threadId, sender, senderName, body);
   if (isSupabaseConfigured) {
@@ -109,10 +119,19 @@ export function reply(
           .forAsociatie(asociatieId)
           .find((t) => t.id === threadId);
         const message = thread?.messages[thread.messages.length - 1];
-        if (message) await supabase.from('private_messages').insert(messageRow(asociatieId, message));
-        await supabase.from('private_threads').update({ status: 'open' }).eq('id', threadId);
+        if (message) {
+          const { error: me } = await supabase
+            .from('private_messages')
+            .insert(messageRow(asociatieId, message));
+          if (me) { onError?.(); return; }
+        }
+        const { error: te } = await supabase
+          .from('private_threads')
+          .update({ status: 'open' })
+          .eq('id', threadId);
+        if (te) onError?.();
       } catch {
-        /* mirroring is best-effort */
+        onError?.();
       }
     })();
   }
@@ -136,8 +155,10 @@ export function markRead(asociatieId: string, threadId: string, viewer: PrivateS
   }
 }
 
-/** Toggle a thread between open and resolved. */
-export function toggleStatus(asociatieId: string, threadId: string): void {
+/** Toggle a thread between open and resolved.
+ *  Calls `onError` when the backend mirror fails so the caller can surface a
+ *  user-visible toast (the local store update always succeeds). */
+export function toggleStatus(asociatieId: string, threadId: string, onError?: () => void): void {
   useAdminChatStore.getState().toggleStatus(asociatieId, threadId);
   if (isSupabaseConfigured) {
     void (async () => {
@@ -147,10 +168,14 @@ export function toggleStatus(asociatieId: string, threadId: string): void {
           .forAsociatie(asociatieId)
           .find((t) => t.id === threadId);
         if (thread) {
-          await supabase.from('private_threads').update({ status: thread.status }).eq('id', threadId);
+          const { error } = await supabase
+            .from('private_threads')
+            .update({ status: thread.status })
+            .eq('id', threadId);
+          if (error) onError?.();
         }
       } catch {
-        /* mirroring is best-effort */
+        onError?.();
       }
     })();
   }
