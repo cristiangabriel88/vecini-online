@@ -2459,6 +2459,8 @@
     "scaraMany": "Entrances {{list}}",
     "searchPlaceholder": "Search announcements, issues, neighbors…",
     "demoData": "Demo data",
+    "stageBannerDev": "DEV (Pi)",
+    "stageBannerDemo": "DEMO",
     "toggleTheme": "Toggle theme",
     "account": "Account",
     "emergencyNumbers": "Emergency numbers",

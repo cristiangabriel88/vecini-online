@@ -2461,6 +2461,8 @@
     "scaraMany": "Scările {{list}}",
     "searchPlaceholder": "Caută anunțuri, sesizări, vecini…",
     "demoData": "Date de demonstrație",
+    "stageBannerDev": "DEV (Pi)",
+    "stageBannerDemo": "DEMO",
     "toggleTheme": "Comută temă",
     "account": "Cont",
     "emergencyNumbers": "Numere de urgență",

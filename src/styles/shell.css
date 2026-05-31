@@ -1265,7 +1265,39 @@
   color: var(--text-muted);
 }
 
+/* ── Stage banner (DEV + DEMO only, hidden in PROD) ─────── */
+.stage-banner {
+  position: fixed;
+  bottom: var(--space-3);
+  left: var(--space-3);
+  z-index: 25;
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  animation: fadein 200ms var(--ease-out);
+  pointer-events: none;
+  user-select: none;
+}
+.stage-banner--dev {
+  background: var(--warning-soft);
+  color: var(--warning-text);
+  border-color: oklch(from var(--warning-500) l c h / 0.3);
+}
+.stage-banner--demo {
+  background: var(--bg-sunken);
+  color: var(--text-muted);
+  border-color: var(--border-subtle);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .aboutcard__hero::before { animation: none; }
   .aboutcard__feat { animation: none; opacity: 1; transform: none; }
+  .stage-banner { animation: none; }
 }

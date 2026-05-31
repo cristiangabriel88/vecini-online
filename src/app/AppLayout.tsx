@@ -22,6 +22,7 @@ import { useIdleTimeout } from './useIdleTimeout';
 import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
 import { cn } from '@/shared/lib/cn';
 import { DevRoleSwitcher } from '@/shared/components/DevRoleSwitcher';
+import { StageBanner } from '@/shared/components/StageBanner';
 
 function initials(name: string) {
   return name
@@ -564,6 +565,7 @@ export function AppLayout() {
       <BottomNav />
       <AssistantWidget />
       <DevRoleSwitcher />
+      <StageBanner />
     </div>
   );
 }

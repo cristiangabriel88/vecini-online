@@ -19,10 +19,11 @@ under `docs/`, despite references to the contrary). The product is
 > Finished tasks' full done-notes are archived in `COMPLETED.md` (newest first);
 > §0 below stays the dated chronological summary.
 
-## 0. Current status (updated 2026-05-31, T176 done -- pi:seed one Supabase user per role; 161 files / 1494 tests)
+## 0. Current status (updated 2026-05-31, T177 done -- visible stage banner in app shell; 161 files / 1494 tests)
 
-The three-stage model (PROD/DEV/DEMO) continues to mature. DEMO stage now opens directly in the resident shell -- no LoginPage friction -- and remembers the last role across page refreshes via localStorage. The floating role-switcher (T173) immediately takes effect since enterDemo persists the selected role.
+The three-stage model (PROD/DEV/DEMO) now has a visible indicator in the app shell: a fixed bottom-left chip that shows "DEV (Pi)" in amber or "DEMO" in warm-graphite, absent in PROD. Makes it immediately obvious which stage is active when running multiple terminals.
 
+- **2026-05-31 — T177 (P2) Visible stage banner.** `StageBanner.tsx` fixed bottom-left chip; amber for DEV, warm-graphite for DEMO, hidden in PROD; CSS in shell.css; bilingual keys; mounted in AppLayout. 161 files / 1494 tests / all 3 builds green.
 - **2026-05-31 — T176 (P1) pi:seed one Supabase user per role.** `scripts/pi-seed.mjs` + `pi.sh seed` + `"pi:seed"` npm script; 7 users seeded (6 tenant roles + super_admin via platform_admins); safety guards + idempotent upserts; PI_DEPLOYMENT.md §3b + MAIL_MODE row. 15 new tests. 161 files / 1494 tests green.
 - **2026-05-31 — T175 (P1) MAIL_MODE=resend|log|disabled for invite-email function.** `getMailMode()` in `resend.ts`; `invite-email.ts` branches on mode; `email_outbox` migration; `InvitesAdminPage` outbox panel when `!isProd()`; 8 new tests. 160 files / 1479 tests / build / build:pi / build:demo green.
 - **2026-05-31 — T174 (P1) DEMO auto-bypass login + remember last role.** `DemoAutoLogin.tsx` component; `lastDemoRole` field + localStorage persistence in `authStore`; router swaps `/` to `<DemoAutoLogin>` when `isDemo()`. 4 new tests. 159 files / 1471 tests / build / build:pi / build:demo green.

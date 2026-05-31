@@ -8,6 +8,9 @@ the live `BACKLOG.md` carries only the protocol and the open (⬜) queue.
 > task (read it only when a task's prerequisite or history is genuinely needed).
 > `RESUME.md` §0 remains the dated chronological summary.
 
+### ✅ T177 — [P2] Visible stage banner in the app shell (DEV / DEMO only)
+Done: `src/shared/components/StageBanner.tsx` (fixed bottom-left chip; amber `--warning-soft/text` for DEV, `--bg-sunken/text-muted` for DEMO, null in PROD); CSS in `shell.css`; mounted in `AppLayout.tsx` after `<DevRoleSwitcher />`; bilingual keys `chrome.stageBannerDev` / `chrome.stageBannerDemo` in both locales. lint/typecheck/1494 tests/all 3 builds green.
+
 ### ✅ T176 — [P1] `npm run pi:seed` — one Supabase user per role with a known dev password
 Done: `scripts/pi-seed.mjs` creates/updates 7 auth users (admin/presedinte/comitet/cenzor/proprietar/chirias@dev.local + super.admin@dev.local), upserts `users` profiles, inserts `memberships` for the 6 tenant roles, and grants `platform_admins` for super_admin. Guards: refuses if `VITE_APP_STAGE != 'dev'` or URL matches `*.supabase.co` or service-role key is placeholder. Accepts `--password` arg (default `DevLocal1!`); idempotent. `seed` subcommand added to `scripts/pi.sh`; `"pi:seed"` script added to `package.json`. `PI_DEPLOYMENT.md` §3b added with role/password table and `MAIL_MODE=log` workflow; `MAIL_MODE` row added to env-vars table. 15 new static-analysis tests in `piSeed.test.ts`. 161 files / 1494 tests / build / build:pi / build:demo all green.
 
