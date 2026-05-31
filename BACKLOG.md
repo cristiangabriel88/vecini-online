@@ -199,7 +199,7 @@ Done: `DevRoleSwitcher.tsx` added (`src/shared/components/`) with `floating` (fi
 
 ### ✅ T174 — [P1] Auto-bypass login in DEMO + remember last role
 
-### ⬜ T175 — [P1] `MAIL_MODE=resend|log|disabled` for the invite-email function
+### ✅ T175 — [P1] `MAIL_MODE=resend|log|disabled` for the invite-email function
 Pi DEV stage shouldn't require Resend creds. Today `invite-email.ts` returns 503 when unconfigured — usable but unfriendly for testing the admin flow on the Pi. Add `getMailMode(): 'resend' | 'log' | 'disabled'` to `netlify/functions/_shared/resend.ts` (reading `process.env.MAIL_MODE`, default `'resend'`; keep `isResendConfigured()` for backward compat). Branch `netlify/functions/invite-email.ts` on it: `resend` keeps the existing path; `log` writes to a new `email_outbox` table + `console.info` and returns 200 with `{ delivered: false, logged: true }`; `disabled` returns 200 with `{ delivered: false, reason: 'mail_disabled' }`. Add migration `supabase/migrations/NNNN_email_outbox.sql` creating `email_outbox (id uuid pk, asociatie_id uuid, to_email text, subject text, body text, created_at timestamptz)` with RLS scoped to admin role per existing pattern. Set `MAIL_MODE=log` in `.env.pi.example`, `MAIL_MODE=resend` in `.env.example`. In the admin invitations page, show a small "Outbox (DEV)" link when `!isProd()` listing the rows. Prereq: T171.
 
 ### ⬜ T176 — [P1] `npm run pi:seed` — one Supabase user per role with a known dev password

@@ -8,6 +8,9 @@ the live `BACKLOG.md` carries only the protocol and the open (⬜) queue.
 > task (read it only when a task's prerequisite or history is genuinely needed).
 > `RESUME.md` §0 remains the dated chronological summary.
 
+### ✅ T175 — [P1] `MAIL_MODE=resend|log|disabled` for the invite-email function
+Done: `getMailMode(): MailMode` added to `netlify/functions/_shared/resend.ts` (reads `MAIL_MODE` env, defaults to `'resend'`; keeps `isResendConfigured()` for backward compat). `invite-email.ts` branches on mode: `disabled` returns 200 `{delivered:false,reason:'mail_disabled'}` immediately (no backend needed); `log` writes to new `email_outbox` table + `console.info` then returns 200 `{delivered:false,logged:true}`; `resend` keeps the existing live-send path. Migration `20260531000001_email_outbox.sql` creates `email_outbox (id, asociatie_id, to_email, subject, body, created_at)` with RLS (admin/presedinte select). `MAIL_MODE=log` added to `.env.pi.example`; `MAIL_MODE=resend` to `.env.example`. `InvitesAdminPage` shows a collapsible "Outbox (DEV)" section when `!isProd()` fetching the last 50 rows on mount; 6 new locale keys per language. 8 new static-analysis tests in `tests/unit/mailMode.test.ts`. 160 files / 1479 tests / build / build:pi / build:demo all green.
+
 ### ✅ T174 — [P1] Auto-bypass login in DEMO + remember last role
 Done: `DemoAutoLogin.tsx` component calls `enterDemo(lastDemoRole)` on first render and redirects to `/app`; `authStore.ts` gains `lastDemoRole: Role` field initialised from `localStorage` (`vecini:lastDemoRole` key, default `'admin'`); `enterDemo` persists the role to localStorage and sets `lastDemoRole` in state; `router.tsx` swaps the `/` route to `<DemoAutoLogin>` when `isDemo()` (no change to LoginPage). 4 new unit tests. 159 files / 1471 tests / build / build:pi / build:demo all green.
 

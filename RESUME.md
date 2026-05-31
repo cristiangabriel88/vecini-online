@@ -19,10 +19,11 @@ under `docs/`, despite references to the contrary). The product is
 > Finished tasks' full done-notes are archived in `COMPLETED.md` (newest first);
 > §0 below stays the dated chronological summary.
 
-## 0. Current status (updated 2026-05-31, T174 done -- DEMO auto-bypasses login and remembers last role; 159 files / 1471 tests)
+## 0. Current status (updated 2026-05-31, T175 done -- MAIL_MODE=resend|log|disabled for invite-email function; 160 files / 1479 tests)
 
 The three-stage model (PROD/DEV/DEMO) continues to mature. DEMO stage now opens directly in the resident shell -- no LoginPage friction -- and remembers the last role across page refreshes via localStorage. The floating role-switcher (T173) immediately takes effect since enterDemo persists the selected role.
 
+- **2026-05-31 — T175 (P1) MAIL_MODE=resend|log|disabled for invite-email function.** `getMailMode()` in `resend.ts`; `invite-email.ts` branches on mode; `email_outbox` migration; `InvitesAdminPage` outbox panel when `!isProd()`; 8 new tests. 160 files / 1479 tests / build / build:pi / build:demo green.
 - **2026-05-31 — T174 (P1) DEMO auto-bypass login + remember last role.** `DemoAutoLogin.tsx` component; `lastDemoRole` field + localStorage persistence in `authStore`; router swaps `/` to `<DemoAutoLogin>` when `isDemo()`. 4 new tests. 159 files / 1471 tests / build / build:pi / build:demo green.
 - **2026-05-28 — T173 (P1) Floating dev role switcher.** `DevRoleSwitcher.tsx` with `floating`/`inline` variants; `signInAsDevUser` added to authStore. Mounted in AppLayout; LoginPage buttons extracted. 5 new locale keys per language. 9 new tests. 158 files / 1467 tests / build / build:pi / build:demo green.
 - **2026-05-28 — T172 (P1) Stage-specific build/dev scripts.** `build:prod`, `build:pi`, `build:demo`, `dev:pi`, `dev:demo` added to `package.json`. `.env.pi` + `.env.demo` committed; `.gitignore` updated with `!.env.pi` + `!.env.demo`. 157 files / 1458 tests / build / build:pi / build:demo green.

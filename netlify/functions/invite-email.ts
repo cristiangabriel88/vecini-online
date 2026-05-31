@@ -27,7 +27,7 @@
 import QRCode from 'qrcode';
 import { buildAdminInviteEmail, buildInviteEmail } from '../../src/shared/lib/inviteEmail';
 import { buildOnboardingLink } from '../../src/shared/lib/inviteCode';
-import { isResendConfigured, sendEmail } from './_shared/resend';
+import { getMailMode, isResendConfigured, sendEmail } from './_shared/resend';
 import {
   isSupabaseAdminConfigured,
   supabaseAdmin,
@@ -64,8 +64,15 @@ const UUID_RE =
 export default async (req: Request): Promise<Response> => {
   if (req.method !== 'POST') return json(405, { error: 'method-not-allowed' });
 
-  // Both the email provider and the service-role backend must be present.
-  if (!isResendConfigured()) return json(503, { error: 'email-not-configured' });
+  const mailMode = getMailMode();
+
+  // 'disabled' skips all delivery immediately -- no backend required.
+  if (mailMode === 'disabled') return json(200, { delivered: false, reason: 'mail_disabled' });
+
+  // 'resend' requires both the email provider and the service-role backend.
+  if (mailMode === 'resend' && !isResendConfigured()) {
+    return json(503, { error: 'email-not-configured' });
+  }
   if (!isSupabaseAdminConfigured()) return json(503, { error: 'backend-not-configured' });
 
   // ── Auth: resolve the caller from the bearer token ───────────────────────
@@ -149,6 +156,23 @@ export default async (req: Request): Promise<Response> => {
     });
   }
 
+  // ── Branch on mail mode ───────────────────────────────────────────────────
+  if (mailMode === 'log') {
+    // Write to email_outbox so the admin UI can inspect it, then succeed.
+    // Privacy: we log subject only (not the body or recipient) to console.
+    console.info('[invite-email] MAIL_MODE=log; logged invite to outbox');
+    void supabaseAdmin()
+      .from('email_outbox')
+      .insert({
+        asociatie_id: invite.asociatie_id,
+        to_email: invite.invitee_email,
+        subject: email.subject,
+        body: email.text,
+      });
+    return json(200, { delivered: false, logged: true });
+  }
+
+  // mailMode === 'resend' -- live delivery path.
   const result = await sendEmail({
     to: invite.invitee_email,
     subject: email.subject,

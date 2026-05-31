@@ -947,7 +947,13 @@
     "empty": "No codes issued yet. Generate the first one above.",
     "noAsociatie": "Select an active association first.",
     "showQr": "Show QR",
-    "hideQr": "Hide QR"
+    "hideQr": "Hide QR",
+    "outboxLink": "Outbox (DEV)",
+    "outboxTitle": "Email outbox (DEV)",
+    "outboxEmpty": "No emails logged.",
+    "outboxSubject": "Subject",
+    "outboxTo": "Recipient",
+    "outboxSentAt": "Sent at"
   },
   "visitors": {
     "title": "Observed visitors",

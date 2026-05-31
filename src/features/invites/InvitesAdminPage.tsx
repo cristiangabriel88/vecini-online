@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { KeyRound, Link2, Mail, QrCode as QrCodeIcon, Ticket, Trash2 } from 'lucide-react';
+import { Inbox, KeyRound, Link2, Mail, QrCode as QrCodeIcon, Ticket, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
@@ -13,7 +13,8 @@ import { Badge } from '@/shared/components/Badge';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { QrCode } from '@/shared/components/QrCode';
 import { formatDate } from '@/shared/lib/format';
-import { env } from '@/shared/lib/env';
+import { env, isProd } from '@/shared/lib/env';
+import { supabase } from '@/shared/lib/supabase';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useInviteStore } from '@/shared/store/inviteStore';
 import { recordAudit } from '@/shared/store/auditStore';
@@ -31,6 +32,13 @@ import { sendInviteEmail } from '@/features/invites/inviteEmailApi';
 import { hydrateInviteDelivery } from '@/features/invites/inviteWriteApi';
 import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import type { Role } from '@/shared/types/domain';
+
+interface OutboxRow {
+  id: string;
+  to_email: string;
+  subject: string;
+  created_at: string;
+}
 
 /** Prefill carried in router state when the apartment surface jumps here to
  *  invite a specific occupant (optionally auto-issuing the code). */
@@ -71,6 +79,8 @@ export default function InvitesAdminPage() {
   const [singleUse, setSingleUse] = useState(true);
   /** Set of invite IDs whose QR panel is currently open. */
   const [openQrs, setOpenQrs] = useState<Set<string>>(() => new Set());
+  const [outbox, setOutbox] = useState<OutboxRow[]>([]);
+  const [showOutbox, setShowOutbox] = useState(false);
 
   const apartments = useAsociatieApartments();
 
@@ -78,9 +88,21 @@ export default function InvitesAdminPage() {
   // auto-issue the code when asked so the change is "saved" without an extra
   // click. The router state is then cleared so a refresh does not re-mint.
   // Hydrate delivery timestamps from the live DB on mount (T149).
+  // In non-prod stages, also load the email_outbox rows.
   useEffect(() => {
     if (asociatieId && isSupabaseConfigured) {
       void hydrateInviteDelivery(asociatieId);
+      if (!isProd()) {
+        void supabase
+          .from('email_outbox')
+          .select('id, to_email, subject, created_at')
+          .eq('asociatie_id', asociatieId)
+          .order('created_at', { ascending: false })
+          .limit(50)
+          .then(({ data }) => {
+            if (data) setOutbox(data as OutboxRow[]);
+          });
+      }
     }
   }, [asociatieId]);
 
@@ -281,6 +303,50 @@ export default function InvitesAdminPage() {
           </Button>
         </div>
       </Card>
+
+      {!isProd() && (
+        <div className="mb-4">
+          <button
+            className="flex items-center gap-2 text-sm text-muted hover:text-foreground transition-colors"
+            onClick={() => setShowOutbox((v) => !v)}
+            aria-expanded={showOutbox}
+          >
+            <Inbox className="h-4 w-4" />
+            {t('invites.outboxLink')}
+            {outbox.length > 0 && (
+              <span className="ml-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+                {outbox.length}
+              </span>
+            )}
+          </button>
+          {showOutbox && (
+            <Card className="mt-3">
+              <h3 className="mb-3 font-semibold text-sm">{t('invites.outboxTitle')}</h3>
+              {outbox.length === 0 ? (
+                <p className="text-sm text-muted">{t('invites.outboxEmpty')}</p>
+              ) : (
+                <div className="space-y-2">
+                  {outbox.map((row) => (
+                    <div key={row.id} className="rounded border border-border p-2 text-sm">
+                      <p className="text-muted">
+                        <span className="font-medium text-foreground">{t('invites.outboxTo')}:</span>{' '}
+                        {row.to_email}
+                      </p>
+                      <p className="text-muted">
+                        <span className="font-medium text-foreground">{t('invites.outboxSubject')}:</span>{' '}
+                        {row.subject}
+                      </p>
+                      <p className="text-xs text-muted">
+                        {t('invites.outboxSentAt')}: {formatDate(new Date(row.created_at).getTime())}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          )}
+        </div>
+      )}
 
       <h2 className="mb-2 text-lg font-semibold">{t('invites.listTitle')}</h2>
       {list.length === 0 ? (

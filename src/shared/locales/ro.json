@@ -947,7 +947,13 @@
     "empty": "Niciun cod emis încă. Generează primul cod de mai sus.",
     "noAsociatie": "Selectează mai întâi o asociație activă.",
     "showQr": "Afișează QR",
-    "hideQr": "Ascunde QR"
+    "hideQr": "Ascunde QR",
+    "outboxLink": "Outbox (DEV)",
+    "outboxTitle": "Email outbox (DEV)",
+    "outboxEmpty": "Niciun email înregistrat.",
+    "outboxSubject": "Subiect",
+    "outboxTo": "Destinatar",
+    "outboxSentAt": "Trimis la"
   },
   "visitors": {
     "title": "Vizitatori observați",
