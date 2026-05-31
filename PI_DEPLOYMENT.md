@@ -1,5 +1,14 @@
 # PI_DEPLOYMENT.md — self-hosting vecini.online on a Raspberry Pi
 
+> **Stage:** This guide covers the **DEV stage** (`VITE_APP_STAGE=dev`) of the
+> three-stage deployment model formalized in T171--T177. DEV uses a local
+> Supabase stack instead of the cloud, `MAIL_MODE=log` so email is diverted to
+> the `email_outbox` table (no Resend credentials required), and one seeded auth
+> user per role (`npm run pi:seed`) so any persona can be reached via the
+> DevRoleSwitcher without an invite flow. The rationale for the three-stage
+> split is in `DECISIONS.md`. For the cloud production deployment see
+> `RUNBOOK-MVP.md`.
+
 This guide describes the first-class self-hosted deployment path for vecini.online
 on a Raspberry Pi (or any Debian-based single board / mini PC). It runs the same
 codebase as the Netlify + Supabase cloud deployment; nothing here breaks cloud

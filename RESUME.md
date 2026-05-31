@@ -12,17 +12,23 @@ under `docs/`, despite references to the contrary). The product is
 
 ---
 
-> **Next work is driven by `BACKLOG.md`** (the protocol + open `⬜` queue) via the
-> autonomous `make progress` protocol in `CLAUDE.md`. Trigger it by typing
-> `make progress` (one task) or running `scripts/run-overnight.sh` (continuous,
-> unattended, Git Bash). Section 4 below is historical context, not the live queue.
-> Finished tasks' full done-notes are archived in `COMPLETED.md` (newest first);
-> §0 below stays the dated chronological summary.
+> The app runs in three named stages set via `VITE_APP_STAGE`: **PROD** (cloud
+> Netlify + Supabase + Resend, MFA strict) -- the live multi-tenant deployment;
+> **DEV** (Raspberry Pi + local Supabase, `MAIL_MODE=log`, one seeded user per
+> role via `npm run pi:seed`) -- full auth path, no real email required; **DEMO**
+> (frontend-only, no network, auto-bypass login, floating role switcher) -- the
+> default for offline work and E2E. The three-stage model was formalized in
+> T171--T177; the rationale is in `DECISIONS.md`; the Pi setup guide is in
+> `PI_DEPLOYMENT.md`. **Next work is driven by `BACKLOG.md`** (protocol + open
+> `⬜` queue) via the `make progress` protocol in `CLAUDE.md`. Finished tasks'
+> done-notes are archived in `COMPLETED.md` (newest first); §0 stays the dated
+> chronological summary.
 
-## 0. Current status (updated 2026-05-31, T177 done -- visible stage banner in app shell; 161 files / 1494 tests)
+## 0. Current status (updated 2026-05-31, T178 done -- three-stage model docs pass; 161 files / 1494 tests)
 
-The three-stage model (PROD/DEV/DEMO) now has a visible indicator in the app shell: a fixed bottom-left chip that shows "DEV (Pi)" in amber or "DEMO" in warm-graphite, absent in PROD. Makes it immediately obvious which stage is active when running multiple terminals.
+T178 documentation pass: DECISIONS.md gains the four-why entry for the three-stage model; RESUME.md §0 now leads with the stage model instead of the protocol description; PI_DEPLOYMENT.md gains a top-section pointer to the model; BACKLOG.md cleared of stale "demo = missing creds" language.
 
+- **2026-05-31 — T178 (P2) Three-stage model documentation pass.** DECISIONS.md four-why entry; RESUME.md §0 leads with stage model; PI_DEPLOYMENT.md top-section pointer; BACKLOG.md stale-language sweep. 161 files / 1494 tests / all 3 builds green.
 - **2026-05-31 — T177 (P2) Visible stage banner.** `StageBanner.tsx` fixed bottom-left chip; amber for DEV, warm-graphite for DEMO, hidden in PROD; CSS in shell.css; bilingual keys; mounted in AppLayout. 161 files / 1494 tests / all 3 builds green.
 - **2026-05-31 — T176 (P1) pi:seed one Supabase user per role.** `scripts/pi-seed.mjs` + `pi.sh seed` + `"pi:seed"` npm script; 7 users seeded (6 tenant roles + super_admin via platform_admins); safety guards + idempotent upserts; PI_DEPLOYMENT.md §3b + MAIL_MODE row. 15 new tests. 161 files / 1494 tests green.
 - **2026-05-31 — T175 (P1) MAIL_MODE=resend|log|disabled for invite-email function.** `getMailMode()` in `resend.ts`; `invite-email.ts` branches on mode; `email_outbox` migration; `InvitesAdminPage` outbox panel when `!isProd()`; 8 new tests. 160 files / 1479 tests / build / build:pi / build:demo green.

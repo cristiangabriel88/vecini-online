@@ -2,6 +2,48 @@
 
 A running log of non-trivial choices made while building the app. Newest first.
 
+## Three-stage deployment model (PROD / DEV / DEMO) — T171–T177
+
+The app formalizes three named, verifiable stages rather than relying on the
+implicit "configured = live, unconfigured = demo" heuristic that predated T171.
+
+- **Why three stages, not two.** PROD (cloud) and DEV (Pi) would be the obvious
+  two -- one live, one local. DEMO adds a third distinct mode for pure frontend
+  iteration: no running backend, no network calls, no Supabase credentials
+  required, auto-bypass login, floating role switcher on every page. This is
+  the right mode for rapid design work, offline demos, and the CI E2E suite
+  (which should never depend on a provisioned backend). A two-stage model would
+  conflate "local dev with a real DB" and "frontend-only offline", which have
+  different setup requirements and different failure modes.
+
+- **Why a runtime env var (`VITE_APP_STAGE`), not separate entry points or
+  build configs.** A separate `main.prod.ts` / `main.dev.ts` entry point pair
+  would mean the code paths diverge, so bugs on one stage would go undetected
+  on the other. One env var baked in at build time keeps the *same* bundle
+  across all three stages; the only difference is which branch `getStage()`
+  resolves to. The `resolveAppStage(rawStage, supabaseConfigured)` fallback
+  also means an old deployment that never set `VITE_APP_STAGE` still resolves
+  correctly (prod when creds present, demo otherwise), so no rollback risk.
+
+- **Why one real seeded user per role on the Pi, not a backdoor bypass.** The
+  DevRoleSwitcher in DEV mode calls `signInAsDevUser(role)`, which does a real
+  `supabase.auth.signInWithPassword()` against the local Supabase stack. This
+  exercises the full auth path: JWT issue, hydration, RLS policy evaluation,
+  MFA gate (relaxed by `VITE_SECURITY_ENFORCEMENT=relaxed` on Pi). A backdoor
+  that skips `signIn` would never catch auth or RLS regressions. In DEMO mode
+  the switcher calls `enterDemo(role)` (no Supabase), which is correct because
+  there is no backend to authenticate against.
+
+- **Why `MAIL_MODE=log` rather than removing the email-sending code on Pi.**
+  Removing email sending for DEV would cause the invite-email Netlify function
+  to take a different code path than PROD, hiding bugs. `MAIL_MODE=log` keeps
+  the identical code path (including the `invite-email` function, `resend.ts`,
+  and all the caller-auth and rate-limit logic) but diverts delivery to the
+  `email_outbox` table and logs to stdout instead of calling Resend. The admin
+  can inspect logged emails in the in-app "Outbox (DEV)" panel without
+  needing Resend credentials or a real inbox. `MAIL_MODE=disabled` provides a
+  third option for CI where even the DB write is skipped.
+
 ## Production MVP launch: full hardening gates the launch + hub on its own origin
 
 - **This is a real production launch handling residents' personal data, not a

@@ -8,6 +8,9 @@ the live `BACKLOG.md` carries only the protocol and the open (⬜) queue.
 > task (read it only when a task's prerequisite or history is genuinely needed).
 > `RESUME.md` §0 remains the dated chronological summary.
 
+### ✅ T178 — [P2] Documentation pass for the three-stage model
+Done: DECISIONS.md four-why entry (why 3 not 2, why env var not separate entry points, why real auth on Pi not backdoor, why MAIL_MODE not removing email). RESUME.md §0 blockquote replaced with three-stage model summary + pointer to DECISIONS.md and PI_DEPLOYMENT.md; chronological bullet added. PI_DEPLOYMENT.md gains a top-section `> Stage:` note anchoring it as the DEV stage with pointer to RUNBOOK-MVP.md for PROD. BACKLOG.md MVP section updated: "locally, in demo mode, with no backend provisioned" reworded to reference the DEMO stage by name, removing stale implicit-creds language. FEATURES.md confirmed no row to flip (operational, not a feature). lint/typecheck/1494 tests/build/build:pi/build:demo all green.
+
 ### ✅ T177 — [P2] Visible stage banner in the app shell (DEV / DEMO only)
 Done: `src/shared/components/StageBanner.tsx` (fixed bottom-left chip; amber `--warning-soft/text` for DEV, `--bg-sunken/text-muted` for DEMO, null in PROD); CSS in `shell.css`; mounted in `AppLayout.tsx` after `<DevRoleSwitcher />`; bilingual keys `chrome.stageBannerDev` / `chrome.stageBannerDemo` in both locales. lint/typecheck/1494 tests/all 3 builds green.
 
