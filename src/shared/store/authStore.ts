@@ -63,6 +63,8 @@ interface AuthState {
   /** True while profile/memberships are being fetched for the current session. */
   hydrating: boolean;
   demo: boolean;
+  /** The last role used in demo mode; persisted in localStorage so a page refresh restores it. */
+  lastDemoRole: Role;
   /** Set while the resident is in a password-recovery session (from the email link). */
   recovery: boolean;
   init: () => Promise<void>;
@@ -136,6 +138,18 @@ interface AuthState {
 // (e.g. fast user switch, or a sign-out that started after this read).
 let hydrateSeq = 0;
 
+const LAST_DEMO_ROLE_KEY = 'vecini:lastDemoRole';
+
+function readLastDemoRole(): Role {
+  try {
+    const stored = localStorage.getItem(LAST_DEMO_ROLE_KEY);
+    if (stored) return stored as Role;
+  } catch {
+    // localStorage unavailable (e.g. private browsing with strict settings)
+  }
+  return 'admin';
+}
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   session: null,
   profile: null,
@@ -146,6 +160,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   loading: true,
   hydrating: false,
   demo: false,
+  lastDemoRole: readLastDemoRole(),
   recovery: false,
 
   init: async () => {
@@ -470,14 +485,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     useSecurityStore.getState().log('login', null);
     // Seed local tenant context so demo mode has a real active asociație + role
     // to scope by (no backend to hydrate from). The superadmin preview carries no
-    // membership — its authority is the platform flag, not a tenant role.
+    // membership -- its authority is the platform flag, not a tenant role.
     const { currentAsociatieId, memberships } = demoTenantContext(role);
+    try {
+      localStorage.setItem(LAST_DEMO_ROLE_KEY, role);
+    } catch {
+      // ignore
+    }
     set({
       demo: true,
       loading: false,
       currentAsociatieId,
       memberships,
       isPlatformSuperAdmin: role === 'super_admin',
+      lastDemoRole: role,
     });
   },
 

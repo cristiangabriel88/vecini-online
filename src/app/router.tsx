@@ -8,6 +8,8 @@ import { RequireWelcome } from './RequireWelcome';
 import { RequireAdmin } from './RequireAdmin';
 import { RequireSuperAdmin } from './RequireSuperAdmin';
 import { RouteFallback } from '@/shared/components/RouteFallback';
+import { DemoAutoLogin } from './DemoAutoLogin';
+import { isDemo } from '@/shared/lib/env';
 
 const LoginPage = lazy(() => import('@/features/auth/LoginPage'));
 const ResetPasswordPage = lazy(() => import('@/features/auth/ResetPasswordPage'));
@@ -121,7 +123,7 @@ function LegacyJoinRedirect() {
 }
 
 export const router = createBrowserRouter([
-  { path: '/', element: <S><LoginPage /></S> },
+  { path: '/', element: isDemo() ? <DemoAutoLogin /> : <S><LoginPage /></S> },
   { path: '/reset-parola', element: <S><ResetPasswordPage /></S> },
   { path: '/confidentialitate', element: <S><PrivacyPolicyPage /></S> },
   { path: '/termeni', element: <S><TermsPage /></S> },
