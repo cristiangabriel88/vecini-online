@@ -73,8 +73,13 @@ case "$cmd" in
     fi
     ;;
 
+  seed)
+    echo "==> Seeding one dev user per role (pi:seed)"
+    node scripts/pi-seed.mjs "${@:2}"
+    ;;
+
   *)
-    echo "Usage: scripts/pi.sh {build|start|stop|logs|migrate}"
+    echo "Usage: scripts/pi.sh {build|start|stop|logs|migrate|seed}"
     exit 1
     ;;
 esac

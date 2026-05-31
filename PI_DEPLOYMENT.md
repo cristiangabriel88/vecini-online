@@ -98,6 +98,45 @@ the older `audit_log` table from `init_core.sql` is upgraded in place, and
 
 ---
 
+## 3b. Seed dev users (`pi:seed`)
+
+Once migrations are applied, populate one auth user per role so you can log in
+as any persona without needing an email or an invite flow (T176):
+
+```bash
+npm run pi:seed
+# or with a custom password:
+npm run pi:seed -- --password MySecret1!
+```
+
+The script creates (or updates) these 7 users, all sharing the same password:
+
+| Email | Role | Notes |
+| --- | --- | --- |
+| `admin@dev.local` | admin | Full tenant admin |
+| `presedinte@dev.local` | presedinte | President |
+| `comitet@dev.local` | comitet | Committee member |
+| `cenzor@dev.local` | cenzor | Auditor |
+| `proprietar@dev.local` | proprietar | Owner / resident |
+| `chirias@dev.local` | chirias | Tenant |
+| `super.admin@dev.local` | super_admin | Platform superadmin (no tenant membership) |
+
+Default password: `DevLocal1!` (override with `--password`).
+
+The script is idempotent -- re-running it updates passwords and is a no-op for
+rows that already exist. It refuses to run if `VITE_APP_STAGE` is not `dev` or
+if the Supabase URL looks like a cloud endpoint (`*.supabase.co`).
+
+### MAIL_MODE=log workflow
+
+With `MAIL_MODE=log` set in `.env`, the invite-email function writes outgoing
+emails to the `email_outbox` table instead of calling Resend. In the admin
+Invitations page an "Outbox (DEV)" panel appears (visible only in non-prod
+stages) listing the last 50 logged messages so you can verify invite delivery
+without a real email provider.
+
+---
+
 ## 4. Build the app and the webhook service
 
 ```bash
@@ -274,6 +313,7 @@ code — it is never hardcoded in the app.
 | `TELEGRAM_WEBHOOK_PATH` | Route for the webhook (default `/telegram/webhook`). |
 | `APP_URL` / `VITE_APP_URL` | Public app URL (reverse proxy / tunnel host). |
 | `VITE_DEFAULT_LOCALE` | `ro` or `en`. |
+| `MAIL_MODE` | `resend` \| `log` \| `disabled` -- email delivery mode. Set to `log` on the Pi to log emails to `email_outbox` instead of calling Resend. |
 
 When `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` are absent the app falls back
 to demo/offline mode, so it always runs even before the stack is up.
