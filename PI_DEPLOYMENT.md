@@ -57,7 +57,7 @@ supabase --version
 
 ```bash
 # Clone into the preferred local path used by the systemd units below.
-git clone https://github.com/cristiangabriel88/IntreVecini.git /home/cristi/vecini.online
+git clone https://github.com/cristiangabriel88/vecini-online.git /home/cristi/vecini.online
 cd /home/cristi/vecini.online
 npm ci
 cp .env.pi.example .env
