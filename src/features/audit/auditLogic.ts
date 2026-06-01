@@ -48,6 +48,7 @@ export const AUDIT_ACTIONS = [
   'document.uploaded',
   'document.deleted',
   'ticket.submitted',
+  'ticket.advanced',
   'aga.scheduled',
   'aga.opened',
   'aga.closed',

@@ -4,10 +4,10 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 
 ## 0. Current status
 
-- date: 2026-05-30
-- last_task: T66 (P2) Enforce the discussion post rate limit (anti-spam)
+- date: 2026-06-01
+- last_task: T67 (P2) Comitet/admin ticket status-lifecycle surface (offline)
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 188 files / 1783 tests
+- counts: 188 files / 1799 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
 - next: T108 rich per-card home widgets (prereq T12 done) or T51 activeRole() migration (prereq T28 done)
@@ -15,6 +15,16 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T67 P2 ✅ 2026-06-01 -- Comitet/admin ticket status-lifecycle surface (offline)
+- updated: src/features/tickets/ticketLogic.ts (STATUS_TRANSITIONS, allowedTransitions, applyStatusTransition, canRateTicket, applyRating, updateTicketIn)
+- updated: src/features/tickets/ticketsStore.ts (updateTicket action)
+- updated: src/features/tickets/TicketsPage.tsx (manager action bar, resolution-notes modal, reporter rating modal, inline notes/stars)
+- updated: src/features/audit/auditLogic.ts + AuditLogPage.tsx (ticket.advanced action + tone)
+- updated: src/shared/locales/en.json + ro.json (tickets.advance_*/rate*/resolutionNotes + audit ticket.advanced)
+- new tests: 16 assertions in tests/unit/ticketLogic.test.ts; E2E in tests/e2e/features.spec.ts
+- note: ported onto current main from stale phone-session branch claude/mvp-QKqHQ (post-4.8-refactor); the branch's other commits (T129, T174-T178) were already on main
+- result: 188 files / 1799 tests / build+pi+demo green
 
 ### T66 P2 ✅ 2026-05-30 -- Enforce the discussion post rate limit (anti-spam)
 - updated: src/features/discussions/discussionLogic.ts (POST_RATE_WINDOW_MS, prunePostTimestamps, isVettedRole)

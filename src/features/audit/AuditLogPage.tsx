@@ -49,6 +49,7 @@ const ACTION_TONE: Record<AuditAction, 'success' | 'danger' | 'warning' | 'neutr
   'document.uploaded': 'success',
   'document.deleted': 'danger',
   'ticket.submitted': 'success',
+  'ticket.advanced': 'neutral',
   'aga.scheduled': 'success',
   'aga.opened': 'success',
   'aga.closed': 'neutral',

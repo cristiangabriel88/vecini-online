@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { AlertCircle, Plus, Clock } from 'lucide-react';
+import { AlertCircle, Plus, Clock, Star } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
@@ -16,7 +16,13 @@ import type { TicketSeverity, TicketStatus } from '@/shared/types/domain';
 import { useAuthStore } from '@/shared/store/authStore';
 import { DEMO_CURRENT_USER_ID } from '@/shared/demo/demoData';
 import { useAsociatieTickets, useTicketsStore } from './ticketsStore';
-import { isSlaBreached } from './ticketLogic';
+import {
+  allowedTransitions,
+  applyRating,
+  applyStatusTransition,
+  canRateTicket,
+  isSlaBreached,
+} from './ticketLogic';
 import { recordAudit } from '@/shared/store/auditStore';
 import { hydrateTickets, submitTicket } from './ticketsApi';
 
@@ -32,13 +38,28 @@ const statusTone: Record<TicketStatus, 'neutral' | 'primary' | 'warning' | 'succ
 
 const CATEGORIES = ['electric', 'apa', 'lift', 'iluminat', 'curatenie', 'incalzire', 'altele'];
 
+const NOTES_REQUIRED: ReadonlySet<TicketStatus> = new Set(['rezolvat', 'respins']);
+
 export default function TicketsPage() {
   const { t } = useTranslation();
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const activeRoleFn = useAuthStore((s) => s.activeRole);
+  const role = activeRoleFn();
   const reporterUserId = useAuthStore((s) => s.profile?.id) ?? DEMO_CURRENT_USER_ID;
   const items = useAsociatieTickets();
   const fetchError = useTicketsStore((s) => s.fetchError);
+  const updateTicket = useTicketsStore((s) => s.updateTicket);
+
+  const isManager = role === 'admin' || role === 'presedinte' || role === 'comitet';
+
   const [open, setOpen] = useState(false);
+  const [advanceModal, setAdvanceModal] = useState<{
+    ticketId: string;
+    newStatus: TicketStatus;
+  } | null>(null);
+  const [advanceNotes, setAdvanceNotes] = useState('');
+  const [rateModal, setRateModal] = useState<string | null>(null);
+  const [selectedRating, setSelectedRating] = useState(0);
 
   useEffect(() => {
     if (asociatieId) void hydrateTickets(asociatieId);
@@ -58,6 +79,42 @@ export default function TicketsPage() {
     toast.success(t('tickets.submitted'));
     setOpen(false);
     setForm({ title: '', description: '', category: 'electric', severity: 'medium', location: '' });
+  };
+
+  const handleAdvanceDirect = (ticketId: string, newStatus: TicketStatus) => {
+    if (!asociatieId) return;
+    updateTicket(asociatieId, ticketId, (tk) =>
+      applyStatusTransition(tk, newStatus, reporterUserId),
+    );
+    recordAudit({ action: 'ticket.advanced', entity: 'ticket', entity_label: newStatus });
+    toast.success(t('tickets.advanceDone'));
+  };
+
+  const openAdvanceModal = (ticketId: string, newStatus: TicketStatus) => {
+    setAdvanceModal({ ticketId, newStatus });
+    setAdvanceNotes('');
+  };
+
+  const confirmAdvance = () => {
+    if (!advanceModal || !asociatieId) return;
+    updateTicket(asociatieId, advanceModal.ticketId, (tk) =>
+      applyStatusTransition(tk, advanceModal.newStatus, reporterUserId, advanceNotes.trim() || null),
+    );
+    recordAudit({
+      action: 'ticket.advanced',
+      entity: 'ticket',
+      entity_label: advanceModal.newStatus,
+    });
+    toast.success(t('tickets.advanceDone'));
+    setAdvanceModal(null);
+  };
+
+  const confirmRate = () => {
+    if (!rateModal || !asociatieId || selectedRating === 0) return;
+    updateTicket(asociatieId, rateModal, (tk) => applyRating(tk, selectedRating));
+    toast.success(t('tickets.rateDone'));
+    setRateModal(null);
+    setSelectedRating(0);
   };
 
   return (
@@ -87,6 +144,8 @@ export default function TicketsPage() {
         <div className="space-y-3">
           {items.map((tk) => {
             const breached = isSlaBreached(tk.sla_due_at, tk.resolved_at);
+            const nextStatuses = allowedTransitions(tk.status, role);
+            const canRate = canRateTicket(tk, reporterUserId);
             return (
               <Card key={tk.id}>
                 <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
@@ -104,6 +163,55 @@ export default function TicketsPage() {
                     </span>
                   )}
                 </div>
+                {tk.resolution_notes && (
+                  <p className="mt-2 text-sm text-muted">
+                    <span className="font-medium">{t('tickets.resolutionNotesLabel')}</span>{' '}
+                    {tk.resolution_notes}
+                  </p>
+                )}
+                {tk.rating !== null && (
+                  <div className="mt-2 flex items-center gap-1 text-sm text-muted">
+                    {Array.from({ length: 5 }, (_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-4 w-4 ${i < tk.rating! ? 'fill-warning text-warning' : 'text-muted'}`}
+                      />
+                    ))}
+                  </div>
+                )}
+                {(isManager && nextStatuses.length > 0) || canRate ? (
+                  <div className="mt-3 flex flex-wrap gap-2 border-t border-black/10 pt-3 dark:border-white/10">
+                    {isManager &&
+                      nextStatuses.map((next) => (
+                        <Button
+                          key={next}
+                          size="sm"
+                          variant={next === 'respins' ? 'danger' : 'ghost'}
+                          onClick={() => {
+                            if (NOTES_REQUIRED.has(next)) {
+                              openAdvanceModal(tk.id, next);
+                            } else {
+                              handleAdvanceDirect(tk.id, next);
+                            }
+                          }}
+                        >
+                          {t(`tickets.advance_${next}`)}
+                        </Button>
+                      ))}
+                    {canRate && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setRateModal(tk.id);
+                          setSelectedRating(0);
+                        }}
+                      >
+                        <Star className="h-4 w-4" /> {t('tickets.rate')}
+                      </Button>
+                    )}
+                  </div>
+                ) : null}
               </Card>
             );
           })}
@@ -165,6 +273,65 @@ export default function TicketsPage() {
             value={form.location}
             onChange={(e) => setForm({ ...form, location: e.target.value })}
           />
+        </div>
+      </Modal>
+
+      {/* Advance-status modal (for transitions that may carry resolution notes) */}
+      <Modal
+        open={advanceModal !== null}
+        onClose={() => setAdvanceModal(null)}
+        title={t('tickets.advanceTitle')}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setAdvanceModal(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              variant={advanceModal?.newStatus === 'respins' ? 'danger' : 'primary'}
+              onClick={confirmAdvance}
+            >
+              {advanceModal ? t(`tickets.advance_${advanceModal.newStatus}`) : ''}
+            </Button>
+          </>
+        }
+      >
+        <Textarea
+          label={t('tickets.resolutionNotes')}
+          value={advanceNotes}
+          onChange={(e) => setAdvanceNotes(e.target.value)}
+        />
+      </Modal>
+
+      {/* Rating modal */}
+      <Modal
+        open={rateModal !== null}
+        onClose={() => setRateModal(null)}
+        title={t('tickets.rateTitle')}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setRateModal(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button onClick={confirmRate} disabled={selectedRating === 0}>
+              {t('common.save')}
+            </Button>
+          </>
+        }
+      >
+        <div className="flex justify-center gap-2 py-2">
+          {[1, 2, 3, 4, 5].map((n) => (
+            <button
+              key={n}
+              type="button"
+              aria-label={`${n} stele`}
+              onClick={() => setSelectedRating(n)}
+              className="transition-transform hover:scale-110 focus-visible:outline-none"
+            >
+              <Star
+                className={`h-8 w-8 ${n <= selectedRating ? 'fill-warning text-warning' : 'text-muted'}`}
+              />
+            </button>
+          ))}
         </div>
       </Modal>
     </div>

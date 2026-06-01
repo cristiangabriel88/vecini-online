@@ -10,6 +10,7 @@ import {
   newTicket,
   seedTickets,
   ticketsForAsociatie,
+  updateTicketIn,
 } from './ticketLogic';
 
 interface TicketsState {
@@ -19,6 +20,8 @@ interface TicketsState {
   fetchError: string | null;
   /** Submit a sesizare into one asociație, reported by the given user. */
   add: (asociatieId: string, reporterUserId: string, input: NewTicketInput) => void;
+  /** Update a single ticket by id (used by status transitions and rating). */
+  updateTicket: (asociatieId: string, ticketId: string, updater: (t: Ticket) => Ticket) => void;
   /** Replace the full list for one asociație (used by live hydration). */
   replaceForAsociatie: (asociatieId: string, items: Ticket[]) => void;
   /** Set or clear the live-fetch error (called by the API layer). */
@@ -46,6 +49,10 @@ export const useTicketsStore = create<TicketsState>()(
             asociatieId,
             newTicket(input, asociatieId, reporterUserId),
           ),
+        })),
+      updateTicket: (asociatieId, ticketId, updater) =>
+        set((s) => ({
+          byAsociatie: updateTicketIn(s.byAsociatie, asociatieId, ticketId, updater),
         })),
       replaceForAsociatie: (asociatieId, items) =>
         set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: items } })),

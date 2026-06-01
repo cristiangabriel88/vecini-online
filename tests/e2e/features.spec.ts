@@ -102,3 +102,23 @@ test('F40 — resident searches the glossary', async ({ page }) => {
   await expect(page.getByText('Fond de rulment')).toBeVisible();
   await expect(page.getByText('Cenzor')).toHaveCount(0);
 });
+
+test('T67 - admin advances a ticket through the status lifecycle', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/sesizari');
+  // Demo ticket t-2 "Infiltrație în garaj" starts at status "Primit" (primit).
+  const card = page.getByRole('heading', { name: /Infiltrație în garaj/i }).locator('../..');
+  await expect(card.getByText('Primit')).toBeVisible();
+  // Admin action bar: assign the ticket.
+  await card.getByRole('button', { name: /Asignează/i }).click();
+  await expect(card.getByText('Asignat')).toBeVisible();
+  // Advance to in-progress.
+  await card.getByRole('button', { name: /Marchează în lucru/i }).click();
+  await expect(card.getByText('În lucru')).toBeVisible();
+  // Advance to resolved via the notes modal.
+  await card.getByRole('button', { name: /Marchează rezolvat/i }).click();
+  await page.getByLabel(/Note de rezolvare/i).fill('Fisura a fost etanșată.');
+  await page.getByRole('button', { name: /Marchează rezolvat/i }).last().click();
+  await expect(card.getByText('Rezolvat')).toBeVisible();
+  await expect(card.getByText(/Fisura a fost etanșată/i)).toBeVisible();
+});

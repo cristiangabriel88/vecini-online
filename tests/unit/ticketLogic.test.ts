@@ -8,6 +8,11 @@ import {
   ticketsForAsociatii,
   newTicket,
   addTicketIn,
+  allowedTransitions,
+  applyStatusTransition,
+  applyRating,
+  canRateTicket,
+  updateTicketIn,
   type NewTicketInput,
 } from '@/features/tickets/ticketLogic';
 import { DEMO_ASOCIATIE, DEMO_TICKETS } from '@/shared/demo/demoData';
@@ -93,5 +98,151 @@ describe('tickets scoped per asociație (T49)', () => {
     const out = ticketsForAsociatii(byAsociatie, ['a2', 'a1', 'a2', 'a3']);
     expect(out.map((t) => t.id)).toEqual(['a2-1', 'a1-1']);
     expect(ticketsForAsociatii(byAsociatie, [])).toEqual([]);
+  });
+});
+
+describe('status-lifecycle helpers (T67)', () => {
+  const INPUT: NewTicketInput = {
+    title: 'Test',
+    description: 'Desc',
+    category: 'electric',
+    severity: 'medium',
+    location: '',
+  };
+  const BASE = newTicket(INPUT, 'asoc-x', 'u-reporter', new Date('2026-05-01T10:00:00Z'));
+
+  describe('allowedTransitions', () => {
+    it('returns the correct next statuses for manager roles', () => {
+      expect(allowedTransitions('primit', 'admin')).toEqual(['asignat']);
+      expect(allowedTransitions('asignat', 'comitet')).toEqual(['in_lucru']);
+      expect(allowedTransitions('in_lucru', 'presedinte')).toEqual(['rezolvat']);
+      expect(allowedTransitions('rezolvat', 'admin')).toEqual(['verificat', 'respins']);
+      expect(allowedTransitions('verificat', 'admin')).toEqual(['inchis']);
+      expect(allowedTransitions('inchis', 'admin')).toEqual([]);
+      expect(allowedTransitions('respins', 'admin')).toEqual([]);
+    });
+
+    it('returns empty for non-manager roles', () => {
+      expect(allowedTransitions('primit', 'proprietar')).toEqual([]);
+      expect(allowedTransitions('primit', 'chirias')).toEqual([]);
+      expect(allowedTransitions('primit', 'cenzor')).toEqual([]);
+      expect(allowedTransitions('primit', null)).toEqual([]);
+    });
+  });
+
+  describe('applyStatusTransition', () => {
+    it('advances to asignat and sets assigned_to_user_id', () => {
+      const now = new Date('2026-05-02T09:00:00Z');
+      const next = applyStatusTransition(BASE, 'asignat', 'u-admin', null, now);
+      expect(next.status).toBe('asignat');
+      expect(next.assigned_to_user_id).toBe('u-admin');
+      expect(next.resolved_at).toBeNull();
+      expect(next.verified_at).toBeNull();
+      expect(next.updated_at).toBe(now.toISOString());
+    });
+
+    it('stamps resolved_at when transitioning to rezolvat', () => {
+      const inLucru = { ...BASE, status: 'in_lucru' as const };
+      const now = new Date('2026-05-03T12:00:00Z');
+      const next = applyStatusTransition(inLucru, 'rezolvat', 'u-admin', 'Fixed the wiring.', now);
+      expect(next.status).toBe('rezolvat');
+      expect(next.resolved_at).toBe(now.toISOString());
+      expect(next.resolution_notes).toBe('Fixed the wiring.');
+      expect(next.verified_at).toBeNull();
+    });
+
+    it('stamps verified_at when transitioning to verificat', () => {
+      const resolved = {
+        ...BASE,
+        status: 'rezolvat' as const,
+        resolved_at: '2026-05-03T12:00:00Z',
+      };
+      const now = new Date('2026-05-04T08:00:00Z');
+      const next = applyStatusTransition(resolved, 'verificat', 'u-admin', null, now);
+      expect(next.status).toBe('verificat');
+      expect(next.verified_at).toBe(now.toISOString());
+      expect(next.resolved_at).toBe('2026-05-03T12:00:00Z');
+    });
+
+    it('does not overwrite existing notes when resolutionNotes is null', () => {
+      const withNotes = { ...BASE, resolution_notes: 'Original note' };
+      const next = applyStatusTransition(withNotes, 'asignat', 'u-admin', null);
+      expect(next.resolution_notes).toBe('Original note');
+    });
+
+    it('is pure and does not mutate the original ticket', () => {
+      const snapshot = JSON.parse(JSON.stringify(BASE)) as typeof BASE;
+      applyStatusTransition(BASE, 'asignat', 'u-admin');
+      expect(BASE).toEqual(snapshot);
+    });
+  });
+
+  describe('canRateTicket', () => {
+    it('allows rating only for reporter on rezolvat/verificat with no rating yet', () => {
+      const resolved = { ...BASE, status: 'rezolvat' as const };
+      expect(canRateTicket(resolved, 'u-reporter')).toBe(true);
+      const verified = { ...BASE, status: 'verificat' as const };
+      expect(canRateTicket(verified, 'u-reporter')).toBe(true);
+    });
+
+    it('denies rating for non-reporter', () => {
+      const resolved = { ...BASE, status: 'rezolvat' as const };
+      expect(canRateTicket(resolved, 'u-other')).toBe(false);
+    });
+
+    it('denies rating when ticket is not resolved/verified', () => {
+      expect(canRateTicket(BASE, 'u-reporter')).toBe(false);
+      const inLucru = { ...BASE, status: 'in_lucru' as const };
+      expect(canRateTicket(inLucru, 'u-reporter')).toBe(false);
+    });
+
+    it('denies rating when already rated', () => {
+      const rated = { ...BASE, status: 'rezolvat' as const, rating: 4 };
+      expect(canRateTicket(rated, 'u-reporter')).toBe(false);
+    });
+  });
+
+  describe('applyRating', () => {
+    it('sets the rating and updates updated_at', () => {
+      const resolved = { ...BASE, status: 'rezolvat' as const };
+      const now = new Date('2026-05-05T10:00:00Z');
+      const rated = applyRating(resolved, 5, now);
+      expect(rated.rating).toBe(5);
+      expect(rated.updated_at).toBe(now.toISOString());
+    });
+
+    it('is pure and does not mutate the original', () => {
+      const resolved = { ...BASE, status: 'rezolvat' as const };
+      const snapshot = JSON.parse(JSON.stringify(resolved)) as typeof resolved;
+      applyRating(resolved, 3);
+      expect(resolved).toEqual(snapshot);
+    });
+  });
+
+  describe('updateTicketIn', () => {
+    it('applies the updater to the matching ticket without mutating the map', () => {
+      const seeded = seedTickets();
+      const snapshot = JSON.parse(JSON.stringify(seeded));
+      const [first] = seeded[DEMO_ASOCIATIE.id];
+      const updated = updateTicketIn(seeded, DEMO_ASOCIATIE.id, first.id, (tk) => ({
+        ...tk,
+        status: 'asignat' as const,
+      }));
+      expect(updated).not.toBe(seeded);
+      expect(seeded).toEqual(snapshot);
+      expect(updated[DEMO_ASOCIATIE.id][0].status).toBe('asignat');
+    });
+
+    it('returns the same map reference when the asociație is not found', () => {
+      const seeded = seedTickets();
+      const result = updateTicketIn(seeded, 'unknown-asoc', 'any-id', (tk) => tk);
+      expect(result).toBe(seeded);
+    });
+
+    it('returns the same map reference when the ticket id is not found', () => {
+      const seeded = seedTickets();
+      const result = updateTicketIn(seeded, DEMO_ASOCIATIE.id, 'no-such-ticket', (tk) => tk);
+      expect(result).toBe(seeded);
+    });
   });
 });

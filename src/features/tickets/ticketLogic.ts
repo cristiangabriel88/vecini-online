@@ -1,4 +1,4 @@
-import type { Ticket, TicketSeverity } from '@/shared/types/domain';
+import type { Role, Ticket, TicketSeverity, TicketStatus } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_TICKETS } from '@/shared/demo/demoData';
 
 /** SLA response window per severity, in hours. */
@@ -142,6 +142,88 @@ export function newTicket(
     created_at: iso,
     updated_at: iso,
   };
+}
+
+/** Roles that can manage ticket lifecycle: assign, advance, resolve, reject. */
+const MANAGER_ROLES: readonly Role[] = ['admin', 'presedinte', 'comitet'];
+
+/** Allowed next statuses from each status in the F17 lifecycle. */
+export const STATUS_TRANSITIONS: Readonly<Record<TicketStatus, readonly TicketStatus[]>> = {
+  primit: ['asignat'],
+  asignat: ['in_lucru'],
+  in_lucru: ['rezolvat'],
+  rezolvat: ['verificat', 'respins'],
+  verificat: ['inchis'],
+  inchis: [],
+  respins: [],
+};
+
+/**
+ * The next statuses a manager role can transition a ticket to.
+ * Returns an empty array for non-manager roles or terminal statuses.
+ */
+export function allowedTransitions(status: TicketStatus, role: Role | null): TicketStatus[] {
+  if (!role || !(MANAGER_ROLES as readonly string[]).includes(role)) return [];
+  return [...STATUS_TRANSITIONS[status]];
+}
+
+/** Whether `userId` can rate this ticket right now: reporter, after resolution, no prior rating. */
+export function canRateTicket(ticket: Ticket, userId: string): boolean {
+  return (
+    ticket.reporter_user_id === userId &&
+    (ticket.status === 'rezolvat' || ticket.status === 'verificat') &&
+    ticket.rating === null
+  );
+}
+
+/**
+ * Apply a status transition, returning a new immutable ticket.
+ * Sets `assigned_to_user_id` when advancing to `asignat`, stamps `resolved_at`
+ * when advancing to `rezolvat`, and `verified_at` when advancing to `verificat`.
+ */
+export function applyStatusTransition(
+  ticket: Ticket,
+  newStatus: TicketStatus,
+  actorUserId: string,
+  resolutionNotes: string | null = null,
+  now: Date = new Date(),
+): Ticket {
+  const iso = now.toISOString();
+  return {
+    ...ticket,
+    status: newStatus,
+    assigned_to_user_id:
+      newStatus === 'asignat' ? actorUserId : ticket.assigned_to_user_id,
+    resolved_at: newStatus === 'rezolvat' ? iso : ticket.resolved_at,
+    verified_at: newStatus === 'verificat' ? iso : ticket.verified_at,
+    resolution_notes:
+      resolutionNotes !== null ? resolutionNotes : ticket.resolution_notes,
+    updated_at: iso,
+  };
+}
+
+/** Apply a 1-5 rating to a resolved/verified ticket, returning a new immutable ticket. */
+export function applyRating(ticket: Ticket, rating: number, now: Date = new Date()): Ticket {
+  return { ...ticket, rating, updated_at: now.toISOString() };
+}
+
+/**
+ * Update a single ticket by id inside one asociație, returning a new `byAsociatie` map.
+ * Returns the input unchanged (referentially stable) when the ticket or asociație is not found.
+ */
+export function updateTicketIn(
+  byAsociatie: TicketsByAsociatie,
+  asociatieId: string,
+  ticketId: string,
+  updater: (t: Ticket) => Ticket,
+): TicketsByAsociatie {
+  const list = byAsociatie[asociatieId];
+  if (!list) return byAsociatie;
+  const idx = list.findIndex((t) => t.id === ticketId);
+  if (idx === -1) return byAsociatie;
+  const next = [...list];
+  next[idx] = updater(list[idx]);
+  return { ...byAsociatie, [asociatieId]: next };
 }
 
 /**
