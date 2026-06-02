@@ -535,7 +535,14 @@
     "new": "Eveniment nou",
     "rsvp": "Particip",
     "rsvpCount": "{{count}} participanți",
-    "empty": "Nu sunt evenimente programate. Comitetul va anunța aici următoarea Adunare Generală."
+    "empty": "Nu sunt evenimente programate. Comitetul va anunța aici următoarea Adunare Generală.",
+    "viewToggle": "Mod de vizualizare",
+    "viewAgenda": "Agendă",
+    "viewMonth": "Pe luni",
+    "upcoming": "Următoarele evenimente",
+    "noUpcoming": "Niciun eveniment programat momentan.",
+    "past": "Evenimente trecute",
+    "exportIcs": "Adaugă în calendar"
   },
   "locator": {
     "title": "Anunțuri vecini",

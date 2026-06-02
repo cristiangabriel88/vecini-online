@@ -535,7 +535,14 @@
     "new": "New event",
     "rsvp": "I'm attending",
     "rsvpCount": "{{count}} attending",
-    "empty": "No scheduled events. The committee will announce the next General Assembly here."
+    "empty": "No scheduled events. The committee will announce the next General Assembly here.",
+    "viewToggle": "View mode",
+    "viewAgenda": "Agenda",
+    "viewMonth": "By month",
+    "upcoming": "Upcoming events",
+    "noUpcoming": "No events scheduled right now.",
+    "past": "Past events",
+    "exportIcs": "Add to calendar"
   },
   "locator": {
     "title": "Neighbour posts",

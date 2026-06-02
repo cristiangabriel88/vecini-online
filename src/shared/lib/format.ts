@@ -31,6 +31,11 @@ export function formatDateLong(value: Date | string | number): string {
   return format(new Date(value), 'd MMMM yyyy', { locale: ro });
 }
 
+/** Month and year like `iunie 2026` (used by the events month view). */
+export function formatMonthYear(value: Date | string | number): string {
+  return format(new Date(value), 'LLLL yyyy', { locale: ro });
+}
+
 const PHONE_RE = /^\+40\s?7\d{2}\s?\d{3}\s?\d{3}$/;
 
 /** Validate a Romanian mobile number in `+40 7XX XXX XXX` form. */

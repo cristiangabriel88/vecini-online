@@ -123,6 +123,20 @@ test('T67 - admin advances a ticket through the status lifecycle', async ({ page
   await expect(card.getByText(/Fisura a fost etanșată/i)).toBeVisible();
 });
 
+test('F08 — resident views upcoming events and RSVPs', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/evenimente');
+  // Agenda view groups events; the demo AGA event is upcoming.
+  await expect(page.getByRole('heading', { name: /Adunarea Generală anuală/i })).toBeVisible();
+  const card = page.getByRole('heading', { name: /Adunarea Generală anuală/i }).locator('../..');
+  // RSVP toggles the attendee count from 7 to 8.
+  await card.getByRole('button', { name: /^Particip$/i }).click();
+  await expect(card.getByText(/8 participanți/)).toBeVisible();
+  // The month view is reachable via the toggle.
+  await page.getByRole('button', { name: /Pe luni/i }).click();
+  await expect(page.getByRole('heading', { name: /Adunarea Generală anuală/i })).toBeVisible();
+});
+
 test('F03 — committee sends an emergency alert to the building', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/alerte');

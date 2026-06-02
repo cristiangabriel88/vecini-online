@@ -334,6 +334,10 @@ export const DEMO_EVENTS: BuildingEvent[] = [
   { id: 'ev-2', asociatie_id: 'demo-asoc', title: 'Deratizare programată', description: 'Firma autorizată va efectua deratizarea spațiilor comune.', location: 'Subsol și spații comune', starts_at: '2026-05-28T09:00:00Z', ends_at: '2026-05-28T12:00:00Z', category: 'mentenanță', created_by: 'u-admin', created_at: '2026-05-15T09:00:00Z' },
 ];
 
+// F08 — attendee base counts per seeded event (residents already attending,
+// excluding the current resident's own RSVP, which is added live).
+export const DEMO_EVENT_ATTENDEES: Record<string, number> = { 'ev-1': 7, 'ev-2': 5 };
+
 export const DEMO_EMERGENCY: EmergencyContact[] = [
   { id: 'em-1', asociatie_id: 'demo-asoc', label: 'Urgențe (SNUAU)', phone: '112', category: 'general', sort_order: 0 },
   { id: 'em-2', asociatie_id: 'demo-asoc', label: 'Dispecerat lift', phone: '+40 21 555 0123', category: 'lift', sort_order: 1 },
