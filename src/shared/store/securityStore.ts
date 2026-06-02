@@ -56,13 +56,13 @@ function mirrorLive(event: AuthAuditEvent): void {
   if (!isSupabaseConfigured) return;
   void (async () => {
     try {
-      const { profile, memberships } = useAuthStore.getState();
+      const { profile, currentAsociatieId } = useAuthStore.getState();
       const { data } = await supabase.auth.getUser();
       const userId = data.user?.id ?? profile?.id;
       if (!userId) return;
       await supabase.from('auth_audit_events').insert({
         user_id: userId,
-        asociatie_id: memberships[0]?.asociatie_id ?? null,
+        asociatie_id: currentAsociatieId,
         event_type: event.type,
         email_mask: event.emailMask,
       });

@@ -4,13 +4,13 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 
 ## 0. Current status
 
-- date: 2026-06-01
-- last_task: T67 (P2) Comitet/admin ticket status-lifecycle surface (offline)
+- date: 2026-06-02
+- last_task: T51 (P2) Migrate role-gated UI + scoped reads to activeRole() / currentAsociatieId
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 188 files / 1799 tests
+- counts: 185 files / 1799 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T108 rich per-card home widgets (prereq T12 done) or T51 activeRole() migration (prereq T28 done)
+- next: T64 feature audience/role in route guard (prereq T44+T51 now done)
 - features: 65/65 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F04/F05/F17/F33 + auth/invites/onboarding; rest offline-first pending the live-activation track. F28/F36/F66 cross-feature glue wired (T104)
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 

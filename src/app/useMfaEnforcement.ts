@@ -26,7 +26,7 @@ import { hasAppElevation } from '@/features/auth/otpChannelApi';
 export function useMfaEnforcement(): void {
   const navigate = useNavigate();
   const { pathname, search } = useLocation();
-  const role = useAuthStore((s) => s.memberships[0]?.role ?? null);
+  const role = useAuthStore((s) => s.activeRole)();
   const loaded = useMfaStore((s) => s.loaded);
   const enrolled = useMfaStore((s) => s.enrolled);
   const load = useMfaStore((s) => s.load);

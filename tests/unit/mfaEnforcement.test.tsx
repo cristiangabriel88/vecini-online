@@ -166,12 +166,13 @@ describe('parseSecurityEnforcement', () => {
   });
 });
 
-/** Seed the active role via a single membership (the hook reads memberships[0]). */
+/** Seed the active role via a single membership and matching currentAsociatieId. */
 function seedRole(role: Role | null) {
   useAuthStore.setState({
     memberships: role
       ? [{ id: 'm1', user_id: 'u1', asociatie_id: 'a1', role, title: null, joined_at: '', ended_at: null }]
       : [],
+    currentAsociatieId: role ? 'a1' : null,
   });
 }
 

@@ -27,7 +27,7 @@ export function AssistantWidget() {
   const typing = useAssistantStore((s) => s.typing);
   const setTyping = useAssistantStore((s) => s.setTyping);
 
-  const role = useAuthStore((s) => s.memberships[0]?.role ?? null);
+  const role = useAuthStore((s) => s.activeRole)();
   const flags = useAsociatieFlags();
 
   const [input, setInput] = useState('');

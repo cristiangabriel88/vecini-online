@@ -56,7 +56,7 @@ export default function SecurityPage() {
   const returnTo: string = (location.state as { from?: string } | null)?.from ?? '/app';
   const profile = useAuthStore((s) => s.profile);
   const session = useAuthStore((s) => s.session);
-  const role = useAuthStore((s) => s.memberships[0]?.role ?? null);
+  const role = useAuthStore((s) => s.activeRole)();
   const signOutEverywhere = useAuthStore((s) => s.signOutEverywhere);
   const events = useSecurityStore((s) => s.events);
 
