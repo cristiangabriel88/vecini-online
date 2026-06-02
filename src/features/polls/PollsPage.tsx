@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Vote as VoteIcon } from 'lucide-react';
@@ -7,17 +7,61 @@ import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
 import { formatDateTime } from '@/shared/lib/format';
-import { polls, pollOptions, usePollsStore } from './pollsStore';
-import { tallyYesNo } from './pollLogic';
+import { useAuthStore } from '@/shared/store/authStore';
+import { DEMO_CURRENT_USER_ID } from '@/shared/demo/demoData';
+import { useAsociatieApartments } from '@/features/admin/apartmentsStore';
+import { usePollsStore, useAsociatiePolls } from './pollsStore';
+import { hydratePolls, recordVote } from './pollsApi';
+import {
+  findVoterApartmentId,
+  optionsForPoll,
+  quorumApartmentCount,
+  tallyYesNo,
+} from './pollLogic';
 
 export default function PollsPage() {
   const { t } = useTranslation();
-  const { counts, myVotes, vote } = usePollsStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const voterUserId = useAuthStore((s) => s.profile?.id) ?? DEMO_CURRENT_USER_ID;
+  const { polls, options } = useAsociatiePolls();
+  const counts = usePollsStore((s) => s.counts);
+  const myVotes = usePollsStore((s) => s.myVotes);
+  const fetchError = usePollsStore((s) => s.fetchError);
+  const apartments = useAsociatieApartments();
+  const totalApartments = quorumApartmentCount(apartments);
+
   const [pending, setPending] = useState<{ pollId: string; optionId: string; label: string } | null>(
     null,
   );
+
+  useEffect(() => {
+    if (asociatieId) void hydratePolls(asociatieId);
+  }, [asociatieId]);
+
+  if (fetchError) {
+    return (
+      <div>
+        <PageHeader title={t('polls.title')} />
+        <ErrorState
+          title={t('common.errorTitle')}
+          body={t('common.loadError')}
+          action={
+            <Button
+              variant="ghost"
+              onClick={() => {
+                if (asociatieId) void hydratePolls(asociatieId);
+              }}
+            >
+              {t('common.retry')}
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
 
   if (polls.length === 0) {
     return (
@@ -28,17 +72,23 @@ export default function PollsPage() {
     );
   }
 
+  const castVote = (pollId: string, optionId: string) => {
+    const apartmentId = findVoterApartmentId(apartments, voterUserId);
+    recordVote(asociatieId ?? '', pollId, optionId, voterUserId, apartmentId);
+    toast.success(t('polls.voted'));
+  };
+
   return (
     <div>
       <PageHeader title={t('polls.active')} />
       <div className="space-y-4">
         {polls.map((p) => {
-          const options = pollOptions.filter((o) => o.poll_id === p.id);
+          const pollOpts = optionsForPoll(options, p.id);
           const result = tallyYesNo({
-            counts: Object.fromEntries(options.map((o) => [o.id, counts[o.id] ?? 0])),
-            yesOptionId: options[0]?.id ?? '',
-            noOptionId: options[1]?.id,
-            totalApartments: 24,
+            counts: Object.fromEntries(pollOpts.map((o) => [o.id, counts[o.id] ?? 0])),
+            yesOptionId: pollOpts[0]?.id ?? '',
+            noOptionId: pollOpts[1]?.id,
+            totalApartments,
             quorumPercent: p.quorum_percent,
             majorityRule: p.majority_rule,
           });
@@ -57,7 +107,7 @@ export default function PollsPage() {
               )}
 
               <div className="space-y-2">
-                {options.map((o) => {
+                {pollOpts.map((o) => {
                   const pct = result.percentages[o.id] ?? 0;
                   const chosen = myVote === o.id;
                   return (
@@ -115,10 +165,7 @@ export default function PollsPage() {
             </Button>
             <Button
               onClick={() => {
-                if (pending) {
-                  vote(pending.pollId, pending.optionId);
-                  toast.success(t('polls.voted'));
-                }
+                if (pending) castVote(pending.pollId, pending.optionId);
                 setPending(null);
               }}
             >

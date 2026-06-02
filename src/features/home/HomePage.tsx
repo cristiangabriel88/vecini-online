@@ -26,7 +26,7 @@ import { FEATURE_MAP, featureTitle, type FeatureDef } from '@/shared/features/re
 import { useCurrentAsociatie } from '@/features/admin/asociatieStore';
 import { useMyIdentity } from '@/features/profile/profileStore';
 import { useAsociatieAnnouncements } from '@/features/announcements/announcementsStore';
-import { polls } from '@/features/polls/pollsStore';
+import { useAsociatiePolls } from '@/features/polls/pollsStore';
 import { formatDateTime } from '@/shared/lib/format';
 import { cn } from '@/shared/lib/cn';
 import {
@@ -176,6 +176,7 @@ export default function HomePage() {
   const { t } = useTranslation();
   const flags = useAsociatieFlags();
   const announcements = useAsociatieAnnouncements();
+  const { polls } = useAsociatiePolls();
   const { userId } = useMyIdentity();
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
   const asociatie = useCurrentAsociatie();

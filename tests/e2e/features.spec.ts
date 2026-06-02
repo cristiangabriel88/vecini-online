@@ -199,6 +199,19 @@ test('F05 — resident submits an anonymous message to the committee queue', asy
   await expect(card.getByRole('button', { name: /Marchează rezolvat/i })).toBeVisible();
 });
 
+test('F09 — resident casts a vote and sees the result bar', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/voturi');
+  // The seeded yes/no poll renders its options as vote buttons before voting.
+  const card = page.locator('section, div').filter({ hasText: /Înlocuirea interfonului/i }).first();
+  await expect(card).toBeVisible();
+  await page.getByRole('button', { name: /^Pentru$/i }).first().click();
+  // Confirm the ballot in the modal.
+  await page.getByRole('button', { name: /Confirmă/i }).click();
+  // After voting the option turns into a result progress bar.
+  await expect(page.getByRole('progressbar').first()).toBeVisible();
+});
+
 test('F03 — committee sends an emergency alert to the building', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/alerte');

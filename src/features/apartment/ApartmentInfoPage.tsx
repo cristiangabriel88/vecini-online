@@ -18,7 +18,7 @@ import { EmptyState } from '@/shared/components/EmptyState';
 import { formatDate } from '@/shared/lib/format';
 import { useMetersStore } from '@/features/meters/metersStore';
 import { useAsociatieTickets } from '@/features/tickets/ticketsStore';
-import { usePollsStore, pollOptions, polls } from '@/features/polls/pollsStore';
+import { usePollsStore, useAsociatiePolls } from '@/features/polls/pollsStore';
 import {
   DEMO_APARTMENTS,
   DEMO_CURRENT_APARTMENT_ID,
@@ -52,6 +52,7 @@ export default function ApartmentInfoPage() {
   const readings = useMetersStore((s) => s.readings);
   const tickets = useAsociatieTickets();
   const myVotes = usePollsStore((s) => s.myVotes);
+  const { polls, options: pollOptions } = useAsociatiePolls();
 
   const apartment = useMemo(
     () => DEMO_APARTMENTS.find((a) => a.id === DEMO_CURRENT_APARTMENT_ID) ?? DEMO_APARTMENTS[0],
@@ -67,8 +68,8 @@ export default function ApartmentInfoPage() {
     [tickets, apartment.id],
   );
   const summary = useMemo(() => ticketSummary(myTickets), [myTickets]);
-  const voteSummaries = useMemo(() => votesForApartment(polls, myVotes), [myVotes]);
-  const votesCast = useMemo(() => votesCastCount(polls, myVotes), [myVotes]);
+  const voteSummaries = useMemo(() => votesForApartment(polls, myVotes), [polls, myVotes]);
+  const votesCast = useMemo(() => votesCastCount(polls, myVotes), [polls, myVotes]);
 
   const cotaParte = cotaPartePercent(apartment.cota_parte_indiviza);
 

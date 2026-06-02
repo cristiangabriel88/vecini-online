@@ -5,17 +5,27 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-02
-- last_task: T80 (P2) wired the attribution-free tally functions for F09/F15/F13 -- migration adds the missing `grant execute ... to authenticated` for the T38 aggregates + a `poll_ranked_tally` over the `ranked_options` jsonb; `src/shared/lib/tallyApi.ts` is the client RPC helper layer (null offline so demo keeps client-side tallies)
+- last_task: T189 (P2) wired F09 Voturi live hydrate/recordVote -- per-asociație persisted `pollsStore` + `useAsociatiePolls()`, new `pollsApi.ts` (hydrate `polls`/`poll_options` + merge counts from the T80 `poll_tally` RPC; optimistic + per-apartment live `votes` insert behind `isSupabaseConfigured`), `PollsPage` quorum denominator now from real apartments (was hardcoded 24), F09 E2E added
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 200 files / 1921 tests
+- counts: 197 files / 1935 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T37 server-rendered proces-verbal PDF (F10 AGA), then T189 F09 Voturi live hydrate/recordVote (uses T80 RPCs)
-- features: 65/65 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F04/F05/F17/F33 + auth/invites/onboarding; rest offline-first pending the live-activation track. F28/F36/F66 cross-feature glue wired (T104)
-- e2e: F02/F04/F05 happy paths green on chromium + mobile; `features.spec.ts` 22/32 passing after the deep-link fix; 5 pre-existing tests (F07/F18/F35/F36/F40) fail on stale search selectors (belongs to T16). auth/consent/isolation/smoke/batch specs still predate the auto-demo-entry harness (T16)
+- next: T37 server-rendered proces-verbal PDF (F10 AGA, needs a provisioned backend), then T190 F10 AGA live + procură, then T191-T196 (F11-F16 live activation)
+- features: 65/65 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F03/F04/F05/F06/F07/F08/F09/F17/F33 + auth/invites/onboarding; rest offline-first pending the live-activation track. F28/F36/F66 cross-feature glue wired (T104)
+- e2e: F02/F03/F04/F05/F08/F09 happy paths green on chromium + mobile; `features.spec.ts` passing after the deep-link fix; 5 pre-existing tests (F07/F18/F35/F36/F40) fail on stale search selectors (belongs to T16). auth/consent/isolation/smoke/batch specs still predate the auto-demo-entry harness (T16)
 - blockers: full e2e harness rework (entry helpers + login-page specs) deferred to T16; Chromium now installed locally
 
 ---
+
+### T189 P2 ✅ 2026-06-02 -- F09 Voturi: live hydrate/recordVote path + E2E
+- updated: src/features/polls/pollLogic.ts (per-asociație catalog model added alongside tallyYesNo: PollCatalog/PollsByAsociatie, seedPolls/seedVoteCounts, catalogForAsociatie [stable frozen empty], optionsForPoll [filter+sort], quorumApartmentCount [active apts, replaces hardcoded 24], findVoterApartmentId, applyVote [pure], migratePollsState)
+- updated: src/features/polls/pollsStore.ts (rebuilt: per-asociație persisted byAsociatie catalog + counts + myVotes + fetchError, version 1 reseeds demo on migrate; old global polls/pollOptions exports -> useAsociatiePolls() hook)
+- new: src/features/polls/pollsApi.ts (hydratePolls reads polls/poll_options under RLS + merges per-option counts from the T80 poll_tally RPC, fetchError on fail; recordVote optimistic + per-apartment votes insert behind isSupabaseConfigured, offline store fallback)
+- updated: src/features/polls/PollsPage.tsx (hydrate on mount, quorum denominator from useAsociatieApartments, ErrorState retry, cast via recordVote)
+- updated: src/features/home/HomePage.tsx + src/features/apartment/ApartmentInfoPage.tsx (migrated off the removed global polls/pollOptions exports to useAsociatiePolls())
+- tests: tests/unit/pollLogic.test.ts (+12 catalog-model assertions); new tests/unit/pollsApi.test.ts (offline path: hydrate no-op unconfigured/empty id, optimistic + idempotent recordVote); tests/e2e/features.spec.ts F09 (cast a vote -> result progressbar), green chromium + mobile
+- result: 197 files / 1935 tests / lint+typecheck+build+pi+demo green
+- note: polls/poll_options/votes tables + RLS already existed (features migration), no new migration. Live execution needs a provisioned backend; demo/offline is the default fallback
 
 ### T80 P2 ✅ 2026-06-02 -- wire the attribution-free tally functions for F09/F15/F13
 - new: supabase/migrations/20260602000004_tally_grants_ranked.sql (grant execute on survey_tally/poll_tally/priority_ranking_turnout to authenticated -- T38 never granted them; + poll_ranked_tally(p_poll_id) aggregating ranked_options jsonb via jsonb_each_text into per-option votes/rank_total/weight_total, security definer, fixed search_path, is_member-gated, no voter identity; granted too)
