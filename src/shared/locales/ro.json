@@ -811,6 +811,7 @@
     "send": "Trimite alertă",
     "confirmSend": "Această alertă va fi trimisă imediat tuturor locatarilor, ignorând orele de liniște. Continui?",
     "sent": "Alertă trimisă la {{count}} persoane.",
+    "recipients": "Această alertă va ajunge la {{count}} locatari.",
     "empty": "Nu au fost trimise alerte de urgență."
   },
   "apartments": {

@@ -5,16 +5,27 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-02
-- last_task: T130 (P2) Link admin-initiated F04 threads to the resident's account (pickAdminThreadResident + live-write guard + picker badge)
+- last_task: T184 (P2) F03 Alerte live activation + quiet-hours bypass + real recipient count (alertsLogic/Store/Api + DEMO_ALERTS + recipientCount from apartments)
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 189 files / 1844 tests
+- counts: 190 files / 1863 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T184 F03 Alerte live activation + quiet-hours bypass + real recipient count
+- next: T185 F08 Calendar de evenimente store + API + agenda/month view + ICS export
 - features: 65/65 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F04/F05/F17/F33 + auth/invites/onboarding; rest offline-first pending the live-activation track. F28/F36/F66 cross-feature glue wired (T104)
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T184 P2 ✅ 2026-06-02 -- F03 Alerte live activation + quiet-hours bypass + real recipient count
+- new: src/features/alerts/alertsLogic.ts (seed/forAsociatie/newAlert/addAlertIn/migrate, isSendableAlert, recipientCount, shouldDeliverAlert quiet-hours bypass)
+- new: src/features/alerts/alertsStore.ts (per-asociatie seeded + persisted store)
+- new: src/features/alerts/alertsApi.ts (hydrateAlerts + sendAlert behind isSupabaseConfigured)
+- updated: src/features/alerts/AlertsPage.tsx (store-backed, hydrate on mount, recipient count from apartments, ErrorState retry)
+- updated: src/shared/demo/demoData.ts (DEMO_ALERTS seed + Alert import)
+- updated: src/shared/locales/en.json + ro.json (alerts.recipients)
+- new tests: tests/unit/alertsLogic.test.ts (20 assertions) + tests/unit/alertsApi.test.ts (7); F03 E2E in tests/e2e/features.spec.ts
+- note: alerts + alert_acknowledgments tables/RLS already existed (F03 features migration) -- no new migration
+- result: 190 files / 1863 tests / build+pi+demo green
 
 ### T130 P2 ✅ 2026-06-02 -- Link admin-initiated F04 threads to the resident's account
 - updated: src/features/admin/apartmentsLogic.ts (pickAdminThreadResident, apartmentHasLinkedResident)

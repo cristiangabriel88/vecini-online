@@ -1,4 +1,5 @@
 import type {
+  Alert,
   Announcement,
   Apartment,
   Asociatie,
@@ -209,6 +210,24 @@ export const DEMO_ANNOUNCEMENTS: Announcement[] = [
     category: 'informativ', audience: { type: 'scara', scari: ['A'] },
     scheduled_at: null, published_at: '2026-05-15T12:00:00Z', expires_at: null,
     created_at: '2026-05-15T12:00:00Z', updated_at: '2026-05-15T12:00:00Z',
+  },
+];
+
+/**
+ * One past emergency alert (F03) so the offline Alerte page is populated and the
+ * history view is explorable. `recipient_count` reflects the demo building's
+ * residents at the time it was sent.
+ */
+export const DEMO_ALERTS: Alert[] = [
+  {
+    id: 'al-1',
+    asociatie_id: 'demo-asoc',
+    sender_user_id: 'u-admin',
+    title: 'Scurgere de gaz — evacuați scara A',
+    body: 'S-a semnalat miros puternic de gaz pe scara A. Evacuați imediat și nu folosiți întrerupătoare sau lifturi. Pompierii au fost anunțați.',
+    kind: 'emergency',
+    sent_at: '2026-04-12T19:42:00Z',
+    recipient_count: 9,
   },
 ];
 

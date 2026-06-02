@@ -122,3 +122,17 @@ test('T67 - admin advances a ticket through the status lifecycle', async ({ page
   await expect(card.getByText('Rezolvat')).toBeVisible();
   await expect(card.getByText(/Fisura a fost etanșată/i)).toBeVisible();
 });
+
+test('F03 — committee sends an emergency alert to the building', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/alerte');
+  await page.getByRole('button', { name: /Trimite alertă/i }).click();
+  // The compose modal shows the real recipient count (9 demo residents).
+  await expect(page.getByText(/va ajunge la 9 locatari/i)).toBeVisible();
+  await page.getByLabel('Titlu').fill('Scurgere de gaz pe scara A');
+  await page.getByLabel(/Conținut|Mesaj|Text/i).fill('Evacuați imediat scara A.');
+  // First "Trimite alertă" in the modal opens the bypass confirmation.
+  await page.getByRole('button', { name: /^Trimite alertă$/i }).last().click();
+  await page.getByRole('button', { name: /Confirmă/i }).click();
+  await expect(page.getByRole('heading', { name: /Scurgere de gaz pe scara A/i })).toBeVisible();
+});

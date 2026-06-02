@@ -811,6 +811,7 @@
     "send": "Send alert",
     "confirmSend": "This alert will be sent immediately to all residents, bypassing quiet hours. Continue?",
     "sent": "Alert sent to {{count}} people.",
+    "recipients": "This alert will reach {{count}} residents.",
     "empty": "No emergency alerts have been sent."
   },
   "apartments": {
