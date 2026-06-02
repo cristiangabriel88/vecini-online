@@ -275,7 +275,7 @@ write_both "StuckLimit: $STUCK_LIMIT consecutive non-build passes"
 if (( HEARTBEAT > 0 )); then write_both "Heartbeat:  every ${HEARTBEAT}s"; else write_both "Heartbeat:  off"; fi
 write_both "Model:      ${MODEL:-<your account default>}"
 if (( REPLENISH_ENABLED == 1 )); then write_both "Replenish:  on (empty queue refills itself)"; else write_both "Replenish:  off (drain to zero, then stop)"; fi
-write_both "Context:    fresh per pass (no /clear needed; each pass is a clean claude -p)"
+write_both "Context:    fresh per pass (each pass is a clean claude -p; terminal clears before each new pass)"
 if (( ${#EXTRA_CLAUDE_ARGS[@]} > 0 )); then write_both "ClaudeArgs: ${EXTRA_CLAUDE_ARGS[*]}"; fi
 write_both "Build:      $PROMPT"
 write_both ""
@@ -321,6 +321,7 @@ while true; do
         break
     fi
 
+    clear
     write_both "--- Pass $pass  [$phase]  open tasks: $open  (HEAD ${head:0:7}) @ $(date +%H:%M:%S) ---"
     if (( is_build == 1 )); then
         set_stage "Analyzing: selecting the next task ($open open in the queue)"
