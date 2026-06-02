@@ -5,17 +5,24 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-02
-- last_task: T188 (P3) F01 Anunțuri scheduling + attachments -- scheduled publish_at held back until due (resident-hidden, comitet "Programat" badge), PDF/image attachments offline-first + live via Storage `attachments` bucket; shared `src/shared/lib/file.ts` helpers
+- last_task: T80 (P2) wired the attribution-free tally functions for F09/F15/F13 -- migration adds the missing `grant execute ... to authenticated` for the T38 aggregates + a `poll_ranked_tally` over the `ranked_options` jsonb; `src/shared/lib/tallyApi.ts` is the client RPC helper layer (null offline so demo keeps client-side tallies)
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 197 files / 1909 tests
+- counts: 200 files / 1921 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T80 wire attribution-free tally functions for F09/F15/F13 results (Guvernanță live-activation track)
+- next: T37 server-rendered proces-verbal PDF (F10 AGA), then T189 F09 Voturi live hydrate/recordVote (uses T80 RPCs)
 - features: 65/65 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F04/F05/F17/F33 + auth/invites/onboarding; rest offline-first pending the live-activation track. F28/F36/F66 cross-feature glue wired (T104)
 - e2e: F02/F04/F05 happy paths green on chromium + mobile; `features.spec.ts` 22/32 passing after the deep-link fix; 5 pre-existing tests (F07/F18/F35/F36/F40) fail on stale search selectors (belongs to T16). auth/consent/isolation/smoke/batch specs still predate the auto-demo-entry harness (T16)
 - blockers: full e2e harness rework (entry helpers + login-page specs) deferred to T16; Chromium now installed locally
 
 ---
+
+### T80 P2 ✅ 2026-06-02 -- wire the attribution-free tally functions for F09/F15/F13
+- new: supabase/migrations/20260602000004_tally_grants_ranked.sql (grant execute on survey_tally/poll_tally/priority_ranking_turnout to authenticated -- T38 never granted them; + poll_ranked_tally(p_poll_id) aggregating ranked_options jsonb via jsonb_each_text into per-option votes/rank_total/weight_total, security definer, fixed search_path, is_member-gated, no voter identity; granted too)
+- new: src/shared/lib/tallyApi.ts (fetchSurveyTally/fetchPollTally/fetchPollRankedTally/fetchPriorityTurnout -- call the RPCs behind isSupabaseConfigured, return null offline/on-error so the caller keeps the client-side tally; reportError on failure)
+- tests: tests/unit/tallyApi.test.ts (offline path: every helper null when unconfigured / empty id) + tests/unit/tallyGrants.test.ts (migration guard: 4 grants present, poll_ranked_tally security-definer + jsonb-aggregating + is_member-gated + attribution-free returns)
+- result: 200 files / 1921 tests / lint+typecheck+build+pi+demo green
+- note: page wiring to render via these RPCs folds into T189 (F09) / T193 (F13) / T195 (F15); live execution needs a provisioned backend. No FEATURES.md change (cross-feature infra, not a single feature row)
 
 ### T188 P3 ✅ 2026-06-02 -- F01 Anunțuri: scheduled publish + attachments
 - new: src/shared/lib/file.ts (readFileAsDataUrl, formatFileSize, validateFile(file, maxBytes, allowedTypes) -- shared upload helpers; documentLogic now re-exports/delegates to it, removing the duplicated copies)
