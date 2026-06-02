@@ -1708,7 +1708,11 @@
     "description": "Description",
     "moveUp": "Move up",
     "moveDown": "Move down",
+    "drag": "Drag to reorder",
     "added": "Project added.",
+    "rankingSaved": "Ranking saved.",
+    "turnout": "{{count}} apartment ranked",
+    "turnout_other": "{{count}} apartments ranked",
     "empty": "No projects yet. Add the first with the button above."
   },
   "laundry": {

@@ -1718,7 +1718,11 @@
     "description": "Descriere",
     "moveUp": "Mută mai sus",
     "moveDown": "Mută mai jos",
+    "drag": "Glisează pentru a reordona",
     "added": "Proiect adăugat.",
+    "rankingSaved": "Clasament salvat.",
+    "turnout": "{{count}} apartament a votat",
+    "turnout_other": "{{count}} apartamente au votat",
     "empty": "Niciun proiect. Adaugă primul cu butonul de mai sus."
   },
   "laundry": {

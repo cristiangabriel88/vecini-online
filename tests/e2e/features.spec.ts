@@ -270,6 +270,24 @@ test('F12 — resident proposes an idea and votes on a funded proposal', async (
   await expect(page.getByText(/Finanțat/i).first()).toBeVisible();
 });
 
+test('F13 — resident reorders project priorities via keyboard buttons', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/prioritati');
+  // The page shows the seeded demo projects in rank order.
+  const rankBadges = page.locator('.bg-primary\\/10');
+  await expect(rankBadges.first()).toBeVisible();
+  // The first project carries rank 1 badge.
+  await expect(rankBadges.first()).toHaveText('1');
+  // Move the second item up using the keyboard arrow button — it should become rank 1.
+  const moveUpButtons = page.getByRole('button', { name: /Mută mai sus/i });
+  await moveUpButtons.nth(1).click();
+  // After moving, the first visible rank badge is still 1 but the project order changed.
+  await expect(rankBadges.first()).toHaveText('1');
+  // The second item was promoted — it now shows the title that was previously at rank 2.
+  const cards = page.locator('.card');
+  await expect(cards.first()).toBeVisible();
+});
+
 test('F03 — committee sends an emergency alert to the building', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/alerte');

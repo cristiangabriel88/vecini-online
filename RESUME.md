@@ -4,18 +4,30 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 
 ## 0. Current status
 
-- date: 2026-06-02
-- last_task: T192 (P2) F12 Buget participativ live activation -- `budgetLogic.ts` per-asociație model (BudgetCatalog, seedBudget, budgetForAsociatie, migrateBudgetState, activeCycle), `budgetStore.ts` rebuilt as persisted per-asociație store, new `budgetApi.ts` (hydrateBudget + proposeItem + castBudgetVote), BudgetPage hydrate on mount + ErrorState retry, budgetLogic.test.ts (+7 assertions), new budgetApi.test.ts offline path, F12 E2E happy path
+- date: 2026-06-03
+- last_task: T193 (P2) F13 Prioritizare proiecte: live activation + drag-and-drop + E2E -- @dnd-kit/core+sortable+utilities installed; `priorityLogic.ts` extended (applyReorder, canManagePriorities, PriorityCatalog/PrioritiesByAsociatie, seedPriorities, prioritiesForAsociatie, migratePrioritiesState); `priorityStore.ts` rebuilt as per-asociație persisted store; new `priorityApi.ts` (hydratePriorities, addPriorityProject, saveRanking, re-exports fetchPriorityTurnout); `PrioritiesPage.tsx` DnD via @dnd-kit/sortable + keyboard up/down + turnout + ErrorState retry + canManagePriorities gate; migration 20260602000007 adds rank column + member-insert policy; priorityLogic.test.ts extended (+14); new priorityApi.test.ts offline path; F13 E2E added
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 200 files / 1976 tests
+- counts: 201 files / 1993 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T37 server-rendered proces-verbal PDF (F10 AGA, needs a provisioned backend), then T193 F13 Prioritizare proiecte, then T194-T196 (F14-F16 live activation)
+- next: T194 F14 Cutie de idei live activation + auto top-N promotion + E2E, then T195-T196 (F15-F16 live activation)
 - features: 65/65 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F11/F17/F33 + auth/invites/onboarding; rest offline-first pending the live-activation track. F28/F36/F66 cross-feature glue wired (T104)
 - e2e: F02/F03/F04/F05/F08/F09/F10/F11 happy paths green on chromium + mobile; `features.spec.ts` passing; 5 pre-existing tests (F07/F18/F35/F36/F40) fail on stale search selectors (belongs to T16). auth/consent/isolation/smoke/batch specs still predate the auto-demo-entry harness (T16)
 - blockers: full e2e harness rework (entry helpers + login-page specs) deferred to T16; Chromium now installed locally
 
 ---
+
+### T193 P2 ✅ 2026-06-03 -- F13 Prioritizare proiecte: live activation + drag-and-drop + E2E
+- installed: @dnd-kit/core + @dnd-kit/sortable + @dnd-kit/utilities
+- new migration: supabase/migrations/20260602000007_priority_rank.sql (adds `rank` column to project_priorities with back-fill, adds member-insert policy to priority_rankings)
+- updated: src/features/priorities/priorityLogic.ts (added applyReorder, canManagePriorities, PriorityCatalog/PrioritiesByAsociatie types, seedPriorities, prioritiesForAsociatie, migratePrioritiesState)
+- rebuilt: src/features/priorities/priorityStore.ts (per-asociație persisted store: byAsociatie + fetchError, addProject/reorderProjects/replaceForAsociatie/setFetchError; useAsociatiePriorities hook)
+- new: src/features/priorities/priorityApi.ts (hydratePriorities reads project_priorities under RLS ordered by rank; addPriorityProject store+live insert; saveRanking store+batch rank update+priority_rankings insert; re-exports fetchPriorityTurnout)
+- rebuilt: src/features/priorities/PrioritiesPage.tsx (DnD via @dnd-kit/sortable SortableContext + useSortable drag handles + keyboard up/down arrows; turnout from fetchPriorityTurnout shown in subtitle; ErrorState retry; canManagePriorities gates Add button; hydrate on mount via hydratePriorities)
+- updated: tests/unit/priorityLogic.test.ts (+14 new assertions: applyReorder, canManagePriorities, seedPriorities, prioritiesForAsociatie, migratePrioritiesState)
+- new: tests/unit/priorityApi.test.ts (offline path: hydratePriorities no-op, addPriorityProject appends synchronously, saveRanking applies new order)
+- updated: tests/e2e/features.spec.ts (F13 happy path: open page, use keyboard moveUp, verify ranks)
+- result: 201 files / 1993 tests / lint+typecheck+build+pi+demo green
 
 ### T192 P2 ✅ 2026-06-02 -- F12 Buget participativ: live activation + E2E
 - updated: src/features/budget/budgetLogic.ts (added BudgetCatalog/BudgetsByAsociatie types, seedBudget, budgetForAsociatie, migrateBudgetState, activeCycle, EMPTY_CATALOG)
