@@ -315,3 +315,19 @@ test('F03 — committee sends an emergency alert to the building', async ({ page
   await page.getByRole('button', { name: /Confirmă/i }).click();
   await expect(page.getByRole('heading', { name: /Scurgere de gaz pe scara A/i })).toBeVisible();
 });
+
+test('F15 — resident votes in an opinion survey and sees percentage bars', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/sondaje');
+  // Seeded surveys are visible.
+  await expect(page.getByText('Ce culoare să aibă noua fațadă?')).toBeVisible();
+  // Before voting the options render as vote buttons.
+  const voteButton = page.getByRole('button', { name: /Crem/i }).first();
+  await expect(voteButton).toBeVisible();
+  // Cast a vote.
+  await voteButton.click();
+  // After voting the survey shows percentage bars (progressbars) instead of buttons.
+  await expect(page.getByRole('progressbar').first()).toBeVisible();
+  // The voted survey no longer shows the vote button for the chosen option.
+  await expect(page.getByRole('button', { name: /^Crem$/i })).not.toBeVisible();
+});

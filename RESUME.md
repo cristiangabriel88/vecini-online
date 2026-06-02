@@ -5,14 +5,14 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-03
-- last_task: T194 (P2) F14 Cutie de idei: live activation + auto top-N promotion + E2E -- `ideaLogic.ts` extended (isPromoted, canManageIdeas, IdeaCatalog/IdeasByAsociatie, seedIdeas, ideasForAsociatie, migrateIdeasState, newIdea, addIdeaIn); `ideasStore.ts` rebuilt as per-asociație persisted store (myVotes persisted); new `ideasApi.ts` (hydrateIdeas, submitIdea, castIdeaVote); migration 20260603000001 enables idea_votes RLS (SELECT+INSERT, no DELETE per T34); IdeasPage hydrates + ErrorState + isPromoted badge; ideaLogic.test.ts extended (+16); new ideasApi.test.ts; F14 E2E extended (upvote + promoted badge)
+- last_task: T195 (P2) F15 Sondaje de opinie: live activation + E2E -- `surveyLogic.ts` extended (canManageSurveys, SurveyCatalog/SurveysByAsociatie, seedSurveys, surveysForAsociatie, migrateSurveysState); `surveysStore.ts` rebuilt as per-asociație persisted store (byAsociatie surveys+tallies + answered + fetchError; version 1 reseeds demo; useAsociatieSurveys hook); new `surveysApi.ts` (hydrateSurveys reads surveys+survey_tally RPC; recordSurveyResponse store-first + live insert); SurveysPage hydrates + ErrorState retry + progressbar roles; surveyLogic.test.ts extended (+14); new surveysApi.test.ts (7 assertions); F15 E2E (vote + progressbars)
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 202 files / 2012 tests
+- counts: 203 files / 2026 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T195 F15 Sondaje de opinie live activation + E2E, then T196 (F16 live activation)
-- features: 65/65 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F11/F17/F33 + auth/invites/onboarding; rest offline-first pending the live-activation track. F28/F36/F66 cross-feature glue wired (T104)
-- e2e: F02/F03/F04/F05/F08/F09/F10/F11 happy paths green on chromium + mobile; `features.spec.ts` passing; 5 pre-existing tests (F07/F18/F35/F36/F40) fail on stale search selectors (belongs to T16). auth/consent/isolation/smoke/batch specs still predate the auto-demo-entry harness (T16)
+- next: T196 F16 Petiții interne live activation + auto-forward + E2E
+- features: 65/65 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F11/F15/F17/F33 + auth/invites/onboarding; rest offline-first pending the live-activation track. F28/F36/F66 cross-feature glue wired (T104)
+- e2e: F02/F03/F04/F05/F08/F09/F10/F11/F15 happy paths green on chromium + mobile; `features.spec.ts` passing; 5 pre-existing tests (F07/F18/F35/F36/F40) fail on stale search selectors (belongs to T16). auth/consent/isolation/smoke/batch specs still predate the auto-demo-entry harness (T16)
 - blockers: full e2e harness rework (entry helpers + login-page specs) deferred to T16; Chromium now installed locally
 
 ---

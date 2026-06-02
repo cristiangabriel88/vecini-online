@@ -1,3 +1,4 @@
+import { useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { BarChart3 } from 'lucide-react';
@@ -6,18 +7,50 @@ import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { formatDate } from '@/shared/lib/format';
-import { useSurveysStore } from './surveysStore';
+import { useAuthStore } from '@/shared/store/authStore';
 import { isSurveyClosed, optionPercent, totalResponses } from './surveyLogic';
+import { useAsociatieSurveys, useSurveysStore } from './surveysStore';
+import { hydrateSurveys, recordSurveyResponse } from './surveysApi';
 
 export default function SurveysPage() {
   const { t } = useTranslation();
-  const { surveys, tallies, answered, respond } = useSurveysStore();
+  const currentAsociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const userId = useAuthStore((s) => s.profile?.id ?? null);
+  const { surveys, tallies } = useAsociatieSurveys();
+  const answered = useSurveysStore((s) => s.answered);
+  const fetchError = useSurveysStore((s) => s.fetchError);
 
-  const onVote = (surveyId: string, option: string) => {
-    respond(surveyId, option);
+  const load = useCallback(() => {
+    if (currentAsociatieId) void hydrateSurveys(currentAsociatieId);
+  }, [currentAsociatieId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const onVote = (surveyId: string, choice: string) => {
+    if (!currentAsociatieId) return;
+    recordSurveyResponse(currentAsociatieId, surveyId, choice, userId);
     toast.success(t('surveys.voted'));
   };
+
+  if (fetchError) {
+    return (
+      <div>
+        <PageHeader title={t('surveys.title')} subtitle={t('surveys.subtitle')} />
+        <ErrorState
+          body={t('common.loadError')}
+          action={
+            <Button variant="secondary" onClick={load}>
+              {t('common.retry')}
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -30,7 +63,8 @@ export default function SurveysPage() {
           {surveys.map((sv) => {
             const tally = tallies[sv.id] ?? {};
             const closed = isSurveyClosed(sv.closes_at);
-            const showResults = closed || answered.includes(sv.id);
+            const hasAnswered = answered[sv.id] ?? false;
+            const showResults = closed || hasAnswered;
             return (
               <Card key={sv.id}>
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
@@ -51,7 +85,13 @@ export default function SurveysPage() {
                           <span>{opt}</span>
                           <span className="text-muted">{pct}%</span>
                         </div>
-                        <div className="h-2 overflow-hidden rounded-full bg-surface-2">
+                        <div
+                          role="progressbar"
+                          aria-valuenow={pct}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          className="h-2 overflow-hidden rounded-full bg-surface-2"
+                        >
                           <div className="h-full bg-primary" style={{ width: `${pct}%` }} />
                         </div>
                       </div>
