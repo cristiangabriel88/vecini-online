@@ -5,9 +5,9 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-02
-- last_task: T187 (P2) E2E happy-path coverage for F02/F04/F05 + unbroke the e2e harness (RequireAuth deep-link demo bootstrap, build-agnostic enterDemo, demoRole extraction, mobile floating-switcher hide)
+- last_task: T188 (P3) F01 Anunțuri scheduling + attachments -- scheduled publish_at held back until due (resident-hidden, comitet "Programat" badge), PDF/image attachments offline-first + live via Storage `attachments` bucket; shared `src/shared/lib/file.ts` helpers
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 196 files / 1896 tests
+- counts: 197 files / 1909 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
 - next: T80 wire attribution-free tally functions for F09/F15/F13 results (Guvernanță live-activation track)
@@ -16,6 +16,19 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 - blockers: full e2e harness rework (entry helpers + login-page specs) deferred to T16; Chromium now installed locally
 
 ---
+
+### T188 P3 ✅ 2026-06-02 -- F01 Anunțuri: scheduled publish + attachments
+- new: src/shared/lib/file.ts (readFileAsDataUrl, formatFileSize, validateFile(file, maxBytes, allowedTypes) -- shared upload helpers; documentLogic now re-exports/delegates to it, removing the duplicated copies)
+- updated: src/shared/types/domain.ts (AnnouncementAttachment interface + optional Announcement.attachments)
+- updated: src/features/announcements/announcementsLogic.ts (canManageAnnouncements; ATTACHMENT_MAX_BYTES/ALLOWED_TYPES/ACCEPT + validateAttachmentFile; newAnnouncement now takes optional scheduled_at -> future schedule holds published_at null, past/absent publishes now, + attachments; isAnnouncementDue/isScheduledPending/visibleAnnouncements visibility helpers)
+- updated: src/features/announcements/announcementsApi.ts (hydrate also loads attachments grouped from `attachments` table; uploadAnnouncementAttachments uploads to `attachments` Storage bucket w/ rollback; publish mirrors scheduled_at/published_at + inserts attachment rows; getAttachmentSignedUrl)
+- updated: src/features/announcements/AnnouncementsPage.tsx (compose gated to managers; datetime-local schedule field; multi-file attachment picker w/ validation; Programat badge + scheduled-for line; residents see only due via visibleAnnouncements; attachment download via signed URL live / data URL offline)
+- updated: src/features/announcements/announcementsStore.ts (version 1->2 to reseed demo w/ the new scheduled seed)
+- updated: src/shared/demo/demoData.ts (an-0 future-scheduled demo announcement to showcase the Programat state)
+- updated: src/shared/locales/{en,ro}.json (announcements: schedule/scheduled/scheduledBadge/scheduledFor/attachments*/upload*/download*/file errors)
+- tests: announcementsLogic.test.ts (+role, attachment validation, scheduling, visibility helpers); announcementsApi.test.ts (+future-schedule held back, offline attachment carried)
+- result: 197 files / 1909 tests / lint+typecheck+build+pi+demo green
+- note: scheduled-row hide is client-gated (visibleAnnouncements); true server-side hold-back (cron flip / RLS on scheduled_at) remains a live-activation follow-up
 
 ### T187 P2 ✅ 2026-06-02 -- E2E happy-path coverage for F02/F04/F05 + e2e harness fixes
 - new: tests/e2e/features.spec.ts F02 (create discussion thread, post message, pin -> Fixat badge), F04 (open seeded unread admin inbox thread so badge clears, reply, start new admin->resident thread), F05 (submit anonymous message -> lands in comitet queue as Nou)

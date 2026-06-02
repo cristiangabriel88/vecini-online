@@ -1,5 +1,8 @@
 import type { DocumentRecord } from '@/shared/types/domain';
 import { normalizeSearch } from '@/features/faq/faqLogic';
+import { type FileValidationError, validateFile } from '@/shared/lib/file';
+
+export { formatFileSize, readFileAsDataUrl } from '@/shared/lib/file';
 
 /** Document categories used in the archive filter / upload form. */
 export const DOCUMENT_CATEGORIES = [
@@ -31,39 +34,19 @@ export const DOCUMENT_ALLOWED_TYPES = [
 export const DOCUMENT_ACCEPT =
   '.pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx,.txt';
 
-export type DocumentFileError = 'too_large' | 'bad_type';
+export type DocumentFileError = FileValidationError;
 
 /** Validate a candidate upload file; returns null when the file is acceptable. */
 export function validateDocumentFile(file: {
   size: number;
   type: string;
 }): DocumentFileError | null {
-  if (file.size > DOCUMENT_MAX_BYTES) return 'too_large';
-  if (!(DOCUMENT_ALLOWED_TYPES as readonly string[]).includes(file.type))
-    return 'bad_type';
-  return null;
+  return validateFile(file, DOCUMENT_MAX_BYTES, DOCUMENT_ALLOWED_TYPES);
 }
 
 /** True when the active role may upload or delete documents. */
 export function canManageDocuments(role: string | null): boolean {
   return role === 'admin' || role === 'presedinte' || role === 'comitet';
-}
-
-/** Human-readable file size (B / KB / MB). */
-export function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-/** Read a File as a base64 data URL (browser only). */
-export function readFileAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(new Error('read_failed'));
-    reader.readAsDataURL(file);
-  });
 }
 
 /** A document needs at least a short title. */

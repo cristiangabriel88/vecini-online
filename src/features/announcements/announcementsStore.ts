@@ -59,7 +59,7 @@ export const useAnnouncementsStore = create<AnnouncementsState>()(
     }),
     {
       name: 'vecini.announcements',
-      version: 1,
+      version: 2,
       partialize: (s) => ({ byAsociatie: s.byAsociatie, reads: s.reads }),
       migrate: (persisted) => ({
         byAsociatie: migrateAnnouncementsState(persisted),

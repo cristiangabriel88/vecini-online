@@ -131,4 +131,39 @@ describe('publishAnnouncement', () => {
     expect(item.published_at).not.toBeNull();
     expect(new Date(item.published_at!).getTime()).toBeGreaterThan(0);
   });
+
+  it('holds back a future-scheduled announcement (published_at null)', () => {
+    const future = new Date(Date.now() + 86_400_000).toISOString();
+    publishAnnouncement(DEMO_ASOC, 'u-admin', {
+      title: 'Scheduled',
+      body_html: '<p>x</p>',
+      category: 'important',
+      scheduled_at: future,
+    });
+    const item = useAnnouncementsStore.getState().byAsociatie[DEMO_ASOC][0];
+    expect(item.published_at).toBeNull();
+    expect(item.scheduled_at).toBe(future);
+  });
+
+  it('carries offline attachments onto the stored announcement', () => {
+    publishAnnouncement(DEMO_ASOC, 'u-admin', {
+      title: 'With file',
+      body_html: '<p>x</p>',
+      category: 'informativ',
+      attachments: [
+        {
+          id: 'att-1',
+          file_name: 'plan.pdf',
+          file_size: 1234,
+          file_type: 'application/pdf',
+          storage_path: null,
+          file_data_url: 'data:application/pdf;base64,AAAA',
+        },
+      ],
+    });
+    const item = useAnnouncementsStore.getState().byAsociatie[DEMO_ASOC][0];
+    expect(item.attachments).toHaveLength(1);
+    expect(item.attachments![0].file_name).toBe('plan.pdf');
+    expect(item.attachments![0].file_data_url).toContain('data:application/pdf');
+  });
 });

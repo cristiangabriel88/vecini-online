@@ -124,6 +124,19 @@ export type Audience =
   | { type: 'role'; role: Role }
   | { type: 'scara'; scari: string[] };
 
+/** A file attached to an announcement (F01). Stored as a base64 data URL offline
+ *  and as a Supabase Storage object path in the live path. */
+export interface AnnouncementAttachment {
+  id: string;
+  file_name: string;
+  file_size: number;
+  file_type: string;
+  /** Storage object path in the live path; null offline. */
+  storage_path: string | null;
+  /** Base64 data URL offline; null in the live (Storage) path. */
+  file_data_url: string | null;
+}
+
 export interface Announcement {
   id: string;
   asociatie_id: string;
@@ -135,6 +148,8 @@ export interface Announcement {
   scheduled_at: string | null;
   published_at: string | null;
   expires_at: string | null;
+  /** Optional file attachments (F01). Absent on older persisted rows. */
+  attachments?: AnnouncementAttachment[];
   created_at: string;
   updated_at: string;
 }

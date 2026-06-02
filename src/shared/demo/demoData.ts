@@ -188,6 +188,15 @@ export const DEMO_CURRENT_APARTMENT_ID = 'ap-2';
 
 export const DEMO_ANNOUNCEMENTS: Announcement[] = [
   {
+    id: 'an-0', asociatie_id: 'demo-asoc', author_user_id: 'u-admin',
+    title: 'Revizia anuală a centralei termice — programare',
+    body_html: '<p>Revizia anuală a centralei termice este programată. Detaliile complete (interval orar pe scări) vor fi vizibile locatarilor la data publicării.</p>',
+    category: 'important', audience: { type: 'all' },
+    scheduled_at: '2026-06-15T08:00:00Z', published_at: null, expires_at: null,
+    attachments: [],
+    created_at: '2026-06-01T09:00:00Z', updated_at: '2026-06-01T09:00:00Z',
+  },
+  {
     id: 'an-1', asociatie_id: 'demo-asoc', author_user_id: 'u-admin',
     title: 'Întrerupere apă caldă — 25 mai',
     body_html: '<p>Se va întrerupe apa caldă <strong>mâine între 09:00 și 14:00</strong> pentru lucrări la centrala termică. Vă mulțumim pentru înțelegere.</p>',
