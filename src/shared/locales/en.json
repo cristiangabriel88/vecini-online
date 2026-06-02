@@ -1488,7 +1488,12 @@
     "content": "Summary / content",
     "contentHint": "Searchable text — a summary of the decisions.",
     "added": "Document added to the archive.",
-    "empty": "No minutes found."
+    "empty": "No minutes found.",
+    "file": "Attachment (optional)",
+    "fileHint": "PDF or image, max 10 MB",
+    "fileTooLarge": "File exceeds 10 MB.",
+    "fileBadType": "File type not allowed. We accept PDF and images.",
+    "download": "Download"
   },
   "rfp": {
     "title": "Request for proposals",

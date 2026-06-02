@@ -5,17 +5,29 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-02
-- last_task: T190 (P2) F10 AGA live activation + procură flow -- `agaLogic.ts` per-asociație model, `agaStore.ts` rebuilt as persisted per-asociație store, new `agaApi.ts` (hydrate + all write paths behind `isSupabaseConfigured`), `AgaPage` procură surface (grantor/holder/document upload, proxy vote per item), F10 E2E happy path
+- last_task: T191 (P2) F11 Procese verbale live activation + admin upload -- `pvLogic.ts` per-asociație model + canManagePv, `pvStore.ts` rebuilt as persisted per-asociație store, new `pvApi.ts` (hydrate + addPvDocument + Storage upload + getPvSignedUrl), `PvDocumentsPage` role-gated upload form + ErrorState retry + download button, new migration for `category` column, F11 E2E happy path
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 198 files / 1951 tests
+- counts: 199 files / 1963 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T37 server-rendered proces-verbal PDF (F10 AGA, needs a provisioned backend), then T191 F11 Procese verbale, then T192-T196 (F12-F16 live activation)
-- features: 65/65 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F17/F33 + auth/invites/onboarding; rest offline-first pending the live-activation track. F28/F36/F66 cross-feature glue wired (T104)
-- e2e: F02/F03/F04/F05/F08/F09/F10 happy paths green on chromium + mobile; `features.spec.ts` passing; 5 pre-existing tests (F07/F18/F35/F36/F40) fail on stale search selectors (belongs to T16). auth/consent/isolation/smoke/batch specs still predate the auto-demo-entry harness (T16)
+- next: T37 server-rendered proces-verbal PDF (F10 AGA, needs a provisioned backend), then T192 F12 Buget participativ, then T193-T196 (F13-F16 live activation)
+- features: 65/65 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F11/F17/F33 + auth/invites/onboarding; rest offline-first pending the live-activation track. F28/F36/F66 cross-feature glue wired (T104)
+- e2e: F02/F03/F04/F05/F08/F09/F10/F11 happy paths green on chromium + mobile; `features.spec.ts` passing; 5 pre-existing tests (F07/F18/F35/F36/F40) fail on stale search selectors (belongs to T16). auth/consent/isolation/smoke/batch specs still predate the auto-demo-entry harness (T16)
 - blockers: full e2e harness rework (entry helpers + login-page specs) deferred to T16; Chromium now installed locally
 
 ---
+
+### T191 P2 ✅ 2026-06-02 -- F11 Procese verbale: live activation + admin upload surface + E2E
+- new: supabase/migrations/20260602000005_pv_category.sql (add category column to pv_documents)
+- updated: src/features/pv/pvLogic.ts (added PvsByAsociatie type, seedPvs, pvForAsociatie, NewPvInput, newPvDocument, addPvIn, migratePvsState, canManagePv)
+- updated: src/features/pv/pvStore.ts (rebuilt: per-asociație persisted byAsociatie + fetchError, replaceForAsociatie/setFetchError actions, version 1 reseeds demo on migrate; useAsociatiePvDocs() hook)
+- new: src/features/pv/pvApi.ts (hydratePvDocuments reads pv_documents under RLS; addPvDocument store-first + live insert + optional Storage upload to attachments bucket; getPvSignedUrl 1-hour signed URL)
+- updated: src/features/pv/PvDocumentsPage.tsx (hydrate on mount, canManagePv role gate on Add button + upload form, file input PDF/image max 10 MB, download button on cards with storage_path, ErrorState with retry)
+- updated: src/shared/locales/en.json + ro.json (pv.file/fileHint/fileTooLarge/fileBadType/download)
+- updated: tests/unit/pvLogic.test.ts (+15 assertions: canManagePv, per-asociație model, newPvDocument, addPvIn, migratePvsState)
+- new: tests/unit/pvApi.test.ts (offline path: hydrate no-op, addPvDocument prepends synchronously + idempotent + defaults category)
+- updated: tests/e2e/features.spec.ts F11 (search "Comitet" narrows results -> clear restores all), green chromium + mobile
+- result: 199 files / 1963 tests / lint+typecheck+build+pi+demo green
 
 ### T190 P2 ✅ 2026-06-02 -- F10 AGA: live activation + procură (proxy-vote) flow + E2E
 - updated: src/features/aga/agaLogic.ts (added AgasByAsociatie type, cloneAgas, seedAgas, agasForAsociatie [stable empty], migrateAgasState, isValidProxy, proxyVotesFor)

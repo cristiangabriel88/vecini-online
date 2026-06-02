@@ -1,28 +1,54 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { PvDocument } from '@/shared/types/domain';
-import { DEMO_PV_DOCUMENTS } from '@/shared/demo/demoData';
+import { useAuthStore } from '@/shared/store/authStore';
+import {
+  type PvsByAsociatie,
+  migratePvsState,
+  pvForAsociatie,
+  seedPvs,
+} from './pvLogic';
 
 interface PvState {
-  docs: PvDocument[];
-  add: (input: { title: string; doc_date: string; category: string; content_text: string }) => void;
+  /** PV documents per asociație, keyed by asociație id. */
+  byAsociatie: PvsByAsociatie;
+  /** Non-null when the last live fetch failed; null in demo/offline or after a successful fetch. */
+  fetchError: string | null;
+  /** Replace the full list for one asociație (used by live hydration and add). */
+  replaceForAsociatie: (asociatieId: string, items: PvDocument[]) => void;
+  /** Set or clear the live-fetch error (called by the API layer). */
+  setFetchError: (msg: string | null) => void;
+  /** The documents for one asociație (stable reference). */
+  forAsociatie: (asociatieId: string | null) => PvDocument[];
 }
 
-export const usePvStore = create<PvState>((set) => ({
-  docs: [...DEMO_PV_DOCUMENTS],
-  add: ({ title, doc_date, category, content_text }) =>
-    set((s) => ({
-      docs: [
-        {
-          id: `pv-${Date.now()}`,
-          asociatie_id: 'demo-asoc',
-          title: title.trim(),
-          doc_date,
-          category: category.trim() || 'Altele',
-          content_text: content_text.trim(),
-          storage_path: null,
-          created_at: new Date().toISOString(),
-        },
-        ...s.docs,
-      ],
-    })),
-}));
+/**
+ * PV documents (F11) scoped per asociație: the demo asociație is seeded so the
+ * offline app is populated. Persisted so added documents survive reload; version
+ * bumps reseed the demo asociație so stale demo content is refreshed.
+ * Live read/write against `pv_documents` under RLS is in `pvApi.ts`.
+ */
+export const usePvStore = create<PvState>()(
+  persist(
+    (set, get) => ({
+      byAsociatie: seedPvs(),
+      fetchError: null,
+      replaceForAsociatie: (asociatieId, items) =>
+        set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: items } })),
+      setFetchError: (msg) => set({ fetchError: msg }),
+      forAsociatie: (asociatieId) => pvForAsociatie(get().byAsociatie, asociatieId),
+    }),
+    {
+      name: 'vecini.pv',
+      version: 1,
+      partialize: (s) => ({ byAsociatie: s.byAsociatie }),
+      migrate: (persisted) => ({ byAsociatie: migratePvsState(persisted) }),
+    },
+  ),
+);
+
+/** Hook: the PV documents for the currently active asociație. */
+export function useAsociatiePvDocs(): PvDocument[] {
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  return usePvStore((s) => pvForAsociatie(s.byAsociatie, asociatieId));
+}

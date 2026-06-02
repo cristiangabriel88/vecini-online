@@ -235,6 +235,21 @@ test('F10 — resident records a procură (proxy) on the live assembly', async (
   await expect(page.getByText(/deținută de Maria Ionescu/i)).toBeVisible();
 });
 
+test('F11 — member searches the minutes archive', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/procese-verbale');
+  // Seeded documents are visible.
+  await expect(page.getByText('Proces verbal AGA ordinară 2026')).toBeVisible();
+  // Narrow by searching for category "Comitet".
+  const search = page.getByPlaceholder(/Caută/i);
+  await search.fill('Comitet');
+  await expect(page.getByText('Proces verbal ședință comitet — martie')).toBeVisible();
+  await expect(page.getByText('Proces verbal AGA ordinară 2026')).not.toBeVisible();
+  // Clear restores all results.
+  await search.fill('');
+  await expect(page.getByText('Proces verbal AGA ordinară 2026')).toBeVisible();
+});
+
 test('F03 — committee sends an emergency alert to the building', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/alerte');

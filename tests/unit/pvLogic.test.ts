@@ -1,6 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { isValidPv, pvCategories, searchPv, sortPv } from '@/features/pv/pvLogic';
+import {
+  isValidPv,
+  pvCategories,
+  searchPv,
+  sortPv,
+  canManagePv,
+  seedPvs,
+  pvForAsociatie,
+  newPvDocument,
+  addPvIn,
+  migratePvsState,
+} from '@/features/pv/pvLogic';
 import type { PvDocument } from '@/shared/types/domain';
+import { DEMO_ASOCIATIE } from '@/shared/demo/demoData';
 
 const base = { asociatie_id: 'a', storage_path: null, created_at: '2026-01-01T00:00:00Z' };
 
@@ -15,6 +27,20 @@ describe('isValidPv', () => {
     expect(isValidPv('PV', '2026-01-01')).toBe(true);
     expect(isValidPv('  ', '2026-01-01')).toBe(false);
     expect(isValidPv('PV', '')).toBe(false);
+  });
+});
+
+describe('canManagePv', () => {
+  it('allows admin, presedinte, comitet', () => {
+    expect(canManagePv('admin')).toBe(true);
+    expect(canManagePv('presedinte')).toBe(true);
+    expect(canManagePv('comitet')).toBe(true);
+  });
+
+  it('blocks proprietar, locatar, and null', () => {
+    expect(canManagePv('proprietar')).toBe(false);
+    expect(canManagePv('locatar')).toBe(false);
+    expect(canManagePv(null)).toBe(false);
   });
 });
 
@@ -39,5 +65,43 @@ describe('sortPv', () => {
 describe('pvCategories', () => {
   it('lists distinct categories alphabetically', () => {
     expect(pvCategories(docs)).toEqual(['AGA', 'Comitet', 'Recepție']);
+  });
+});
+
+describe('per-asociație model', () => {
+  it('seedPvs seeds the demo asociație', () => {
+    const seeded = seedPvs();
+    expect(Array.isArray(seeded[DEMO_ASOCIATIE.id])).toBe(true);
+    expect(seeded[DEMO_ASOCIATIE.id].length).toBeGreaterThan(0);
+  });
+
+  it('pvForAsociatie returns empty for unknown or null id', () => {
+    expect(pvForAsociatie({}, 'unknown')).toEqual([]);
+    expect(pvForAsociatie({}, null)).toEqual([]);
+  });
+
+  it('newPvDocument creates a document with trimmed fields and defaults category', () => {
+    const doc = newPvDocument(
+      { title: '  Titlu  ', doc_date: '2026-06-01', category: '', content_text: 'detalii' },
+      'asoc-1',
+    );
+    expect(doc.title).toBe('Titlu');
+    expect(doc.category).toBe('Altele');
+    expect(doc.storage_path).toBeNull();
+    expect(doc.asociatie_id).toBe('asoc-1');
+  });
+
+  it('addPvIn prepends a document to the asociație list', () => {
+    const by = { 'asoc-1': [docs[0]] };
+    const updated = addPvIn(by, 'asoc-1', docs[1]);
+    expect(updated['asoc-1'][0].id).toBe(docs[1].id);
+    expect(updated['asoc-1']).toHaveLength(2);
+  });
+
+  it('migratePvsState reseeds the demo asociație, keeps others', () => {
+    const persisted = { byAsociatie: { 'other-asoc': [docs[2]], [DEMO_ASOCIATIE.id]: [] } };
+    const result = migratePvsState(persisted);
+    expect(result['other-asoc']).toHaveLength(1);
+    expect(result[DEMO_ASOCIATIE.id].length).toBeGreaterThan(0);
   });
 });

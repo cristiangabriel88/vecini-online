@@ -1498,7 +1498,12 @@
     "content": "Rezumat / conținut",
     "contentHint": "Text căutabil — rezumatul deciziilor.",
     "added": "Document adăugat în arhivă.",
-    "empty": "Niciun proces verbal găsit."
+    "empty": "Niciun proces verbal găsit.",
+    "file": "Atașament (opțional)",
+    "fileHint": "PDF sau imagine, max 10 MB",
+    "fileTooLarge": "Fișierul depășește 10 MB.",
+    "fileBadType": "Tip de fișier nepermis. Acceptăm PDF și imagini.",
+    "download": "Descarcă"
   },
   "rfp": {
     "title": "Solicitare oferte",
