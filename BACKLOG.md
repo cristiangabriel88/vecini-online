@@ -202,7 +202,7 @@ Done: `petitionLogic.ts` extended (canManagePetitions, PetitionCatalog/Petitions
 
 > Added 2026-06-03 replenish pass. F01–F17 + F33 + auth/invites/onboarding are fully live-wired (18 features). The next push hardens the security surface (rate-limit gaps), closes E2E coverage gaps, and deepens feature completeness (ticket photo uploads, petition comitet responses, notification fan-out for core events, live asociație identity hydration). Sorted P1 → P2 → P3 within this section; topmost ⬜ is the next `make task` pick.
 
-### ⬜ T197 — [P1] Rate-limit the remaining unprotected Netlify functions
+### ✅ T197 — [P1] Rate-limit the remaining unprotected Netlify functions
 Four production functions have no DoS protection: `csp-report.ts` (spam logs, free storage cost), `notify-email.ts` (a compromised session can flood inboxes), `generate-pv-pdf.ts` (CPU-intensive PDF generation), `provision-asociatie.ts` (platform-tenant creation). Reuse `checkSlidingWindow` from `netlify/functions/_shared/rateLimiter.ts` (already used in `invite-email` and `error-report`): `csp-report` 50 reports/60 s per IP; `notify-email` 30 emails/10 min per authenticated user (extract uid from bearer token); `generate-pv-pdf` 5 PDFs/60 s per bearer token; `provision-asociatie` 20 requests/60 min per IP. Return `429 Too Many Requests` with a `Retry-After` header. Add rate-limit assertions to the relevant test files (static + offline-path pattern, same as `inviteEmailAuth.test.ts`). Prereq: none; safe to ship immediately.
 
 ### ⬜ T198 — [P1] Password-reset request cooldown (anti-spam)

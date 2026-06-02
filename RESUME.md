@@ -5,12 +5,12 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-03
-- last_task: T37 (P2) Server-rendered proces-verbal PDF (F10 AGA) -- pvGenerator.ts extracted (no @/ aliases); pdfDoc.ts minimal PDF 1.7 builder (Identity-H Unicode, Type0 unembedded fonts, A4 layout); generate-pv-pdf Netlify function (bearer auth, DB fetch, PDF response); pvPdfApi.ts client helper (live PDF / text fallback); AgaPage async loading button; pvGenerator.test.ts (7 assertions) + pdfDoc.test.ts (6 assertions)
+- last_task: T197 (P1) Rate-limit unprotected Netlify functions -- 4 new named helpers in rateLimiter.ts (checkCspReportRateLimit/checkNotifyEmailRateLimit/checkPvPdfRateLimit/checkProvisionRateLimit); wired into csp-report/notify-email/generate-pv-pdf/provision-asociatie with 429+Retry-After; netlifyRateLimits.test.ts (15 assertions: pure helpers + static wiring guards)
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 206 files / 2058 tests
+- counts: 207 files / 2082 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T197 Rate-limit unprotected Netlify functions (csp-report / notify-email / generate-pv-pdf / provision-asociatie) [P1 security]
+- next: T198 Password-reset request cooldown (anti-spam) [P1 security]
 - features: 67/67 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F33 (18 features) + auth/invites/onboarding; rest offline-first, pending live-activation track. F28/F36/F66 cross-feature glue wired (T104). Platform console: shell + provisioning done (T93/T94); oversight tools T95-T99 on hold.
 - e2e: F02/F03/F04/F05/F08/F09/F10/F11/F12/F13/F14/F15/F16 happy paths green on chromium + mobile (17 features with passing E2E); 5 pre-existing tests (F07/F18/F35/F36/F40) fail on stale search selectors (T201 / belongs to T16 rework). auth/consent/isolation/smoke/batch specs still predate the auto-demo-entry harness (T16)
 - blockers: full e2e harness rework (entry helpers + login-page specs) deferred to T16; Chromium installed locally

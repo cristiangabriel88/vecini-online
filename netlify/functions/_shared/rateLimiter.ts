@@ -72,3 +72,47 @@ const IP_MAX = 5;
 export function checkIpRateLimit(ip: string, now: number = Date.now()): boolean {
   return checkSlidingWindow(_ipStore, ip, now, IP_WINDOW_MS, IP_MAX);
 }
+
+// Per-IP store for csp-report (50 reports / 60 s).
+const _cspStore = new Map<string, Entry>();
+const CSP_WINDOW_MS = 60_000;
+const CSP_MAX = 50;
+
+/** Record one csp-report request for `ip` and return whether it is within the
+ *  burst limit (50 per 60 s). */
+export function checkCspReportRateLimit(ip: string, now: number = Date.now()): boolean {
+  return checkSlidingWindow(_cspStore, ip, now, CSP_WINDOW_MS, CSP_MAX);
+}
+
+// Per-uid store for notify-email (30 emails / 10 min).
+const _notifyEmailStore = new Map<string, Entry>();
+const NOTIFY_EMAIL_WINDOW_MS = 10 * 60_000;
+const NOTIFY_EMAIL_MAX = 30;
+
+/** Record one notify-email dispatch for authenticated `uid` and return whether
+ *  it is within the limit (30 per 10 min). */
+export function checkNotifyEmailRateLimit(uid: string, now: number = Date.now()): boolean {
+  return checkSlidingWindow(_notifyEmailStore, uid, now, NOTIFY_EMAIL_WINDOW_MS, NOTIFY_EMAIL_MAX);
+}
+
+// Per-uid store for generate-pv-pdf (5 PDFs / 60 s).
+const _pvPdfStore = new Map<string, Entry>();
+const PV_PDF_WINDOW_MS = 60_000;
+const PV_PDF_MAX = 5;
+
+/** Record one PDF generation request for authenticated `uid` and return whether
+ *  it is within the burst limit (5 per 60 s). */
+export function checkPvPdfRateLimit(uid: string, now: number = Date.now()): boolean {
+  return checkSlidingWindow(_pvPdfStore, uid, now, PV_PDF_WINDOW_MS, PV_PDF_MAX);
+}
+
+// Per-IP store for provision-asociatie (20 requests / 60 min).
+const _provisionStore = new Map<string, Entry>();
+const PROVISION_WINDOW_MS = 60 * 60_000;
+const PROVISION_MAX = 20;
+
+/** Record one provision-asociatie request for `ip` and return whether it is
+ *  within the limit (20 per 60 min). */
+export function checkProvisionRateLimit(ip: string, now: number = Date.now()): boolean {
+  return checkSlidingWindow(_provisionStore, ip, now, PROVISION_WINDOW_MS, PROVISION_MAX);
+}

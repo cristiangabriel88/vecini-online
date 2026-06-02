@@ -19,6 +19,7 @@
 
 import { generateProcesVerbal } from '../../src/shared/lib/pvGenerator';
 import { buildPvPdf } from './_shared/pdfDoc';
+import { checkPvPdfRateLimit } from './_shared/rateLimiter';
 import {
   isSupabaseAdminConfigured,
   supabaseAdmin,
@@ -59,6 +60,14 @@ export default async (req: Request): Promise<Response> => {
     req.headers.get('authorization'),
   );
   if (!userId) return errJson(401, authErr ?? 'unauthorized');
+
+  // Per-uid rate limit: 5 PDFs / 60 s (T197)
+  if (!checkPvPdfRateLimit(userId, Date.now())) {
+    return new Response(JSON.stringify({ error: 'rate-limited' }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json', 'Retry-After': '60' },
+    });
+  }
 
   // Parse request
   let body: unknown;

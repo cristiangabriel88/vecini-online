@@ -19,6 +19,7 @@ import {
 } from '../../src/shared/lib/notifPrefsLogic';
 import { mayNotify } from '../../src/shared/notify/consentGate';
 import type { ConsentRecord, ConsentChoices } from '../../src/features/legal/consentLogic';
+import { checkNotifyEmailRateLimit } from './_shared/rateLimiter';
 import { getMailMode, isResendConfigured, sendEmail } from './_shared/resend';
 import {
   isSupabaseAdminConfigured,
@@ -75,6 +76,14 @@ export default async (req: Request): Promise<Response> => {
   const { recipientUserId, asociatieId, kind, priority, data, locale, consentKind } = payload;
   if (!recipientUserId || !asociatieId || !kind || !priority || !consentKind) {
     return json(400, { error: 'missing-fields' });
+  }
+
+  // Per-uid rate limit: 30 emails / 10 min (T197)
+  if (!checkNotifyEmailRateLimit(callerId, Date.now())) {
+    return new Response(JSON.stringify({ error: 'rate-limited' }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json', 'Retry-After': '600' },
+    });
   }
 
   // Authorization: caller must be admin of asociatie or the recipient.

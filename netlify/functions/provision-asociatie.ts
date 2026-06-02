@@ -32,6 +32,7 @@
 // Privacy: never log the recipient email, invite token, user id, or any PII.
 
 import { randomBytes } from 'node:crypto';
+import { checkProvisionRateLimit } from './_shared/rateLimiter';
 import QRCode from 'qrcode';
 import { buildAdminInviteEmail } from '../../src/shared/lib/inviteEmail';
 import { buildOnboardingLink, generateInviteCode } from '../../src/shared/lib/inviteCode';
@@ -107,6 +108,15 @@ interface ProvisionPayload {
 
 export default async (req: Request): Promise<Response> => {
   if (req.method !== 'POST') return json(405, { error: 'method-not-allowed' });
+
+  // Per-IP rate limit: 20 requests / 60 min (T197)
+  const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '';
+  if (clientIp && !checkProvisionRateLimit(clientIp)) {
+    return new Response(JSON.stringify({ error: 'rate-limited' }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json', 'Retry-After': '3600' },
+    });
+  }
 
   // Supabase admin env must be present before any DB or auth call.
   if (!isSupabaseAdminConfigured()) return json(503, { error: 'backend-not-configured' });

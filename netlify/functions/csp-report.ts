@@ -1,4 +1,4 @@
-// Netlify Function: receive and log Content-Security-Policy violation reports (T39).
+// Netlify Function: receive and log Content-Security-Policy violation reports (T39, rate-limited T197).
 //
 // Browsers send CSP violation reports via two mechanisms:
 //   - report-uri (legacy): POST application/csp-report with {"csp-report":{...}}
@@ -8,6 +8,8 @@
 // URI, source file, line), and writes it to the function log where platform
 // operators can observe violations. No request body contents are reflected back
 // and no PII (user identity, full document URL) is retained.
+
+import { checkCspReportRateLimit } from './_shared/rateLimiter';
 
 interface LegacyReport {
   'csp-report'?: {
@@ -37,6 +39,12 @@ interface ModernReport {
 export default async (req: Request): Promise<Response> => {
   if (req.method !== 'POST') {
     return new Response(null, { status: 405 });
+  }
+
+  // Per-IP rate limit: 50 reports / 60 s (T197)
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '';
+  if (ip && !checkCspReportRateLimit(ip)) {
+    return new Response(null, { status: 429, headers: { 'Retry-After': '60' } });
   }
 
   const ct = req.headers.get('content-type') ?? '';
