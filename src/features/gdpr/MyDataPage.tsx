@@ -91,7 +91,9 @@ export default function MyDataPage() {
     Object.values(s.byAsociatie).flatMap((cat) => cat.items),
   );
   const anonymousMessages = useAnonymousStore((s) => s.messages);
-  const petitions = usePetitionStore((s) => s.petitions);
+  const petitions = usePetitionStore((s) =>
+    Object.values(s.byAsociatie).flatMap((cat) => cat.items),
+  );
   const thankYous = useThankYousStore((s) => s.items);
   const directory = useDirectoryStore((s) => s.entries);
   const birthdays = useBirthdaysStore((s) => s.consents);

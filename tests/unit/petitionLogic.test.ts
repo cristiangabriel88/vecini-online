@@ -1,11 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import {
+  addPetitionIn,
+  canManagePetitions,
   isThresholdReached,
   isValidPetition,
+  migratePetitionsState,
+  newPetition,
+  petitionsForAsociatie,
   progress,
+  seedPetitions,
   sortPetitions,
   thresholdCount,
 } from '@/features/petitions/petitionLogic';
+import { DEMO_ASOCIATIE } from '@/shared/demo/demoData';
 import type { Petition } from '@/shared/types/domain';
 
 const base = {
@@ -58,5 +65,84 @@ describe('sortPetitions', () => {
       p({ id: 'new', created_at: '2026-05-10T00:00:00Z' }),
     ];
     expect(sortPetitions(list).map((x) => x.id)).toEqual(['new', 'old']);
+  });
+});
+
+describe('canManagePetitions', () => {
+  it('allows admin/presedinte/comitet, blocks others', () => {
+    expect(canManagePetitions('admin')).toBe(true);
+    expect(canManagePetitions('presedinte')).toBe(true);
+    expect(canManagePetitions('comitet')).toBe(true);
+    expect(canManagePetitions('proprietar')).toBe(false);
+    expect(canManagePetitions('locatar')).toBe(false);
+    expect(canManagePetitions(null)).toBe(false);
+  });
+});
+
+describe('seedPetitions', () => {
+  it('seeds the demo asociație with at least one petition', () => {
+    const map = seedPetitions();
+    expect(map[DEMO_ASOCIATIE.id]).toBeDefined();
+    expect(map[DEMO_ASOCIATIE.id].items.length).toBeGreaterThan(0);
+  });
+});
+
+describe('petitionsForAsociatie', () => {
+  it('returns empty catalog for unknown or null asociație', () => {
+    const map = seedPetitions();
+    expect(petitionsForAsociatie(map, null).items).toHaveLength(0);
+    expect(petitionsForAsociatie(map, 'unknown').items).toHaveLength(0);
+  });
+
+  it('returns the seeded catalog for the demo asociație', () => {
+    const map = seedPetitions();
+    expect(petitionsForAsociatie(map, DEMO_ASOCIATIE.id).items.length).toBeGreaterThan(0);
+  });
+});
+
+describe('migratePetitionsState', () => {
+  it('reseeds the demo asociație and preserves other entries', () => {
+    const custom = p({ id: 'custom-1', asociatie_id: 'other-asoc' });
+    const persisted = {
+      byAsociatie: {
+        'other-asoc': { items: [custom] },
+        [DEMO_ASOCIATIE.id]: { items: [] },
+      },
+    };
+    const result = migratePetitionsState(persisted);
+    expect(result['other-asoc'].items).toHaveLength(1);
+    expect(result[DEMO_ASOCIATIE.id].items.length).toBeGreaterThan(0);
+  });
+
+  it('handles null/undefined persisted state gracefully', () => {
+    const result = migratePetitionsState(null);
+    expect(result[DEMO_ASOCIATIE.id].items.length).toBeGreaterThan(0);
+  });
+});
+
+describe('newPetition', () => {
+  it('builds a valid petition with trimmed input and 1 initial signature', () => {
+    const petition = newPetition(
+      { title: '  Titlu  ', body: '  Corp  ' },
+      'asoc-1',
+      'u-1',
+      'Ion',
+      20,
+    );
+    expect(petition.title).toBe('Titlu');
+    expect(petition.body).toBe('Corp');
+    expect(petition.signatures).toBe(1);
+    expect(petition.threshold_percent).toBe(25);
+    expect(petition.total_apartments).toBe(20);
+    expect(petition.status).toBe('deschisa');
+  });
+});
+
+describe('addPetitionIn', () => {
+  it('prepends the new petition to the catalog', () => {
+    const catalog = { items: [p({ id: 'old' })] };
+    const added = addPetitionIn(catalog, p({ id: 'new' }));
+    expect(added.items[0].id).toBe('new');
+    expect(added.items).toHaveLength(2);
   });
 });

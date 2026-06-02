@@ -54,6 +54,7 @@ export const AUDIT_ACTIONS = [
   'aga.closed',
   'budget.proposed',
   'petition.created',
+  'petition.forwarded',
 ] as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];

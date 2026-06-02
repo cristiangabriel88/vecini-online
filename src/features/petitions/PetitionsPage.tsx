@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { ScrollText, Plus } from 'lucide-react';
@@ -8,12 +8,18 @@ import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input, Textarea } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
 import { recordAudit } from '@/shared/store/auditStore';
-import { usePetitionStore } from './petitionStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useAsociatieApartments } from '@/features/admin/apartmentsStore';
+import { findVoterApartmentId } from '@/features/polls/pollLogic';
+import { createPetition, hydratePetitions, signPetition } from './petitionApi';
+import { usePetitionStore, useAsociatiePetitions } from './petitionStore';
 import {
   isThresholdReached,
   isValidPetition,
+  newPetition,
   progress,
   sortPetitions,
   thresholdCount,
@@ -21,18 +27,38 @@ import {
 
 export default function PetitionsPage() {
   const { t } = useTranslation();
-  const { petitions, signed, create, sign } = usePetitionStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const userId = useAuthStore((s) => s.profile?.id ?? null);
+  const apartments = useAsociatieApartments();
+  const apartmentId = userId ? findVoterApartmentId(apartments, userId) : null;
+
+  const catalog = useAsociatiePetitions();
+  const mySigned = usePetitionStore((s) => s.mySigned);
+  const fetchError = usePetitionStore((s) => s.fetchError);
 
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
 
-  const list = sortPetitions(petitions);
+  useEffect(() => {
+    if (asociatieId) {
+      void hydratePetitions(asociatieId, apartments.length || 1);
+    }
+  }, [asociatieId, apartments.length]);
+
+  const list = sortPetitions(catalog.items);
   const valid = isValidPetition(title, body);
 
   const submit = () => {
-    if (!valid) return;
-    create({ title, body });
+    if (!valid || !asociatieId) return;
+    const petition = newPetition(
+      { title, body },
+      asociatieId,
+      userId ?? 'u-res',
+      useAuthStore.getState().profile?.full_name ?? 'Resident',
+      apartments.length || 1,
+    );
+    createPetition(asociatieId, petition, userId);
     recordAudit({ action: 'petition.created', entity: 'petition', entity_label: title.trim() });
     toast.success(t('petitions.created'));
     setOpen(false);
@@ -41,9 +67,31 @@ export default function PetitionsPage() {
   };
 
   const onSign = (id: string) => {
-    sign(id);
+    if (!asociatieId) return;
+    signPetition(asociatieId, id, apartmentId);
     toast.success(t('petitions.signed'));
   };
+
+  if (fetchError) {
+    return (
+      <div>
+        <PageHeader title={t('petitions.title')} subtitle={t('petitions.subtitle')} />
+        <ErrorState
+          body={t('common.loadError')}
+          action={
+            <Button
+              variant="secondary"
+              onClick={() => {
+                if (asociatieId) void hydratePetitions(asociatieId, apartments.length || 1);
+              }}
+            >
+              {t('common.retry')}
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -62,7 +110,7 @@ export default function PetitionsPage() {
       ) : (
         <div className="space-y-3">
           {list.map((p) => {
-            const isSigned = signed.includes(p.id);
+            const isSigned = mySigned[p.id] ?? false;
             const reached = isThresholdReached(p);
             const target = thresholdCount(p);
             return (
@@ -77,7 +125,13 @@ export default function PetitionsPage() {
                 </div>
                 <p className="text-sm text-text">{p.body}</p>
                 <p className="text-xs text-muted">{t('petitions.by', { name: p.author_name })}</p>
-                <div className="h-2 overflow-hidden rounded-full bg-border">
+                <div
+                  role="progressbar"
+                  aria-valuenow={Math.round(progress(p) * 100)}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  className="h-2 overflow-hidden rounded-full bg-border"
+                >
                   <div
                     className="h-full bg-primary"
                     style={{ width: `${Math.round(progress(p) * 100)}%` }}
@@ -89,7 +143,7 @@ export default function PetitionsPage() {
                   </span>
                   <Button
                     variant={isSigned ? 'ghost' : 'primary'}
-                    disabled={isSigned}
+                    disabled={isSigned || reached}
                     onClick={() => onSign(p.id)}
                   >
                     {isSigned ? t('petitions.signedLabel') : t('petitions.sign')}

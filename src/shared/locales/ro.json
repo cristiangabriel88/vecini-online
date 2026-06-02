@@ -2584,7 +2584,8 @@
       "aga.opened": "AGA deschisă",
       "aga.closed": "AGA încheiată",
       "budget.proposed": "Propunere buget adăugată",
-      "petition.created": "Petiție creată"
+      "petition.created": "Petiție creată",
+      "petition.forwarded": "Petiție înaintată comitetului"
     },
     "entity": {
       "feature": "Funcționalitate",

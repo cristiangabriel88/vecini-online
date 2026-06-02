@@ -5,17 +5,31 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-03
-- last_task: T195 (P2) F15 Sondaje de opinie: live activation + E2E -- `surveyLogic.ts` extended (canManageSurveys, SurveyCatalog/SurveysByAsociatie, seedSurveys, surveysForAsociatie, migrateSurveysState); `surveysStore.ts` rebuilt as per-asociație persisted store (byAsociatie surveys+tallies + answered + fetchError; version 1 reseeds demo; useAsociatieSurveys hook); new `surveysApi.ts` (hydrateSurveys reads surveys+survey_tally RPC; recordSurveyResponse store-first + live insert); SurveysPage hydrates + ErrorState retry + progressbar roles; surveyLogic.test.ts extended (+14); new surveysApi.test.ts (7 assertions); F15 E2E (vote + progressbars)
+- last_task: T196 (P2) F16 Petiții interne: live activation + auto-forward at threshold + E2E -- `petitionLogic.ts` extended (canManagePetitions, PetitionCatalog/PetitionsByAsociatie, seedPetitions, petitionsForAsociatie, migratePetitionsState, newPetition, addPetitionIn); `petitionStore.ts` rebuilt as per-asociație persisted store (byAsociatie + mySigned + fetchError; version 1 reseeds demo; addPetition/signPetition/replaceForAsociatie/setFetchError; useAsociatiePetitions hook); new `petitionApi.ts` (hydratePetitions reads petitions+petition_signatures tallied in JS; createPetition store+live; signPetition optimistic + live + auto-forward: DB status update + petition.forwarded audit event + demo notification); PetitionsPage hydrates + ErrorState retry + findVoterApartmentId; petition.forwarded added to AUDIT_ACTIONS + tone + locales; MyDataPage migrated to per-asociație store; petitionLogic.test.ts extended (+12); new petitionsApi.test.ts (7 assertions); F16 E2E (sign, progress advances, button disabled)
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 203 files / 2026 tests
+- counts: 204 files / 2041 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T196 F16 Petiții interne live activation + auto-forward + E2E
-- features: 65/65 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F11/F15/F17/F33 + auth/invites/onboarding; rest offline-first pending the live-activation track. F28/F36/F66 cross-feature glue wired (T104)
-- e2e: F02/F03/F04/F05/F08/F09/F10/F11/F15 happy paths green on chromium + mobile; `features.spec.ts` passing; 5 pre-existing tests (F07/F18/F35/F36/F40) fail on stale search selectors (belongs to T16). auth/consent/isolation/smoke/batch specs still predate the auto-demo-entry harness (T16)
+- next: T37 Server-rendered proces-verbal PDF (F10 AGA)
+- features: 65/65 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F11/F15/F16/F17/F33 + auth/invites/onboarding; rest offline-first pending the live-activation track. F28/F36/F66 cross-feature glue wired (T104)
+- e2e: F02/F03/F04/F05/F08/F09/F10/F11/F15/F16 happy paths green on chromium + mobile; `features.spec.ts` passing; 5 pre-existing tests (F07/F18/F35/F36/F40) fail on stale search selectors (belongs to T16). auth/consent/isolation/smoke/batch specs still predate the auto-demo-entry harness (T16)
 - blockers: full e2e harness rework (entry helpers + login-page specs) deferred to T16; Chromium now installed locally
 
 ---
+
+### T196 P2 ✅ 2026-06-03 -- F16 Petiții interne: live activation + auto-forward at threshold + E2E
+- extended: src/features/petitions/petitionLogic.ts (canManagePetitions, PetitionCatalog/PetitionsByAsociatie, seedPetitions, petitionsForAsociatie, migratePetitionsState, newPetition, addPetitionIn)
+- rebuilt: src/features/petitions/petitionStore.ts (per-asociație persisted store: byAsociatie + mySigned + fetchError; addPetition/signPetition/replaceForAsociatie/setFetchError; version 1 reseeds demo; useAsociatiePetitions hook)
+- new: src/features/petitions/petitionApi.ts (hydratePetitions reads petitions+petition_signatures under RLS tallied in JS; createPetition store+live insert; signPetition optimistic+live+auto-forward: DB status 'inaintata' + petition.forwarded audit + demo notification)
+- rebuilt: src/features/petitions/PetitionsPage.tsx (hydrate on mount; ErrorState retry; findVoterApartmentId; mySigned; progressbar aria roles)
+- updated: src/features/audit/auditLogic.ts (petition.forwarded added to AUDIT_ACTIONS)
+- updated: src/features/audit/AuditLogPage.tsx (petition.forwarded tone: success)
+- updated: src/shared/locales/en.json + ro.json (petition.forwarded audit.action locale keys)
+- fixed: src/features/gdpr/MyDataPage.tsx (migrated from removed s.petitions to flatMap byAsociatie)
+- extended: tests/unit/petitionLogic.test.ts (+12 assertions)
+- new: tests/unit/petitionsApi.test.ts (offline path: 7 assertions)
+- updated: tests/e2e/features.spec.ts (F16 happy path: sign + progress bar + button disabled)
+- result: 204 files / 2041 tests / lint+typecheck+build+pi+demo green
 
 ### T194 P2 ✅ 2026-06-03 -- F14 Cutie de idei: live activation + auto top-N promotion + E2E
 - new migration: supabase/migrations/20260603000001_idea_votes_rls.sql (RLS on idea_votes: SELECT+INSERT for members, no DELETE/UPDATE per T34 immutability guard)

@@ -1,4 +1,5 @@
-import type { Petition } from '@/shared/types/domain';
+import type { Petition, Role } from '@/shared/types/domain';
+import { DEMO_ASOCIATIE, DEMO_PETITIONS } from '@/shared/demo/demoData';
 
 /** A petition needs a short title and a body. */
 export function isValidPetition(title: string, body: string): boolean {
@@ -27,4 +28,76 @@ export function sortPetitions(petitions: Petition[]): Petition[] {
   return [...petitions].sort(
     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
   );
+}
+
+/** Only admin/presedinte/comitet can manage (archive/respond to) petitions. */
+export function canManagePetitions(role: Role | null): boolean {
+  return role === 'admin' || role === 'presedinte' || role === 'comitet';
+}
+
+// ── Per-asociație catalog ────────────────────────────────────────────────────
+
+export interface PetitionCatalog {
+  items: Petition[];
+}
+
+export type PetitionsByAsociatie = Record<string, PetitionCatalog>;
+
+const EMPTY_CATALOG: PetitionCatalog = Object.freeze({ items: [] as Petition[] });
+
+function clonePetitions(items: Petition[]): Petition[] {
+  return items.map((p) => ({ ...p }));
+}
+
+/** Initial store state: the demo asociație gets the seeded petitions. */
+export function seedPetitions(): PetitionsByAsociatie {
+  return { [DEMO_ASOCIATIE.id]: { items: clonePetitions(DEMO_PETITIONS) } };
+}
+
+/** The petition catalog for one asociație (stable reference, never null). */
+export function petitionsForAsociatie(
+  map: PetitionsByAsociatie,
+  asociatieId: string | null,
+): PetitionCatalog {
+  if (!asociatieId) return EMPTY_CATALOG;
+  return map[asociatieId] ?? EMPTY_CATALOG;
+}
+
+/**
+ * Migrate persisted state to the current shape. Preserves non-demo asociații
+ * and always reseeds the demo asociație so stale demo content is refreshed.
+ */
+export function migratePetitionsState(persisted: unknown): PetitionsByAsociatie {
+  const p = persisted as { byAsociatie?: PetitionsByAsociatie } | null;
+  const existing = p?.byAsociatie ?? {};
+  return { ...existing, [DEMO_ASOCIATIE.id]: { items: clonePetitions(DEMO_PETITIONS) } };
+}
+
+/** Build a new petition object for optimistic store insertion. */
+export function newPetition(
+  input: { title: string; body: string },
+  asociatieId: string,
+  authorUserId: string,
+  authorName: string,
+  totalApartments: number,
+  now: Date = new Date(),
+): Petition {
+  return {
+    id: `pt-${now.getTime()}`,
+    asociatie_id: asociatieId,
+    author_user_id: authorUserId,
+    author_name: authorName,
+    title: input.title.trim(),
+    body: input.body.trim(),
+    threshold_percent: 25,
+    status: 'deschisa',
+    created_at: now.toISOString(),
+    signatures: 1,
+    total_apartments: totalApartments,
+  };
+}
+
+/** Prepend one petition to a catalog (returns a new catalog object). */
+export function addPetitionIn(catalog: PetitionCatalog, petition: Petition): PetitionCatalog {
+  return { items: [petition, ...catalog.items] };
 }

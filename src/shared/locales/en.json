@@ -2573,7 +2573,8 @@
       "aga.opened": "AGA meeting opened",
       "aga.closed": "AGA meeting closed",
       "budget.proposed": "Budget item proposed",
-      "petition.created": "Petition created"
+      "petition.created": "Petition created",
+      "petition.forwarded": "Petition forwarded to committee"
     },
     "entity": {
       "feature": "Feature",

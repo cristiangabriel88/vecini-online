@@ -331,3 +331,22 @@ test('F15 — resident votes in an opinion survey and sees percentage bars', asy
   // The voted survey no longer shows the vote button for the chosen option.
   await expect(page.getByRole('button', { name: /^Crem$/i })).not.toBeVisible();
 });
+
+test('F16 — resident signs a petition and the progress bar updates', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/petitii');
+  // The seeded petition is visible.
+  await expect(page.getByText('Schimbarea firmei de curățenie')).toBeVisible();
+  // Read the signature count before signing.
+  const progressBar = page.getByRole('progressbar').first();
+  await expect(progressBar).toBeVisible();
+  const widthBefore = await progressBar.locator('div').getAttribute('style');
+  // Sign the petition.
+  await page.getByRole('button', { name: /^Semnează$/i }).first().click();
+  await expect(page.getByText(/Ai semnat petiția/i)).toBeVisible();
+  // The progress bar should advance (the width% changes).
+  const widthAfter = await progressBar.locator('div').getAttribute('style');
+  expect(widthAfter).not.toBe(widthBefore);
+  // The sign button is now disabled/replaced with "Ai semnat".
+  await expect(page.getByRole('button', { name: /Ai semnat/i }).first()).toBeDisabled();
+});
