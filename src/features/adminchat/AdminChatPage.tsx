@@ -14,6 +14,8 @@ import { formatDateTime } from '@/shared/lib/format';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useAsociatieApartments } from '@/features/admin/apartmentsStore';
 import { apartmentShortLabel } from '@/features/apartment/apartmentLogic';
+import { apartmentHasLinkedResident, pickAdminThreadResident } from '@/features/admin/apartmentsLogic';
+import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import { DEMO_CURRENT_USER_ID, DEMO_CURRENT_USER_NAME } from '@/shared/demo/demoData';
 import type { PrivateMessage, PrivateSender } from '@/shared/types/domain';
 import { useAsociatieThreads } from './adminChatStore';
@@ -104,22 +106,30 @@ export default function AdminChatPage() {
   };
 
   const pickedApartment = apartments.find((a) => a.id === apartmentId);
+  const pickedResident = pickedApartment ? pickAdminThreadResident(pickedApartment) : null;
+  // Live RLS keys threads off auth.uid(), so we refuse to start one against an
+  // apartment whose persons are not yet account-linked (T130). Offline the local
+  // store has no such constraint, so the conversation still appears in the
+  // admin's outbox for demo/local use.
+  const pickedRequiresLink = isSupabaseConfigured && pickedResident?.pending === true;
   const newValid =
     isValidSubject(subject) &&
     isValidMessage(firstBody) &&
-    (!isAdminView || Boolean(pickedApartment));
+    (!isAdminView || (Boolean(pickedApartment) && pickedResident !== null && !pickedRequiresLink));
 
   const submitThread = () => {
     if (!currentAsociatieId || !newValid) return;
     if (isAdminView) {
-      if (!pickedApartment) return;
-      const primary =
-        pickedApartment.persons.find((p) => p.is_primary) ?? pickedApartment.persons[0];
+      if (!pickedApartment || !pickedResident) return;
+      if (pickedRequiresLink) {
+        toast.error(t('adminChat.noLinkedResident'));
+        return;
+      }
       const created = startThread(currentAsociatieId, 'admin', {
         subject,
         body: firstBody,
-        residentUserId: primary?.id ?? pickedApartment.id,
-        residentName: primary?.name ?? apartmentShortLabel(pickedApartment),
+        residentUserId: pickedResident.userId,
+        residentName: pickedResident.name || apartmentShortLabel(pickedApartment),
         apartmentLabel: apartmentShortLabel(pickedApartment),
       }, onWriteError);
       toast.success(t('adminChat.threadStartedToResident'));
@@ -226,22 +236,29 @@ export default function AdminChatPage() {
             {isAdminView ? t('adminChat.adminPrivacyNote') : t('adminChat.privacyNote')}
           </p>
           {isAdminView && (
-            <Select
-              label={t('adminChat.selectApartment')}
-              value={apartmentId}
-              onChange={(e) => setApartmentId(e.target.value)}
-            >
-              <option value="">{t('adminChat.selectApartmentPlaceholder')}</option>
-              {apartments.map((a) => {
-                const primary = a.persons.find((p) => p.is_primary) ?? a.persons[0];
-                return (
-                  <option key={a.id} value={a.id}>
-                    {apartmentShortLabel(a)}
-                    {primary ? ` · ${primary.name}` : ''}
-                  </option>
-                );
-              })}
-            </Select>
+            <>
+              <Select
+                label={t('adminChat.selectApartment')}
+                value={apartmentId}
+                onChange={(e) => setApartmentId(e.target.value)}
+              >
+                <option value="">{t('adminChat.selectApartmentPlaceholder')}</option>
+                {apartments.map((a) => {
+                  const primary = a.persons.find((p) => p.is_primary) ?? a.persons[0];
+                  const linked = apartmentHasLinkedResident(a);
+                  return (
+                    <option key={a.id} value={a.id}>
+                      {apartmentShortLabel(a)}
+                      {primary ? ` · ${primary.name}` : ''}
+                      {linked ? '' : ` · ${t('adminChat.apartmentUnlinked')}`}
+                    </option>
+                  );
+                })}
+              </Select>
+              {pickedResident?.pending && (
+                <p className="text-xs text-warning">{t('adminChat.noLinkedResident')}</p>
+              )}
+            </>
           )}
           <Input
             label={t('adminChat.subject')}

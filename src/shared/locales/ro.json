@@ -1739,6 +1739,8 @@
     "threadStarted": "Mesaj trimis către administrator.",
     "threadStartedToResident": "Mesaj trimis către locatar.",
     "writeFailed": "Mesajul nu a putut fi salvat. Vă rugăm să încercați din nou.",
+    "noLinkedResident": "Acest apartament nu are încă un cont de locatar asociat. Așteaptă ca locatarul să își creeze contul înainte de a începe o conversație.",
+    "apartmentUnlinked": "fără cont încă",
     "empty": "Nicio conversație încă. Începe una cu butonul de mai sus.",
     "emptyAdmin": "Niciun mesaj de la locatari încă. Poți porni tu o conversație cu butonul de mai sus."
   },

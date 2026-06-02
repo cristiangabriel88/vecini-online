@@ -149,6 +149,47 @@ export function isPersonClaimed(person: ApartmentPerson): boolean {
   return Boolean(person.claimed_user_id);
 }
 
+/** True when at least one entry in the apartment's persons list is account-linked. */
+export function apartmentHasLinkedResident(apartment: Apartment): boolean {
+  return apartment.persons.some(isPersonClaimed);
+}
+
+/**
+ * Pick the recipient for an admin-initiated F04 private thread (T130). Admin
+ * conversations are addressed to an apartment, but `private_threads.resident_user_id`
+ * is the real `auth.uid()` under party-or-admin RLS, so an embedded person id
+ * ("pe-...") would never reach the resident's inbox live.
+ *
+ * Resolution order: primary person's `claimed_user_id` first, then the first
+ * other person with a claim. When no entry is claimed yet the result is
+ * `pending: true` with the primary person's id as a local placeholder so the
+ * offline UI stays usable; the caller refuses the live write in that case.
+ *
+ * Returns null when the apartment has no persons recorded at all.
+ */
+export interface AdminThreadResident {
+  userId: string;
+  name: string;
+  /** True when no person on the apartment has been claimed by a real account yet. */
+  pending: boolean;
+}
+
+export function pickAdminThreadResident(apartment: Apartment): AdminThreadResident | null {
+  if (apartment.persons.length === 0) return null;
+  const primary = apartment.persons.find((p) => p.is_primary) ?? apartment.persons[0];
+
+  if (primary.claimed_user_id) {
+    return { userId: primary.claimed_user_id, name: primary.name || primary.id, pending: false };
+  }
+
+  const claimed = apartment.persons.find((p) => p.claimed_user_id);
+  if (claimed && claimed.claimed_user_id) {
+    return { userId: claimed.claimed_user_id, name: claimed.name || claimed.id, pending: false };
+  }
+
+  return { userId: primary.id, name: primary.name || primary.id, pending: true };
+}
+
 /**
  * Claim the best-matching unclaimed person entry in `persons` for `userId`. Pure.
  * Mirrors the server-side match in redeem_onboarding_token (T117).
