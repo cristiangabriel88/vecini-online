@@ -45,6 +45,50 @@ describe('authStore.joinByInvite', () => {
     expect(useInviteStore.getState().invites[0].consumedByUserId).toBe(DEMO_CURRENT_USER_ID);
   });
 
+  it('populates localAsociatii with the name embedded in the invite', () => {
+    const invite = useInviteStore
+      .getState()
+      .issue({ asociatieId: 'asoc-named', role: 'proprietar', asociatieName: 'Bloc 7, Scara B' });
+
+    useAuthStore.getState().joinByInvite(invite.code);
+
+    const entry = useAuthStore
+      .getState()
+      .localAsociatii.find((a) => a.id === 'asoc-named');
+    expect(entry).toBeDefined();
+    expect(entry?.name).toBe('Bloc 7, Scara B');
+  });
+
+  it('populates localAsociatii with empty name when invite carries none', () => {
+    const invite = useInviteStore
+      .getState()
+      .issue({ asociatieId: 'asoc-noname', role: 'proprietar' });
+
+    useAuthStore.getState().joinByInvite(invite.code);
+
+    const entry = useAuthStore
+      .getState()
+      .localAsociatii.find((a) => a.id === 'asoc-noname');
+    expect(entry).toBeDefined();
+    expect(entry?.name).toBe('');
+  });
+
+  it('backfills a blank localAsociatii entry when the invite carries a name', () => {
+    useAuthStore.setState({
+      localAsociatii: [{ id: 'asoc-blank', name: '' }],
+    });
+    const invite = useInviteStore
+      .getState()
+      .issue({ asociatieId: 'asoc-blank', role: 'proprietar', asociatieName: 'Bloc 3' });
+
+    useAuthStore.getState().joinByInvite(invite.code);
+
+    const entry = useAuthStore
+      .getState()
+      .localAsociatii.find((a) => a.id === 'asoc-blank');
+    expect(entry?.name).toBe('Bloc 3');
+  });
+
   it('is replay-safe: a single-use code cannot be redeemed twice', () => {
     const invite = useInviteStore.getState().issue({ asociatieId: 'asoc-2' });
 

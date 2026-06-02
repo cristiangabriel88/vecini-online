@@ -50,6 +50,9 @@ export default function InvitesAdminPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const asociatieName = useAuthStore(
+    (s) => s.localAsociatii.find((a) => a.id === s.currentAsociatieId)?.name ?? '',
+  );
   const userId = useAuthStore((s) => s.session?.user?.id ?? null);
   const invites = useInviteStore((s) => s.invites);
   const issue = useInviteStore((s) => s.issue);
@@ -96,6 +99,7 @@ export default function InvitesAdminPage() {
     if (prefill.autoIssue) {
       const invite = issue({
         asociatieId,
+        asociatieName,
         role: prefill.role ?? 'proprietar',
         apartmentId: prefill.apartmentId || null,
         expiresAt: expiryFromPreset('30d'),

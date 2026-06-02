@@ -61,6 +61,22 @@ describe('authStore.redeemInvite (locatar invite path)', () => {
     expect(useAuthStore.getState().memberships[0].role).toBe('locatar');
   });
 
+  it('populates localAsociatii with the name embedded in the invite', () => {
+    const invite = useInviteStore.getState().issue({
+      asociatieId: 'asoc-named-r',
+      role: 'proprietar',
+      asociatieName: 'Bloc 14, Scara C',
+    });
+
+    useAuthStore.getState().redeemInvite(invite.token);
+
+    const entry = useAuthStore
+      .getState()
+      .localAsociatii.find((a) => a.id === 'asoc-named-r');
+    expect(entry).toBeDefined();
+    expect(entry?.name).toBe('Bloc 14, Scara C');
+  });
+
   it('is replay-safe: a single-use token cannot be redeemed twice', () => {
     const invite = useInviteStore.getState().issue({ asociatieId: 'asoc-3' });
     expect(useAuthStore.getState().redeemInvite(invite.token).status).toBe('ok');

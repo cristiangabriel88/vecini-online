@@ -45,6 +45,9 @@ export interface InviteCode {
    *  invite can later be delivered by email (T147). Null for standing codes. */
   inviteeName: string | null;
   inviteeEmail: string | null;
+  /** Denormalised display name of the issuing asociație. Embedded at mint time so
+   *  a joiner on a fresh device can populate localAsociatii without a live read. */
+  asociatieName: string | null;
   /** When the invitation email was dispatched (epoch ms), or null if never sent.
    *  Offline this is stamped the moment delivery is triggered; live it is set on
    *  a confirmed send by the `invite-email` function (T147). */
@@ -77,6 +80,9 @@ export interface CreateInviteInput {
   /** Optional recipient captured when inviting a specific apartment occupant. */
   inviteeName?: string | null;
   inviteeEmail?: string | null;
+  /** Denormalised name of the asociație. Carried by the invite so a joiner on a
+   *  fresh device can resolve the display name without a live read. */
+  asociatieName?: string | null;
 }
 
 /** Common expiry presets (ms) offered by the admin surface. */
@@ -137,6 +143,7 @@ export function createInvite(
     createdBy: input.createdBy ?? null,
     inviteeName: input.inviteeName ?? null,
     inviteeEmail: input.inviteeEmail ?? null,
+    asociatieName: input.asociatieName ?? null,
     emailSentAt: null,
     emailDeliveredAt: null,
   };

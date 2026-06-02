@@ -32,6 +32,7 @@ const BASE_INVITE: InviteCode = {
   createdBy: null,
   inviteeName: 'Popescu Ion',
   inviteeEmail: 'ion@example.com',
+  asociatieName: null,
   emailSentAt: null,
   emailDeliveredAt: null,
 };

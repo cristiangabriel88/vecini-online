@@ -39,6 +39,7 @@ function make(overrides: Partial<InviteCode> = {}): InviteCode {
     createdBy: null,
     inviteeName: null,
     inviteeEmail: null,
+    asociatieName: null,
     emailSentAt: null,
     emailDeliveredAt: null,
     ...overrides,

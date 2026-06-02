@@ -148,6 +148,9 @@ export default function ApartmentsPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const asociatieName = useAuthStore(
+    (s) => s.localAsociatii.find((a) => a.id === s.currentAsociatieId)?.name ?? '',
+  );
   const userId = useAuthStore((s) => s.session?.user?.id ?? null);
   const apartments = useAsociatieApartments();
   const invites = useInviteStore((s) =>
@@ -274,6 +277,7 @@ export default function ApartmentsPage() {
       '';
     const invite = issue({
       asociatieId,
+      asociatieName,
       role: 'proprietar',
       apartmentId: inviteApt.id,
       expiresAt: null,
@@ -438,6 +442,7 @@ export default function ApartmentsPage() {
         const aptId = idx !== -1 ? newApartments[idx].id : null;
         const invite = inviteState.issue({
           asociatieId,
+          asociatieName,
           role: row.proprietar ? 'proprietar' : 'locatar',
           apartmentId: aptId,
           expiresAt: onboardingExpiry(),

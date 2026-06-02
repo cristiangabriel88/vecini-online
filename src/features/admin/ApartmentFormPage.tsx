@@ -48,6 +48,9 @@ export default function ApartmentFormPage() {
   const { id } = useParams<{ id: string }>();
   const isEdit = Boolean(id);
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const asociatieName = useAuthStore(
+    (s) => s.localAsociatii.find((a) => a.id === s.currentAsociatieId)?.name ?? '',
+  );
   const userId = useAuthStore((s) => s.session?.user?.id ?? null);
   const apartment = useApartment(id);
   const invites = useInviteStore((s) => s.invites);
@@ -165,6 +168,7 @@ export default function ApartmentFormPage() {
     if (!persist()) return;
     const invite = issue({
       asociatieId,
+      asociatieName,
       role: 'proprietar',
       apartmentId: apartment.id,
       expiresAt: onboardingExpiry(),

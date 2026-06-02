@@ -275,11 +275,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return { status: consumed.status, asociatieId: null };
     }
     const membership = buildMembershipFromInvite(userId, consumed.invite);
+    const joinedAsocId = consumed.invite.asociatieId;
+    const existingEntry = get().localAsociatii.find((a) => a.id === joinedAsocId);
+    const resolvedName = consumed.invite.asociatieName ?? existingEntry?.name ?? '';
+    const updatedLocalAsociatii = existingEntry
+      ? get().localAsociatii.map((a) =>
+          a.id === joinedAsocId && !a.name && resolvedName ? { ...a, name: resolvedName } : a,
+        )
+      : [...get().localAsociatii, { id: joinedAsocId, name: resolvedName }];
     set({
       memberships: sortByPrivilege([...get().memberships, membership]),
-      currentAsociatieId: consumed.invite.asociatieId,
+      currentAsociatieId: joinedAsocId,
+      localAsociatii: updatedLocalAsociatii,
     });
-    return { status: 'ok', asociatieId: consumed.invite.asociatieId };
+    return { status: 'ok', asociatieId: joinedAsocId };
   },
 
   redeemInvite: (value) => {
@@ -307,9 +316,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return { status: consumed.status, asociatieId: null };
     }
     const membership = buildMembershipFromInvite(userId, consumed.invite);
+    const redeemedAsocId = consumed.invite.asociatieId;
+    const existingEntryR = get().localAsociatii.find((a) => a.id === redeemedAsocId);
+    const resolvedNameR = consumed.invite.asociatieName ?? existingEntryR?.name ?? '';
+    const updatedLocalAsociatiiR = existingEntryR
+      ? get().localAsociatii.map((a) =>
+          a.id === redeemedAsocId && !a.name && resolvedNameR ? { ...a, name: resolvedNameR } : a,
+        )
+      : [...get().localAsociatii, { id: redeemedAsocId, name: resolvedNameR }];
     set({
       memberships: sortByPrivilege([...get().memberships, membership]),
-      currentAsociatieId: consumed.invite.asociatieId,
+      currentAsociatieId: redeemedAsocId,
+      localAsociatii: updatedLocalAsociatiiR,
       ...sessionPatch,
     });
     // Notify the invite issuer (admin) that a new member joined (T126).

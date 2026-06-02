@@ -137,7 +137,7 @@ Done: Migrated all four stale `memberships[0]?.role` / `memberships[0]?.asociati
 ### ✅ T59 — [P2] Surface the active asociație's name/branding (replace hardcoded DEMO_ASOCIATIE)
 Done: `HomePage` now calls `useCurrentAsociatie()` and passes `asociatie?.name` as the `PageHeader` subtitle (replacing the hardcoded `DEMO_ASOCIATIE.name`). `ProfilePage` likewise calls `useCurrentAsociatie()` and renders the name/address conditionally (name shown if non-empty, address shown only if the field is populated -- correct for demo and for locally-created asociatii whose address is blank). `DEMO_ASOCIATIE` import removed from both pages; `useCurrentAsociatie` already handles the demo/local/live cases correctly via `baseAsociatie` + the `asocatieStore` edits. 185 files / 1805 tests / lint + typecheck + build + build:pi + build:demo all green.
 
-### ⬜ T62 — [P2] Record/resolve the joined asociație's name (replace fallback after T42)
+### ✅ T62 — [P2] Record/resolve the joined asociație's name (replace fallback after T42)
 `authStore.joinByInvite` (T42) creates the joined membership and selects the asociație but adds no `localAsociatii` name entry (the joiner does not know the asociație's display name from a bare code), so the chrome shows the hardcoded demo/fallback name until T59 lands. Resolve the joined asociație's name: offline, look it up from any locally-known asociație (the issuer's `localAsociatii` / `DEMO_ASOCIATIE`) or carry a denormalised name on the invite; live, read the `asociatii` row after the join RPC. Folds into / coordinates with T59. Prereq: T42, T59.
 
 ### ⬜ T183 — [P2] Implement the topbar search bar functionality
