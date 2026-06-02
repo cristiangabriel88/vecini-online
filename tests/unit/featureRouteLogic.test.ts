@@ -4,6 +4,7 @@ import {
   appRouteSegment,
   featureKeyForRoute,
   isFeatureRouteBlocked,
+  roleMatchesAudience,
 } from '@/shared/features/featureRouteLogic';
 import type { FeatureFlags } from '@/shared/features/featureFlagsLogic';
 import { FEATURES } from '@/shared/features/registry';
@@ -58,5 +59,55 @@ describe('featureRouteLogic', () => {
     expect(isFeatureRouteBlocked(flags, '/app/profil')).toBe(false);
     expect(isFeatureRouteBlocked(flags, '/app/actiuni')).toBe(false);
     expect(isFeatureRouteBlocked(flags, '/app/ruta-inexistenta')).toBe(false);
+  });
+});
+
+describe('roleMatchesAudience', () => {
+  it('allows any role when audience includes all', () => {
+    expect(roleMatchesAudience(['all'], 'proprietar')).toBe(true);
+    expect(roleMatchesAudience(['all'], 'locatar')).toBe(true);
+    expect(roleMatchesAudience(['all'], 'comitet')).toBe(true);
+    expect(roleMatchesAudience(['all'], 'admin')).toBe(true);
+    expect(roleMatchesAudience(['all'], null)).toBe(true);
+  });
+
+  it('maps super_admin, admin, presedinte to the admin audience tier', () => {
+    const audience = ['admin'] as const;
+    expect(roleMatchesAudience([...audience], 'admin')).toBe(true);
+    expect(roleMatchesAudience([...audience], 'presedinte')).toBe(true);
+    expect(roleMatchesAudience([...audience], 'super_admin')).toBe(true);
+    expect(roleMatchesAudience([...audience], 'comitet')).toBe(false);
+    expect(roleMatchesAudience([...audience], 'proprietar')).toBe(false);
+  });
+
+  it('maps comitet and cenzor to the comitet audience tier', () => {
+    const audience = ['comitet', 'admin'] as const;
+    expect(roleMatchesAudience([...audience], 'comitet')).toBe(true);
+    expect(roleMatchesAudience([...audience], 'cenzor')).toBe(true);
+    expect(roleMatchesAudience([...audience], 'admin')).toBe(true);
+    expect(roleMatchesAudience([...audience], 'proprietar')).toBe(false);
+    expect(roleMatchesAudience([...audience], 'locatar')).toBe(false);
+  });
+
+  it('allows proprietar and locatar only for their own tier', () => {
+    expect(roleMatchesAudience(['proprietar', 'locatar', 'admin'], 'proprietar')).toBe(true);
+    expect(roleMatchesAudience(['proprietar', 'locatar', 'admin'], 'locatar')).toBe(true);
+    expect(roleMatchesAudience(['proprietar', 'locatar', 'admin'], 'admin')).toBe(true);
+    expect(roleMatchesAudience(['proprietar', 'locatar', 'admin'], 'comitet')).toBe(false);
+  });
+
+  it('returns false for null role when audience is not all', () => {
+    expect(roleMatchesAudience(['proprietar'], null)).toBe(false);
+    expect(roleMatchesAudience(['admin', 'comitet'], null)).toBe(false);
+  });
+
+  it('every registry feature with audience all allows every concrete role', () => {
+    const allAudienceFeatures = FEATURES.filter((f) => f.audience.includes('all'));
+    const roles = ['admin', 'presedinte', 'comitet', 'cenzor', 'proprietar', 'locatar'] as const;
+    for (const f of allAudienceFeatures) {
+      for (const r of roles) {
+        expect(roleMatchesAudience(f.audience, r)).toBe(true);
+      }
+    }
   });
 });

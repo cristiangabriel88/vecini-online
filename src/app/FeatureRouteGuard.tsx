@@ -1,26 +1,32 @@
 import type { ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useAuthStore } from '@/shared/store/authStore';
 import { useAsociatieFlags } from '@/shared/features/featureStore';
-import { appRouteSegment, featureKeyForRoute } from '@/shared/features/featureRouteLogic';
+import { appRouteSegment, featureKeyForRoute, roleMatchesAudience } from '@/shared/features/featureRouteLogic';
 import { getFeature } from '@/shared/features/registry';
 import { LockedFeatureNotice } from './LockedFeatureNotice';
 
 /**
- * Route-level guard for `/app/*` feature routes (T44). A module disabled for the
- * active asociație is hidden from the nav, but its page stays mounted in the
- * router; without this guard a resident could still reach it by typing the URL.
- * When the current route maps to a feature whose flag is OFF, render the locked
- * notice (which lets the resident ask the admin to enable it, T150) instead of
- * the page. Non-feature routes (home, actiuni, profil, admin, …) and enabled
- * features pass straight through.
+ * Route-level guard for `/app/*` feature routes (T44/T64). Blocks a route when:
+ * (a) the feature flag is OFF for the active asociație -- shows the locked
+ * notice so the resident can ask the admin to enable it; or (b) the feature's
+ * `audience` does not include the current role -- shows an "not available for
+ * your role" notice. Non-feature routes and fully permitted features pass through.
  */
 export function FeatureRouteGuard({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   const flags = useAsociatieFlags();
+  const role = useAuthStore((s) => s.activeRole)();
   const key = featureKeyForRoute(appRouteSegment(pathname));
 
-  if (key && !flags[key]) {
-    return <LockedFeatureNotice feature={getFeature(key)} featureKey={key} />;
+  if (key) {
+    const feature = getFeature(key);
+    if (!flags[key]) {
+      return <LockedFeatureNotice feature={feature} featureKey={key} reason="disabled" />;
+    }
+    if (feature && !roleMatchesAudience(feature.audience, role)) {
+      return <LockedFeatureNotice feature={feature} featureKey={key} reason="unauthorized" />;
+    }
   }
 
   return <>{children}</>;

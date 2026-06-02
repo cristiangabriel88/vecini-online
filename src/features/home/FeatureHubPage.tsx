@@ -13,6 +13,8 @@ import {
   type FeatureCategory,
 } from '@/shared/features/registry';
 import { useAsociatieFlags } from '@/shared/features/featureStore';
+import { roleMatchesAudience } from '@/shared/features/featureRouteLogic';
+import { useAuthStore } from '@/shared/store/authStore';
 
 const ACTION_CATEGORIES: FeatureCategory[] = ['maintenance', 'governance', 'spaces'];
 
@@ -21,11 +23,14 @@ const ACTION_CATEGORIES: FeatureCategory[] = ['maintenance', 'governance', 'spac
 export function FeatureHubPage({ actions = false }: { actions?: boolean }) {
   const { t } = useTranslation();
   const flags = useAsociatieFlags();
+  const role = useAuthStore((s) => s.activeRole)();
   const categories = (Object.keys(FEATURE_CATEGORIES) as FeatureCategory[]).filter((c) =>
     actions ? ACTION_CATEGORIES.includes(c) : true,
   );
 
-  const enabledTotal = FEATURES.filter((f) => flags[f.key] && f.path).length;
+  const enabledTotal = FEATURES.filter(
+    (f) => flags[f.key] && f.path && roleMatchesAudience(f.audience, role),
+  ).length;
 
   return (
     <div>
@@ -35,7 +40,9 @@ export function FeatureHubPage({ actions = false }: { actions?: boolean }) {
       ) : (
         <div className="space-y-6">
           {categories.map((cat) => {
-            const items = FEATURES.filter((f) => f.category === cat && flags[f.key] && f.path);
+            const items = FEATURES.filter(
+              (f) => f.category === cat && flags[f.key] && f.path && roleMatchesAudience(f.audience, role),
+            );
             if (items.length === 0) return null;
             return (
               <section key={cat}>

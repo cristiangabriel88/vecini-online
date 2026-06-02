@@ -4,6 +4,9 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### ✅ T64 — [P2] Enforce feature `audience`/role in the route guard + nav
+Done: Added `roleMatchesAudience(audience, role)` to `featureRouteLogic.ts` with a `ROLE_AUDIENCE` map (`super_admin`/`admin`/`presedinte` → `admin`; `comitet`/`cenzor` → `comitet`; `proprietar` → `proprietar`; `locatar` → `locatar`; `all` short-circuits to true). `FeatureRouteGuard` now checks both the flag (shows `reason="disabled"` notice) and audience (shows `reason="unauthorized"` notice). `LockedFeatureNotice` gains a `reason` prop: `disabled` preserves the existing enable/request CTA; `unauthorized` shows only the bilingual "not available for your role" message and a home link. `useEnabledFeatures` in `AppLayout` and `FeatureHubPage` both filter by audience so audience-gated features disappear from the sidebar and hub for roles that lack access. New `common.featureUnauthorized` i18n key in EN + RO. 6 new assertions in `featureRouteLogic.test.ts`. 185 files / 1805 tests / lint + typecheck + build + build:pi + build:demo all green.
+
 ### ✅ T51 — [P2] Migrate role-gated UI + scoped reads to `activeRole()` / `currentAsociatieId`
 Done: Migrated all four stale `memberships[0]?.role` / `memberships[0]?.asociatie_id` reads to the T28 selectors. `useMfaEnforcement.ts`, `SecurityPage.tsx`, and `AssistantWidget.tsx` now use `useAuthStore((s) => s.activeRole)()`. `securityStore.ts` `mirrorLive` now destructures `currentAsociatieId` from `useAuthStore.getState()`. Updated `seedRole` in `mfaEnforcement.test.tsx` to also set `currentAsociatieId` to match the seeded membership so `roleFor` resolves against the active asociație. 185 files / 1799 tests / lint + typecheck + build + build:pi + build:demo all green.
 

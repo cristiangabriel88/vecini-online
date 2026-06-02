@@ -20,9 +20,11 @@ import { featureTitle, type FeatureDef } from '@/shared/features/registry';
 export function LockedFeatureNotice({
   feature,
   featureKey,
+  reason = 'disabled',
 }: {
   feature: FeatureDef | undefined;
   featureKey: string;
+  reason?: 'disabled' | 'unauthorized';
 }) {
   const { t } = useTranslation();
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
@@ -32,7 +34,7 @@ export function LockedFeatureNotice({
   const userId = session?.user?.id ?? profile?.id ?? DEMO_CURRENT_USER_ID;
   // An admin / president controls the flags themselves, so they get a direct
   // route to turn the module on rather than the resident's "ask the admin" CTA.
-  const canEnable = role === 'admin' || role === 'presedinte';
+  const canEnable = reason === 'disabled' && (role === 'admin' || role === 'presedinte');
 
   const fileRequest = useFeatureRequestStore((s) => s.request);
   const alreadyRequested = useFeatureRequestStore((s) =>
@@ -60,15 +62,19 @@ export function LockedFeatureNotice({
       </span>
 
       <h1 className="locked-feature__title">{title}</h1>
-      <p className="locked-feature__body">{t('common.featureDisabled')}</p>
-      {!canEnable && <p className="locked-feature__hint">{t('common.featureDisabledHint')}</p>}
+      <p className="locked-feature__body">
+        {t(reason === 'unauthorized' ? 'common.featureUnauthorized' : 'common.featureDisabled')}
+      </p>
+      {reason === 'disabled' && !canEnable && (
+        <p className="locked-feature__hint">{t('common.featureDisabledHint')}</p>
+      )}
 
       <div className="locked-feature__actions">
-        {canEnable ? (
+        {reason === 'disabled' && canEnable ? (
           <Link className="btn btn--primary" to="/app/admin/functionalitati">
             <SlidersHorizontal size={16} aria-hidden /> {t('common.enableFeature')}
           </Link>
-        ) : (
+        ) : reason === 'disabled' ? (
           asociatieId &&
           (requested ? (
             <span className="locked-feature__sent" role="status">
@@ -80,7 +86,7 @@ export function LockedFeatureNotice({
               <Send size={16} aria-hidden /> {t('common.requestFeature')}
             </button>
           ))
-        )}
+        ) : null}
         <Link className="btn btn--ghost" to="/app">
           <ArrowLeft size={16} aria-hidden /> {t('chrome.home')}
         </Link>

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Home, Megaphone, Zap, Menu, User, Bell, Moon, Sun, Settings, Search, ChevronDown, Info, Phone, Siren, ArrowUpRight, Globe, KeyRound, ShieldCheck, ClipboardList, ScrollText, Building2, LayoutDashboard, Activity, TriangleAlert, UserCog, MessagesSquare } from 'lucide-react';
 import { FEATURES, FEATURE_CATEGORIES, categoryLabel, featureTitle, type FeatureCategory } from '@/shared/features/registry';
 import { useAsociatieFlags } from '@/shared/features/featureStore';
+import { roleMatchesAudience } from '@/shared/features/featureRouteLogic';
 import { useThemeStore } from '@/shared/store/themeStore';
 import { useAuthStore } from '@/shared/store/authStore';
 import { isAdminRole } from '@/features/auth/hydrationLogic';
@@ -44,7 +45,8 @@ function Avatar({ name, accent, lg }: { name: string; accent?: boolean; lg?: boo
 
 function useEnabledFeatures() {
   const flags = useAsociatieFlags();
-  return FEATURES.filter((f) => flags[f.key]);
+  const role = useAuthStore((s) => s.activeRole)();
+  return FEATURES.filter((f) => flags[f.key] && roleMatchesAudience(f.audience, role));
 }
 
 function useActive() {

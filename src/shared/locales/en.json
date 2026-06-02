@@ -111,6 +111,7 @@
     "notImplemented": "This feature is registered but its page is not available in this build.",
     "featureDisabled": "This feature is not enabled for your association.",
     "featureDisabledHint": "Only your association's admin can enable this module.",
+    "featureUnauthorized": "This feature is not available for your role.",
     "requestFeature": "Request activation",
     "enableFeature": "Enable this module",
     "requestFeatureConfirm": "The admin has been notified that you need this module.",

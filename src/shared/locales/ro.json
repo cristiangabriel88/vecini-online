@@ -111,6 +111,7 @@
     "notImplemented": "Această funcționalitate este înregistrată, dar pagina nu este încă disponibilă în această versiune.",
     "featureDisabled": "Această funcționalitate nu este activată pentru asociația ta.",
     "featureDisabledHint": "Doar administratorul asociației poate activa acest modul.",
+    "featureUnauthorized": "Această funcționalitate nu este disponibilă pentru rolul tău.",
     "requestFeature": "Cere activarea",
     "enableFeature": "Activează modulul",
     "requestFeatureConfirm": "Administratorul a fost anunțat că ai nevoie de acest modul.",

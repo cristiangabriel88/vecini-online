@@ -1,5 +1,32 @@
-import { FEATURES, type FeatureKey } from './registry';
+import { FEATURES, type FeatureAudience, type FeatureKey } from './registry';
 import type { FeatureFlags } from './featureFlagsLogic';
+import type { Role } from '@/shared/types/domain';
+
+/**
+ * Maps each Role to the FeatureAudience tier it belongs to.
+ * super_admin/admin/presedinte have admin-level access; comitet/cenzor are
+ * the committee tier; proprietar and locatar map directly.
+ */
+const ROLE_AUDIENCE: Record<Role, FeatureAudience> = {
+  super_admin: 'admin',
+  admin: 'admin',
+  presedinte: 'admin',
+  comitet: 'comitet',
+  cenzor: 'comitet',
+  proprietar: 'proprietar',
+  locatar: 'locatar',
+};
+
+/**
+ * Returns true when `role` is permitted by `audience`. `all` passes every
+ * authenticated role; a null role (no active membership) matches nothing
+ * except `all` (and RequireAuth would block such a session in practice).
+ */
+export function roleMatchesAudience(audience: FeatureAudience[], role: Role | null): boolean {
+  if (audience.includes('all')) return true;
+  if (!role) return false;
+  return audience.includes(ROLE_AUDIENCE[role]);
+}
 
 /**
  * Map from a feature's in-app route path (relative to `/app`) to its feature
