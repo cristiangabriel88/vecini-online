@@ -606,7 +606,8 @@
     "status_aprobat": "Approved",
     "status_implementat": "Implemented",
     "status_respins": "Rejected",
-    "empty": "No ideas yet. Suggest the first one with the button above."
+    "empty": "No ideas yet. Suggest the first one with the button above.",
+    "promoted": "On agenda"
   },
   "surveys": {
     "title": "Opinion surveys",

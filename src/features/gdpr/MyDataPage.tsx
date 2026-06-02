@@ -87,7 +87,9 @@ export default function MyDataPage() {
   const sessionUserId = useAuthStore((s) => s.session?.user?.id ?? null);
 
   const listings = useMarketplaceStore((s) => s.listings);
-  const ideas = useIdeasStore((s) => s.items);
+  const ideas = useIdeasStore((s) =>
+    Object.values(s.byAsociatie).flatMap((cat) => cat.items),
+  );
   const anonymousMessages = useAnonymousStore((s) => s.messages);
   const petitions = usePetitionStore((s) => s.petitions);
   const thankYous = useThankYousStore((s) => s.items);

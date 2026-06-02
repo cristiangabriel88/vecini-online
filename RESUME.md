@@ -5,17 +5,30 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-03
-- last_task: T193 (P2) F13 Prioritizare proiecte: live activation + drag-and-drop + E2E -- @dnd-kit/core+sortable+utilities installed; `priorityLogic.ts` extended (applyReorder, canManagePriorities, PriorityCatalog/PrioritiesByAsociatie, seedPriorities, prioritiesForAsociatie, migratePrioritiesState); `priorityStore.ts` rebuilt as per-asociație persisted store; new `priorityApi.ts` (hydratePriorities, addPriorityProject, saveRanking, re-exports fetchPriorityTurnout); `PrioritiesPage.tsx` DnD via @dnd-kit/sortable + keyboard up/down + turnout + ErrorState retry + canManagePriorities gate; migration 20260602000007 adds rank column + member-insert policy; priorityLogic.test.ts extended (+14); new priorityApi.test.ts offline path; F13 E2E added
+- last_task: T194 (P2) F14 Cutie de idei: live activation + auto top-N promotion + E2E -- `ideaLogic.ts` extended (isPromoted, canManageIdeas, IdeaCatalog/IdeasByAsociatie, seedIdeas, ideasForAsociatie, migrateIdeasState, newIdea, addIdeaIn); `ideasStore.ts` rebuilt as per-asociație persisted store (myVotes persisted); new `ideasApi.ts` (hydrateIdeas, submitIdea, castIdeaVote); migration 20260603000001 enables idea_votes RLS (SELECT+INSERT, no DELETE per T34); IdeasPage hydrates + ErrorState + isPromoted badge; ideaLogic.test.ts extended (+16); new ideasApi.test.ts; F14 E2E extended (upvote + promoted badge)
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 201 files / 1993 tests
+- counts: 202 files / 2012 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T194 F14 Cutie de idei live activation + auto top-N promotion + E2E, then T195-T196 (F15-F16 live activation)
+- next: T195 F15 Sondaje de opinie live activation + E2E, then T196 (F16 live activation)
 - features: 65/65 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F11/F17/F33 + auth/invites/onboarding; rest offline-first pending the live-activation track. F28/F36/F66 cross-feature glue wired (T104)
 - e2e: F02/F03/F04/F05/F08/F09/F10/F11 happy paths green on chromium + mobile; `features.spec.ts` passing; 5 pre-existing tests (F07/F18/F35/F36/F40) fail on stale search selectors (belongs to T16). auth/consent/isolation/smoke/batch specs still predate the auto-demo-entry harness (T16)
 - blockers: full e2e harness rework (entry helpers + login-page specs) deferred to T16; Chromium now installed locally
 
 ---
+
+### T194 P2 ✅ 2026-06-03 -- F14 Cutie de idei: live activation + auto top-N promotion + E2E
+- new migration: supabase/migrations/20260603000001_idea_votes_rls.sql (RLS on idea_votes: SELECT+INSERT for members, no DELETE/UPDATE per T34 immutability guard)
+- extended: src/features/ideas/ideaLogic.ts (isPromoted, canManageIdeas, IdeaCatalog/IdeasByAsociatie, seedIdeas, ideasForAsociatie, migrateIdeasState, newIdea, addIdeaIn)
+- rebuilt: src/features/ideas/ideasStore.ts (per-asociație persisted store: byAsociatie + myVotes + fetchError; addIdea/toggleVote/replaceForAsociatie/setFetchError; useAsociatieIdeas hook)
+- new: src/features/ideas/ideasApi.ts (hydrateIdeas reads ideas+idea_votes under RLS, tallies in JS; submitIdea store+live insert; castIdeaVote optimistic toggle + live insert-only on first vote)
+- updated: src/features/ideas/IdeasPage.tsx (hydrates on mount; ErrorState retry; isPromoted badge; castIdeaVote wired; findVoterApartmentId for apartmentId)
+- fixed: src/features/gdpr/MyDataPage.tsx (flatMap all-asociatii ideas instead of removed s.items)
+- added: ideas.promoted locale key in EN + RO
+- extended: tests/unit/ideaLogic.test.ts (+16 assertions)
+- new: tests/unit/ideasApi.test.ts (offline path: 7 assertions)
+- updated: tests/e2e/features.spec.ts (F14 upvote + promoted badge E2E)
+- result: 202 files / 2012 tests / lint+typecheck+build+pi+demo green
 
 ### T193 P2 ✅ 2026-06-03 -- F13 Prioritizare proiecte: live activation + drag-and-drop + E2E
 - installed: @dnd-kit/core + @dnd-kit/sortable + @dnd-kit/utilities

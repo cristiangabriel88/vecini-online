@@ -606,7 +606,8 @@
     "status_aprobat": "Aprobat",
     "status_implementat": "Implementat",
     "status_respins": "Respins",
-    "empty": "Nicio idee încă. Propune prima cu butonul de mai sus."
+    "empty": "Nicio idee încă. Propune prima cu butonul de mai sus.",
+    "promoted": "Pe agendă"
   },
   "surveys": {
     "title": "Sondaje de opinie",

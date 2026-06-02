@@ -42,6 +42,20 @@ test('F14 — resident submits an idea to the idea box', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Ghivece cu flori la intrare' })).toBeVisible();
 });
 
+test('F14 — resident upvotes an idea and sees the vote count change', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/idei');
+  // Top-ranked card is the one with the most votes (idea-3: 30 votes, implementat)
+  const firstVoteBtn = page.getByRole('button', { name: /votează ideea/i }).first();
+  const countSpan = firstVoteBtn.locator('span');
+  const before = parseInt((await countSpan.textContent()) ?? '0', 10);
+  await firstVoteBtn.click();
+  const after = parseInt((await countSpan.textContent()) ?? '0', 10);
+  expect(after).toBe(before + 1);
+  // The in-discutie idea (idea-1: 14 votes) is in the top-N and shows promoted badge
+  await expect(page.getByText(/pe agendă/i)).toBeVisible();
+});
+
 test('F18 — committee searches the repair history', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/istoric-reparatii');
