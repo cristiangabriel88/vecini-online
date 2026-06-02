@@ -71,6 +71,8 @@ When two tasks share a priority: prerequisites first, then smallest-safe-step.
 ## Task queue
 
 > Sorted by priority, highest on top. `make progress` takes the topmost `⬜` whose prerequisites are met. Sections group related work; the intended pick order runs top-to-bottom through the sections.
+>
+> **Active focus (from 2026-06-02):** only **Comunicare (F01–F08)** and **Guvernanță și vot (F09–F16)** tasks are being developed, plus the shared-infra tasks they rely on (kept active by decision). Every other section's work is parked under `## On hold (other sections - paused, do not develop)` below (and the `## Deferred (post-MVP)` section stays parked too). The progress already made on those sections is frozen as-is, **not** reverted. Lift the focus later by moving those tasks back into the active queue. See `DECISIONS.md`.
 
 ## MVP presentation spine — complete (see COMPLETED.md)
 
@@ -122,11 +124,15 @@ The per-asociație content stores (`announcementsStore` from T47, and the upcomi
 ### ✅ T66 — [P2] Enforce the discussion post rate limit (anti-spam)
 `discussionLogic` has `canPost(recentMessageCount, vetted)` + `NEW_USER_HOURLY_LIMIT` (T48), but the post flow never calls it, so an unvetted user is not actually rate-limited when starting threads or replying. Wire it in: track each author's recent message timestamps (per asociație), compute the last-hour count, and block + surface a bilingual "you are posting too fast" notice when an unvetted author exceeds the limit, while vetted users (comitet/admin) stay unthrottled. Reuse the existing pure helper; add a store/integration test. Coordinate with the T03 throttle style. Prereq: T48.
 
-### ⬜ T51 — [P2] Migrate role-gated UI + scoped reads to `activeRole()` / `currentAsociatieId`
-T28 added `activeRole()` and `currentAsociatieId` but existing consumers (`useMfaEnforcement`, `SecurityPage`, `AssistantWidget`, `securityStore`) still read `memberships[0]?.role` / `memberships[0]?.asociatie_id` directly. They are consistent today because hydration sorts memberships by privilege, but a user who switches active asociație via `setActiveAsociatie` would not be reflected. Migrate these reads to the new selectors so role and tenant scope follow the chosen active asociație. Prereq: T28.
+### Shared infra (kept active — supports the focus sections and the whole app)
+
+> Not features themselves, but the Comunicare/Guvernanță sections rely on them; kept active by decision (see `DECISIONS.md`).
 
 ### ⬜ T64 — [P2] Enforce feature `audience`/role in the route guard + nav
 The T44 `FeatureRouteGuard` blocks a route only when the feature's flag is OFF; it does not consider the feature's `audience` (e.g. `comitet`/`admin`-only modules like F18 Istoric reparații, F22 Oferte). So an enabled module is reachable by any role, even a resident, by URL or via the hub. Extend the guard (and the nav/hub filtering) to also gate on the feature `audience` against `activeRole()` / `currentAsociatieId` (per T51), rendering the same bilingual "not available for your role" state. Pure `audience`-vs-role check unit-tested. Coordinates with T51 (role selectors) and T43 (per-asociație flags). Prereq: T44, T51.
+
+### ⬜ T51 — [P2] Migrate role-gated UI + scoped reads to `activeRole()` / `currentAsociatieId`
+T28 added `activeRole()` and `currentAsociatieId` but existing consumers (`useMfaEnforcement`, `SecurityPage`, `AssistantWidget`, `securityStore`) still read `memberships[0]?.role` / `memberships[0]?.asociatie_id` directly. They are consistent today because hydration sorts memberships by privilege, but a user who switches active asociație via `setActiveAsociatie` would not be reflected. Migrate these reads to the new selectors so role and tenant scope follow the chosen active asociație. Prereq: T28.
 
 ### ⬜ T59 — [P2] Surface the active asociație's name/branding (replace hardcoded DEMO_ASOCIATIE)
 `HomePage` and `AppLayout` display `DEMO_ASOCIATIE.name` directly, so a locally-created or live asociație shows the demo name. Surface the active asociație's name/branding from `authStore` (the new `localAsociatii` entry for offline-created ones, the hydrated `asociatii` row when live) so the chrome reflects the real active tenant. Small display refactor. Prereq: T27, T28.
@@ -134,24 +140,83 @@ The T44 `FeatureRouteGuard` blocks a route only when the feature's flag is OFF; 
 ### ⬜ T62 — [P2] Record/resolve the joined asociație's name (replace fallback after T42)
 `authStore.joinByInvite` (T42) creates the joined membership and selects the asociație but adds no `localAsociatii` name entry (the joiner does not know the asociație's display name from a bare code), so the chrome shows the hardcoded demo/fallback name until T59 lands. Resolve the joined asociație's name: offline, look it up from any locally-known asociație (the issuer's `localAsociatii` / `DEMO_ASOCIATIE`) or carry a denormalised name on the invite; live, read the `asociatii` row after the join RPC. Folds into / coordinates with T59. Prereq: T42, T59.
 
+### ⬜ T183 — [P2] Implement the topbar search bar functionality
+The topbar search input in `AppLayout.tsx` (with its `⌘K` hint and `chrome.searchPlaceholder` text) is purely decorative: typing does nothing and the keyboard shortcut is unwired. Make it a real command/search palette so a user can quickly find things. Open it with `⌘K` / `Ctrl+K` (and a click), let the user search across the enabled features/nav (scoped to the active asociație via the T43/T44 feature flags so disabled modules never appear) and ideally key content (announcements, discussions, tickets) from the existing scoped stores, with keyboard navigation (arrows + enter) and a clear empty state. Extract the pure match/ranking logic into a unit-tested module, keep it fully offline in demo mode, bilingual RO/EN with diacritics and the premium-feel bar, and accessible (focus trap, `aria` roles, escape to close). Works offline. (Carried over from a stale phone-session branch where it was filed as "T122"; renumbered because T122 was reused.)
+
+### Comunicare — finish F01–F08 (active focus)
+
+> Bring the Communication section to fully working: F01/F02/F04/F05 are already live-wired + tested; the tasks below close the remaining gaps (F03, F06, F07, F08) and add the missing E2E coverage. Each ships offline-first, live-ready behind `isSupabaseConfigured`, bilingual RO/EN, premium-feel.
+
+### ⬜ T127 — [P2] Live activation: notifications fan-out (`notifications` under RLS + channels)
+Surfaced building T126: the in-app inbox runs offline first; live, persist `notifications` rows + read-state under RLS (owner-scoped read/update, scoped by `asociatie_id`) and hydrate on mount, behind `isSupabaseConfigured` with the T126 local store as the offline fallback. Reuse the same write to fan out across the email (T14) channel (and Telegram once T15 is unfrozen) honouring the resident's notification preferences and the consent gate (T26). Requires a provisioned project; document the apply steps. Prereq: T126; coordinates with T14, T26.
+
+### ⬜ T130 — [P2] Link admin-initiated F04 threads to the resident's account
+Surfaced building the F04 inbox: when the administrator starts a thread toward an apartment, the resident party is recorded from the embedded `persons` list (person id + name), which is fine for demo but in live mode will not equal the resident's `auth.uid()`, so the targeted resident would not see the thread under the party-or-admin RLS. Once occupants are account-linked, set `resident_user_id` to the linked account (or leave it pending until the resident claims the apartment) so an admin-initiated conversation reaches the right inbox. Prereq: T117 (persons ↔ `apartment_residents` reconciliation).
+
+### ⬜ T184 — [P2] F03 Alerte: live activation + quiet-hours bypass + real recipient count
+`AlertsPage` (`src/features/alerts/AlertsPage.tsx`) sends emergency alerts from in-memory state with a hardcoded recipient count (24) and no quiet-hours-bypass logic, and there is no `alertsStore`/`alertsApi` or persistence. Extract the send/validation logic into a pure, unit-tested `alertsLogic.ts`, add a per-asociație seeded store (mirroring `announcementsStore`), and an `alertsApi.ts` that hydrates/persists `alerts` + `alert_acknowledgments` under RLS behind `isSupabaseConfigured` with the offline store as the fallback. Derive the recipient count from the active asociație's membership, implement the documented quiet-hours bypass (emergency alerts ignore quiet hours, as an essential security communication), add the logic unit test and one E2E happy path. Coordinates with T127 (fan-out delivery). Prereq: T126.
+
+### ⬜ T185 — [P2] F08 Calendar de evenimente: store + API + agenda/month view + ICS export
+`EventsPage` (`src/features/events/EventsPage.tsx`) reads the hardcoded `DEMO_EVENTS` array directly with no store, no `eventsApi`, no live path and no tests, and the spec's month/agenda view + ICS export are missing. Add a per-asociație seeded `eventsStore` + `eventsApi.ts` (hydrate/RSVP under RLS for `events`/`event_rsvps`, behind `isSupabaseConfigured` with the offline store as the fallback), an agenda + month view toggle, and per-event ICS (`.ics`) export. Extract the sort/RSVP/grouping logic into a unit-tested module and add one E2E happy path (view upcoming, RSVP). Bilingual RO/EN, premium-feel. Offline-first ships now.
+
+### ⬜ T186 — [P2] F06 Locator + F07 FAQ: explicitly wire live hydration; add FAQ admin manage UI
+The neighbour-posts (`locator`) and FAQ pages run fully offline from their seeded stores, but the live hydration path is not explicitly invoked on mount and FAQ has no admin surface to add/edit/retire entries. Add `locatorApi`/`faqApi` hydrate calls behind `isSupabaseConfigured` (with the offline store as the fallback, scoped by `asociatie_id` under the existing owner/member RLS), and a comitet/admin-only manage UI for FAQ entries (create/edit/archive) gated by `audience` per T64. Keep the diacritic-insensitive search + helpful/not-helpful logic. Add/extend unit tests; demo stays the default. Prereq: T64.
+
+### ⬜ T187 — [P2] E2E happy-path coverage for F02 (discuții), F04 (mesaje-admin), F05 (anonim)
+F02, F04 and F05 are live-wired and unit-tested but have no Playwright E2E coverage (unlike F01/F06/F07/F14). Add one happy-path E2E each in `tests/e2e/features.spec.ts`: post + pin a discussion message (F02), start and reply on an admin thread with the unread badge clearing (F04), and submit an anonymous message that lands in the comitet queue (F05). Run offline in demo. No product code changes expected beyond test-only `data-testid`s if needed.
+
+### ⬜ T188 — [P3] F01 Anunțuri: scheduling + attachments (deferred spec items)
+F01 is production-ready for compose/publish/read-receipts, but the spec's optional scheduled-publish and file attachments are not implemented. Add a scheduled `publish_at` (held back until due, surfaced to the comitet as "programat") and attachment upload via the existing Storage pattern (size/type-capped, signed read), both offline-first and live-ready behind `isSupabaseConfigured`. Extend the logic unit tests. Lower-priority polish on an already-shipped feature. Prereq: T89 (Storage pattern).
+
+### Guvernanță și vot — finish F09–F16 (active focus)
+
+> Bring the Governance & voting section to fully working. The stores, migrations and RLS exist for F09–F16, but the pages run offline-only; the tasks below wire each feature's live read/write path (rendering results via the T80 attribution-free tally RPCs where applicable), complete the missing flows (F10 procură, F11 admin upload, F13 drag-and-drop, F14 promotion, F16 auto-forward) and add E2E coverage. Each ships offline-first, live-ready behind `isSupabaseConfigured`, bilingual RO/EN, premium-feel.
+
+### ⬜ T80 — [P2] Live activation: wire the attribution-free tally functions for F09/F15/F13 results
+T38 added the `security definer` aggregate functions `survey_tally` / `poll_tally` / `priority_ranking_turnout` so members can see poll/survey/ranking results without reading each other's individual rows, but nothing calls them yet (demo computes tallies client-side from the Zustand store, and the live path for F09 Voturi / F15 Sondaje / F13 Priorități is not built). When the live read path for those features lands, call these RPCs to render results (since under the new RLS a member can no longer read other rows), add the `grant execute ... to authenticated` the live API needs, and extend `poll_tally` (or add a sibling) to aggregate **ranked** polls from `ranked_options` jsonb (it currently covers only the `selected_option_ids` poll types). Behind `isSupabaseConfigured`, demo keeps the client-side tally. Requires a provisioned project. Prereq: T38; coordinates with T57.
+
+### ⬜ T37 — [P2] Server-rendered proces-verbal PDF (F10 AGA)
+F10 currently downloads the legally-required proces-verbal as signature-ready Romanian plain text (a deliberate bundle-budget choice — see `DECISIONS.md`). For a polished, court-presentable deliverable, render it as a real PDF: do it server-side (Supabase Edge Function / Netlify function) so no heavy PDF engine lands in the client bundle, keep the text generator (`generateProcesVerbal`) as the single source of the content, and stamp the asociație header + Legea 196/2018 footer. Demo mode keeps the text download. Prereq: a provisioned backend.
+
+### ⬜ T189 — [P2] F09 Voturi: wire the live hydrate/recordVote path + E2E
+`PollsPage` computes tallies client-side from the seeded `pollsStore` and has no live read/write path or E2E. Add a `pollsApi.ts` that hydrates `polls`/`poll_options` and records a vote under RLS (members vote, comitet create) behind `isSupabaseConfigured` with the offline store as the fallback, rendering results via the T80 `poll_tally` RPC so a member never reads other members' rows. Add one E2E happy path (cast a vote, see the bar update). Coordinates with T80. Prereq: T38, T80.
+
+### ⬜ T190 — [P2] F10 AGA: live activation + procură (proxy-vote) upload/verify flow + E2E
+`AgaPage` runs the full assembly lifecycle offline but has no live read/write path, and the Legea 196/2018 proxy-vote (procură) flow is not implemented. Add an `agaApi.ts` (hydrate `agas`/`aga_agenda_items`/`aga_attendees`/`aga_votes`, convoke/RSVP/vote/advance under the existing owner + comitet RLS, behind `isSupabaseConfigured` with the offline store as the fallback), and a procură surface where a resident designates a proxy who can then mark attendance/vote on their behalf, recorded distinctly in the attendance + tally. Add one E2E happy path. Coordinates with T37 (PV PDF). Offline-first ships now; the live path needs a provisioned backend.
+
+### ⬜ T191 — [P2] F11 Procese verbale: live activation + admin upload surface + E2E
+`PvDocumentsPage` lists seeded documents with diacritic-insensitive search but has no live hydration and no admin upload flow (the `pv_documents` table + GIN search + RLS already exist). Add a `pvApi.ts` hydrate behind `isSupabaseConfigured` (member read, comitet write, with the offline store as the fallback) and a comitet/admin-only upload surface (title, category, document date, content/attachment via the Storage pattern), gated by `audience` per T64. Add one E2E happy path (search + open). Coordinates with T37 (the generated PV feeds this archive). Prereq: T64.
+
+### ⬜ T192 — [P2] F12 Buget participativ: live activation + E2E
+`BudgetPage` runs the propose/vote/greedy-funding cycle offline with no live path or E2E. Add a `budgetApi.ts` that hydrates `budget_cycles`/`budget_proposals`/`budget_votes` and persists propose/vote under RLS (member read/vote, comitet manage) behind `isSupabaseConfigured` with the offline store as the fallback, keeping the unit-tested funding/remaining logic. Add one E2E happy path (propose, vote, see the funded badge + remaining tracker). Offline-first ships now; the live path needs a provisioned backend.
+
+### ⬜ T193 — [P2] F13 Prioritizare proiecte: live activation + true drag-and-drop reordering + E2E
+`PrioritiesPage` reorders via up/down buttons (the spec calls for drag-and-drop) and has no live path or E2E. Add accessible drag-and-drop reordering (pointer + keyboard, re-numbering 1..n, reusing the unit-tested `priorityLogic` move helpers) and a `priorityApi.ts` that hydrates `project_priorities`/`priority_rankings` and persists the ranking under RLS behind `isSupabaseConfigured` with the offline store as the fallback; render turnout via the T80 `priority_ranking_turnout` RPC. Add one E2E happy path. Coordinates with T80. Prereq: T80.
+
+### ⬜ T194 — [P2] F14 Cutie de idei: live activation + auto top-N promotion + E2E coverage
+F14 has offline submit/upvote/rank and an E2E for submit, but the live read/write path and the spec's automatic top-N-per-quarter promotion to the comitet are not built. Add an `ideasApi.ts` (hydrate `ideas`/`idea_votes`/`idea_comments`, submit/vote under owner + member RLS, behind `isSupabaseConfigured` with the offline store as the fallback) and implement the top-N promotion in the unit-tested `ideaLogic`, surfacing promoted ideas to the comitet. Extend the E2E to cover the upvote + ranking. Offline-first ships now; the live path needs a provisioned backend.
+
+### ⬜ T195 — [P2] F15 Sondaje de opinie: live activation + E2E
+`SurveysPage` runs anonymous non-binding surveys offline with no live path or E2E. Add a `surveysApi.ts` that hydrates `surveys` and records anonymous responses under the member-insert RLS behind `isSupabaseConfigured` with the offline store as the fallback, rendering results via the T80 `survey_tally` RPC so no member reads another's response. Add one E2E happy path (vote, see the percentage bars after close). Coordinates with T80. Prereq: T38, T80.
+
+### ⬜ T196 — [P2] F16 Petiții interne: live activation + auto-forward at threshold + E2E
+`PetitionsPage` runs start/sign with the 25% threshold progress offline, but the live path and the actual auto-forward action when the threshold is reached are not built. Add a `petitionApi.ts` (hydrate `petitions`/`petition_signatures`, create/sign under owner RLS with the per-apartment signature rule, behind `isSupabaseConfigured` with the offline store as the fallback) and wire the auto-forward (notify the comitet via the T127 fan-out + record an audit event) when `isThresholdReached`. Add one E2E happy path (sign, watch the progress bar cross the threshold). Coordinates with T127. Offline-first ships now; the live path needs a provisioned backend.
+
+---
+
+## On hold (other sections - paused, do not develop)
+
+> Parked by the active-focus decision (see the banner at the top of `## Task queue` and `DECISIONS.md`). The work already completed in these areas stays exactly as-is — **frozen, not reverted**. `make progress` / `make task` should skip everything here while the focus holds; reactivate a task by moving it back up into the active queue. (The `## Deferred (post-MVP)` section below is likewise parked.)
+
+### Admin / invites (on hold)
+
 ### ⬜ T63 — [P2] Show the active asociație on FeaturesAdminPage + empty-state when none
 T43 scoped feature toggles to `currentAsociatieId`, but `FeaturesAdminPage` doesn't tell the admin which asociație's modules they are editing, and when no asociație is active the switches just render disabled with no explanation. Add a clear header line naming the active asociație (resolve via T59) and a bilingual empty-state ("select or create an asociație first") when `currentAsociatieId` is null, so the per-asociație scoping is visible. Small UI pass. Prereq: T43; coordinates with T59.
 
 ### ⬜ T61 — [P2] Wire (or remove) the ApartmentsPage "generate codes" button
 `ApartmentsPage`'s "Generează coduri de invitație" button calls `generateInviteCode()` once per apartment and only toasts a throwaway example — the codes are never persisted, validatable, or redeemable now that T41 ships a real invite lifecycle. Either wire it to bulk-issue real per-apartment codes via the `inviteStore` (role `proprietar`, `apartmentId` set, an expiry) and link to the invites surface, or remove the button to avoid a misleading dead action. Prereq: T41.
 
-### ⬜ T37 — [P2] Server-rendered proces-verbal PDF (F10 AGA)
-F10 currently downloads the legally-required proces-verbal as signature-ready Romanian plain text (a deliberate bundle-budget choice — see `DECISIONS.md`). For a polished, court-presentable deliverable, render it as a real PDF: do it server-side (Supabase Edge Function / Netlify function) so no heavy PDF engine lands in the client bundle, keep the text generator (`generateProcesVerbal`) as the single source of the content, and stamp the asociație header + Legea 196/2018 footer. Demo mode keeps the text download. Prereq: a provisioned backend.
-
-### Live-activation (needs a provisioned backend; documented, not blockers)
-
-> Require external provisioning (Supabase, env vars, deployed functions). Each ships behind `isSupabaseConfigured` with the offline store as the fallback. Document the apply steps.
-
-### ⬜ T127 — [P2] Live activation: notifications fan-out (`notifications` under RLS + channels)
-Surfaced building T126: the in-app inbox runs offline first; live, persist `notifications` rows + read-state under RLS (owner-scoped read/update, scoped by `asociatie_id`) and hydrate on mount, behind `isSupabaseConfigured` with the T126 local store as the offline fallback. Reuse the same write to fan out across the email (T14) channel (and Telegram once T15 is unfrozen) honouring the resident's notification preferences and the consent gate (T26). Requires a provisioned project; document the apply steps. Prereq: T126; coordinates with T14, T26.
-
-### ⬜ T80 — [P2] Live activation: wire the attribution-free tally functions for F09/F15/F13 results
-T38 added the `security definer` aggregate functions `survey_tally` / `poll_tally` / `priority_ranking_turnout` so members can see poll/survey/ranking results without reading each other's individual rows, but nothing calls them yet (demo computes tallies client-side from the Zustand store, and the live path for F09 Voturi / F15 Sondaje / F13 Priorități is not built). When the live read path for those features lands, call these RPCs to render results (since under the new RLS a member can no longer read other rows), add the `grant execute ... to authenticated` the live API needs, and extend `poll_tally` (or add a sibling) to aggregate **ranked** polls from `ranked_options` jsonb (it currently covers only the `selected_option_ids` poll types). Behind `isSupabaseConfigured`, demo keeps the client-side tally. Requires a provisioned project. Prereq: T38; coordinates with T57.
+### GDPR / privacy (on hold)
 
 ### ⬜ T72 — [P2] Live activation: server-side erasure execution + retention cleanup
 T06 files erasure requests and marks an erased-id offline, but the actual cross-store mutation (delete/anonymize/retain per `ERASURE_PLAN`) and the periodic purge of expired records (per `RETENTION_POLICY` windows) must run server-side with the service role. Add a scheduled Supabase routine / Edge Function that, on a completed erasure, applies the plan across the subject's rows (anonymizing to `ANONYMIZED_NAME`, retaining votes/financial/consent/security), and a cron that purges records past their retention window, behind `isSupabaseConfigured`. Document the apply steps. Requires a provisioned project. Prereq: T06. See `DATA_RETENTION.md`.
@@ -165,16 +230,15 @@ T22 generates the art. 34 resident notice as a downloadable text and logs the br
 ### ⬜ T75 — [P2] Live activation: persist the per-asociație ROPA snapshot + DPA adoption record
 T21 generates the art. 30 register and the art. 28 DPA template on the fly and lets the admin download them, but the controller's GDPR accountability evidence should be persisted: a point-in-time snapshot of the register (so the asociație can show what processing it ran on a given date) and a DPA adoption record (version, adopted-at, adopted-by). Add the table(s) under RLS scoped by `asociatie_id` (admin/președinte manage, members read), write a snapshot on demand and on a feature-flag change, and record DPA adoption, behind `isSupabaseConfigured` with the offline generated view as the fallback. Requires a provisioned project. Prereq: T21.
 
+### Profile / home (on hold)
+
 ### ⬜ T103 — [P2] Live activation: persist profile + custom fields (`users`/`profile_custom_fields`) + Storage avatar
 T11 (F66) keeps the rich profile offline in `profileStore` and the migration extends `users` + adds `profile_custom_fields`, but nothing reads/writes them live yet, and the avatar is an offline data URL. Load the signed-in user's standard profile columns + their `profile_custom_fields` on hydrate, persist edits back under RLS (owner-scoped), and add a Supabase Storage bucket for the profile photo (size/type-capped upload, store the object path in `users.avatar_url`, signed read), behind `isSupabaseConfigured` with the offline store as the fallback. Document the apply steps. Requires a provisioned project. Prereq: T11; coordinates with T28 (hydration) and T89 (the F33 Storage pattern).
 
 ### ⬜ T106 — [P2] Live activation: persist the per-resident home layout (`home_layouts`)
 T12 (F67) keeps each resident's home layout offline in `homeLayoutStore` and the migration adds the owner-RLS `home_layouts` table, but nothing reads/writes it live yet. Load the signed-in resident's layout for the active asociație on hydrate and persist edits back under RLS (owner-scoped, the ordered `cards` jsonb), behind `isSupabaseConfigured` with the offline store as the fallback, so a personalized home truly follows the resident across devices. Reconcile the loaded layout against the asociație's live enabled features (`reconcileLayout`) exactly as the offline path does. Requires a provisioned project; document the apply steps. Prereq: T12; coordinates with T28 (hydration) and T56 (live feature flags).
 
-### ⬜ T130 — [P2] Link admin-initiated F04 threads to the resident's account
-Surfaced building the F04 inbox: when the administrator starts a thread toward an apartment, the resident party is recorded from the embedded `persons` list (person id + name), which is fine for demo but in live mode will not equal the resident's `auth.uid()`, so the targeted resident would not see the thread under the party-or-admin RLS. Once occupants are account-linked, set `resident_user_id` to the linked account (or leave it pending until the resident claims the apartment) so an admin-initiated conversation reaches the right inbox. Prereq: T117 (persons ↔ `apartment_residents` reconciliation).
-
-### Platform / Superadmin console + SaaS
+### Platform / Superadmin console + SaaS (on hold)
 
 > The superadmin app shell + provisioning console are built (former T93/T94, see COMPLETED.md). Remaining items extend oversight and the SaaS business layer.
 
@@ -211,10 +275,7 @@ Subscription tiers per asociație with per-tier feature/usage limits enforced se
 ### ⬜ T110 — [P2] Present consumer pre-contractual info + withdrawal at the point of sale (billing)
 Surfaced in T24: the consumer-protection information now lives on the `/protectia-consumatorului` page and is referenced from Terms, but for a consumer distance contract the pre-contractual information (main characteristics, total price incl. taxes, billing period, duration, renewal/cancellation) and the right-of-withdrawal notice must be presented **at the moment of purchase** on a durable medium, and where the service starts during the withdrawal period the consumer must give express consent + acknowledge losing the right once fully performed (OUG 34/2014). When the billing surface (T19) lands, render this at checkout/plan-selection (a clear pre-contractual summary + an express-consent checkbox + a confirmation on a durable medium), reusing the `consumerRights` content as the single source. Behind the billing flow; demo shows the mock checkout. Prereq: T19, T24.
 
-### ⬜ T183 — [P2] Implement the topbar search bar functionality
-The topbar search input in `AppLayout.tsx` (with its `⌘K` hint and `chrome.searchPlaceholder` text) is purely decorative: typing does nothing and the keyboard shortcut is unwired. Make it a real command/search palette so a user can quickly find things. Open it with `⌘K` / `Ctrl+K` (and a click), let the user search across the enabled features/nav (scoped to the active asociație via the T43/T44 feature flags so disabled modules never appear) and ideally key content (announcements, discussions, tickets) from the existing scoped stores, with keyboard navigation (arrows + enter) and a clear empty state. Extract the pure match/ranking logic into a unit-tested module, keep it fully offline in demo mode, bilingual RO/EN with diacritics and the premium-feel bar, and accessible (focus trap, `aria` roles, escape to close). Works offline. (Carried over from a stale phone-session branch where it was filed as "T122"; renumbered because T122 was reused.)
-
-### Later (P3 — speculative / optional)
+### Later (P3 — speculative / optional, on hold)
 
 ### ⬜ T108 — [P3] Rich per-card home widgets (beyond feature-shortcut links)
 Surfaced in T12: F67 makes the home's feature-shortcut cards customizable (show/hide/reorder/size), but each card is still a plain icon+title link, while the F67 spec envisions each card exposing a small live widget (latest announcement, my open tickets, next event, active polls, etc.). Add per-feature home-widget content rendered inside the card (especially when sized `expanded`), drawn from the active asociație's stores, so a pinned card shows useful at-a-glance state rather than just a shortcut. Keep the widget content pure/derived and bilingual; reuse the existing per-asociație selectors. Prereq: T12.

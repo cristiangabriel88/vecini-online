@@ -10,7 +10,7 @@ const ROLES: Role[] = [
   'comitet',
   'cenzor',
   'proprietar',
-  'chirias',
+  'locatar',
   'super_admin',
 ];
 
@@ -20,7 +20,7 @@ const ROLE_KEY: Record<Role, string> = {
   comitet: 'auth.demoRole.comitet',
   cenzor: 'auth.demoRole.cenzor',
   proprietar: 'auth.demoRole.proprietar',
-  chirias: 'auth.demoRole.chirias',
+  locatar: 'auth.demoRole.locatar',
   super_admin: 'auth.demoRole.superAdmin',
 };
 

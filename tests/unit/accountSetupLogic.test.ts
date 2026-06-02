@@ -48,14 +48,14 @@ describe('setupProvisionStatus', () => {
 
 describe('resolveOnboarding', () => {
   it('resolves a locatar invite by its token, carrying the granted role', () => {
-    const invite = createInvite({ asociatieId: 'asoc-9', role: 'chirias' }, [], NOW);
+    const invite = createInvite({ asociatieId: 'asoc-9', role: 'locatar' }, [], NOW);
     const resolved = resolveOnboarding(invite.token, [invite], [], NOW);
     expect(resolved).toMatchObject({
       kind: 'invite',
       status: 'ok',
       asociatieId: 'asoc-9',
       asociatieName: null,
-      role: 'chirias',
+      role: 'locatar',
     });
   });
 

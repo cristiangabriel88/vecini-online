@@ -205,11 +205,13 @@ export default function InvitesAdminPage() {
             return (
               <Card key={invite.id}>
                 <div className="flex flex-wrap items-center gap-3">
-                  <Badge tone={STATUS_TONE[status]}>{t(`invites.status_${status}`)}</Badge>
-                  <Badge tone="primary">{t(`invites.role_${invite.role}`)}</Badge>
                   {invite.apartmentId && (
-                    <Badge tone="neutral">{apartmentLabel(invite.apartmentId)}</Badge>
+                    <span className="badge badge--neutral text-xl font-bold px-4 py-1.5 tracking-wide">
+                      {apartmentLabel(invite.apartmentId)}
+                    </span>
                   )}
+                  <Badge tone={STATUS_TONE[status]}>{t(`invites.status_${status}`)}</Badge>
+                  {/* <Badge tone="primary">{t(`invites.role_${invite.role}`)}</Badge> */}
                   {!invite.singleUse && (
                     <Badge tone="neutral">{t('invites.reusable')}</Badge>
                   )}
@@ -249,7 +251,7 @@ export default function InvitesAdminPage() {
                   {' · '}
                   {invite.expiresAt === null
                     ? t('invites.neverExpires')
-                    : t('invites.expiresOn', { date: formatDate(invite.expiresAt) })}
+                    : <strong className="font-bold text-foreground">{t('invites.expiresOn', { date: formatDate(invite.expiresAt) })}</strong>}
                   {invite.emailSentAt !== null &&
                     ` · ${t('invites.emailSentOn', { date: formatDate(invite.emailSentAt) })}`}
                   {invite.consumedAt !== null &&

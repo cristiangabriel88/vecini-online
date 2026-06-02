@@ -56,7 +56,7 @@ describe('createLinkCode', () => {
   });
 
   it('defaults to never-expiring and single-use', () => {
-    const made = createLinkCode({ userId: 'u-2', asociatieId: 'asoc-2', role: 'chirias' }, [], NOW);
+    const made = createLinkCode({ userId: 'u-2', asociatieId: 'asoc-2', role: 'locatar' }, [], NOW);
     expect(made.expiresAt).toBeNull();
     expect(made.consumedByTelegramId).toBeNull();
   });

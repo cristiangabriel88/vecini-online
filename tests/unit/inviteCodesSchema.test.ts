@@ -40,24 +40,27 @@ describe('invite_codes role + single_use schema parity (T60)', () => {
     // re-run.
     expect(sql).toContain('drop constraint if exists invite_codes_role_check');
 
-    const match = sql.match(
-      /add constraint invite_codes_role_check\s+check \(role in \(([^)]*)\)\)/,
-    );
-    expect(match).not.toBeNull();
+    const matches = [
+      ...sql.matchAll(/add constraint invite_codes_role_check\s+check \(role in \(([^)]*)\)\)/g),
+    ];
+    expect(matches.length).toBeGreaterThan(0);
+    // The last ADD CONSTRAINT is the effective definition after all migrations run.
+    const lastRoles = matches[matches.length - 1][1];
 
-    const constrained = (match![1].match(/'([^']+)'/g) ?? [])
-      .map((q) => q.replace(/'/g, ''))
+    const constrained = (lastRoles.match(/'([^']+)'/g) ?? [])
+      .map((q: string) => q.replace(/'/g, ''))
       .sort();
     const expected = [...INVITABLE_ROLES].sort();
     expect(constrained).toEqual(expected);
   });
 
   it('never admits a founder/platform role through the constraint', () => {
-    const match = sql.match(
-      /add constraint invite_codes_role_check\s+check \(role in \(([^)]*)\)\)/,
-    );
-    expect(match).not.toBeNull();
-    expect(match![1]).not.toContain("'admin'");
-    expect(match![1]).not.toContain("'super_admin'");
+    const matches = [
+      ...sql.matchAll(/add constraint invite_codes_role_check\s+check \(role in \(([^)]*)\)\)/g),
+    ];
+    expect(matches.length).toBeGreaterThan(0);
+    const lastRoles = matches[matches.length - 1][1];
+    expect(lastRoles).not.toContain("'admin'");
+    expect(lastRoles).not.toContain("'super_admin'");
   });
 });

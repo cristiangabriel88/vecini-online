@@ -64,7 +64,7 @@ describe('mfaEnforcementRedirect (pure decision)', () => {
 
   it('does not gate a non-privileged role', () => {
     expect(mfaEnforcementRedirect(input({ role: 'proprietar' }))).toBeNull();
-    expect(mfaEnforcementRedirect(input({ role: 'chirias' }))).toBeNull();
+    expect(mfaEnforcementRedirect(input({ role: 'locatar' }))).toBeNull();
     expect(mfaEnforcementRedirect(input({ role: null }))).toBeNull();
   });
 

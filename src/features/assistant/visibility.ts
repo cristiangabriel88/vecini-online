@@ -19,15 +19,15 @@ export function rolesToBuckets(role: Role | null | undefined): Set<FeatureAudien
   switch (role) {
     case 'super_admin':
     case 'admin':
-      return new Set<FeatureAudience>(['all', 'admin', 'comitet', 'proprietar', 'chirias']);
+      return new Set<FeatureAudience>(['all', 'admin', 'comitet', 'proprietar', 'locatar']);
     case 'presedinte':
     case 'comitet':
     case 'cenzor':
-      return new Set<FeatureAudience>(['all', 'comitet', 'proprietar', 'chirias']);
+      return new Set<FeatureAudience>(['all', 'comitet', 'proprietar', 'locatar']);
     case 'proprietar':
       return new Set<FeatureAudience>(['all', 'proprietar']);
-    case 'chirias':
-      return new Set<FeatureAudience>(['all', 'chirias']);
+    case 'locatar':
+      return new Set<FeatureAudience>(['all', 'locatar']);
     default:
       // Unknown / demo: most permissive that is still non-privileged.
       return new Set<FeatureAudience>(['all', 'proprietar']);

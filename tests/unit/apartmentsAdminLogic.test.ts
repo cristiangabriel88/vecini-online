@@ -21,6 +21,7 @@ const filled: ApartmentInput = {
   cota_parte_indiviza: '4,8',
   numar_persoane: '3',
   proprietar_principal_name: 'Popescu Andrei',
+  proprietar_principal_email: '',
   notes: 'colt',
 };
 
@@ -88,7 +89,7 @@ describe('apartmentsLogic — newApartment', () => {
   });
 
   it('defaults numar_persoane from the person list when the count is blank', () => {
-    const persons = [newPerson('proprietar'), newPerson('locator')].map((p, i) => ({
+    const persons = [newPerson('proprietar'), newPerson('locatar')].map((p, i) => ({
       ...p,
       name: `P${i}`,
     }));
@@ -104,7 +105,7 @@ describe('apartmentsLogic — newApartment', () => {
   it('keeps an explicit count over the person-list length and drops unnamed persons', () => {
     const persons = [
       { ...newPerson('proprietar'), name: 'Named' },
-      { ...newPerson('locator'), name: '  ' },
+      { ...newPerson('locatar'), name: '  ' },
     ];
     const a = newApartment({ ...filled, numar_persoane: '5' }, 'asoc-1', persons);
     expect(a.numar_persoane).toBe(5);
@@ -172,9 +173,9 @@ describe('apartmentsLogic — round trip + edit', () => {
 
 describe('apartmentsLogic — newPerson', () => {
   it('creates a blank, non-primary person with the given role and a unique id', () => {
-    const p = newPerson('chirias');
+    const p = newPerson('locatar');
     expect(p.name).toBe('');
-    expect(p.role).toBe('chirias');
+    expect(p.role).toBe('locatar');
     expect(p.is_primary).toBe(false);
     expect(p.email).toBeNull();
     expect(p.id).toMatch(/^pe-/);
@@ -184,7 +185,7 @@ describe('apartmentsLogic — newPerson', () => {
   it('trims a person email and stores blank as null when building an apartment', () => {
     const persons = [
       { ...newPerson('proprietar'), name: 'Named', email: '  maria@example.ro  ' },
-      { ...newPerson('locator'), name: 'Other', email: '   ' },
+      { ...newPerson('locatar'), name: 'Other', email: '   ' },
     ];
     const a = newApartment({ ...filled, numar_persoane: '' }, 'asoc-1', persons);
     expect(a.persons[0].email).toBe('maria@example.ro');

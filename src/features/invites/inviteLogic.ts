@@ -57,7 +57,7 @@ export interface InviteCode {
 /** Roles an admin may grant via an invite code (founder/platform roles excluded). */
 export const INVITABLE_ROLES: Role[] = [
   'proprietar',
-  'chirias',
+  'locatar',
   'comitet',
   'cenzor',
   'presedinte',

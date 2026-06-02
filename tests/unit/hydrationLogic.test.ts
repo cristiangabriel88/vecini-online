@@ -51,7 +51,7 @@ describe('isAdminRole', () => {
   });
 
   it('keeps a plain locatar and committee/auditor roles out of the admin area', () => {
-    for (const role of ['comitet', 'cenzor', 'proprietar', 'chirias'] as const) {
+    for (const role of ['comitet', 'cenzor', 'proprietar', 'locatar'] as const) {
       expect(isAdminRole(role)).toBe(false);
     }
   });

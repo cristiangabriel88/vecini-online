@@ -90,6 +90,6 @@ describe('DevRoleSwitcher signInAsDevUser email format (pure logic)', () => {
 
   it('maps other roles directly to {role}@dev.local', () => {
     expect(`admin@dev.local`).toBe('admin@dev.local');
-    expect(`chirias@dev.local`).toBe('chirias@dev.local');
+    expect(`locatar@dev.local`).toBe('locatar@dev.local');
   });
 });

@@ -4,7 +4,7 @@ import { isWelcomeEligibleRole, shouldShowWelcome } from '@/features/welcome/wel
 
 describe('isWelcomeEligibleRole', () => {
   it('includes resident-tier roles', () => {
-    const eligible: Role[] = ['proprietar', 'chirias', 'comitet', 'cenzor'];
+    const eligible: Role[] = ['proprietar', 'locatar', 'comitet', 'cenzor'];
     for (const role of eligible) expect(isWelcomeEligibleRole(role)).toBe(true);
   });
 

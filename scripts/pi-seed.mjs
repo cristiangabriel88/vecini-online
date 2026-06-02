@@ -18,7 +18,7 @@
 //   comitet      comitet@dev.local      <password>
 //   cenzor       cenzor@dev.local       <password>
 //   proprietar   proprietar@dev.local   <password>
-//   chirias      chirias@dev.local      <password>
+//   locatar      locatar@dev.local      <password>
 //   super_admin  super.admin@dev.local  <password>  (+platform_admins grant)
 //
 // All six tenant roles get a membership in the seeded asociatie
@@ -123,7 +123,7 @@ const USERS = [
   { role: 'comitet',     email: 'comitet@dev.local',      displayName: 'Comitet Dev',      membershipRole: 'comitet' },
   { role: 'cenzor',      email: 'cenzor@dev.local',       displayName: 'Cenzor Dev',       membershipRole: 'cenzor' },
   { role: 'proprietar',  email: 'proprietar@dev.local',   displayName: 'Proprietar Dev',   membershipRole: 'proprietar' },
-  { role: 'chirias',     email: 'chirias@dev.local',      displayName: 'Chiriaș Dev',      membershipRole: 'chirias' },
+  { role: 'locatar',     email: 'locatar@dev.local',      displayName: 'Locatar Dev',      membershipRole: 'locatar' },
   { role: 'super_admin', email: 'super.admin@dev.local',  displayName: 'Super Admin Dev',  membershipRole: null },
 ];
 

@@ -49,7 +49,7 @@ describe('claimPersonInList — name match', () => {
   it('claims the entry whose name matches inviteeName (case-insensitive)', () => {
     const persons = [
       makePerson({ name: 'Popescu Ion', role: 'proprietar' }),
-      makePerson({ name: 'Ionescu Maria', role: 'chirias' }),
+      makePerson({ name: 'Ionescu Maria', role: 'locatar' }),
     ];
     const result = claimPersonInList(persons, 'user-1', 'popescu ION', 'proprietar');
     expect(result[0].claimed_user_id).toBe('user-1');
@@ -76,7 +76,7 @@ describe('claimPersonInList — name match', () => {
 describe('claimPersonInList — role fallback', () => {
   it('claims the first unclaimed entry with the matching role when name does not match', () => {
     const persons = [
-      makePerson({ name: 'Somebody Else', role: 'chirias' }),
+      makePerson({ name: 'Somebody Else', role: 'locatar' }),
       makePerson({ name: 'Ionescu Maria', role: 'proprietar' }),
     ];
     const result = claimPersonInList(persons, 'user-4', 'No Match', 'proprietar');
@@ -85,8 +85,8 @@ describe('claimPersonInList — role fallback', () => {
   });
 
   it('uses role fallback when inviteeName is null', () => {
-    const persons = [makePerson({ name: 'Popescu Ion', role: 'chirias' })];
-    const result = claimPersonInList(persons, 'user-5', null, 'chirias');
+    const persons = [makePerson({ name: 'Popescu Ion', role: 'locatar' })];
+    const result = claimPersonInList(persons, 'user-5', null, 'locatar');
     expect(result[0].claimed_user_id).toBe('user-5');
   });
 
@@ -99,7 +99,7 @@ describe('claimPersonInList — role fallback', () => {
 
 describe('claimPersonInList — no-match cases', () => {
   it('returns the list unchanged when no name match and no role match', () => {
-    const persons = [makePerson({ name: 'Popescu Ion', role: 'chirias' })];
+    const persons = [makePerson({ name: 'Popescu Ion', role: 'locatar' })];
     const result = claimPersonInList(persons, 'user-7', 'No Match', 'proprietar');
     expect(result).toEqual(persons);
     expect(result[0].claimed_user_id).toBeUndefined();

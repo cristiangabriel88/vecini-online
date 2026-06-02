@@ -12,7 +12,7 @@ const DEMO_ROLE_TITLE: Record<Role, string> = {
   comitet: 'Comitet',
   cenzor: 'Cenzor',
   proprietar: 'Proprietar',
-  chirias: 'Chiriaș',
+  locatar: 'Locatar',
 };
 
 /**

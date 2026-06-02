@@ -127,7 +127,6 @@ export default function FeaturesAdminPage() {
                           <span className="font-medium">
                             {f ? featureTitle(t, f) : s.featureKey}
                           </span>
-                          <span className="text-xs text-muted">{s.featureKey}</span>
                           <span className="inline-flex items-center gap-1 text-xs text-muted">
                             <Users className="h-3.5 w-3.5" aria-hidden />
                             {t('features.requestCount', { count: s.count })}
@@ -164,7 +163,6 @@ export default function FeaturesAdminPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{featureTitle(t, f)}</span>
-                      <span className="text-xs text-muted">{f.key}</span>
                       {!f.implemented && <Badge tone="neutral">{t('features.preview')}</Badge>}
                     </div>
                     <p className="truncate text-sm text-muted">{featureDescription(t, f)}</p>

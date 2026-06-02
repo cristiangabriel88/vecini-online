@@ -302,9 +302,9 @@ describe('canViewAnyProfile', () => {
     expect(canViewAnyProfile('cenzor')).toBe(true);
     expect(canViewAnyProfile('super_admin')).toBe(true);
   });
-  it('denies proprietar, chirias, and null', () => {
+  it('denies proprietar, locatar, and null', () => {
     expect(canViewAnyProfile('proprietar')).toBe(false);
-    expect(canViewAnyProfile('chirias')).toBe(false);
+    expect(canViewAnyProfile('locatar')).toBe(false);
     expect(canViewAnyProfile(null)).toBe(false);
   });
 });

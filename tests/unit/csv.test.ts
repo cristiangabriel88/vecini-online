@@ -210,12 +210,12 @@ describe('rowToApartment', () => {
     expect(person.is_primary).toBe(true);
   });
 
-  it('sets person role to "locator" when proprietar is false', () => {
+  it('sets person role to "locatar" when proprietar is false', () => {
     const row = parseApartmentsCsv(
       'numar_apartament,name,proprietar\n3,Dumitrescu Elena,false',
     ).rows[0];
     const apt = rowToApartment(row, BASE_ASOCIATIE_ID);
-    expect(apt.persons[0].role).toBe('locator');
+    expect(apt.persons[0].role).toBe('locatar');
   });
 
   it('leaves persons empty and numar_persoane 0 when no name is given', () => {

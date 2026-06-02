@@ -269,7 +269,7 @@ export function rowToApartment(row: ApartmentImportRow, asociatieId: string): Ap
         {
           id: `pe-${crypto.randomUUID()}`,
           name: row.name,
-          role: row.proprietar ? 'proprietar' : 'locator',
+          role: row.proprietar ? 'proprietar' : 'locatar',
           is_primary: true,
           email: row.email || null,
         },

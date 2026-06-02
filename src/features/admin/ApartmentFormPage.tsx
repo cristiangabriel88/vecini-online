@@ -332,6 +332,14 @@ export default function ApartmentFormPage() {
             onChange={(e) => setField('proprietar_principal_name', e.target.value)}
           />
           <Input
+            type="email"
+            label={t('apartments.ownerEmail')}
+            value={input.proprietar_principal_email}
+            onChange={(e) => setField('proprietar_principal_email', e.target.value)}
+          />
+        </div>
+        <div className="mt-3">
+          <Input
             label={t('apartments.notes')}
             value={input.notes}
             onChange={(e) => setField('notes', e.target.value)}
@@ -342,7 +350,7 @@ export default function ApartmentFormPage() {
       <Card>
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-baseline gap-2">
-            <h2 className="text-base font-semibold">{t('apartments.persons')}</h2>
+            <h2 className="text-base font-semibold">{t('apartments.personsSection')}</h2>
             <span className="text-sm text-muted">
               {t('apartments.personsTotal', {
                 count: persons.filter((p) => p.name.trim() !== '').length,
@@ -352,11 +360,26 @@ export default function ApartmentFormPage() {
           <Button
             variant="secondary"
             size="sm"
-            // The first occupant added to an empty list becomes the primary by
-            // default: most apartments have one, and it spares the admin a click.
-            onClick={() =>
-              setPersons((prev) => [...prev, { ...newPerson(), is_primary: prev.length === 0 }])
-            }
+            onClick={() => {
+              const ownerName = input.proprietar_principal_name.trim();
+              const ownerEmail = input.proprietar_principal_email.trim();
+              const hasData = Boolean(ownerName || ownerEmail);
+              const alreadyInList = hasData && persons.some(
+                (p) =>
+                  (ownerName && p.name.trim().toLowerCase() === ownerName.toLowerCase()) ||
+                  (ownerEmail && p.email?.trim().toLowerCase() === ownerEmail.toLowerCase()),
+              );
+              const prefill = hasData && !alreadyInList;
+              setPersons((prev) => [
+                ...prev,
+                {
+                  ...newPerson(prefill ? 'proprietar' : 'locatar'),
+                  name: prefill ? ownerName : '',
+                  email: prefill ? (ownerEmail || null) : null,
+                  is_primary: prev.length === 0,
+                },
+              ]);
+            }}
           >
             <Plus className="h-4 w-4" /> {t('apartments.addPerson')}
           </Button>

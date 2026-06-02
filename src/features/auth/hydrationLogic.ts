@@ -16,7 +16,7 @@ const ROLE_RANK: Record<Role, number> = {
   comitet: 3,
   cenzor: 2,
   proprietar: 1,
-  chirias: 0,
+  locatar: 0,
 };
 
 /** Only memberships that are still in force (not ended). */

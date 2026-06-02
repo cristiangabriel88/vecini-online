@@ -7,7 +7,7 @@ export type Role =
   | 'comitet'
   | 'cenzor'
   | 'proprietar'
-  | 'chirias';
+  | 'locatar';
 
 export type Locale = 'ro' | 'en';
 
@@ -77,7 +77,7 @@ export interface Membership {
 export interface ApartmentPerson {
   id: string;
   name: string;
-  role: 'proprietar' | 'chirias' | 'locator';
+  role: 'proprietar' | 'locatar';
   is_primary: boolean;
   /** Optional contact email the admin can record so this person can be invited
    *  by email later. Lives in the embedded jsonb (absent on older records), so

@@ -139,14 +139,14 @@ describe('role enforcement', () => {
       expect(requiresMfa(role)).toBe(true);
     }
     expect(requiresMfa('proprietar')).toBe(false);
-    expect(requiresMfa('chirias')).toBe(false);
+    expect(requiresMfa('locatar')).toBe(false);
     expect(requiresMfa(null)).toBe(false);
     expect(requiresMfa(undefined)).toBe(false);
   });
 
   it('flags a membership set that contains any privileged role', () => {
     expect(anyRoleRequiresMfa(['proprietar', 'comitet'])).toBe(true);
-    expect(anyRoleRequiresMfa(['proprietar', 'chirias'])).toBe(false);
+    expect(anyRoleRequiresMfa(['proprietar', 'locatar'])).toBe(false);
     expect(anyRoleRequiresMfa([])).toBe(false);
   });
 });

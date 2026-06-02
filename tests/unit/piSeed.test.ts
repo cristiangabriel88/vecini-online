@@ -29,7 +29,7 @@ describe('pi-seed.mjs static contract', () => {
     expect(src).toContain('comitet@dev.local');
     expect(src).toContain('cenzor@dev.local');
     expect(src).toContain('proprietar@dev.local');
-    expect(src).toContain('chirias@dev.local');
+    expect(src).toContain('locatar@dev.local');
     expect(src).toContain('super.admin@dev.local');
   });
 

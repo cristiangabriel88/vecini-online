@@ -124,7 +124,7 @@ describe('status-lifecycle helpers (T67)', () => {
 
     it('returns empty for non-manager roles', () => {
       expect(allowedTransitions('primit', 'proprietar')).toEqual([]);
-      expect(allowedTransitions('primit', 'chirias')).toEqual([]);
+      expect(allowedTransitions('primit', 'locatar')).toEqual([]);
       expect(allowedTransitions('primit', 'cenzor')).toEqual([]);
       expect(allowedTransitions('primit', null)).toEqual([]);
     });

@@ -55,10 +55,10 @@ describe('authStore.redeemInvite (locatar invite path)', () => {
   });
 
   it('redeems by the short manual code as the fallback', () => {
-    const invite = useInviteStore.getState().issue({ asociatieId: 'asoc-2', role: 'chirias' });
+    const invite = useInviteStore.getState().issue({ asociatieId: 'asoc-2', role: 'locatar' });
     const result = useAuthStore.getState().redeemInvite(invite.code);
     expect(result.status).toBe('ok');
-    expect(useAuthStore.getState().memberships[0].role).toBe('chirias');
+    expect(useAuthStore.getState().memberships[0].role).toBe('locatar');
   });
 
   it('is replay-safe: a single-use token cannot be redeemed twice', () => {

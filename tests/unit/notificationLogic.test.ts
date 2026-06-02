@@ -59,7 +59,7 @@ describe('createNotification', () => {
         body: '',
         link: '/app',
         priority: 'urgent',
-        data: { name: 'Ana', role: 'chirias' },
+        data: { name: 'Ana', role: 'locatar' },
       },
       BASE_NOW,
     );
@@ -68,7 +68,7 @@ describe('createNotification', () => {
     expect(n.kind).toBe('membership.joined');
     expect(n.priority).toBe('urgent');
     expect(n.data.name).toBe('Ana');
-    expect(n.data.role).toBe('chirias');
+    expect(n.data.role).toBe('locatar');
   });
 });
 
@@ -95,7 +95,7 @@ describe('buildMembershipJoinedNotification', () => {
       recipientUserId: 'u-admin',
       asociatieId: 'asoc-1',
       memberName: null,
-      memberRole: 'chirias',
+      memberRole: 'locatar',
       now: BASE_NOW,
     });
     expect(n.data.name).toBe('');

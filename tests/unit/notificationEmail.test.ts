@@ -53,7 +53,7 @@ describe('buildNotificationEmail -- membership.joined', () => {
     const result = buildNotificationEmail({
       locale: 'ro',
       kind: 'membership.joined',
-      data: { name: 'Maria', role: 'chirias' },
+      data: { name: 'Maria', role: 'locatar' },
       appUrl: APP_URL,
       recipientUserId: RECIPIENT,
     });

@@ -23,7 +23,7 @@ export type FeatureCategory =
   | 'safety'
   | 'community';
 
-export type FeatureAudience = 'admin' | 'comitet' | 'proprietar' | 'chirias' | 'all';
+export type FeatureAudience = 'admin' | 'comitet' | 'proprietar' | 'locatar' | 'all';
 
 /* ----------------------- GDPR processing profile (art. 30) ---------------- */
 
@@ -164,7 +164,7 @@ export const FEATURES: FeatureDef[] = [
   { key: 'F01', title: 'Anunțuri oficiale', category: 'communication', icon: 'Megaphone', audience: ['all'], path: 'anunturi', description: 'Anunțuri oficiale cu confirmare de citire și difuzare țintită.', implemented: true },
   { key: 'F02', title: 'Canal de discuții moderat', category: 'communication', icon: 'MessagesSquare', audience: ['all'], path: 'discutii', description: 'Canal de discuții între locatari, moderat de comitet.', implemented: true },
   { key: 'F03', title: 'Alertă de bloc (urgență)', category: 'communication', icon: 'Siren', audience: ['all'], path: 'alerte', description: 'Difuzare de urgență care ignoră orele de liniște.', implemented: true },
-  { key: 'F04', title: 'Mesagerie privată cu administratorul', category: 'communication', icon: 'MessageCircle', audience: ['proprietar', 'chirias', 'admin'], path: 'mesaje-admin', description: 'Canal privat între locatar și administrator.', implemented: true },
+  { key: 'F04', title: 'Mesagerie privată cu administratorul', category: 'communication', icon: 'MessageCircle', audience: ['proprietar', 'locatar', 'admin'], path: 'mesaje-admin', description: 'Canal privat între locatar și administrator.', implemented: true },
   // F05 anonymous channel: no identity is attached to the message.
   { key: 'F05', title: 'Mesaj anonim către comitet', category: 'communication', icon: 'EyeOff', audience: ['all'], path: 'anonim', description: 'Mesaj către comitet cu identitate ascunsă.', implemented: true, processing: { data: ['content'], recipients: [RECIP_COMMITTEE, RECIP_PROCESSOR] } },
   { key: 'F06', title: 'Anunțuri vecini (locator)', category: 'communication', icon: 'StickyNote', audience: ['all'], path: 'locator', description: 'Anunțuri neoficiale între vecini, cu expirare la 14 zile.', implemented: true },

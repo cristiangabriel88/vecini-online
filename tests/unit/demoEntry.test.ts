@@ -28,7 +28,7 @@ describe('readLastDemoRole', () => {
     expect(readLastDemoRole()).toBe('presedinte');
   });
 
-  it.each(['admin', 'presedinte', 'comitet', 'cenzor', 'proprietar', 'chirias', 'super_admin'] as const)(
+  it.each(['admin', 'presedinte', 'comitet', 'cenzor', 'proprietar', 'locatar', 'super_admin'] as const)(
     'accepts all 7 valid roles (%s)',
     (role) => {
       localStorage.setItem(STORAGE_KEY, role);
@@ -52,8 +52,8 @@ describe('enterDemo localStorage persistence', () => {
   afterEach(() => localStorage.clear());
 
   it('key iv.demo.role round-trips through readLastDemoRole', () => {
-    localStorage.setItem('iv.demo.role', 'chirias');
-    expect(readLastDemoRole()).toBe('chirias');
+    localStorage.setItem('iv.demo.role', 'locatar');
+    expect(readLastDemoRole()).toBe('locatar');
   });
 
   it('readLastDemoRole returns the last role written', () => {

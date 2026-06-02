@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Check } from 'lucide-react';
@@ -22,7 +21,6 @@ import {
 
 export default function BuildingSettingsPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
   const asociatie = useCurrentAsociatie();
   const update = useAsociatieStore((s) => s.update);
@@ -86,7 +84,6 @@ export default function BuildingSettingsPage() {
       settings: { ...asociatie.settings, scari: preview },
     });
     toast.success(t('building.saved'));
-    navigate('/app/admin/apartamente');
   };
 
   return (

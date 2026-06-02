@@ -20,7 +20,7 @@ function allMigrationSql(): string {
     .toLowerCase();
 }
 
-const TENANT_ROLES = ['admin', 'comitet', 'cenzor', 'chirias', 'presedinte', 'proprietar'];
+const TENANT_ROLES = ['admin', 'comitet', 'cenzor', 'locatar', 'presedinte', 'proprietar'];
 
 describe('memberships.role check excludes super_admin (T111)', () => {
   const sql = allMigrationSql();

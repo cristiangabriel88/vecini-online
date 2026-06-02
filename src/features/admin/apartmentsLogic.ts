@@ -15,12 +15,13 @@ export interface ApartmentInput {
   cota_parte_indiviza: string;
   numar_persoane: string;
   proprietar_principal_name: string;
+  proprietar_principal_email: string;
   notes: string;
 }
 
 /** Empty owner roles, kept in one place so the form selects and the validator
  *  agree on the allowed set. */
-export const PERSON_ROLES: ApartmentPerson['role'][] = ['proprietar', 'chirias', 'locator'];
+export const PERSON_ROLES: ApartmentPerson['role'][] = ['proprietar', 'locatar'];
 
 /** Parse a Romanian-or-English decimal string ("4,8" or "4.8") into a number,
  *  or null when blank/invalid. */
@@ -41,6 +42,7 @@ export function blankApartmentInput(): ApartmentInput {
     cota_parte_indiviza: '',
     numar_persoane: '',
     proprietar_principal_name: '',
+    proprietar_principal_email: '',
     notes: '',
   };
 }
@@ -65,6 +67,7 @@ export function apartmentToInput(a: Apartment): ApartmentInput {
         : String(Number((a.cota_parte_indiviza * 100).toFixed(4))),
     numar_persoane: String(a.numar_persoane),
     proprietar_principal_name: a.proprietar_principal_name ?? '',
+    proprietar_principal_email: (a.persons.find((p) => p.is_primary) ?? a.persons[0])?.email?.trim() ?? '',
     notes: a.notes ?? '',
   };
 }
@@ -84,6 +87,7 @@ export const apartmentInputSchema = z
     cota_parte_indiviza: z.string(),
     numar_persoane: z.string(),
     proprietar_principal_name: z.string(),
+    proprietar_principal_email: z.string(),
     notes: z.string(),
   })
   .superRefine((val, ctx) => {
@@ -130,12 +134,13 @@ export function isBlankInput(input: ApartmentInput): boolean {
     input.cota_parte_indiviza.trim() === '' &&
     input.numar_persoane.trim() === '' &&
     input.proprietar_principal_name.trim() === '' &&
+    input.proprietar_principal_email.trim() === '' &&
     input.notes.trim() === ''
   );
 }
 
 /** A fresh named occupant for the person-list editor. */
-export function newPerson(role: ApartmentPerson['role'] = 'locator'): ApartmentPerson {
+export function newPerson(role: ApartmentPerson['role'] = 'locatar'): ApartmentPerson {
   return { id: `pe-${crypto.randomUUID()}`, name: '', role, is_primary: false, email: null };
 }
 

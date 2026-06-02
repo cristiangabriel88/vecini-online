@@ -80,7 +80,7 @@ describe('canManageDocuments', () => {
 
   it('returns false for residents and null', () => {
     expect(canManageDocuments('proprietar')).toBe(false);
-    expect(canManageDocuments('chirias')).toBe(false);
+    expect(canManageDocuments('locatar')).toBe(false);
     expect(canManageDocuments('cenzor')).toBe(false);
     expect(canManageDocuments(null)).toBe(false);
   });

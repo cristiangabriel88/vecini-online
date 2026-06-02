@@ -22,7 +22,7 @@ export function prunePostTimestamps(timestamps: number[], now: number): number[]
  * unauthenticated users are unvetted.
  */
 export function isVettedRole(role: Role | null): boolean {
-  return role !== null && role !== 'proprietar' && role !== 'chirias';
+  return role !== null && role !== 'proprietar' && role !== 'locatar';
 }
 
 /** A message must have non-blank text within a sane length. */

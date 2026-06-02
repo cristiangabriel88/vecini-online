@@ -115,7 +115,7 @@ function S({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<RouteFallback />}>{children}</Suspense>;
 }
 
-const DEMO_ROLES: Role[] = ['admin', 'presedinte', 'comitet', 'cenzor', 'proprietar', 'chirias', 'super_admin'];
+const DEMO_ROLES: Role[] = ['admin', 'presedinte', 'comitet', 'cenzor', 'proprietar', 'locatar', 'super_admin'];
 
 /** Read the persisted demo role from localStorage; fall back to 'admin'. */
 export function readLastDemoRole(): Role {

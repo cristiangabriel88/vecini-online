@@ -20,9 +20,9 @@ describe('isVettedRole (T66)', () => {
     expect(isVettedRole('super_admin')).toBe(true);
   });
 
-  it('treats proprietar/chirias/null as unvetted', () => {
+  it('treats proprietar/locatar/null as unvetted', () => {
     expect(isVettedRole('proprietar')).toBe(false);
-    expect(isVettedRole('chirias')).toBe(false);
+    expect(isVettedRole('locatar')).toBe(false);
     expect(isVettedRole(null)).toBe(false);
   });
 });

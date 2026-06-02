@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { AlertTriangle, Building2, ChevronDown, ChevronUp, Download, FileSpreadsheet, FileText, Mail, Pencil, Plus, Send, Trash2, Upload, X } from 'lucide-react';
@@ -76,9 +76,9 @@ function ApartmentStatusCell({
       {/* Person */}
       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
       <circle cx="9" cy="7" r="4" />
-      {/* Clock (pending) */}
-      <circle cx="20" cy="17" r="3" />
-      <polyline points="20 15.5 20 17 21 18" />
+      {/* Red X */}
+      <line x1="18" y1="15" x2="22" y2="19" className="stroke-red-500 dark:stroke-red-400" strokeWidth="2.5" />
+      <line x1="22" y1="15" x2="18" y2="19" className="stroke-red-500 dark:stroke-red-400" strokeWidth="2.5" />
     </svg>
   );
 
@@ -103,8 +103,8 @@ function ApartmentStatusCell({
           {/* Person */}
           <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
           <circle cx="9" cy="7" r="4" />
-          {/* Checkmark */}
-          <polyline points="16 11 18 13 22 9" />
+          {/* Green checkmark */}
+          <polyline points="17.5,17 19.5,19.5 23,14.5" strokeWidth="2.5" />
         </svg>
       ) : onInviteClick ? (
         <button
@@ -352,6 +352,51 @@ export default function ApartmentsPage() {
     setShowDownloadDropdown(false);
   };
 
+  const handleExportApartmentsExcel = async () => {
+    const XLSX = await import('xlsx');
+    const headers = [
+      t('apartments.scara'),
+      t('apartments.etaj'),
+      t('apartments.number'),
+      t('apartments.owner'),
+      t('apartments.area'),
+      t('apartments.share'),
+      t('apartments.persons'),
+      t('apartments.statusHeader'),
+    ];
+    const rows = sortedApartments.map((a) => {
+      const joinDate = getJoinDate(a.id, invites);
+      return [
+        a.scara ?? '',
+        a.etaj === 0 ? t('apartments.parter') : (a.etaj ?? ''),
+        a.numar_apartament,
+        a.proprietar_principal_name ?? '',
+        a.suprafata_utila ?? '',
+        a.cota_parte_indiviza != null ? `${(a.cota_parte_indiviza * 100).toFixed(1)}%` : '',
+        a.numar_persoane,
+        joinDate
+          ? t('apartments.joinedOn', { date: joinDate.toLocaleDateString() })
+          : t('apartments.statusNotRegistered'),
+      ];
+    });
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, t('apartments.title'));
+    const raw = XLSX.write(wb, { bookType: 'xlsx', type: 'array' }) as ArrayBuffer | Uint8Array | number[];
+    const view = new Uint8Array(raw as ArrayBuffer);
+    const out = new Uint8Array(view.length);
+    out.set(view);
+    const blob = new Blob([out], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'apartamente.xlsx';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleImportClick = () => {
     fileInputRef.current?.click();
   };
@@ -393,7 +438,7 @@ export default function ApartmentsPage() {
         const aptId = idx !== -1 ? newApartments[idx].id : null;
         const invite = inviteState.issue({
           asociatieId,
-          role: row.proprietar ? 'proprietar' : 'chirias',
+          role: row.proprietar ? 'proprietar' : 'locatar',
           apartmentId: aptId,
           expiresAt: onboardingExpiry(),
           singleUse: true,
@@ -418,10 +463,7 @@ export default function ApartmentsPage() {
 
       if (newApartments.length > 0) {
         toast.success(
-          t('apartments.importSuccess', {
-            apartments: newApartments.length,
-            invites: invitesSent,
-          }),
+          `${t('apartments.importSuccessApts', { count: newApartments.length })}, ${t('apartments.importSuccessInvites', { count: invitesSent })}.`,
         );
       } else if (errors.length === 0) {
         toast(t('apartments.importNone'));
@@ -456,10 +498,6 @@ export default function ApartmentsPage() {
         action={
           apartments.length > 0 ? (
             <div className="flex flex-wrap gap-2">
-              <Button variant="secondary" onClick={() => navigate('/app/admin/cladire')}>
-                <Building2 className="h-4 w-4" /> {t('building.title')}
-              </Button>
-
               {/* Download template split-button with CSV / Excel dropdown */}
               <div className="relative" ref={downloadDropdownRef}>
                 <Button
@@ -501,8 +539,11 @@ export default function ApartmentsPage() {
                 )}
               </div>
 
+              <Button variant="secondary" onClick={handleExportApartmentsExcel}>
+                <FileSpreadsheet className="h-4 w-4" /> {t('apartments.exportList')}
+              </Button>
+
               <Button
-                variant="secondary"
                 onClick={handleImportClick}
                 loading={isImporting}
                 aria-label={t('apartments.importList')}
@@ -657,9 +698,6 @@ export default function ApartmentsPage() {
                 loading={isImporting}
               >
                 <Upload className="h-4 w-4" /> {t('apartments.importList')}
-              </Button>
-              <Button variant="secondary" onClick={() => navigate('/app/admin/cladire')}>
-                <Building2 className="h-4 w-4" /> {t('apartments.configureBuilding')}
               </Button>
             </div>
           }
@@ -1098,11 +1136,6 @@ export default function ApartmentsPage() {
         </Modal>
       )}
 
-      <p className="mt-4 text-center text-sm sm:hidden">
-        <Link to="/app/admin/cladire" className="auth-link">
-          {t('building.title')}
-        </Link>
-      </p>
     </div>
   );
 }

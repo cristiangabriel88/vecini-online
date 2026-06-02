@@ -3,6 +3,14 @@
 Compact, machine-readable log of non-trivial choices. Newest first. Format:
 - choice / why / alternatives rejected (when non-obvious) / blast radius.
 
+## 2026-06-02
+
+### Active development focus narrowed to Comunicare (F01-F08) + Guvernanță și vot (F09-F16)
+- choice: until the focus is lifted, `make progress` / `make task` develop **only** the two feature sections **Comunicare** (registry category `communication`, F01-F08) and **Guvernanță și vot** (category `governance`, F09-F16), plus the five shared-infra tasks they rely on, kept active by explicit owner choice: **T64** (feature `audience`/role route guard), **T51** (role-gated reads via `activeRole()`), **T59** + **T62** (active-asociatie name/branding), **T183** (topbar search). Every other section's open tasks were moved verbatim into a new `## On hold (other sections - paused, do not develop)` block at the bottom of `BACKLOG.md` (Admin/invites T63/T61, GDPR T72/T78/T76/T75, Profile/home T103/T106, Platform+SaaS T20/T119/T120/T121/T95-T99/T19/T110, P3 T108/T87/T79); the existing `## Deferred (post-MVP)` Telegram block (T15/T58/T68) stays parked too. An F01-F16 completeness audit added 13 new tasks (T184-T196) to drive both sections to fully-working (live activation, missing flows, E2E).
+- why: owner wants these two sections fully working and polished first; the rest should stop advancing without losing the progress already shipped.
+- alternatives rejected: (a) rewrite the `make progress` protocol to hard-gate the focus — owner chose to enforce by queue order only, leaving the protocol wording intact and the focus trivially reversible; (b) delete/comment-out the parked tasks — would lose history and prereq context. On-hold tasks are kept verbatim and reactivated by moving them back into the active queue.
+- blast radius: docs only (`BACKLOG.md` reorder + On-hold section + focus banner; this entry). **No source/test/migration changes** — all prior progress on the parked sections is frozen as-is, not reverted; all builds unaffected.
+
 ## 2026-05-29
 
 ### Asociatie accounting (intretinere / plati / restante) is out of product scope
