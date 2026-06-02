@@ -32,7 +32,6 @@ import {
   setRsvp as apiSetRsvp,
 } from './agaApi';
 import {
-  generateProcesVerbal,
   isQuorumMet,
   isValidAgendaItem,
   isValidMeeting,
@@ -45,6 +44,7 @@ import {
   quorumPercent,
   sortMeetings,
 } from './agaLogic';
+import { downloadProcesVerbalFile } from './pvPdfApi';
 
 const DECISIONS: AgaDecision[] = ['pentru', 'contra', 'abtinere'];
 const RULES: MajorityRule[] = ['simple', 'absolute', 'qualified_2_3'];
@@ -56,17 +56,6 @@ const PROXY_DOC_TYPES = ['application/pdf', 'image/png', 'image/jpeg'] as const;
 const statusTone = (s: AgaMeeting['status']) =>
   s === 'in_desfasurare' ? 'success' : s === 'convocata' ? 'primary' : 'neutral';
 
-function downloadProcesVerbal(meeting: AgaMeeting) {
-  const blob = new Blob([generateProcesVerbal(meeting)], { type: 'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `proces-verbal-${meeting.id}.txt`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
 
 export default function AgaPage() {
   const { t } = useTranslation();
@@ -97,6 +86,7 @@ export default function AgaPage() {
   const [docName, setDocName] = useState<string | null>(null);
   const [docUrl, setDocUrl] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  const [pvDownloading, setPvDownloading] = useState<string | null>(null);
 
   useEffect(() => {
     if (asociatieId) void hydrateAgas(asociatieId, voterUserId);
@@ -437,9 +427,17 @@ export default function AgaPage() {
                         <Button
                           size="sm"
                           variant="secondary"
-                          onClick={() => {
-                            downloadProcesVerbal(m);
-                            toast.success(t('aga.pvDownloaded'));
+                          loading={pvDownloading === m.id}
+                          onClick={async () => {
+                            setPvDownloading(m.id);
+                            try {
+                              await downloadProcesVerbalFile(m);
+                              toast.success(t('aga.pvDownloaded'));
+                            } catch {
+                              toast.error(t('common.loadError'));
+                            } finally {
+                              setPvDownloading(null);
+                            }
                           }}
                         >
                           <FileDown className="h-4 w-4" /> {t('aga.downloadPv')}

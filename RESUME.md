@@ -5,12 +5,12 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-03
-- last_task: T196 (P2) F16 Petiții interne: live activation + auto-forward at threshold + E2E -- `petitionLogic.ts` extended (canManagePetitions, PetitionCatalog/PetitionsByAsociatie, seedPetitions, petitionsForAsociatie, migratePetitionsState, newPetition, addPetitionIn); `petitionStore.ts` rebuilt as per-asociație persisted store (byAsociatie + mySigned + fetchError; version 1 reseeds demo; addPetition/signPetition/replaceForAsociatie/setFetchError; useAsociatiePetitions hook); new `petitionApi.ts` (hydratePetitions reads petitions+petition_signatures tallied in JS; createPetition store+live; signPetition optimistic + live + auto-forward: DB status update + petition.forwarded audit event + demo notification); PetitionsPage hydrates + ErrorState retry + findVoterApartmentId; petition.forwarded added to AUDIT_ACTIONS + tone + locales; MyDataPage migrated to per-asociație store; petitionLogic.test.ts extended (+12); new petitionsApi.test.ts (7 assertions); F16 E2E (sign, progress advances, button disabled)
+- last_task: T37 (P2) Server-rendered proces-verbal PDF (F10 AGA) -- pvGenerator.ts extracted (no @/ aliases); pdfDoc.ts minimal PDF 1.7 builder (Identity-H Unicode, Type0 unembedded fonts, A4 layout); generate-pv-pdf Netlify function (bearer auth, DB fetch, PDF response); pvPdfApi.ts client helper (live PDF / text fallback); AgaPage async loading button; pvGenerator.test.ts (7 assertions) + pdfDoc.test.ts (6 assertions)
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 204 files / 2041 tests
+- counts: 206 files / 2058 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T37 Server-rendered proces-verbal PDF (F10 AGA)
+- next: T63 Show the active asociație on FeaturesAdminPage + empty-state when none (on hold)
 - features: 65/65 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F11/F15/F16/F17/F33 + auth/invites/onboarding; rest offline-first pending the live-activation track. F28/F36/F66 cross-feature glue wired (T104)
 - e2e: F02/F03/F04/F05/F08/F09/F10/F11/F15/F16 happy paths green on chromium + mobile; `features.spec.ts` passing; 5 pre-existing tests (F07/F18/F35/F36/F40) fail on stale search selectors (belongs to T16). auth/consent/isolation/smoke/batch specs still predate the auto-demo-entry harness (T16)
 - blockers: full e2e harness rework (entry helpers + login-page specs) deferred to T16; Chromium now installed locally

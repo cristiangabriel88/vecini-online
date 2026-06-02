@@ -3,6 +3,14 @@
 Compact, machine-readable log of non-trivial choices. Newest first. Format:
 - choice / why / alternatives rejected (when non-obvious) / blast radius.
 
+## 2026-06-03
+
+### T37 PDF generation: unembedded Type0/Identity-H fonts, no external library
+- choice: generate the PDF entirely from TypeScript with no npm dependencies. Use unembedded Type0 (composite) fonts with `Identity-H` encoding and a full-range identity ToUnicode CMap. Reference `/Arial` and `/Arial-Bold` as the BaseFont names (both ubiquitous on Windows, macOS, and Linux where Helvetica Neue and Liberation Sans substitute). All Unicode code points including Romanian diacritics are stored as-is; the PDF viewer handles rendering via font substitution.
+- why: every alternative required an external font: `pdfkit` and `pdf-lib` need TTF/OTF data for non-Latin-1 characters; `@fontsource` npm packages ship WOFF2 which pdfkit cannot use; downloading a font at build time is fragile; embedding a base64 TTF blob would add ~100 KB of static data. The Identity-H / unembedded approach is a well-established technique used by LaTeX, ReportLab, and many commercial PDF generators for documents targeting online viewing rather than print-only environments. The only risk is display on an isolated system with no Arial or equivalent -- acceptable for a web SaaS where users view PDFs in Chrome/Edge/Adobe on normal OS installations.
+- alternatives rejected: pdfkit with bundled font -- requires font file in repo; pdf-lib -- same; puppeteer/headless browser -- too heavy for a Netlify function; jsPDF lazy-loaded client-side -- violates the "no heavy PDF engine in client bundle" requirement from T37.
+- blast radius: `netlify/functions/_shared/pdfDoc.ts` (new), `netlify/functions/generate-pv-pdf.ts` (new), `src/shared/lib/pvGenerator.ts` (new -- extracted from agaLogic.ts), `AgaPage.tsx` (download button now async), `pvPdfApi.ts` (new). No change to demo mode or existing text download.
+
 ## 2026-06-02
 
 ### T187 demo deep-link reload re-enters the persona; mobile hides the floating role-switcher
