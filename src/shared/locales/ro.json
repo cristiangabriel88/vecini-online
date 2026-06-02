@@ -566,7 +566,16 @@
     "wasHelpful": "Ți-a fost de ajutor?",
     "helpful": "Util",
     "notHelpful": "Neutil",
-    "empty": "Niciun rezultat. Încearcă alți termeni sau întreabă administratorul."
+    "empty": "Niciun rezultat. Încearcă alți termeni sau întreabă administratorul.",
+    "add": "Adaugă întrebare",
+    "edit": "Editează",
+    "archive": "Arhivează",
+    "category": "Categorie",
+    "question": "Întrebare",
+    "answer": "Răspuns",
+    "created": "Întrebare adăugată.",
+    "saved": "Întrebare actualizată.",
+    "archived": "Întrebare arhivată."
   },
   "ideas": {
     "title": "Cutie de idei",

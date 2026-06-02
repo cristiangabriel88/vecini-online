@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Plus, StickyNote, Clock } from 'lucide-react';
@@ -7,12 +7,16 @@ import { Button } from '@/shared/components/Button';
 import { Card } from '@/shared/components/Card';
 import { Badge } from '@/shared/components/Badge';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
 import { Input, Textarea } from '@/shared/components/Input';
 import { Select } from '@/shared/components/Select';
 import { formatDateLong } from '@/shared/lib/format';
+import { useAuthStore } from '@/shared/store/authStore';
+import { DEMO_ASOCIATIE, DEMO_CURRENT_USER_ID, DEMO_CURRENT_USER_NAME } from '@/shared/demo/demoData';
 import type { ResidentPostCategory } from '@/shared/types/domain';
 import { useLocatorStore } from './locatorStore';
+import { hydrateLocator, createPost } from './locatorApi';
 import { isExpired, daysLeft } from './locatorLogic';
 
 const CATEGORIES: ResidentPostCategory[] = ['vand', 'caut', 'ofer', 'info'];
@@ -25,11 +29,18 @@ const tone: Record<ResidentPostCategory, 'success' | 'primary' | 'warning' | 'ne
 
 export default function LocatorPage() {
   const { t } = useTranslation();
-  const { items, add } = useLocatorStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId) ?? DEMO_ASOCIATIE.id;
+  const profile = useAuthStore((s) => s.profile);
+  const items = useLocatorStore((s) => s.items);
+  const fetchError = useLocatorStore((s) => s.fetchError);
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [category, setCategory] = useState<ResidentPostCategory>('vand');
+
+  useEffect(() => {
+    if (asociatieId) void hydrateLocator(asociatieId);
+  }, [asociatieId]);
 
   const live = items
     .filter((p) => !isExpired(p.expires_at))
@@ -37,7 +48,11 @@ export default function LocatorPage() {
 
   const submit = () => {
     if (!title.trim() || !body.trim()) return;
-    add({ title: title.trim(), body: body.trim(), category });
+    const author = {
+      id: profile?.id ?? DEMO_CURRENT_USER_ID,
+      name: profile?.full_name ?? DEMO_CURRENT_USER_NAME,
+    };
+    createPost(asociatieId, author, { title: title.trim(), body: body.trim(), category });
     toast.success(t('locator.posted'));
     setOpen(false);
     setTitle('');
@@ -57,7 +72,22 @@ export default function LocatorPage() {
         }
       />
 
-      {live.length === 0 ? (
+      {fetchError ? (
+        <ErrorState
+          title={t('common.errorTitle')}
+          body={t('common.loadError')}
+          action={
+            <Button
+              variant="ghost"
+              onClick={() => {
+                if (asociatieId) void hydrateLocator(asociatieId);
+              }}
+            >
+              {t('common.retry')}
+            </Button>
+          }
+        />
+      ) : live.length === 0 ? (
         <EmptyState body={t('locator.empty')} icon={<StickyNote className="h-10 w-10" />} />
       ) : (
         <div className="space-y-3">

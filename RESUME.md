@@ -5,16 +5,30 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-02
-- last_task: T185 (P2) F08 Calendar de evenimente store + API + agenda/month view + ICS export (eventsLogic/Store/Api + DEMO_EVENT_ATTENDEES + formatMonthYear)
+- last_task: T186 (P2) F06 Locator + F07 FAQ explicit live hydration + FAQ admin manage UI (locatorApi/faqApi hydrate + faq_tally RPC + archive flag + comitet manage UI)
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 194 files / 1884 tests
+- counts: 196 files / 1896 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T186 F06 Locator + F07 FAQ explicit live hydration + FAQ admin manage UI
+- next: T187 E2E happy-path coverage for F02 (discuții), F04 (mesaje-admin), F05 (anonim)
 - features: 65/65 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F04/F05/F17/F33 + auth/invites/onboarding; rest offline-first pending the live-activation track. F28/F36/F66 cross-feature glue wired (T104)
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
 ---
+
+### T186 P2 ✅ 2026-06-02 -- F06 Locator + F07 FAQ explicit live hydration + FAQ admin manage UI
+- new: supabase/migrations/20260602000003_faq_archive_tally.sql (faq_entries.archived + faq_tally SECURITY DEFINER RPC, grant to authenticated)
+- new: src/features/faq/faqApi.ts (hydrateFaq reads faq_entries + faq_tally in parallel, merges counts; create/update/archive mirror behind isSupabaseConfigured)
+- new: src/features/locator/locatorApi.ts (hydrateLocator reads resident_posts + users(full_name); createPost mirror)
+- updated: src/features/faq/faqLogic.ts (visibleFaq/nextSortOrder/isSavableFaq/newFaqEntry/FaqEntryInput)
+- updated: src/features/faq/faqStore.ts (fetchError/replace/setFetchError + addEntry/updateEntry/archiveEntry)
+- updated: src/features/faq/FaqPage.tsx (hydrate on mount, ErrorState retry, comitet/admin manage UI gated via roleMatchesAudience per T64)
+- updated: src/features/locator/locatorStore.ts (fetchError/replace/setFetchError; add takes asociatieId+author+input)
+- updated: src/features/locator/LocatorPage.tsx (hydrate on mount, author from profile w/ demo fallback, ErrorState)
+- updated: src/shared/types/domain.ts (FaqEntry.archived) + demoData.ts (DEMO_FAQ archived:false)
+- updated: src/shared/locales/en.json + ro.json (faq.add/edit/archive/category/question/answer/created/saved/archived)
+- tests: faqLogic.test.ts extended (visibleFaq/nextSortOrder/isSavableFaq/newFaqEntry) + new faqApi.test.ts + locatorApi.test.ts offline-path suites
+- result: 196 files / 1896 tests / build+pi+demo green
 
 ### T185 P2 ✅ 2026-06-02 -- F08 Calendar de evenimente store + API + agenda/month view + ICS export
 - new: src/features/events/eventsLogic.ts (seed/seedAttendees/forAsociatie/migrate, sortByStart/isUpcoming/splitEvents/groupByMonth, toggleRsvp/isAttending/attendeeCount, toIcsDate/escapeIcsText/buildEventIcs/icsFileName)

@@ -566,7 +566,16 @@
     "wasHelpful": "Was this helpful?",
     "helpful": "Helpful",
     "notHelpful": "Not helpful",
-    "empty": "No results. Try other terms or ask your administrator."
+    "empty": "No results. Try other terms or ask your administrator.",
+    "add": "Add question",
+    "edit": "Edit",
+    "archive": "Archive",
+    "category": "Category",
+    "question": "Question",
+    "answer": "Answer",
+    "created": "Question added.",
+    "saved": "Question updated.",
+    "archived": "Question archived."
   },
   "ideas": {
     "title": "Idea box",

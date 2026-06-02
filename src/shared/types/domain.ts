@@ -288,6 +288,8 @@ export interface FaqEntry {
   sort_order: number;
   helpful_count: number;
   not_helpful_count: number;
+  /** Retired entries stay in the table (vote history preserved) but are hidden from residents. */
+  archived: boolean;
 }
 
 /** F14 — idea-box submission (`ideas`). */

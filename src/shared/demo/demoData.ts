@@ -357,9 +357,9 @@ export const DEMO_RESIDENT_POSTS: ResidentPost[] = [
 
 // F07 — Întrebări frecvente (FAQ).
 export const DEMO_FAQ: FaqEntry[] = [
-  { id: 'faq-1', asociatie_id: 'demo-asoc', category: 'Utilități', question: 'Când vine apa caldă după întreruperi?', answer: 'După reluarea furnizării, apa caldă ajunge la etajele superioare în 20–40 de minute. Lăsați robinetul deschis până se elimină aerul din instalație.', sort_order: 0, helpful_count: 12, not_helpful_count: 1 },
-  { id: 'faq-2', asociatie_id: 'demo-asoc', category: 'Contoare', question: 'Cum citesc corect contorul de apă?', answer: 'Citiți doar cifrele negre (mc), ignorând cifrele roșii (litri). Trimiteți indexul între 1 și 5 ale lunii din secțiunea „Citire contoare”.', sort_order: 1, helpful_count: 9, not_helpful_count: 0 },
-  { id: 'faq-3', asociatie_id: 'demo-asoc', category: 'Plăți', question: 'Ce este fondul de rulment?', answer: 'Este o sumă de garanție pe care o depune fiecare apartament, folosită de asociație pentru a acoperi facturile până la încasarea cotelor lunare.', sort_order: 2, helpful_count: 7, not_helpful_count: 2 },
+  { id: 'faq-1', asociatie_id: 'demo-asoc', category: 'Utilități', question: 'Când vine apa caldă după întreruperi?', answer: 'După reluarea furnizării, apa caldă ajunge la etajele superioare în 20–40 de minute. Lăsați robinetul deschis până se elimină aerul din instalație.', sort_order: 0, helpful_count: 12, not_helpful_count: 1, archived: false },
+  { id: 'faq-2', asociatie_id: 'demo-asoc', category: 'Contoare', question: 'Cum citesc corect contorul de apă?', answer: 'Citiți doar cifrele negre (mc), ignorând cifrele roșii (litri). Trimiteți indexul între 1 și 5 ale lunii din secțiunea „Citire contoare”.', sort_order: 1, helpful_count: 9, not_helpful_count: 0, archived: false },
+  { id: 'faq-3', asociatie_id: 'demo-asoc', category: 'Plăți', question: 'Ce este fondul de rulment?', answer: 'Este o sumă de garanție pe care o depune fiecare apartament, folosită de asociație pentru a acoperi facturile până la încasarea cotelor lunare.', sort_order: 2, helpful_count: 7, not_helpful_count: 2, archived: false },
 ];
 
 // F14 — Cutie de idei.
