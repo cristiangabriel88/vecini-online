@@ -4,6 +4,9 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### ✅ T59 — [P2] Surface the active asociație's name/branding (replace hardcoded DEMO_ASOCIATIE)
+Done: `HomePage` now calls `useCurrentAsociatie()` and passes `asociatie?.name` as the `PageHeader` subtitle (replacing the hardcoded `DEMO_ASOCIATIE.name`). `ProfilePage` likewise calls `useCurrentAsociatie()` and renders the name/address conditionally (name shown if non-empty, address shown only if the field is populated -- correct for demo and for locally-created asociatii whose address is blank). `DEMO_ASOCIATIE` import removed from both pages; `useCurrentAsociatie` already handles the demo/local/live cases correctly via `baseAsociatie` + the `asociatieStore` edits. 185 files / 1805 tests / lint + typecheck + build + build:pi + build:demo all green.
+
 ### ✅ T64 — [P2] Enforce feature `audience`/role in the route guard + nav
 Done: Added `roleMatchesAudience(audience, role)` to `featureRouteLogic.ts` with a `ROLE_AUDIENCE` map (`super_admin`/`admin`/`presedinte` → `admin`; `comitet`/`cenzor` → `comitet`; `proprietar` → `proprietar`; `locatar` → `locatar`; `all` short-circuits to true). `FeatureRouteGuard` now checks both the flag (shows `reason="disabled"` notice) and audience (shows `reason="unauthorized"` notice). `LockedFeatureNotice` gains a `reason` prop: `disabled` preserves the existing enable/request CTA; `unauthorized` shows only the bilingual "not available for your role" message and a home link. `useEnabledFeatures` in `AppLayout` and `FeatureHubPage` both filter by audience so audience-gated features disappear from the sidebar and hub for roles that lack access. New `common.featureUnauthorized` i18n key in EN + RO. 6 new assertions in `featureRouteLogic.test.ts`. 185 files / 1805 tests / lint + typecheck + build + build:pi + build:demo all green.
 

@@ -5,7 +5,7 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-02
-- last_task: T64 (P2) Enforce feature audience/role in route guard + nav
+- last_task: T59 (P2) Surface active asociatie name/branding in HomePage + ProfilePage
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
 - counts: 185 files / 1805 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task

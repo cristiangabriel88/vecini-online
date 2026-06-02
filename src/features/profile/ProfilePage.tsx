@@ -26,7 +26,8 @@ import { Modal } from '@/shared/components/Modal';
 import { EmptyState } from '@/shared/components/EmptyState';
 import i18n from '@/shared/lib/i18n';
 import { useAuthStore } from '@/shared/store/authStore';
-import { DEMO_APARTMENTS, DEMO_ASOCIATIE } from '@/shared/demo/demoData';
+import { DEMO_APARTMENTS } from '@/shared/demo/demoData';
+import { useCurrentAsociatie } from '@/features/admin/asociatieStore';
 import type { Locale } from '@/shared/types/domain';
 import { useMyIdentity, useProfileStore } from './profileStore';
 import { fileToAvatar } from './avatarImage';
@@ -59,6 +60,7 @@ export default function ProfilePage() {
   const signOut = useAuthStore((s) => s.signOut);
   const { userId, email } = useMyIdentity();
   const isSuperAdmin = useAuthStore((s) => s.isPlatformSuperAdmin);
+  const asociatie = useCurrentAsociatie();
   const get = useProfileStore((s) => s.get);
   const save = useProfileStore((s) => s.save);
 
@@ -412,10 +414,10 @@ export default function ProfilePage() {
 
         {/* Account + chrome */}
         <Card title={t('profile.account')}>
-          {!isSuperAdmin && (
+          {!isSuperAdmin && asociatie && (
             <>
-              <p className="font-medium">{DEMO_ASOCIATIE.name}</p>
-              <p className="text-sm text-muted">{DEMO_ASOCIATIE.address}</p>
+              {asociatie.name && <p className="font-medium">{asociatie.name}</p>}
+              {asociatie.address && <p className="text-sm text-muted">{asociatie.address}</p>}
             </>
           )}
           <div className={isSuperAdmin ? 'space-y-2' : 'mt-4 space-y-2'}>

@@ -23,7 +23,7 @@ import { PageHeader } from '@/shared/components/PageHeader';
 import { useAsociatieFlags } from '@/shared/features/featureStore';
 import { useAuthStore } from '@/shared/store/authStore';
 import { FEATURE_MAP, featureTitle, type FeatureDef } from '@/shared/features/registry';
-import { DEMO_ASOCIATIE } from '@/shared/demo/demoData';
+import { useCurrentAsociatie } from '@/features/admin/asociatieStore';
 import { useMyIdentity } from '@/features/profile/profileStore';
 import { useAsociatieAnnouncements } from '@/features/announcements/announcementsStore';
 import { polls } from '@/features/polls/pollsStore';
@@ -178,6 +178,7 @@ export default function HomePage() {
   const announcements = useAsociatieAnnouncements();
   const { userId } = useMyIdentity();
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const asociatie = useCurrentAsociatie();
 
   const layoutKey = useHomeLayoutKey();
   const saved = useHomeLayoutStore((s) => s.forKey(layoutKey));
@@ -210,7 +211,7 @@ export default function HomePage() {
     <div>
       <PageHeader
         title={t('nav.home')}
-        subtitle={DEMO_ASOCIATIE.name}
+        subtitle={asociatie?.name}
         action={
           layout.length > 0 && canPersist ? (
             editing ? (
