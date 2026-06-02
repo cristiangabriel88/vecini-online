@@ -936,6 +936,26 @@ export interface AgaAgendaItem {
   my_vote: AgaDecision | null;
 }
 
+/** A procură (proxy) designation recorded for an AGA: one apartment grants a
+ *  named holder the right to attend and vote on its behalf (Legea 196/2018
+ *  art. 47). Recorded distinctly from direct attendance, and its per-item votes
+ *  fold into the tally. Table `aga_attendees` with `is_proxy = true`. */
+export interface AgaProxy {
+  id: string;
+  /** Display label of the apartment that granted the proxy. */
+  grantor_apartment: string;
+  /** Name of the person holding (exercising) the proxy. */
+  proxy_holder: string;
+  /** Filename of the uploaded procură document, or null when none attached. */
+  document_name: string | null;
+  /** Offline-only data URL of the uploaded document so it can be opened and
+   *  verified; null when no document, or on the live path (the object lives in
+   *  Storage under `aga_attendees.proxy_document_path`). */
+  document_url: string | null;
+  /** Votes cast on the grantor's behalf, keyed by agenda item id. */
+  votes: Record<string, AgaDecision>;
+}
+
 export interface AgaMeeting {
   id: string;
   asociatie_id: string;
@@ -953,6 +973,8 @@ export interface AgaMeeting {
   /** The current demo apartment's RSVP. */
   my_rsvp: AgaRsvp;
   agenda: AgaAgendaItem[];
+  /** Procură designations recorded through the app (F10 proxy votes). */
+  proxies: AgaProxy[];
 }
 
 /** F13 — major-project priority ranking (`project_priorities` +

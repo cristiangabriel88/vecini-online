@@ -802,6 +802,16 @@ export const DEMO_AGAS: AgaMeeting[] = [
         votes: { pentru: 11, contra: 8, abtinere: 2 }, my_vote: null,
       },
     ],
+    proxies: [
+      {
+        id: 'agp-1',
+        grantor_apartment: 'Ap. 12',
+        proxy_holder: 'Elena Marin',
+        document_name: 'procura-ap12.pdf',
+        document_url: null,
+        votes: {},
+      },
+    ],
   },
   {
     id: 'aga-2',
@@ -829,6 +839,7 @@ export const DEMO_AGAS: AgaMeeting[] = [
         votes: { pentru: 0, contra: 0, abtinere: 0 }, my_vote: null,
       },
     ],
+    proxies: [],
   },
   {
     id: 'aga-3',
@@ -856,6 +867,7 @@ export const DEMO_AGAS: AgaMeeting[] = [
         votes: { pentru: 22, contra: 5, abtinere: 2 }, my_vote: 'pentru',
       },
     ],
+    proxies: [],
   },
 ];
 

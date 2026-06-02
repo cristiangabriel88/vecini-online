@@ -1,5 +1,76 @@
-import type { AgaAgendaItem, AgaMeeting } from '@/shared/types/domain';
+import type { AgaAgendaItem, AgaMeeting, AgaProxy, AgaVoteCounts } from '@/shared/types/domain';
+import { DEMO_AGAS, DEMO_ASOCIATIE } from '@/shared/demo/demoData';
 import { formatDateLong } from '@/shared/lib/format';
+
+/**
+ * F10 — digital General Assembly (AGA) model, per Legea 196/2018.
+ *
+ * Pure logic so the demo store stays the offline source of truth and the full
+ * lifecycle (convoke, RSVP / procură, vote, conclude, minutes) works offline.
+ * Each asociație owns its own list of assemblies, keyed by asociație id, so a
+ * convoked assembly belongs to the active tenant and never leaks across
+ * asociații. With a real backend the list is hydrated from / written back to
+ * `agas` / `aga_agenda_items` / `aga_attendees` / `aga_votes` under RLS (live
+ * activation in `agaApi.ts`); this module stays the single source of the shape,
+ * the per-asociație partitioning, the validation, the quorum / tally maths and
+ * the procură (proxy-vote) folding.
+ */
+
+/** All asociații's assemblies, keyed by asociație id. */
+export type AgasByAsociatie = Record<string, AgaMeeting[]>;
+
+/**
+ * Stable empty list returned for an unknown or null asociație so React selectors
+ * keep a constant reference. Never mutate it; the helpers always build a new
+ * array.
+ */
+const EMPTY_AGAS = Object.freeze([] as AgaMeeting[]) as AgaMeeting[];
+
+/** Deep-clone a meeting list so the seed is never mutated through the store. */
+export function cloneAgas(meetings: AgaMeeting[]): AgaMeeting[] {
+  return meetings.map((m) => ({
+    ...m,
+    agenda: m.agenda.map((a) => ({ ...a, votes: { ...a.votes } })),
+    proxies: m.proxies.map((p) => ({ ...p, votes: { ...p.votes } })),
+  }));
+}
+
+/**
+ * Seed used the first time the store initialises: the demo asociație gets the
+ * seeded assembly history so the offline app is populated. Other asociații start
+ * empty until a comitet convokes one.
+ */
+export function seedAgas(): AgasByAsociatie {
+  return { [DEMO_ASOCIATIE.id]: cloneAgas(DEMO_AGAS) };
+}
+
+/**
+ * The assemblies for one asociație. Returns the stored list (a stable reference)
+ * or a shared frozen empty list when the asociație has none yet or none is
+ * active.
+ */
+export function agasForAsociatie(
+  byAsociatie: AgasByAsociatie,
+  asociatieId: string | null,
+): AgaMeeting[] {
+  if (!asociatieId) return EMPTY_AGAS;
+  return byAsociatie[asociatieId] ?? EMPTY_AGAS;
+}
+
+/**
+ * Migrate persisted state from any earlier version to the current shape.
+ * Preserves non-demo asociații so a locally-created asociație keeps its
+ * assemblies, but always reseeds the demo asociație from `DEMO_AGAS` so stale
+ * demo content is refreshed on version bump.
+ */
+export function migrateAgasState(persisted: unknown): AgasByAsociatie {
+  const state = persisted as { byAsociatie?: unknown } | null;
+  const old = state?.byAsociatie;
+  if (old && typeof old === 'object') {
+    return { ...(old as AgasByAsociatie), [DEMO_ASOCIATIE.id]: cloneAgas(DEMO_AGAS) };
+  }
+  return seedAgas();
+}
 
 /** A meeting needs a title and a parseable scheduled date. */
 export function isValidMeeting(title: string, scheduledAt: string): boolean {
@@ -11,11 +82,26 @@ export function isValidAgendaItem(title: string): boolean {
   return title.trim().length > 0;
 }
 
+/** A procură needs the granting apartment and the holder's name. */
+export function isValidProxy(grantorApartment: string, proxyHolder: string): boolean {
+  return grantorApartment.trim().length > 0 && proxyHolder.trim().length > 0;
+}
+
+/** Sum the votes cast through proxies for one agenda item. */
+function proxyVotesFor(itemId: string, proxies: AgaProxy[]): AgaVoteCounts {
+  const counts: AgaVoteCounts = { pentru: 0, contra: 0, abtinere: 0 };
+  for (const proxy of proxies) {
+    const decision = proxy.votes[itemId];
+    if (decision) counts[decision] += 1;
+  }
+  return counts;
+}
+
 /** Apartments represented, counting the current demo apartment when it is
- *  present or has given a proxy. */
+ *  present or has given a proxy, plus every recorded procură. */
 export function presentApartments(meeting: AgaMeeting): number {
   const mine = meeting.my_rsvp === 'prezent' || meeting.my_rsvp === 'procura' ? 1 : 0;
-  return meeting.represented_apartments + mine;
+  return meeting.represented_apartments + mine + meeting.proxies.length;
 }
 
 /** Attendance as a percent of all apartments (0 when there are none). */
@@ -36,17 +122,22 @@ export interface ItemTally {
   total: number;
 }
 
-/** Vote counts for an item, folding in the current apartment's own vote. */
-export function itemTally(item: AgaAgendaItem): ItemTally {
-  const pentru = item.votes.pentru + (item.my_vote === 'pentru' ? 1 : 0);
-  const contra = item.votes.contra + (item.my_vote === 'contra' ? 1 : 0);
-  const abtinere = item.votes.abtinere + (item.my_vote === 'abtinere' ? 1 : 0);
+/** Vote counts for an item, folding in the current apartment's own vote and any
+ *  votes cast through procură (proxy) on other apartments' behalf. */
+export function itemTally(item: AgaAgendaItem, proxies: AgaProxy[] = []): ItemTally {
+  const px = proxyVotesFor(item.id, proxies);
+  const pentru = item.votes.pentru + (item.my_vote === 'pentru' ? 1 : 0) + px.pentru;
+  const contra = item.votes.contra + (item.my_vote === 'contra' ? 1 : 0) + px.contra;
+  const abtinere = item.votes.abtinere + (item.my_vote === 'abtinere' ? 1 : 0) + px.abtinere;
   return { pentru, contra, abtinere, total: pentru + contra + abtinere };
 }
 
 /** Each option as a whole-number percent of the votes cast on the item. */
-export function itemPercentages(item: AgaAgendaItem): Omit<ItemTally, 'total'> {
-  const { pentru, contra, abtinere, total } = itemTally(item);
+export function itemPercentages(
+  item: AgaAgendaItem,
+  proxies: AgaProxy[] = [],
+): Omit<ItemTally, 'total'> {
+  const { pentru, contra, abtinere, total } = itemTally(item, proxies);
   const pct = (n: number) => (total === 0 ? 0 : Math.round((n / total) * 100));
   return { pentru: pct(pentru), contra: pct(contra), abtinere: pct(abtinere) };
 }
@@ -56,7 +147,7 @@ export type ItemOutcome = 'adoptat' | 'respins' | 'in_asteptare';
 /** Outcome of an agenda item under its majority rule, requiring quorum.
  *  Returns `in_asteptare` while no votes have been cast. */
 export function itemOutcome(item: AgaAgendaItem, meeting: AgaMeeting): ItemOutcome {
-  const { pentru, contra, total } = itemTally(item);
+  const { pentru, contra, total } = itemTally(item, meeting.proxies);
   if (total === 0) return 'in_asteptare';
   if (!isQuorumMet(meeting)) return 'respins';
   switch (item.majority_rule) {
@@ -117,11 +208,14 @@ export function generateProcesVerbal(meeting: AgaMeeting): string {
   lines.push(
     `Cvorum: ${isQuorumMet(meeting) ? 'întrunit' : 'neîntrunit'} (necesar ${meeting.required_quorum_percent}%)`,
   );
+  if (meeting.proxies.length > 0) {
+    lines.push(`Procuri (împuterniciri) înregistrate: ${meeting.proxies.length}`);
+  }
   lines.push('');
   lines.push('ORDINEA DE ZI ȘI HOTĂRÂRILE:');
   const ordered = [...meeting.agenda].sort((a, b) => a.sort_order - b.sort_order);
   ordered.forEach((item, i) => {
-    const tally = itemTally(item);
+    const tally = itemTally(item, meeting.proxies);
     lines.push('');
     lines.push(`${i + 1}. ${item.title}`);
     if (item.description) lines.push(`   ${item.description}`);

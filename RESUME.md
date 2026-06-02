@@ -5,17 +5,27 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-02
-- last_task: T189 (P2) wired F09 Voturi live hydrate/recordVote -- per-asociație persisted `pollsStore` + `useAsociatiePolls()`, new `pollsApi.ts` (hydrate `polls`/`poll_options` + merge counts from the T80 `poll_tally` RPC; optimistic + per-apartment live `votes` insert behind `isSupabaseConfigured`), `PollsPage` quorum denominator now from real apartments (was hardcoded 24), F09 E2E added
+- last_task: T190 (P2) F10 AGA live activation + procură flow -- `agaLogic.ts` per-asociație model, `agaStore.ts` rebuilt as persisted per-asociație store, new `agaApi.ts` (hydrate + all write paths behind `isSupabaseConfigured`), `AgaPage` procură surface (grantor/holder/document upload, proxy vote per item), F10 E2E happy path
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 197 files / 1935 tests
+- counts: 198 files / 1951 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T37 server-rendered proces-verbal PDF (F10 AGA, needs a provisioned backend), then T190 F10 AGA live + procură, then T191-T196 (F11-F16 live activation)
-- features: 65/65 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F03/F04/F05/F06/F07/F08/F09/F17/F33 + auth/invites/onboarding; rest offline-first pending the live-activation track. F28/F36/F66 cross-feature glue wired (T104)
-- e2e: F02/F03/F04/F05/F08/F09 happy paths green on chromium + mobile; `features.spec.ts` passing after the deep-link fix; 5 pre-existing tests (F07/F18/F35/F36/F40) fail on stale search selectors (belongs to T16). auth/consent/isolation/smoke/batch specs still predate the auto-demo-entry harness (T16)
+- next: T37 server-rendered proces-verbal PDF (F10 AGA, needs a provisioned backend), then T191 F11 Procese verbale, then T192-T196 (F12-F16 live activation)
+- features: 65/65 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F17/F33 + auth/invites/onboarding; rest offline-first pending the live-activation track. F28/F36/F66 cross-feature glue wired (T104)
+- e2e: F02/F03/F04/F05/F08/F09/F10 happy paths green on chromium + mobile; `features.spec.ts` passing; 5 pre-existing tests (F07/F18/F35/F36/F40) fail on stale search selectors (belongs to T16). auth/consent/isolation/smoke/batch specs still predate the auto-demo-entry harness (T16)
 - blockers: full e2e harness rework (entry helpers + login-page specs) deferred to T16; Chromium now installed locally
 
 ---
+
+### T190 P2 ✅ 2026-06-02 -- F10 AGA: live activation + procură (proxy-vote) flow + E2E
+- updated: src/features/aga/agaLogic.ts (added AgasByAsociatie type, cloneAgas, seedAgas, agasForAsociatie [stable empty], migrateAgasState, isValidProxy, proxyVotesFor)
+- updated: src/features/aga/agaStore.ts (rebuilt: per-asociație persisted byAsociatie + fetchError, addProxy/castProxyVote actions, version 1 reseeds demo on migrate; useAsociatieAgas() hook)
+- new: src/features/aga/agaApi.ts (hydrateAgas reads agas/aga_agenda_items/aga_attendees/aga_votes under RLS; convokeMeeting/addAgendaItem/setRsvp/castVote/castProxyVote/advanceStatus/recordProxy all store-first + live mirror behind isSupabaseConfigured)
+- updated: src/features/aga/AgaPage.tsx (hydrate on mount, full procura surface with document upload, proxy list with download, proxy-vote buttons per item, ErrorState retry)
+- updated: src/shared/types/domain.ts (AgaProxy gains document_url; AgaVoteCounts type extracted)
+- updated: src/shared/locales/en.json + ro.json (proxy UI keys)
+- tests: tests/unit/agaLogic.test.ts (+10 assertions: isValidProxy, per-asociație model, migration); new tests/unit/agaApi.test.ts (offline path: hydrate no-op, all write ops offline-safe); tests/e2e/features.spec.ts F10 (designate procura holder -> verify in list), green chromium + mobile
+- result: 198 files / 1951 tests / lint+typecheck+build+pi+demo green
 
 ### T189 P2 ✅ 2026-06-02 -- F09 Voturi: live hydrate/recordVote path + E2E
 - updated: src/features/polls/pollLogic.ts (per-asociație catalog model added alongside tallyYesNo: PollCatalog/PollsByAsociatie, seedPolls/seedVoteCounts, catalogForAsociatie [stable frozen empty], optionsForPoll [filter+sort], quorumApartmentCount [active apts, replaces hardcoded 24], findVoterApartmentId, applyVote [pure], migratePollsState)

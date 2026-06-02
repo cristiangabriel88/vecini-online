@@ -212,6 +212,29 @@ test('F09 — resident casts a vote and sees the result bar', async ({ page }) =
   await expect(page.getByRole('progressbar').first()).toBeVisible();
 });
 
+test('F10 — resident records a procură (proxy) on the live assembly', async ({ page }) => {
+  // F10 (AGA) is owner-only (audience: ['proprietar']); preview that persona so
+  // the route guard grants access (DemoEntry reads the persisted role).
+  await page.addInitScript(() => {
+    try {
+      localStorage.setItem('iv.demo.role', 'proprietar');
+    } catch {
+      /* storage unavailable */
+    }
+  });
+  await enterDemo(page);
+  await page.goto('/app/aga');
+  // Expand the in-progress assembly (seeded as "AGA ordinară 2026").
+  await page.getByText('AGA ordinară 2026', { exact: true }).click();
+  // Open the procură modal and designate a proxy holder for an apartment.
+  await page.getByRole('button', { name: /Adaugă procură/i }).first().click();
+  await page.getByLabel(/Apartamentul care dă procura/i).fill('Ap. 30');
+  await page.getByLabel('Împuternicit').fill('Maria Ionescu');
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  // The recorded proxy appears in the assembly's proxy list.
+  await expect(page.getByText(/deținută de Maria Ionescu/i)).toBeVisible();
+});
+
 test('F03 — committee sends an emergency alert to the building', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/alerte');
