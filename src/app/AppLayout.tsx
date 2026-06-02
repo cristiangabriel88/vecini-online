@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate, NavLink, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Home, Megaphone, Zap, Menu, User, Bell, Moon, Sun, Settings, Search, ChevronDown, Info, Phone, Siren, ArrowUpRight, Globe, KeyRound, ShieldCheck, ClipboardList, ScrollText, Building2, LayoutDashboard, Activity, TriangleAlert, UserCog, MessagesSquare } from 'lucide-react';
+import { CommandPalette } from '@/shared/search/CommandPalette';
 import { FEATURES, FEATURE_CATEGORIES, categoryLabel, featureTitle, type FeatureCategory } from '@/shared/features/registry';
 import { useAsociatieFlags } from '@/shared/features/featureStore';
 import { roleMatchesAudience } from '@/shared/features/featureRouteLogic';
@@ -377,6 +378,19 @@ function Topbar() {
   const navigate = useNavigate();
   const lang = i18n.language.startsWith('en') ? 'en' : 'ro';
   const toggleLang = () => void i18n.changeLanguage(lang === 'en' ? 'ro' : 'en');
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const isMac = typeof navigator !== 'undefined' && /Mac/i.test(navigator.platform);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setPaletteOpen(true);
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, []);
 
   // Show the active asociație's real identity, not a hardcoded demo string: its
   // name on the primary line, and the scara below. A resident sees their own
@@ -399,6 +413,7 @@ function Topbar() {
         : t('chrome.scaraMany', { list: scari.join(', ') });
 
   return (
+    <>
     <header className="topbar">
       <Link to="/app" className="topbar__brand">
         <div className="topbar__logo" aria-hidden="true">
@@ -439,10 +454,17 @@ function Topbar() {
       </button>
 
       <div className="topbar__search">
-        <div className="topsearch">
-          <Search size={15} />
-          <input placeholder={t('chrome.searchPlaceholder')} aria-label={t('chrome.searchLabel')} />
-        </div>
+        <button
+          type="button"
+          className="topsearch"
+          onClick={() => setPaletteOpen(true)}
+          aria-haspopup="dialog"
+          aria-label={t('chrome.searchLabel')}
+        >
+          <Search size={15} aria-hidden="true" />
+          <span className="topsearch__placeholder">{t('chrome.searchPlaceholder')}</span>
+          <kbd className="topsearch__kbd">{isMac ? '⌘K' : 'Ctrl+K'}</kbd>
+        </button>
       </div>
 
       <div className="topbar__actions">
@@ -482,6 +504,8 @@ function Topbar() {
         <UserMenu />
       </div>
     </header>
+    <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+    </>
   );
 }
 

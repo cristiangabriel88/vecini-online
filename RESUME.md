@@ -5,12 +5,12 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-02
-- last_task: T62 (P2) Record/resolve joined asociatie name in localAsociatii after invite redemption
+- last_task: T183 (P2) Topbar command palette search (Ctrl+K / Cmd+K, nav + content, accessible)
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 185 files / 1809 tests
+- counts: 186 files / 1827 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T183 topbar search bar functionality
+- next: T127 live notifications fan-out
 - features: 65/65 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F04/F05/F17/F33 + auth/invites/onboarding; rest offline-first pending the live-activation track. F28/F36/F66 cross-feature glue wired (T104)
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 

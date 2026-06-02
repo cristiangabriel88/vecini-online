@@ -2572,6 +2572,16 @@
     "skipToContent": "Salt la conținut",
     "switchWorkspace": "Schimbă spațiu de lucru",
     "searchLabel": "Caută",
+    "palette": {
+      "placeholder": "Caută funcționalități, anunțuri, sesizări...",
+      "empty": "Niciun rezultat",
+      "emptyHint": "Încearcă un alt cuvânt sau expresie",
+      "footer": "Navighează  ↑↓  ·  Deschide  Enter  ·  Închide  Esc",
+      "nav": "Navigare",
+      "announcements": "Anunțuri",
+      "discussions": "Discuții",
+      "tickets": "Sesizări"
+    },
     "userMenu": {
       "title": "Meniu cont",
       "greeting": "Bine ai venit",

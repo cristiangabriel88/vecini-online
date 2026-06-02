@@ -2561,6 +2561,16 @@
     "skipToContent": "Skip to main content",
     "switchWorkspace": "Switch workspace",
     "searchLabel": "Search",
+    "palette": {
+      "placeholder": "Search features, announcements, issues...",
+      "empty": "No results",
+      "emptyHint": "Try a different word or phrase",
+      "footer": "Navigate  ↑↓  ·  Open  Enter  ·  Close  Esc",
+      "nav": "Navigation",
+      "announcements": "Announcements",
+      "discussions": "Discussions",
+      "tickets": "Issues"
+    },
     "userMenu": {
       "title": "Account menu",
       "greeting": "Welcome back",
