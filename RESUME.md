@@ -5,16 +5,28 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-02
-- last_task: T186 (P2) F06 Locator + F07 FAQ explicit live hydration + FAQ admin manage UI (locatorApi/faqApi hydrate + faq_tally RPC + archive flag + comitet manage UI)
+- last_task: T187 (P2) E2E happy-path coverage for F02/F04/F05 + unbroke the e2e harness (RequireAuth deep-link demo bootstrap, build-agnostic enterDemo, demoRole extraction, mobile floating-switcher hide)
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
 - counts: 196 files / 1896 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T187 E2E happy-path coverage for F02 (discuții), F04 (mesaje-admin), F05 (anonim)
+- next: T80 wire attribution-free tally functions for F09/F15/F13 results (Guvernanță live-activation track)
 - features: 65/65 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F04/F05/F17/F33 + auth/invites/onboarding; rest offline-first pending the live-activation track. F28/F36/F66 cross-feature glue wired (T104)
-- blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
+- e2e: F02/F04/F05 happy paths green on chromium + mobile; `features.spec.ts` 22/32 passing after the deep-link fix; 5 pre-existing tests (F07/F18/F35/F36/F40) fail on stale search selectors (belongs to T16). auth/consent/isolation/smoke/batch specs still predate the auto-demo-entry harness (T16)
+- blockers: full e2e harness rework (entry helpers + login-page specs) deferred to T16; Chromium now installed locally
 
 ---
+
+### T187 P2 ✅ 2026-06-02 -- E2E happy-path coverage for F02/F04/F05 + e2e harness fixes
+- new: tests/e2e/features.spec.ts F02 (create discussion thread, post message, pin -> Fixat badge), F04 (open seeded unread admin inbox thread so badge clears, reply, start new admin->resident thread), F05 (submit anonymous message -> lands in comitet queue as Nou)
+- new: src/shared/lib/demoRole.ts (DEMO_ROLES + readLastDemoRole extracted to break router<->RequireAuth import cycle; re-exported from @/app/router so importers + demoEntry.test.ts unchanged)
+- updated: src/app/RequireAuth.tsx (product fix: in demo stage, re-enter the persisted demo persona on a deep-link hard refresh instead of bouncing to /; preserves the requested route per T174 intent)
+- updated: src/app/router.tsx (use shared readLastDemoRole; removed local DEMO_ROLES/Role import)
+- updated: tests/e2e/features.spec.ts enterDemo helper made build-agnostic (login button when present, else accept demo auto-redirect to /app)
+- updated: src/styles/shell.css (hide .dev-role-switcher--floating on mobile layout; it overlapped content and intercepted clicks)
+- verify: installed Playwright Chromium (T16 never run); F02/F04/F05 green on chromium + mobile; features.spec.ts now 22/32 (was fully broken)
+- result: 196 files / 1896 tests / lint+typecheck+build+pi+demo green
+- note: 5 pre-existing feature E2E (F07/F18/F35/F36/F40) fail on stale search selectors -- untouched, belongs to T16
 
 ### T186 P2 ✅ 2026-06-02 -- F06 Locator + F07 FAQ explicit live hydration + FAQ admin manage UI
 - new: supabase/migrations/20260602000003_faq_archive_tally.sql (faq_entries.archived + faq_tally SECURITY DEFINER RPC, grant to authenticated)

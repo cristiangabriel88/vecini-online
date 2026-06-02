@@ -5,7 +5,11 @@ import { test, expect, type Page } from '@playwright/test';
 
 async function enterDemo(page: Page) {
   await page.goto('/');
-  await page.getByRole('button', { name: /modul demonstrativ/i }).click();
+  // In the demo build (`isDemo()`) the root route auto-enters the demo session
+  // and redirects to `/app`; only the live/login build renders the explicit
+  // "enter demo mode" button. Handle both so the suite is build-agnostic.
+  const demoButton = page.getByRole('button', { name: /modul demonstrativ/i });
+  if (await demoButton.count()) await demoButton.first().click();
   await expect(page).toHaveURL(/\/app$/);
 }
 
@@ -135,6 +139,64 @@ test('F08 — resident views upcoming events and RSVPs', async ({ page }) => {
   // The month view is reachable via the toggle.
   await page.getByRole('button', { name: /Pe luni/i }).click();
   await expect(page.getByRole('heading', { name: /Adunarea Generală anuală/i })).toBeVisible();
+});
+
+test('F02 — resident posts and pins a discussion thread', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/discutii');
+  await page.getByRole('button', { name: /Subiect nou/i }).click();
+  await page.getByLabel('Titlu', { exact: true }).fill('Program de curățenie pe scara B');
+  await page.getByLabel(/Etichetă/i).fill('#curatenie');
+  await page.getByRole('button', { name: /^Salvează$/i }).click();
+  // The new thread appears in the list.
+  const thread = page.getByRole('button').filter({ hasText: 'Program de curățenie pe scara B' });
+  await expect(thread).toBeVisible();
+  // Expand it and post a message.
+  await thread.click();
+  await page.getByLabel(/Scrie un mesaj/i).fill('Propun sâmbătă dimineața, la ora 10.');
+  await page.getByRole('button', { name: /Trimite mesajul/i }).click();
+  await expect(page.getByText('Propun sâmbătă dimineața, la ora 10.')).toBeVisible();
+  // Pin the thread; the "Fixat" badge appears on its card.
+  await thread.locator('..').getByRole('button', { name: /Fixează/i }).click();
+  await expect(thread.locator('..').getByText('Fixat', { exact: true })).toBeVisible();
+});
+
+test('F04 — admin clears an unread thread, replies, then starts a new one', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/mesaje-admin');
+  // The demo thread from Ionescu Maria (Ap. 1) is unread for the administrator.
+  const unread = page.getByRole('button').filter({ hasText: /Zgomot de la lucrările vecinului/i });
+  await expect(unread.getByText('1', { exact: true })).toBeVisible();
+  // Opening it marks the resident's message read and shows the conversation.
+  await unread.click();
+  await expect(page.getByText(/face lucrări de renovare/i)).toBeVisible();
+  // Reply; the new message lands in the conversation.
+  const replyInput = page.getByLabel(/Scrie un răspuns/i);
+  await replyInput.fill('Bună ziua, voi reaminti regulamentul orelor de liniște.');
+  await replyInput.locator('../..').getByRole('button').click();
+  await expect(page.getByText(/voi reaminti regulamentul orelor de liniște/i)).toBeVisible();
+  // Back in the inbox, the unread badge has cleared.
+  await page.getByRole('button', { name: /Înapoi la mesaje/i }).click();
+  await expect(unread.getByText('1', { exact: true })).toHaveCount(0);
+  // The admin can also start a fresh thread toward an apartment.
+  await page.getByRole('button', { name: /Mesaj către un locatar/i }).click();
+  await page.getByLabel('Apartament', { exact: true }).selectOption({ index: 1 });
+  await page.getByLabel('Subiect', { exact: true }).fill('Verificare contor apă rece');
+  await page.getByLabel('Mesaj', { exact: true }).fill('Vă rog transmiteți indexul la apa rece pentru luna aceasta.');
+  await page.getByRole('button', { name: /^Trimite$/i }).click();
+  await expect(page.getByText('Verificare contor apă rece')).toBeVisible();
+});
+
+test('F05 — resident submits an anonymous message to the committee queue', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/anonim');
+  await page.getByRole('button', { name: 'Mesaj anonim', exact: true }).click();
+  await page.getByLabel(/Mesajul tău/i).fill('Ușa de la subsol rămâne descuiată peste noapte.');
+  await page.getByRole('button', { name: /^Trimite$/i }).click();
+  // The message lands in the queue as new, awaiting the committee.
+  const card = page.getByText('Ușa de la subsol rămâne descuiată peste noapte.').locator('../..');
+  await expect(card.getByText('Nou', { exact: true })).toBeVisible();
+  await expect(card.getByRole('button', { name: /Marchează rezolvat/i })).toBeVisible();
 });
 
 test('F03 — committee sends an emergency alert to the building', async ({ page }) => {

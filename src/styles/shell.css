@@ -1396,6 +1396,14 @@
   z-index: 25;
   animation: fadein 200ms var(--ease-out);
 }
+/* The floating dev/demo role switcher is a desktop convenience; on the mobile
+   layout its wrapping chip cluster overlaps the page content, so drop it the
+   same way the sidebar is dropped (the inline switcher on the login screen
+   stays available for picking a demo persona). */
+.shell--mobile .dev-role-switcher--floating { display: none; }
+@media (max-width: 860px) {
+  .shell:not(.shell--desktop) .dev-role-switcher--floating { display: none; }
+}
 .dev-role-switcher__chips {
   display: flex;
   flex-wrap: wrap;

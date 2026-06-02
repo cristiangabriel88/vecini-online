@@ -11,7 +11,7 @@ import { RequireOnboardingEntry } from './RequireOnboardingEntry';
 import { RouteFallback } from '@/shared/components/RouteFallback';
 import { useAuthStore } from '@/shared/store/authStore';
 import { isDemo } from '@/shared/lib/env';
-import type { Role } from '@/shared/types/domain';
+import { readLastDemoRole } from '@/shared/lib/demoRole';
 
 const LoginPage = lazy(() => import('@/features/auth/LoginPage'));
 const ResetPasswordPage = lazy(() => import('@/features/auth/ResetPasswordPage'));
@@ -115,16 +115,10 @@ function S({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<RouteFallback />}>{children}</Suspense>;
 }
 
-const DEMO_ROLES: Role[] = ['admin', 'presedinte', 'comitet', 'cenzor', 'proprietar', 'locatar', 'super_admin'];
-
-/** Read the persisted demo role from localStorage; fall back to 'admin'. */
-export function readLastDemoRole(): Role {
-  try {
-    const stored = localStorage.getItem('iv.demo.role');
-    if (stored && (DEMO_ROLES as string[]).includes(stored)) return stored as Role;
-  } catch { /* storage unavailable */ }
-  return 'admin';
-}
+// Re-exported so existing importers (and tests) keep the `@/app/router` path;
+// the canonical definition now lives in the shared module that RequireAuth also
+// imports to re-enter demo on a deep-link reload.
+export { readLastDemoRole };
 
 /**
  * DEMO-stage entry point. Reads the last-used role from localStorage, enters
