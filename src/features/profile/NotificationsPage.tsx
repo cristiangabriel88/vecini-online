@@ -9,6 +9,13 @@ import { useNotificationStore } from '@/shared/store/notificationStore';
 import { useNotifPrefsStore } from '@/shared/store/notifPrefsStore';
 import { useMyIdentity } from '@/features/profile/profileStore';
 import { useAuthStore } from '@/shared/store/authStore';
+import {
+  hydrateNotifications,
+  hydrateNotifPrefs,
+  syncMarkRead,
+  syncMarkAllRead,
+  persistNotifPrefs,
+} from '@/features/notifications/notificationsApi';
 import { notifAgeMs, type AppNotification } from '@/features/notifications/notificationLogic';
 import { isValidQuietHour } from '@/shared/lib/notifPrefsLogic';
 import { cn } from '@/shared/lib/cn';
@@ -103,19 +110,25 @@ function NotifPrefsPanel({ userId }: { userId: string }) {
   const hasQuietHours = prefs.quietHoursStart !== null && prefs.quietHoursEnd !== null;
 
   const handleToggleEmail = () => {
-    store.setEmailEnabled(userId, !prefs.emailEnabled);
+    const updated = { ...prefs, emailEnabled: !prefs.emailEnabled };
+    store.setEmailEnabled(userId, updated.emailEnabled);
+    persistNotifPrefs(userId, updated);
   };
 
   const handleSaveQuietHours = () => {
     const start = parseInt(qStart, 10);
     const end = parseInt(qEnd, 10);
     if (isValidQuietHour(start) && isValidQuietHour(end)) {
+      const updated = { ...prefs, quietHoursStart: start, quietHoursEnd: end };
       store.setQuietHours(userId, start, end);
+      persistNotifPrefs(userId, updated);
     }
   };
 
   const handleClearQuietHours = () => {
+    const updated = { ...prefs, quietHoursStart: null, quietHoursEnd: null };
     store.setQuietHours(userId, null, null);
+    persistNotifPrefs(userId, updated);
     setQStart('');
     setQEnd('');
   };
@@ -228,18 +241,36 @@ export default function NotificationsPage() {
   const notifications = store.forUser(userId, currentAsociatieId);
   const unread = notifications.filter((n) => n.readAt === null).length;
 
+  // Hydrate notifications + prefs from the backend on mount (live mode only).
+  useEffect(() => {
+    if (userId && currentAsociatieId) {
+      void hydrateNotifications(userId, currentAsociatieId);
+      void hydrateNotifPrefs(userId);
+    }
+  }, [userId, currentAsociatieId]);
+
   // One-click unsubscribe via email footer link (?action=unsubscribe-email).
   const [unsubscribed, setUnsubscribed] = useState(false);
   useEffect(() => {
     if (searchParams.get('action') === 'unsubscribe-email') {
+      const updated = { ...prefsStore.getPrefs(userId), emailEnabled: false };
       prefsStore.setEmailEnabled(userId, false);
+      persistNotifPrefs(userId, updated);
       setUnsubscribed(true);
       setSearchParams({}, { replace: true });
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleRead = (id: string) => store.markRead(id);
-  const handleMarkAllRead = () => store.markAllRead(userId, currentAsociatieId);
+  const handleRead = (id: string) => {
+    const now = Date.now();
+    store.markRead(id);
+    syncMarkRead(id, now);
+  };
+  const handleMarkAllRead = () => {
+    const now = Date.now();
+    store.markAllRead(userId, currentAsociatieId, now);
+    syncMarkAllRead(userId, currentAsociatieId, now);
+  };
 
   return (
     <div>

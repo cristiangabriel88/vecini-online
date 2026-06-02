@@ -57,8 +57,15 @@ interface NotificationState {
   unreadCount: (userId: string, asociatieId: string) => number;
 
   /**
+   * Replace all notifications for a user+asociatie (used by live hydration).
+   * Notifications for other users or asociatii are preserved.
+   */
+  replaceForUser: (userId: string, asociatieId: string, items: AppNotification[]) => void;
+
+  /**
    * Emit a `membership.joined` notification to the invite issuer.
    * Called from `authStore.redeemInvite` on a successful offline redemption.
+   * Returns the emitted notification so the caller can mirror it live (T127).
    */
   emitMembershipJoined: (opts: {
     recipientUserId: string;
@@ -66,7 +73,7 @@ interface NotificationState {
     memberName: string | null;
     memberRole: Role;
     now?: number;
-  }) => void;
+  }) => AppNotification;
 }
 
 export const useNotificationStore = create<NotificationState>()(
@@ -108,9 +115,20 @@ export const useNotificationStore = create<NotificationState>()(
       unreadCount: (userId, asociatieId) =>
         unreadCountFor(get().notifications, userId, asociatieId),
 
+      replaceForUser: (userId, asociatieId, items) =>
+        set({
+          notifications: [
+            ...get().notifications.filter(
+              (n) => !(n.userId === userId && n.asociatieId === asociatieId),
+            ),
+            ...items,
+          ],
+        }),
+
       emitMembershipJoined: (opts) => {
         const n = buildMembershipJoinedNotification(opts);
         set({ notifications: [...get().notifications, n] });
+        return n;
       },
     }),
     { name: 'vecini.notifications' },

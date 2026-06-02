@@ -5,6 +5,12 @@ Compact, machine-readable log of non-trivial choices. Newest first. Format:
 
 ## 2026-06-02
 
+### T127 notifications INSERT RLS: any authenticated member may insert (not comitet-only)
+- choice: the `notifications.member_insert` policy uses `is_member(asociatie_id)` (any member) rather than `has_role(..., array['admin','presedinte','comitet'])` (comitet-only).
+- why: the primary use case is a newly joined proprietar inserting a `membership.joined` notification for the inviting admin. At insert time the new member has just been assigned the `proprietar` role, so a comitet-only gate would silently fail and the admin would never get the live in-app ping. In-app notifications are non-destructive and the inserter must have a valid membership in the same asociatie.
+- alternatives rejected: comitet-only INSERT -- would block the membership.joined fan-out from a new proprietar; service-role write via Netlify function -- over-engineered for this volume, deferred to a future hardening pass.
+- blast radius: `supabase/migrations/20260602000002_notifications.sql` only. A malicious member could insert fake notifications for other members in the same asociatie; acceptable trade-off at current trust level for a closed-audience SaaS.
+
 ### Active development focus narrowed to Comunicare (F01-F08) + Guvernanță și vot (F09-F16)
 - choice: until the focus is lifted, `make progress` / `make task` develop **only** the two feature sections **Comunicare** (registry category `communication`, F01-F08) and **Guvernanță și vot** (category `governance`, F09-F16), plus the five shared-infra tasks they rely on, kept active by explicit owner choice: **T64** (feature `audience`/role route guard), **T51** (role-gated reads via `activeRole()`), **T59** + **T62** (active-asociatie name/branding), **T183** (topbar search). Every other section's open tasks were moved verbatim into a new `## On hold (other sections - paused, do not develop)` block at the bottom of `BACKLOG.md` (Admin/invites T63/T61, GDPR T72/T78/T76/T75, Profile/home T103/T106, Platform+SaaS T20/T119/T120/T121/T95-T99/T19/T110, P3 T108/T87/T79); the existing `## Deferred (post-MVP)` Telegram block (T15/T58/T68) stays parked too. An F01-F16 completeness audit added 13 new tasks (T184-T196) to drive both sections to fully-working (live activation, missing flows, E2E).
 - why: owner wants these two sections fully working and polished first; the rest should stop advancing without losing the progress already shipped.

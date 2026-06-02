@@ -20,6 +20,7 @@ import { DEMO_CURRENT_USER_ID } from '@/shared/demo/demoData';
 import { useInviteStore } from './inviteStore';
 import { useNotificationStore } from './notificationStore';
 import { useSecurityStore } from './securityStore';
+import { persistAndFanOut } from '@/features/notifications/notificationsApi';
 
 /** Where Supabase sends the resident after they click the password-reset link. */
 const RESET_REDIRECT = `${env.appUrl}/reset-parola`;
@@ -334,13 +335,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // We only notify when there is a known issuer; the notification is purely
     // informational and never blocks the join flow.
     if (consumed.invite.createdBy) {
-      useNotificationStore.getState().emitMembershipJoined({
+      const n = useNotificationStore.getState().emitMembershipJoined({
         recipientUserId: consumed.invite.createdBy,
         asociatieId: consumed.invite.asociatieId,
         memberName: consumed.invite.inviteeName,
         memberRole: consumed.invite.role,
         now: Date.now(),
       });
+      persistAndFanOut(n);
     }
     return { status: 'ok', asociatieId: consumed.invite.asociatieId };
   },

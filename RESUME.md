@@ -5,12 +5,12 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-02
-- last_task: T183 (P2) Topbar command palette search (Ctrl+K / Cmd+K, nav + content, accessible)
+- last_task: T127 (P2) Live notifications fan-out (notifications table + API + hydration + prefs sync + email fanout)
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 186 files / 1827 tests
+- counts: 187 files / 1834 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T127 live notifications fan-out
+- next: T130 link admin-initiated F04 threads to resident accounts
 - features: 65/65 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F04/F05/F17/F33 + auth/invites/onboarding; rest offline-first pending the live-activation track. F28/F36/F66 cross-feature glue wired (T104)
 - blockers: Playwright browser binaries not downloadable in sandbox; E2E runs in CI only
 
