@@ -250,6 +250,26 @@ test('F11 — member searches the minutes archive', async ({ page }) => {
   await expect(page.getByText('Proces verbal AGA ordinară 2026')).toBeVisible();
 });
 
+test('F12 — resident proposes an idea and votes on a funded proposal', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/buget');
+  // The pool summary card is visible (cycle title + remaining).
+  await expect(page.getByText(/5\.000 lei/i).first()).toBeVisible();
+  // Submit a new proposal via the compose modal.
+  await page.getByRole('button', { name: /Propune o idee/i }).click();
+  await page.getByLabel(/Titlu propunere/i).fill('Copertina intrare scara B');
+  await page.getByLabel(/Cost estimat/i).fill('3500');
+  await page.getByRole('button', { name: /^Salvează$/i }).click();
+  // The new proposal appears in the list.
+  await expect(page.getByText('Copertina intrare scara B')).toBeVisible();
+  // Vote on the first proposal and check the button state changes.
+  await page.getByRole('button', { name: /^Votează$/i }).first().click();
+  // The button turns "Votat" indicating a cast vote.
+  await expect(page.getByRole('button', { name: /Votat/i }).first()).toBeVisible();
+  // The funded badge is visible on at least one proposal.
+  await expect(page.getByText(/Finanțat/i).first()).toBeVisible();
+});
+
 test('F03 — committee sends an emergency alert to the building', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/alerte');

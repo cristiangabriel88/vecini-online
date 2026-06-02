@@ -5,17 +5,27 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-02
-- last_task: T191 (P2) F11 Procese verbale live activation + admin upload -- `pvLogic.ts` per-asociație model + canManagePv, `pvStore.ts` rebuilt as persisted per-asociație store, new `pvApi.ts` (hydrate + addPvDocument + Storage upload + getPvSignedUrl), `PvDocumentsPage` role-gated upload form + ErrorState retry + download button, new migration for `category` column, F11 E2E happy path
+- last_task: T192 (P2) F12 Buget participativ live activation -- `budgetLogic.ts` per-asociație model (BudgetCatalog, seedBudget, budgetForAsociatie, migrateBudgetState, activeCycle), `budgetStore.ts` rebuilt as persisted per-asociație store, new `budgetApi.ts` (hydrateBudget + proposeItem + castBudgetVote), BudgetPage hydrate on mount + ErrorState retry, budgetLogic.test.ts (+7 assertions), new budgetApi.test.ts offline path, F12 E2E happy path
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 199 files / 1963 tests
+- counts: 200 files / 1976 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T37 server-rendered proces-verbal PDF (F10 AGA, needs a provisioned backend), then T192 F12 Buget participativ, then T193-T196 (F13-F16 live activation)
+- next: T37 server-rendered proces-verbal PDF (F10 AGA, needs a provisioned backend), then T193 F13 Prioritizare proiecte, then T194-T196 (F14-F16 live activation)
 - features: 65/65 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F11/F17/F33 + auth/invites/onboarding; rest offline-first pending the live-activation track. F28/F36/F66 cross-feature glue wired (T104)
 - e2e: F02/F03/F04/F05/F08/F09/F10/F11 happy paths green on chromium + mobile; `features.spec.ts` passing; 5 pre-existing tests (F07/F18/F35/F36/F40) fail on stale search selectors (belongs to T16). auth/consent/isolation/smoke/batch specs still predate the auto-demo-entry harness (T16)
 - blockers: full e2e harness rework (entry helpers + login-page specs) deferred to T16; Chromium now installed locally
 
 ---
+
+### T192 P2 ✅ 2026-06-02 -- F12 Buget participativ: live activation + E2E
+- updated: src/features/budget/budgetLogic.ts (added BudgetCatalog/BudgetsByAsociatie types, seedBudget, budgetForAsociatie, migrateBudgetState, activeCycle, EMPTY_CATALOG)
+- updated: src/features/budget/budgetStore.ts (rebuilt: per-asociație persisted byAsociatie + fetchError, addProposal/toggleVote/replaceForAsociatie/setFetchError actions, version 1 reseeds demo on migrate; useAsociatieBudget/useActiveBudgetCycle hooks)
+- new: src/features/budget/budgetApi.ts (hydrateBudget reads budget_cycles/budget_proposals/budget_votes under RLS, tallies vote counts in JS; proposeItem store-first + live insert; castBudgetVote store-first + live insert into budget_votes)
+- updated: src/features/budget/BudgetPage.tsx (hydrate on mount, ErrorState retry, author_name from profile.full_name, apartment via findVoterApartmentId, DEMO_AUTHOR removed)
+- updated: tests/unit/budgetLogic.test.ts (+7 per-asociație model assertions: seedBudget, budgetForAsociatie, migrateBudgetState, activeCycle)
+- new: tests/unit/budgetApi.test.ts (offline path: hydrateBudget no-op, proposeItem appends synchronously, castBudgetVote increments + idempotent toggle)
+- updated: tests/e2e/features.spec.ts F12 (propose idea, vote on first proposal, see funded badge), green chromium + mobile
+- result: 200 files / 1976 tests / lint+typecheck+build+pi+demo green
 
 ### T191 P2 ✅ 2026-06-02 -- F11 Procese verbale: live activation + admin upload surface + E2E
 - new: supabase/migrations/20260602000005_pv_category.sql (add category column to pv_documents)

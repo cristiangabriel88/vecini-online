@@ -1,12 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import {
+  type BudgetCatalog,
+  activeCycle,
+  budgetForAsociatie,
   fundedIds,
   isFunded,
   isValidProposal,
+  migrateBudgetState,
   remainingBudget,
+  seedBudget,
   sortByVotes,
 } from '@/features/budget/budgetLogic';
 import type { BudgetCycle, BudgetProposal } from '@/shared/types/domain';
+import { DEMO_ASOCIATIE } from '@/shared/demo/demoData';
 
 const prop = (id: string, cost: number, votes: number): BudgetProposal => ({
   id,
@@ -57,5 +63,53 @@ describe('isFunded', () => {
   it('reflects the funded cut', () => {
     expect(isFunded(cycle.proposals[0], cycle)).toBe(true);
     expect(isFunded(cycle.proposals[1], cycle)).toBe(false);
+  });
+});
+
+describe('per-asociație model', () => {
+  it('seedBudget seeds the demo asociație', () => {
+    const map = seedBudget();
+    expect(map[DEMO_ASOCIATIE.id]).toBeDefined();
+    expect(map[DEMO_ASOCIATIE.id].cycles.length).toBeGreaterThan(0);
+  });
+
+  it('budgetForAsociatie returns empty catalog for unknown id', () => {
+    const map = seedBudget();
+    const cat = budgetForAsociatie(map, 'unknown');
+    expect(cat.cycles).toHaveLength(0);
+  });
+
+  it('budgetForAsociatie returns empty catalog for null', () => {
+    const cat = budgetForAsociatie({}, null);
+    expect(cat.cycles).toHaveLength(0);
+  });
+
+  it('migrateBudgetState always reseeds the demo asociație', () => {
+    const migrated = migrateBudgetState({ byAsociatie: { 'other-asoc': { cycles: [] } } });
+    expect(migrated[DEMO_ASOCIATIE.id]).toBeDefined();
+    expect(migrated['other-asoc']).toBeDefined();
+  });
+
+  it('activeCycle picks the vot-phase cycle first', () => {
+    const catalog: BudgetCatalog = {
+      cycles: [
+        { id: 'c1', asociatie_id: 'a', title: 'Old', pool: 1000, phase: 'incheiat', proposals: [] },
+        { id: 'c2', asociatie_id: 'a', title: 'Active', pool: 5000, phase: 'vot', proposals: [] },
+      ],
+    };
+    expect(activeCycle(catalog)?.id).toBe('c2');
+  });
+
+  it('activeCycle returns null for empty catalog', () => {
+    expect(activeCycle({ cycles: [] })).toBeNull();
+  });
+
+  it('activeCycle falls back to the first cycle when none is active', () => {
+    const catalog: BudgetCatalog = {
+      cycles: [
+        { id: 'c1', asociatie_id: 'a', title: 'Done', pool: 1000, phase: 'incheiat', proposals: [] },
+      ],
+    };
+    expect(activeCycle(catalog)?.id).toBe('c1');
   });
 });

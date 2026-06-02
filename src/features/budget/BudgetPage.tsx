@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { PiggyBank, Plus, Check } from 'lucide-react';
@@ -8,20 +8,65 @@ import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
 import { formatLei } from '@/shared/lib/format';
 import { recordAudit } from '@/shared/store/auditStore';
-import { useBudgetStore } from './budgetStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { DEMO_CURRENT_USER_ID } from '@/shared/demo/demoData';
+import { useAsociatieApartments } from '@/features/admin/apartmentsStore';
+import { findVoterApartmentId } from '@/features/polls/pollLogic';
+import { useBudgetStore, useActiveBudgetCycle } from './budgetStore';
+import { hydrateBudget, proposeItem, castBudgetVote } from './budgetApi';
 import { isFunded, isValidProposal, remainingBudget, sortByVotes } from './budgetLogic';
-
-const DEMO_AUTHOR = 'Popescu Andrei';
 
 export default function BudgetPage() {
   const { t } = useTranslation();
-  const { cycle, addProposal, toggleVote } = useBudgetStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const voterUserId = useAuthStore((s) => s.profile?.id) ?? DEMO_CURRENT_USER_ID;
+  const authorName = useAuthStore((s) => s.profile?.full_name) ?? 'Locatar';
+  const fetchError = useBudgetStore((s) => s.fetchError);
+  const cycle = useActiveBudgetCycle();
+  const apartments = useAsociatieApartments();
+
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [cost, setCost] = useState('');
+
+  useEffect(() => {
+    if (asociatieId) void hydrateBudget(asociatieId);
+  }, [asociatieId]);
+
+  if (fetchError) {
+    return (
+      <div>
+        <PageHeader title={t('budget.title')} />
+        <ErrorState
+          title={t('common.errorTitle')}
+          body={t('common.loadError')}
+          action={
+            <Button
+              variant="ghost"
+              onClick={() => {
+                if (asociatieId) void hydrateBudget(asociatieId);
+              }}
+            >
+              {t('common.retry')}
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
+
+  if (!cycle) {
+    return (
+      <div>
+        <PageHeader title={t('budget.title')} subtitle={t('budget.subtitle')} />
+        <EmptyState body={t('budget.empty')} icon={<PiggyBank className="h-10 w-10" />} />
+      </div>
+    );
+  }
 
   const remaining = remainingBudget(cycle);
   const ordered = sortByVotes(cycle.proposals);
@@ -30,12 +75,26 @@ export default function BudgetPage() {
 
   const submit = () => {
     if (!valid) return;
-    addProposal(title, costNum, DEMO_AUTHOR);
+    const proposal = {
+      id: `bp-${Date.now()}`,
+      cycle_id: cycle.id,
+      title: title.trim(),
+      cost: costNum,
+      author_name: authorName,
+      votes: 0,
+      voted: false,
+    };
+    proposeItem(asociatieId ?? '', cycle.id, proposal, voterUserId);
     recordAudit({ action: 'budget.proposed', entity: 'budget', entity_label: title.trim() });
     toast.success(t('budget.added'));
     setOpen(false);
     setTitle('');
     setCost('');
+  };
+
+  const vote = (proposalId: string) => {
+    const apartmentId = findVoterApartmentId(apartments, voterUserId);
+    castBudgetVote(asociatieId ?? '', cycle.id, proposalId, apartmentId);
   };
 
   return (
@@ -78,7 +137,7 @@ export default function BudgetPage() {
                 <Button
                   size="sm"
                   variant={p.voted ? 'primary' : 'secondary'}
-                  onClick={() => toggleVote(p.id)}
+                  onClick={() => vote(p.id)}
                 >
                   {p.voted ? (
                     <>
