@@ -10,10 +10,11 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 - counts: 206 files / 2058 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T63 Show the active asociație on FeaturesAdminPage + empty-state when none (on hold)
-- features: 65/65 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F11/F15/F16/F17/F33 + auth/invites/onboarding; rest offline-first pending the live-activation track. F28/F36/F66 cross-feature glue wired (T104)
-- e2e: F02/F03/F04/F05/F08/F09/F10/F11/F15/F16 happy paths green on chromium + mobile; `features.spec.ts` passing; 5 pre-existing tests (F07/F18/F35/F36/F40) fail on stale search selectors (belongs to T16). auth/consent/isolation/smoke/batch specs still predate the auto-demo-entry harness (T16)
-- blockers: full e2e harness rework (entry helpers + login-page specs) deferred to T16; Chromium now installed locally
+- next: T197 Rate-limit unprotected Netlify functions (csp-report / notify-email / generate-pv-pdf / provision-asociatie) [P1 security]
+- features: 67/67 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F33 (18 features) + auth/invites/onboarding; rest offline-first, pending live-activation track. F28/F36/F66 cross-feature glue wired (T104). Platform console: shell + provisioning done (T93/T94); oversight tools T95-T99 on hold.
+- e2e: F02/F03/F04/F05/F08/F09/F10/F11/F12/F13/F14/F15/F16 happy paths green on chromium + mobile (17 features with passing E2E); 5 pre-existing tests (F07/F18/F35/F36/F40) fail on stale search selectors (T201 / belongs to T16 rework). auth/consent/isolation/smoke/batch specs still predate the auto-demo-entry harness (T16)
+- blockers: full e2e harness rework (entry helpers + login-page specs) deferred to T16; Chromium installed locally
+- completion_estimate: 54% of original product vision delivered end-to-end (2026-06-03 replenish audit). Detail: all 67 features demo-complete and offline-functional (high-value deliverable); 18/67 live-wired to real Supabase backend; GDPR surface ~70% (server-side erasure + breach fan-out pending); security posture ~85% (rate-limit gaps on 4 functions, idle-timeout not enforced); Telegram bot 0% (fully deferred, passive in codebase); SaaS billing 0% (T19 on hold); platform console ~30% (shell + provisioning done, oversight tools T95-T99 pending); E2E coverage 25% (17/67 features with passing happy-path tests). Main blockers to 70%+: live-wire remaining 49 features (on-hold track), ship Telegram bot (T15), close security gaps (T197-T198), build E2E for core features (T199/T201/T203).
 
 ---
 
