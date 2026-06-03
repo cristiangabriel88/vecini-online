@@ -1050,6 +1050,7 @@
     "singleUse": "Single use",
     "reusable": "Reusable",
     "issue": "Generate code",
+    "code": "Code",
     "issued": "Invite link ready.",
     "autoIssued": "Invite link created for the invitee.",
     "inviteeName": "Invitee name",

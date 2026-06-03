@@ -16,6 +16,7 @@ import { useInviteStore } from '@/shared/store/inviteStore';
 import { recordAudit } from '@/shared/store/auditStore';
 import { useAsociatieApartments } from '@/features/admin/apartmentsStore';
 import {
+  type InviteCode,
   type InviteStatus,
   buildInviteLink,
   canEmailInvite,
@@ -58,6 +59,9 @@ export default function InvitesAdminPage() {
   const issue = useInviteStore((s) => s.issue);
   const revoke = useInviteStore((s) => s.revoke);
   const markEmailSent = useInviteStore((s) => s.markEmailSent);
+
+  /** Quick-issue: the freshly generated invite shown after clicking "Generează codul". */
+  const [newInvite, setNewInvite] = useState<InviteCode | null>(null);
 
   /** Set of invite IDs whose QR panel is currently open. */
   const [openQrs, setOpenQrs] = useState<Set<string>>(() => new Set());
@@ -139,6 +143,23 @@ export default function InvitesAdminPage() {
     );
   }
 
+  const issueNew = () => {
+    if (!asociatieId) return;
+    const invite = issue({
+      asociatieId,
+      asociatieName,
+      role: 'proprietar',
+      apartmentId: null,
+      expiresAt: null,
+      singleUse: true,
+      createdBy: userId,
+      inviteeName: null,
+      inviteeEmail: null,
+    });
+    recordAudit({ action: 'invite.issued', entity: 'invite', entity_label: invite.code, before: null, after: invite.role });
+    setNewInvite(invite);
+  };
+
   const onRevoke = (id: string, code: string) => {
     revoke(id);
     recordAudit({
@@ -197,6 +218,17 @@ export default function InvitesAdminPage() {
   return (
     <div>
       <PageHeader title={t('invites.title')} subtitle={t('invites.subtitle')} />
+
+      <h2 className="mb-3 text-lg font-semibold">{t('invites.issueTitle')}</h2>
+      <div className="mb-6">
+        <Button onClick={issueNew}>{t('invites.issue')}</Button>
+        {newInvite && (
+          <Card className="mt-3 space-y-1">
+            <p className="text-sm">{t('invites.code')}: <code className="rounded bg-muted px-1 font-mono text-sm">{newInvite.code}</code></p>
+            <p className="break-all text-xs text-muted">{buildInviteLink(newInvite, env.appUrl)}</p>
+          </Card>
+        )}
+      </div>
 
       <h2 className="mb-2 text-lg font-semibold">{t('invites.listTitle')}</h2>
       {list.length === 0 ? (

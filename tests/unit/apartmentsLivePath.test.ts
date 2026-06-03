@@ -158,9 +158,9 @@ describe('apartmentsApi — Postgres unique constraint classification', () => {
       'utf8',
     );
     // Each exported mutation must declare an onError? parameter.
-    const createMatch = src.match(/export function createApartments[\s\S]*?onError\?/);
-    const updateMatch = src.match(/export function updateApartment[\s\S]*?onError\?/);
-    const deleteMatch = src.match(/export function deleteApartment[\s\S]*?onError\?/);
+    const createMatch = src.match(/export (?:async )?function createApartments[\s\S]*?onError\?/);
+    const updateMatch = src.match(/export (?:async )?function updateApartment[\s\S]*?onError\?/);
+    const deleteMatch = src.match(/export (?:async )?function deleteApartment[\s\S]*?onError\?/);
     expect(createMatch).not.toBeNull();
     expect(updateMatch).not.toBeNull();
     expect(deleteMatch).not.toBeNull();
