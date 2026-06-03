@@ -4,6 +4,9 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### ✅ T61 — [P2] Wire (or remove) the ApartmentsPage "generate codes" button
+Done: The "Generează invitații" bulk-invite button now sends real per-apartment invites. Added `isBulkSending` state + `onBulkInviteConfirm` async handler that iterates over `eligibleApartments` (apartments with a recorded email, not yet joined), issues a single-use `proprietar` invite via `inviteStore.issue()` with `onboardingExpiry()`, writes to live via `writeInviteToLive` behind `isSupabaseConfigured`, delivers via `sendInviteEmail`, marks sent, and records audit events. Modal cancel is blocked while sending. Summary toasts show sent/failed counts using new `generateInvitesSent_one/other` and `generateInvitesFailed_one/other` locale keys (EN + RO with real diacritics). 215 files / 2158 tests / lint + typecheck + build + build:pi + build:demo all green.
+
 ### ✅ T63 — [P2] Show the active asociație on FeaturesAdminPage + empty-state when none
 Done: `useCurrentAsociatie()` added to `FeaturesAdminPage`. When `currentAsociatieId` is null the entire feature list is replaced by a bilingual `EmptyState` (title + body). When an asociație is active a muted `managingFor` line appears above the triage/category list showing the resolved name. Three new i18n keys in en.json + ro.json (with real diacritics): `features.managingFor`, `features.noAsociatieTitle`, `features.noAsociatieBody`. 215 files / 2158 tests / lint + typecheck + build + build:pi + build:demo all green.
 

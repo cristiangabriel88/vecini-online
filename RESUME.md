@@ -5,7 +5,7 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-03
-- last_task: T63 [P2] Show active asociație on FeaturesAdminPage + empty-state when none
+- last_task: T61 [P2] Wire ApartmentsPage bulk-invite button (Generează invitații)
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
 - counts: 215 files / 2158 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task

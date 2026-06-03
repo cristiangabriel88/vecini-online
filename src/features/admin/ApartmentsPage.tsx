@@ -160,6 +160,7 @@ export default function ApartmentsPage() {
   const markEmailSent = useInviteStore((s) => s.markEmailSent);
   const [pendingDelete, setPendingDelete] = useState<Apartment | null>(null);
   const [showInviteConfirm, setShowInviteConfirm] = useState(false);
+  const [isBulkSending, setIsBulkSending] = useState(false);
   const [showDownloadDropdown, setShowDownloadDropdown] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const downloadDropdownRef = useRef<HTMLDivElement>(null);
@@ -260,6 +261,62 @@ export default function ApartmentsPage() {
     setQuickSelectedEmail(primaryPerson?.email ?? '');
     setQuickCustomEmail('');
     setInviteApt(apt);
+  };
+
+  /** Issue and deliver invites for all eligible apartments in one batch. */
+  const onBulkInviteConfirm = async () => {
+    if (!asociatieId || eligibleApartments.length === 0) return;
+    setIsBulkSending(true);
+    let sentCount = 0;
+    let failedCount = 0;
+    for (const apt of eligibleApartments) {
+      const primaryEmail = apt.persons.find((p) => p.email && p.email.trim())?.email;
+      if (!primaryEmail) { failedCount++; continue; }
+      const primaryName =
+        apt.persons.find((p) => p.is_primary)?.name ??
+        apt.persons[0]?.name ??
+        apt.proprietar_principal_name ??
+        '';
+      const invite = issue({
+        asociatieId,
+        asociatieName,
+        role: 'proprietar',
+        apartmentId: apt.id,
+        expiresAt: onboardingExpiry(),
+        singleUse: true,
+        createdBy: userId,
+        inviteeName: primaryName || null,
+        inviteeEmail: primaryEmail,
+      });
+      recordAudit({
+        action: 'invite.issued',
+        entity: 'invite',
+        entity_label: invite.code,
+        before: null,
+        after: invite.role,
+      });
+      if (isSupabaseConfigured) {
+        await writeInviteToLive(invite);
+      }
+      const result = await sendInviteEmail({ invite, locale: i18n.language });
+      if (result.ok) {
+        markEmailSent(invite.id);
+        recordAudit({
+          action: 'invite.email_sent',
+          entity: 'invite',
+          entity_label: invite.code,
+          before: null,
+          after: null,
+        });
+        sentCount++;
+      } else {
+        failedCount++;
+      }
+    }
+    setIsBulkSending(false);
+    setShowInviteConfirm(false);
+    if (sentCount > 0) toast.success(t('apartments.generateInvitesSent', { count: sentCount }));
+    if (failedCount > 0) toast.error(t('apartments.generateInvitesFailed', { count: failedCount }));
   };
 
   /** Mint the invite and deliver it, mirroring the same flow as ApartmentFormPage. */
@@ -968,19 +1025,17 @@ export default function ApartmentsPage() {
       {/* Bulk invite confirmation modal */}
       <Modal
         open={showInviteConfirm}
-        onClose={() => setShowInviteConfirm(false)}
+        onClose={() => { if (!isBulkSending) setShowInviteConfirm(false); }}
         title={t('apartments.generateInvitesTitle')}
         footer={
           <>
-            <Button variant="ghost" onClick={() => setShowInviteConfirm(false)}>
+            <Button variant="ghost" disabled={isBulkSending} onClick={() => setShowInviteConfirm(false)}>
               {t('common.cancel')}
             </Button>
             <Button
               disabled={eligibleApartments.length === 0}
-              onClick={() => {
-                // Functionality will be wired in a follow-up task
-                setShowInviteConfirm(false);
-              }}
+              loading={isBulkSending}
+              onClick={onBulkInviteConfirm}
               className="gap-2"
             >
               <Send className="h-4 w-4" />
