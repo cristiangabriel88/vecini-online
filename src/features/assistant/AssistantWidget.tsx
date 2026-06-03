@@ -6,7 +6,7 @@ import { useAssistantStore } from '@/shared/store/assistantStore';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useAsociatieFlags } from '@/shared/features/featureStore';
 import { KNOWLEDGE_BASE } from '@/features/assistant/knowledge';
-import { DATA_ENTRIES } from '@/features/assistant/dataSources';
+import { useDataEntries } from '@/features/assistant/dataSources';
 import { visibleEntries } from '@/features/assistant/visibility';
 import { answerQuery } from '@/features/assistant/engine';
 
@@ -35,9 +35,10 @@ export function AssistantWidget() {
   const listRef = useRef<HTMLDivElement>(null);
   const replyTimer = useRef<number | undefined>(undefined);
 
+  const dataEntries = useDataEntries();
   const entries = useMemo(
-    () => visibleEntries([...KNOWLEDGE_BASE, ...DATA_ENTRIES], role, flags),
-    [role, flags],
+    () => visibleEntries([...KNOWLEDGE_BASE, ...dataEntries], role, flags),
+    [role, flags, dataEntries],
   );
 
   const ask = (text: string) => {

@@ -238,7 +238,7 @@ Done: `recoveryCodesRemaining: number | null` state field added to `mfaStore` (n
 ### ✅ T208 — [P3] E2E coverage for shared-resource booking features (F25 spălătorie / F26 lift / F27 sală)
 Done: new `tests/e2e/bookings.spec.ts` with three happy paths -- F25 (book Mașină 1 on a far-future date, mine badge appears, cancel and card gone), F26 (book elevator with floor=5 as unique identifier, mine badge, cancel), F27 (book Sală comună with unique purpose "Ședință bloc", mine badge, cancel). All three pass on chromium + mobile (6/6 green). 215 files / 2134 tests / lint + typecheck + build + build:pi + build:demo all green.
 
-### ⬜ T209 — [P3] Assistant widget live data sources (F56 contacts + F36 directory from real stores)
+### ✅ T209 — [P3] Assistant widget live data sources (F56 contacts + F36 directory from real stores)
 The help assistant (`AssistantWidget`) draws data from demo fixtures for factual answers (emergency contacts, resident directory). In live mode, these should come from the real per-asociație stores. Wire: `emergencyContactsDataSource` reads `useAsociatieEmergencyContacts()` (already in the feature store); `directoryDataSource` reads `useAsociatieDirectory()` with the same `visibleEntry` consent masking as `DirectoryPage`. Gate the live data sources on `isSupabaseConfigured`; demo path unchanged. No new tables needed. Tests: extend `assistantEngine.test.ts` to assert live-path data is used when stores are hydrated. This is the "Phase 2" noted in `FEATURES.md` under Help assistant. Prereq: F36/F56 stores (done).
 
 ### ⬜ T210 — [P3] E2E coverage for F33 Document archive (admin upload + download + delete)

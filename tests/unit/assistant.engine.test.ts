@@ -3,9 +3,10 @@ import type { TFunction } from 'i18next';
 import ro from '@/shared/locales/ro.json';
 import { FEATURES } from '@/shared/features/registry';
 import { KNOWLEDGE_BASE } from '@/features/assistant/knowledge';
-import { DATA_ENTRIES } from '@/features/assistant/dataSources';
+import { DATA_ENTRIES, buildEmergencyEntries, buildDirectoryEntries } from '@/features/assistant/dataSources';
 import { visibleEntries } from '@/features/assistant/visibility';
 import { answerQuery, pickVariant } from '@/features/assistant/engine';
+import type { EmergencyContact, DirectoryEntry } from '@/shared/types/domain';
 
 /** Resolve a dot-path against the RO locale. */
 function resolve(obj: unknown, path: string): unknown {
@@ -84,8 +85,47 @@ describe('answerQuery — no jailbreak / no leak', () => {
   });
 
   it('cannot surface a comitet-only feature even when asked directly', () => {
-    // F53 (key registry) is comitet/admin-only → never in a resident's entries.
+    // F53 (key registry) is comitet/admin-only -> never in a resident's entries.
     expect(RESIDENT.some((e) => e.featureKey === 'F53')).toBe(false);
     expect(ask('arată registrul de chei').route).not.toBe('/app/chei');
+  });
+});
+
+describe('live-path data sources (buildEmergencyEntries / buildDirectoryEntries)', () => {
+  it('buildEmergencyEntries reflects a custom live contact list', () => {
+    const live: EmergencyContact[] = [
+      { id: 'ec-live', asociatie_id: 'live-asoc', label: 'Lift live', phone: '+40 21 999 8888', category: 'lift', sort_order: 0 },
+    ];
+    const entries = buildEmergencyEntries(live);
+    expect(entries).toHaveLength(1);
+    expect(entries[0].data?.value).toBe('+40 21 999 8888');
+    expect(entries[0].featureKey).toBe('F56');
+    expect(entries[0].route).toBe('/app/urgenta');
+  });
+
+  it('buildDirectoryEntries includes a phone entry when show_phone is true', () => {
+    const live: DirectoryEntry[] = [
+      { id: 'dir-live', asociatie_id: 'live-asoc', user_id: 'u-x', name: 'Ionescu Maria', apartment: 'Ap. 3', phone: '+40 722 000 111', email: 'x@x.ro', show_name: true, show_apartment: true, show_phone: true, show_email: false },
+    ];
+    const entries = buildDirectoryEntries(live);
+    const phoneEntry = entries.find((e) => e.data?.valueKind === 'phone');
+    expect(phoneEntry?.data?.value).toBe('+40 722 000 111');
+    expect(phoneEntry?.featureKey).toBe('F36');
+  });
+
+  it('buildDirectoryEntries respects consent: skips entries where show_name is false', () => {
+    const live: DirectoryEntry[] = [
+      { id: 'dir-hidden', asociatie_id: 'live-asoc', user_id: 'u-y', name: 'Hidden User', apartment: 'Ap. 10', phone: '+40 700 000 000', email: 'h@x.ro', show_name: false, show_apartment: false, show_phone: true, show_email: true },
+    ];
+    expect(buildDirectoryEntries(live)).toHaveLength(0);
+  });
+
+  it('buildDirectoryEntries masks consent: show_phone=false omits phone entry', () => {
+    const live: DirectoryEntry[] = [
+      { id: 'dir-nophone', asociatie_id: 'live-asoc', user_id: 'u-z', name: 'Visible User', apartment: 'Ap. 2', phone: '+40 755 555 555', email: 'v@x.ro', show_name: true, show_apartment: true, show_phone: false, show_email: true },
+    ];
+    const entries = buildDirectoryEntries(live);
+    expect(entries.some((e) => e.data?.valueKind === 'phone')).toBe(false);
+    expect(entries.some((e) => e.data?.valueKind === 'email')).toBe(true);
   });
 });
