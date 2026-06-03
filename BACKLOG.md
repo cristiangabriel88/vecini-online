@@ -88,9 +88,11 @@ Done: Added `PRIMARY_COMMANDS` dictionary for the 8 missing BotFather-menu comma
 
 ---
 
-### ⬜ T220 — [P2] E2E batch for maintenance + issues features (F18–F24)
+### ✅ T220 — [P2] E2E batch for maintenance + issues features (F18–F24)
 
 Add happy-path tests for the 7 Category-3 features currently without E2E. One test per feature in a new `tests/e2e/maintenance.spec.ts`: F18 (add repair record, warranty badge), F19 (add scheduled task, mark done), F20 (submit meter reading, anomaly flag), F21 (navigate, pattern banner shown), F22 (post RFP, add quote, cheapest highlighted), F23 (sign up for duty, on-duty banner), F24 (add lending item, mark borrowed). Chromium + mobile.
+
+Done: Created `tests/e2e/maintenance.spec.ts` with 7 happy-path tests: F18 adds a repair record with a future warranty date and verifies the "în garanție" badge; F19 adds a scheduled maintenance task then marks the first overdue item done; F20 submits a high meter reading (345 vs last_value 312) and verifies the anomaly warning appears in the modal before submit; F21 navigates to recurring issues and checks the summary banner and the seeded lift pattern heading; F22 verifies the existing demo RFP shows "Cea mai mică" on the cheapest quote, then posts a new RFP and adds a quote; F23 signs up for the free duty weekend and verifies the "Acoperit" badge; F24 adds a new borrowable item and marks it borrowed. All seven run on Chromium + Pixel 7 (mobile) via the existing playwright.config.ts projects. 260 files / 2394 unit tests / lint + typecheck + build + build:pi + build:demo all green.
 
 ### ⬜ T221 — [P2] E2E batch for shared spaces + information + community registry features (F28–F34, F37–F40)
 

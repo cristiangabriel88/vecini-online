@@ -6,6 +6,11 @@ Reference only — not read during a normal `make progress` task.
 
 ---
 
+### T220 P2 ✅ 2026-06-04 -- E2E batch for maintenance + issues features (F18-F24)
+- new: tests/e2e/maintenance.spec.ts -- 7 happy-path tests covering F18 (add repair + warranty badge), F19 (add scheduled maintenance + mark done), F20 (high meter reading + anomaly flag), F21 (recurring banner + lift pattern heading), F22 (post RFP + add quote + cheapest badge), F23 (sign up duty + covered badge), F24 (add lending item + mark borrowed)
+- all tests run on Chromium + Pixel 7 mobile via existing playwright.config.ts projects
+- 260 files / 2394 unit tests / lint + typecheck + build + build:pi + build:demo all green
+
 ### T15 P1 ✅ 2026-06-04 -- Telegram bot go-live: complete all command/callback handlers + integration tests
 - extended: src/shared/server/telegramWebhook.ts -- added `PRIMARY_COMMANDS` dict (8 primary BotFather-menu commands: /anunturi, /voturi, /sesizare, /sesizarile_mele, /rezervari, /evenimente, /urgenta, /setari); added `MENU_CALLBACK_REPLIES` router (menu:anunturi/voturi/sesizare/rezervari callbacks now send meaningful informational replies instead of stub "Ai ales:" string); fixed @botname suffix stripping in command dispatch; restructured handleMessage to check /menu|/help before PRIMARY_COMMANDS before FEATURE_COMMANDS
 - extended: tests/unit/telegramWebhook.test.ts -- expanded from 5 to 29 integration tests covering all primary commands, all menu callbacks, unknown callback fallback, /start with/without payload, @botname suffix, feature commands, no-op updates; exported PRIMARY_COMMANDS for assertion in test
