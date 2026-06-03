@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { Apartment, ApartmentPerson } from '@/shared/types/domain';
+import { genId } from '@/shared/lib/id';
 
 /* Apartment registry (admin) — pure helpers for creating, validating and
    reshaping apartments. No UI, store or network imports so it stays unit
@@ -141,7 +142,7 @@ export function isBlankInput(input: ApartmentInput): boolean {
 
 /** A fresh named occupant for the person-list editor. */
 export function newPerson(role: ApartmentPerson['role'] = 'locatar'): ApartmentPerson {
-  return { id: `pe-${crypto.randomUUID()}`, name: '', role, is_primary: false, email: null };
+  return { id: `pe-${genId()}`, name: '', role, is_primary: false, email: null };
 }
 
 /** True when this persons-list entry has been claimed by a real auth account (T117). */
@@ -268,7 +269,7 @@ export function newApartment(
 ): Apartment {
   const now = new Date().toISOString();
   return {
-    id: `ap-${crypto.randomUUID()}`,
+    id: `ap-${genId()}`,
     asociatie_id: asociatieId,
     is_active: true,
     created_at: now,

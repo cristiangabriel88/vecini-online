@@ -1,4 +1,5 @@
 import type { Role } from '@/shared/types/domain';
+import { genId } from '@/shared/lib/id';
 import { generateInviteCode, normalizeInviteCode } from '@/shared/lib/inviteCode';
 import {
   type InviteCode,
@@ -94,7 +95,7 @@ export function createLinkCode(
   let code = generateInviteCode(rng);
   while (taken.has(code)) code = generateInviteCode(rng);
   return {
-    id: `tlc-${crypto.randomUUID()}`,
+    id: `tlc-${genId()}`,
     code,
     userId: input.userId,
     asociatieId: input.asociatieId,

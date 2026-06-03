@@ -1,6 +1,7 @@
 import Papa from 'papaparse';
 import { isValidEmail } from '@/features/auth/authLogic';
 import type { Apartment, ApartmentPerson } from '@/shared/types/domain';
+import { genId } from '@/shared/lib/id';
 
 export interface ApartmentImportRow {
   scara: string;
@@ -267,7 +268,7 @@ export function rowToApartment(row: ApartmentImportRow, asociatieId: string): Ap
   const persons: ApartmentPerson[] = row.name
     ? [
         {
-          id: `pe-${crypto.randomUUID()}`,
+          id: `pe-${genId()}`,
           name: row.name,
           role: row.proprietar ? 'proprietar' : 'locatar',
           is_primary: true,
@@ -278,7 +279,7 @@ export function rowToApartment(row: ApartmentImportRow, asociatieId: string): Ap
   const numar_persoane =
     row.numar_persoane !== null ? row.numar_persoane : row.name ? 1 : 0;
   return {
-    id: `ap-${crypto.randomUUID()}`,
+    id: `ap-${genId()}`,
     asociatie_id: asociatieId,
     scara: row.scara || null,
     etaj: row.etaj,

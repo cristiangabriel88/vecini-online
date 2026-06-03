@@ -74,7 +74,7 @@ describe('migration 20260528000003: token-security hardening SQL (T128)', () => 
   });
 
   it('hashes existing tokens in-place with sha256', () => {
-    expect(sql).toContain("encode(digest(token, 'sha256'), 'hex')");
+    expect(sql).toContain("encode(extensions.digest(token, 'sha256'), 'hex')");
     expect(sql).toContain('UPDATE public.invite_codes');
   });
 
@@ -94,15 +94,23 @@ describe('migration 20260528000003: token-security hardening SQL (T128)', () => 
   });
 
   it('hashes p_token before looking up the invite row (resolve)', () => {
-    // Both RPCs must compute the hash and look up by it.
+    // Both RPCs must compute the hash and look up by it, using the schema-qualified
+    // extensions.digest() so the call works on hosted Supabase (pgcrypto lives under
+    // the extensions schema there).
     const resolveIdx = sql.indexOf('resolve_onboarding_token');
-    const hashInResolve = sql.indexOf("encode(digest(p_token, 'sha256'), 'hex')", resolveIdx);
+    const hashInResolve = sql.indexOf(
+      "encode(extensions.digest(p_token, 'sha256'), 'hex')",
+      resolveIdx,
+    );
     expect(hashInResolve).toBeGreaterThan(resolveIdx);
   });
 
   it('hashes p_token before looking up the invite row (redeem)', () => {
     const redeemIdx = sql.indexOf('redeem_onboarding_token');
-    const hashInRedeem = sql.indexOf("encode(digest(p_token, 'sha256'), 'hex')", redeemIdx);
+    const hashInRedeem = sql.indexOf(
+      "encode(extensions.digest(p_token, 'sha256'), 'hex')",
+      redeemIdx,
+    );
     expect(hashInRedeem).toBeGreaterThan(redeemIdx);
   });
 

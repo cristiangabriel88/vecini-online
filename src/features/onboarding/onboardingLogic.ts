@@ -1,8 +1,9 @@
 import type { Membership, Role } from '@/shared/types/domain';
+import { genId } from '@/shared/lib/id';
 
 /** Stable id generator for a locally-created asociație (offline path). */
 export function newLocalAsociatieId(): string {
-  return `local-asoc-${crypto.randomUUID()}`;
+  return `local-asoc-${genId()}`;
 }
 
 /**
@@ -17,7 +18,7 @@ export function buildFounderMembership(
   now: string = new Date().toISOString(),
 ): Membership {
   return {
-    id: `mem-${crypto.randomUUID()}`,
+    id: `mem-${genId()}`,
     user_id: userId,
     asociatie_id: asociatieId,
     role,

@@ -1,4 +1,5 @@
 import type { Membership, Role } from '@/shared/types/domain';
+import { genId } from '@/shared/lib/id';
 import {
   buildOnboardingLink,
   generateInviteCode,
@@ -128,7 +129,7 @@ export function createInvite(
   let code = generateInviteCode(rng);
   while (taken.has(code)) code = generateInviteCode(rng);
   return {
-    id: `inv-${crypto.randomUUID()}`,
+    id: `inv-${genId()}`,
     asociatieId: input.asociatieId,
     code,
     token: generateInviteToken(),
@@ -258,7 +259,7 @@ export function buildMembershipFromInvite(
   now: string = new Date().toISOString(),
 ): Membership {
   return {
-    id: `mem-${crypto.randomUUID()}`,
+    id: `mem-${genId()}`,
     user_id: userId,
     asociatie_id: invite.asociatieId,
     role: invite.role,

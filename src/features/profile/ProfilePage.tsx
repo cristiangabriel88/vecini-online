@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { genId } from '@/shared/lib/id';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -643,7 +644,7 @@ function AddFieldModal({
     const options =
       type === 'select' ? optionsText.split('\n').map((o) => o.trim()).filter(Boolean) : [];
     onAdd(
-      newCustomField(label, type, visibility, existing, crypto.randomUUID(), options),
+      newCustomField(label, type, visibility, existing, genId(), options),
     );
   }
 
