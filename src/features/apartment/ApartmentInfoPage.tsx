@@ -16,7 +16,7 @@ import { Card } from '@/shared/components/Card';
 import { Badge } from '@/shared/components/Badge';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { formatDate } from '@/shared/lib/format';
-import { useMetersStore } from '@/features/meters/metersStore';
+import { useAsociatieMeters } from '@/features/meters/metersStore';
 import { useAsociatieTickets } from '@/features/tickets/ticketsStore';
 import { usePollsStore, useAsociatiePolls } from '@/features/polls/pollsStore';
 import {
@@ -48,8 +48,7 @@ const STATUS_TONE: Record<TicketStatus, 'neutral' | 'warning' | 'success' | 'dan
 
 export default function ApartmentInfoPage() {
   const { t } = useTranslation();
-  const meters = useMetersStore((s) => s.meters);
-  const readings = useMetersStore((s) => s.readings);
+  const { meters, readings } = useAsociatieMeters();
   const tickets = useAsociatieTickets();
   const myVotes = usePollsStore((s) => s.myVotes);
   const { polls, options: pollOptions } = useAsociatiePolls();

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Gauge, AlertTriangle } from 'lucide-react';
@@ -9,16 +9,28 @@ import { Badge } from '@/shared/components/Badge';
 import { Modal } from '@/shared/components/Modal';
 import { Input } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { formatDate } from '@/shared/lib/format';
 import type { Meter } from '@/shared/types/domain';
-import { useMetersStore } from './metersStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { DEMO_CURRENT_USER_ID } from '@/shared/demo/demoData';
+import { useMetersStore, useAsociatieMeters } from './metersStore';
 import { validateReading, isAnomaly, EXPECTED_MONTHLY } from './meterLogic';
+import { hydrateMeters, submitMeterReading } from './metersApi';
 
 export default function MetersPage() {
   const { t } = useTranslation();
-  const { meters, readings, submit } = useMetersStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const userId = useAuthStore((s) => s.profile?.id) ?? DEMO_CURRENT_USER_ID;
+  const fetchError = useMetersStore((s) => s.fetchError);
+  const { meters, readings } = useAsociatieMeters();
+
   const [active, setActive] = useState<Meter | null>(null);
   const [raw, setRaw] = useState('');
+
+  useEffect(() => {
+    if (asociatieId) void hydrateMeters(asociatieId);
+  }, [asociatieId]);
 
   const lastReadingDate = (meterId: string) =>
     readings.find((r) => r.meter_id === meterId)?.reading_date ?? null;
@@ -31,12 +43,25 @@ export default function MetersPage() {
       : false;
 
   const onSubmit = () => {
-    if (!active || !validation.ok || raw.trim() === '') return;
-    submit(active.id, value);
+    if (!active || !validation.ok || raw.trim() === '' || !asociatieId) return;
+    submitMeterReading(asociatieId, active.id, value, userId);
     toast.success(t('meters.submitted'));
     setActive(null);
     setRaw('');
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydrateMeters(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>

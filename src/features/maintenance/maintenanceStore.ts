@@ -1,8 +1,17 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { ScheduledMaintenance } from '@/shared/types/domain';
-import { DEMO_MAINTENANCE } from '@/shared/demo/demoData';
+import { useAuthStore } from '@/shared/store/authStore';
+import {
+  type MaintenancesByAsociatie,
+  seedMaintenance,
+  maintenanceForAsociatie,
+  addMaintenanceIn,
+  markDoneIn,
+  migrateMaintenanceState,
+} from './maintenanceLogic';
 
-interface NewMaintenance {
+export interface NewMaintenance {
   title: string;
   vendor: string;
   recurrence: string;
@@ -11,39 +20,42 @@ interface NewMaintenance {
 }
 
 interface MaintenanceState {
-  items: ScheduledMaintenance[];
-  add: (input: NewMaintenance) => void;
-  /** Mark an entry done today and roll its next-due date forward by `days`. */
-  markDone: (id: string, rollForwardDays: number) => void;
+  byAsociatie: MaintenancesByAsociatie;
+  fetchError: string | null;
+  addItem: (asociatieId: string, item: ScheduledMaintenance) => void;
+  markDoneLocal: (asociatieId: string, id: string, rollForwardDays: number) => void;
+  replaceForAsociatie: (asociatieId: string, items: ScheduledMaintenance[]) => void;
+  setFetchError: (msg: string | null) => void;
 }
 
-export const useMaintenanceStore = create<MaintenanceState>((set) => ({
-  items: [...DEMO_MAINTENANCE],
-  add: ({ title, vendor, recurrence, nextDue, notes }) =>
-    set((s) => ({
-      items: [
-        {
-          id: `sm-${Date.now()}`,
-          asociatie_id: 'demo-asoc',
-          title: title.trim(),
-          vendor: vendor.trim() || null,
-          recurrence: recurrence.trim() || 'O singură dată',
-          last_done: null,
-          next_due: nextDue,
-          notes: notes.trim() || null,
-        },
-        ...s.items,
-      ],
-    })),
-  markDone: (id, rollForwardDays) =>
-    set((s) => ({
-      items: s.items.map((m) => {
-        if (m.id !== id) return m;
-        const today = new Date().toISOString().slice(0, 10);
-        const next = new Date(Date.now() + rollForwardDays * 86_400_000)
-          .toISOString()
-          .slice(0, 10);
-        return { ...m, last_done: today, next_due: next };
-      }),
-    })),
-}));
+export const useMaintenanceStore = create<MaintenanceState>()(
+  persist(
+    (set) => ({
+      byAsociatie: seedMaintenance(),
+      fetchError: null,
+
+      addItem: (asociatieId, item) =>
+        set((s) => ({ byAsociatie: addMaintenanceIn(s.byAsociatie, asociatieId, item) })),
+
+      markDoneLocal: (asociatieId, id, rollForwardDays) =>
+        set((s) => ({ byAsociatie: markDoneIn(s.byAsociatie, asociatieId, id, rollForwardDays) })),
+
+      replaceForAsociatie: (asociatieId, items) =>
+        set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: items } })),
+
+      setFetchError: (msg) => set({ fetchError: msg }),
+    }),
+    {
+      name: 'vecini.maintenance',
+      version: 1,
+      partialize: (s) => ({ byAsociatie: s.byAsociatie }),
+      migrate: (persisted) => ({ byAsociatie: migrateMaintenanceState(persisted) }),
+    },
+  ),
+);
+
+/** Hook: scheduled maintenance list for the currently active asociatie. */
+export function useAsociatieMaintenance(): ScheduledMaintenance[] {
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  return useMaintenanceStore((s) => maintenanceForAsociatie(s.byAsociatie, asociatieId));
+}

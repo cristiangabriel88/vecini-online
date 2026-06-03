@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { CalendarClock, Plus, CheckCircle2 } from 'lucide-react';
@@ -8,15 +8,18 @@ import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input, Textarea } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
 import { formatDate } from '@/shared/lib/format';
-import { useMaintenanceStore } from './maintenanceStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useMaintenanceStore, useAsociatieMaintenance } from './maintenanceStore';
 import {
   isValidMaintenance,
   maintenanceStatus,
   sortByNextDue,
   type MaintenanceStatus,
 } from './maintenanceLogic';
+import { hydrateMaintenance, addMaintenanceItem, markMaintenanceDone } from './scheduledMaintenanceApi';
 
 function defaultNextDue(): string {
   const d = new Date();
@@ -32,7 +35,9 @@ const TONE: Record<MaintenanceStatus, 'danger' | 'warning' | 'success'> = {
 
 export default function MaintenancePage() {
   const { t } = useTranslation();
-  const { items, add, markDone } = useMaintenanceStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const fetchError = useMaintenanceStore((s) => s.fetchError);
+  const items = useAsociatieMaintenance();
 
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
@@ -41,14 +46,14 @@ export default function MaintenancePage() {
   const [nextDue, setNextDue] = useState(defaultNextDue());
   const [notes, setNotes] = useState('');
 
+  useEffect(() => {
+    if (asociatieId) void hydrateMaintenance(asociatieId);
+  }, [asociatieId]);
+
   const sorted = sortByNextDue(items);
   const valid = isValidMaintenance(title, nextDue);
 
-  const submit = () => {
-    if (!valid) return;
-    add({ title, vendor, recurrence, nextDue, notes });
-    toast.success(t('maintenance.added'));
-    setOpen(false);
+  const resetForm = () => {
     setTitle('');
     setVendor('');
     setRecurrence('Anual');
@@ -56,10 +61,32 @@ export default function MaintenancePage() {
     setNotes('');
   };
 
+  const submit = () => {
+    if (!valid || !asociatieId) return;
+    addMaintenanceItem(asociatieId, { title, vendor, recurrence, nextDue, notes });
+    toast.success(t('maintenance.added'));
+    setOpen(false);
+    resetForm();
+  };
+
   const onDone = (id: string) => {
-    markDone(id, 365);
+    if (!asociatieId) return;
+    markMaintenanceDone(asociatieId, id, 365);
     toast.success(t('maintenance.markedDone'));
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydrateMaintenance(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>
@@ -105,11 +132,11 @@ export default function MaintenancePage() {
 
       <Modal
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={() => { setOpen(false); resetForm(); }}
         title={t('maintenance.new')}
         footer={
           <>
-            <Button variant="ghost" onClick={() => setOpen(false)}>
+            <Button variant="ghost" onClick={() => { setOpen(false); resetForm(); }}>
               {t('common.cancel')}
             </Button>
             <Button onClick={submit} disabled={!valid}>

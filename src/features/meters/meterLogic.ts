@@ -1,4 +1,62 @@
-import type { MeterKind } from '@/shared/types/domain';
+import type { Meter, MeterKind, MeterReading } from '@/shared/types/domain';
+import { DEMO_ASOCIATIE, DEMO_METERS, DEMO_METER_READINGS } from '@/shared/demo/demoData';
+
+/** Per-asociatie meter catalog (meters + most-recent readings). */
+export interface MeterCatalog {
+  meters: Meter[];
+  readings: MeterReading[];
+}
+
+/** Every asociatie's meter catalog, keyed by asociatie id. */
+export type MetersByAsociatie = Record<string, MeterCatalog>;
+
+const EMPTY_CATALOG: MeterCatalog = Object.freeze({ meters: [], readings: [] });
+
+/** Get the meter catalog for one asociatie (never null). */
+export function metersForAsociatie(
+  map: MetersByAsociatie,
+  asociatieId: string | null,
+): MeterCatalog {
+  if (!asociatieId) return EMPTY_CATALOG;
+  return map[asociatieId] ?? EMPTY_CATALOG;
+}
+
+/** Initial store state: the demo asociatie is seeded. */
+export function seedMeters(): MetersByAsociatie {
+  return {
+    [DEMO_ASOCIATIE.id]: {
+      meters: [...DEMO_METERS],
+      readings: [...DEMO_METER_READINGS],
+    },
+  };
+}
+
+/** Migrate persisted state; always reseeds the demo asociatie. */
+export function migrateMetersState(persisted: unknown): MetersByAsociatie {
+  const p = persisted as { byAsociatie?: MetersByAsociatie } | null;
+  const existing = p?.byAsociatie ?? {};
+  return {
+    ...existing,
+    [DEMO_ASOCIATIE.id]: {
+      meters: [...DEMO_METERS],
+      readings: [...DEMO_METER_READINGS],
+    },
+  };
+}
+
+/** Apply a new reading to a catalog: update the meter's last_value + prepend reading. */
+export function applyReadingToCatalog(
+  catalog: MeterCatalog,
+  meterId: string,
+  reading: MeterReading,
+): MeterCatalog {
+  return {
+    meters: catalog.meters.map((m) =>
+      m.id === meterId ? { ...m, last_value: reading.value } : m,
+    ),
+    readings: [reading, ...catalog.readings],
+  };
+}
 
 export type ReadingError = 'not_a_number' | 'below_previous';
 

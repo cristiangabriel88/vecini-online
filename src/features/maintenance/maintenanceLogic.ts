@@ -1,4 +1,59 @@
 import type { ScheduledMaintenance } from '@/shared/types/domain';
+import { DEMO_ASOCIATIE, DEMO_MAINTENANCE } from '@/shared/demo/demoData';
+
+/** Per-asociatie maintenance catalog, keyed by asociatie id. */
+export type MaintenancesByAsociatie = Record<string, ScheduledMaintenance[]>;
+
+const EMPTY_MAINT: ScheduledMaintenance[] = [];
+
+/** Get the scheduled maintenance list for one asociatie (never null). */
+export function maintenanceForAsociatie(
+  map: MaintenancesByAsociatie,
+  asociatieId: string | null,
+): ScheduledMaintenance[] {
+  if (!asociatieId) return EMPTY_MAINT;
+  return map[asociatieId] ?? EMPTY_MAINT;
+}
+
+/** Initial store state: the demo asociatie is seeded. */
+export function seedMaintenance(): MaintenancesByAsociatie {
+  return { [DEMO_ASOCIATIE.id]: [...DEMO_MAINTENANCE] };
+}
+
+/** Prepend one item to an asociatie's list. */
+export function addMaintenanceIn(
+  map: MaintenancesByAsociatie,
+  asociatieId: string,
+  item: ScheduledMaintenance,
+): MaintenancesByAsociatie {
+  const current = map[asociatieId] ?? [];
+  return { ...map, [asociatieId]: [item, ...current] };
+}
+
+/** Apply a mark-done transform to one item within an asociatie's list. */
+export function markDoneIn(
+  map: MaintenancesByAsociatie,
+  asociatieId: string,
+  id: string,
+  rollForwardDays: number,
+): MaintenancesByAsociatie {
+  const items = map[asociatieId] ?? [];
+  const today = new Date().toISOString().slice(0, 10);
+  const next = new Date(Date.now() + rollForwardDays * 86_400_000).toISOString().slice(0, 10);
+  return {
+    ...map,
+    [asociatieId]: items.map((m) =>
+      m.id === id ? { ...m, last_done: today, next_due: next } : m,
+    ),
+  };
+}
+
+/** Migrate persisted state; always reseeds the demo asociatie. */
+export function migrateMaintenanceState(persisted: unknown): MaintenancesByAsociatie {
+  const p = persisted as { byAsociatie?: MaintenancesByAsociatie } | null;
+  const existing = p?.byAsociatie ?? {};
+  return { ...existing, [DEMO_ASOCIATIE.id]: [...DEMO_MAINTENANCE] };
+}
 
 /** How a scheduled maintenance entry stands relative to its next due date. */
 export type MaintenanceStatus = 'overdue' | 'due_soon' | 'scheduled';

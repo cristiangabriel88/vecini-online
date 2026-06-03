@@ -1,31 +1,59 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { Meter, MeterReading } from '@/shared/types/domain';
-import { DEMO_METERS, DEMO_METER_READINGS } from '@/shared/demo/demoData';
+import { useAuthStore } from '@/shared/store/authStore';
+import {
+  type MeterCatalog,
+  type MetersByAsociatie,
+  seedMeters,
+  metersForAsociatie,
+  applyReadingToCatalog,
+  migrateMetersState,
+} from './meterLogic';
 
 interface MetersState {
-  meters: Meter[];
-  readings: MeterReading[];
-  submit: (meterId: string, value: number) => void;
+  byAsociatie: MetersByAsociatie;
+  fetchError: string | null;
+  submitReading: (asociatieId: string, meterId: string, reading: MeterReading) => void;
+  replaceForAsociatie: (asociatieId: string, meters: Meter[], readings: MeterReading[]) => void;
+  setFetchError: (msg: string | null) => void;
 }
 
-export const useMetersStore = create<MetersState>((set) => ({
-  meters: [...DEMO_METERS],
-  readings: [...DEMO_METER_READINGS],
-  submit: (meterId, value) =>
-    set((s) => ({
-      meters: s.meters.map((m) => (m.id === meterId ? { ...m, last_value: value } : m)),
-      readings: [
-        {
-          id: `mrd-${Date.now()}`,
-          asociatie_id: 'demo-asoc',
-          meter_id: meterId,
-          value,
-          photo_path: null,
-          submitted_by: 'u-res',
-          reading_date: new Date().toISOString().slice(0, 10),
-          created_at: new Date().toISOString(),
-        },
-        ...s.readings,
-      ],
-    })),
-}));
+export const useMetersStore = create<MetersState>()(
+  persist(
+    (set) => ({
+      byAsociatie: seedMeters(),
+      fetchError: null,
+
+      submitReading: (asociatieId, meterId, reading) =>
+        set((s) => {
+          const catalog = metersForAsociatie(s.byAsociatie, asociatieId);
+          return {
+            byAsociatie: {
+              ...s.byAsociatie,
+              [asociatieId]: applyReadingToCatalog(catalog, meterId, reading),
+            },
+          };
+        }),
+
+      replaceForAsociatie: (asociatieId, meters, readings) =>
+        set((s) => ({
+          byAsociatie: { ...s.byAsociatie, [asociatieId]: { meters, readings } },
+        })),
+
+      setFetchError: (msg) => set({ fetchError: msg }),
+    }),
+    {
+      name: 'vecini.meters',
+      version: 1,
+      partialize: (s) => ({ byAsociatie: s.byAsociatie }),
+      migrate: (persisted) => ({ byAsociatie: migrateMetersState(persisted) }),
+    },
+  ),
+);
+
+/** Hook: meter catalog (meters + readings) for the currently active asociatie. */
+export function useAsociatieMeters(): MeterCatalog {
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  return useMetersStore((s) => metersForAsociatie(s.byAsociatie, asociatieId));
+}

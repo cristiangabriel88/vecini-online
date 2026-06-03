@@ -669,7 +669,15 @@
     "warranty_expiring": "expiring soon",
     "warranty_expired": "expired",
     "warranty_none": "no warranty",
-    "empty": "No repairs found. Adjust the filters or search term."
+    "empty": "No repairs found. Adjust the filters or search term.",
+    "new": "Add repair",
+    "titleLabel": "Work title",
+    "descriptionLabel": "Description",
+    "contractorLabel": "Contractor",
+    "costLabel": "Cost (RON)",
+    "performedAtLabel": "Date performed",
+    "warrantyUntilLabel": "Warranty until",
+    "added": "Repair record added."
   },
   "bikes": {
     "title": "Bike room",

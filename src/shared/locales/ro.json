@@ -669,7 +669,15 @@
     "warranty_expiring": "expiră curând",
     "warranty_expired": "expirată",
     "warranty_none": "fără garanție",
-    "empty": "Nicio reparație găsită. Modifică filtrele sau termenul de căutare."
+    "empty": "Nicio reparație găsită. Modifică filtrele sau termenul de căutare.",
+    "new": "Adaugă reparație",
+    "titleLabel": "Titlu lucrare",
+    "descriptionLabel": "Descriere",
+    "contractorLabel": "Contractor",
+    "costLabel": "Cost (RON)",
+    "performedAtLabel": "Data efectuării",
+    "warrantyUntilLabel": "Garanție până la",
+    "added": "Reparație adăugată."
   },
   "bikes": {
     "title": "Bicicletărie",
