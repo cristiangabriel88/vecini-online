@@ -1,32 +1,49 @@
 # Netlify configuration for the SEPARATE superadmin platform site (T93).
 #
 # The superadmin console ships in the same monorepo but is deployed as its own
-# Netlify site on its own subdomain (e.g. admin.vecini.online), so it has a
+# Netlify site on its own subdomain (e.g. hub.vecini.online), so it has a
 # distinct origin: an XSS in the resident/admin app physically cannot reach a
 # superadmin session token, and the superadmin's privileged bundle is never
 # served to regular users. See DECISIONS.md ("Superadmin is a separate app on
 # its own subdomain").
 #
-# To use: create a second Netlify site from this same repository and point it at
-# this file (Site settings > Build & deploy > "Configuration file path" =
-# netlify-platform.toml), or copy it to netlify.toml on a dedicated branch. The
-# build is shared (npm run build emits both index.html and platform.html); this
-# site simply serves platform.html as its SPA entry and applies the tightest CSP.
+# Build pipeline:
+#   npm run build:platform
+#     1. tsc --noEmit + vite build  ->  dist/  (both index.html + platform.html)
+#     2. scripts/prepare-platform-deploy.mjs
+#          copies dist/platform.html -> dist-platform/index.html
+#          copies dist/assets/       -> dist-platform/assets/
+#   Netlify then deploys from dist-platform/.
+#
+# Why a separate output dir?
+#   Rewiring the SPA catch-all to /platform.html (a non-standard name) caused
+#   some Netlify CDN edges to serve platform.html with text/html for /assets/*
+#   requests, breaking browser ES module strict-MIME checks. Using /index.html
+#   (the conventional SPA entry) in an isolated directory avoids this entirely.
+#   The explicit /assets/* passthrough below is a belt-and-suspenders guard.
 
 [build]
-  command = "npm run build"
-  publish = "dist"
+  command = "npm run build:platform"
+  publish = "dist-platform"
   functions = "netlify/functions"
 
 [build.environment]
   NODE_VERSION = "20"
 
-# Serve the platform SPA: every path resolves to platform.html (not index.html,
-# which is the resident/admin app). The hashed asset under /assets is served
-# directly by the rule below taking precedence over this catch-all.
+# Explicitly pass through real static assets before the SPA catch-all.
+# This prevents the catch-all from ever rewriting /assets/* requests, even if
+# Netlify's CDN edge does not perform file-existence checks before applying rules.
+[[redirects]]
+  from = "/assets/*"
+  to = "/assets/:splat"
+  status = 200
+
+# SPA fallback: any path that does not match a real file resolves to index.html
+# (which is dist/platform.html, copied by the build step above).
+# status = 200 without force = true means real files are always served directly.
 [[redirects]]
   from = "/*"
-  to = "/platform.html"
+  to = "/index.html"
   status = 200
 
 [functions]

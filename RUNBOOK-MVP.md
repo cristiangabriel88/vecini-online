@@ -80,11 +80,29 @@ simply never appears -- no other functionality is affected.
 
 Two sites from this one repo:
 
-- **Resident/admin app** — uses `netlify.toml` (serves `index.html`).
+- **Resident/admin app** — uses `netlify.toml` (serves `index.html`, publishes `dist/`).
 - **Superadmin console** — a second Netlify site pointed at `netlify-platform.toml`
   (Site settings > Build & deploy > Configuration file path =
-  `netlify-platform.toml`); serves `platform.html` on its own subdomain
-  (e.g. `admin.vecini.online`).
+  `netlify-platform.toml`); publishes `dist-platform/` on its own subdomain
+  (`hub.vecini.online`).
+
+  The platform build runs `npm run build:platform`, which:
+  1. Runs the full Vite build (`dist/`).
+  2. Runs `scripts/prepare-platform-deploy.mjs`, which copies `dist/platform.html`
+     as `dist-platform/index.html` and copies `dist/assets/` into `dist-platform/`.
+
+  Using `index.html` (not `platform.html`) as the SPA entry in an isolated publish
+  dir is required: Netlify CDN edges have been observed serving the SPA catch-all
+  target with `text/html` for `/assets/*` requests when the target is a non-standard
+  filename, breaking ES module strict-MIME checks (hub.vecini.online incident,
+  2026-06-03). With `dist-platform/` as the publish dir and `/* /index.html 200`
+  as the SPA fallback, real asset files are always served directly.
+
+  To verify MIME types after a deploy:
+  ```
+  curl -sI https://hub.vecini.online/assets/platform-<hash>.js | grep content-type
+  # Expected: content-type: text/javascript (or application/javascript)
+  ```
 
 Set these environment variables on **both** sites (Site settings > Environment):
 
