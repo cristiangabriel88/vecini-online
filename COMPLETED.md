@@ -6,6 +6,22 @@ Reference only — not read during a normal `make progress` task.
 
 ---
 
+### T222 P2 ✅ 2026-06-04 -- E2E batch for projects + safety + community-life (F41-F48, F50-F53, F57, F62-F63, F65)
+- new: tests/e2e/community.spec.ts (12 happy-path tests)
+- F41: advance "Termoizolație fațadă" phase (in_curs -> finalizat), button disappears
+- F44: verify "Țintă atinsă" badge on funded project + pledge 200 lei to open project
+- F47: add energy reading (450 kWh, 318 lei), verify toast
+- F48: verify "expirată" badge on wr-3 (2024) + "în garanție" badge on wr-1 (2027)
+- F50: view evacuation plan — "Scara A" heading, equipment section, "Stingător" entry
+- F51: verify "depășit" badge on overdue psi-1 + mark checked, verify rescheduling toast
+- F52: verify "expiră curând" badge on 18-day expiry policy + renewal banner
+- F53: add key record "Sala de fitness" / "Ionescu Mihai", verify toast + entry
+- F57: post marketplace listing "Bicicletă copii 20"" at 150 lei, verify in feed
+- F62: tick "Citește regulamentul" welcome step, verify "Parcurs" badge
+- F63: edit birthday to June 4 (today), verify "Aniversări azi" section appears
+- F65: submit feedback message, verify "Mulțumim pentru feedback!" toast
+- 260 files / 2394 unit tests / lint + typecheck + build + build:pi + build:demo all green
+
 ### T221 P2 ✅ 2026-06-04 -- E2E batch for shared spaces + information + community registry (F28-F34, F37-F39)
 - new: tests/e2e/registry.spec.ts (9 happy-path tests)
 - F28: add parking spot "P5" + plate "B 100 NEW", search by plate
