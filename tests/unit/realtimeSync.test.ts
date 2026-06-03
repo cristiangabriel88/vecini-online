@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { Announcement, Ticket, PrivateThread, PrivateMessage } from '@/shared/types/domain';
+import type { Announcement, Ticket, PrivateThread, PrivateMessage, Petition } from '@/shared/types/domain';
+import type { AppNotification } from '@/features/notifications/notificationLogic';
 import {
   applyAnnouncementChange,
   applyAnnouncementDelete,
@@ -9,6 +10,10 @@ import {
   applyThreadStatusUpdate,
   applyThreadDelete,
   applyMessageInsert,
+  applyNotificationInsert,
+  applyPetitionSignatureInsert,
+  applyVoteInsert,
+  applyRsvpChange,
 } from '@/app/realtimeLogic';
 
 // Pure Realtime event-apply helpers (T16). All functions are deterministic; no
@@ -248,5 +253,193 @@ describe('applyMessageInsert', () => {
     const threads = [thread('th-1')];
     const result = applyMessageInsert(threads, message('msg-99', 'th-99'));
     expect(result[0].messages).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Notifications
+// ---------------------------------------------------------------------------
+
+const notif = (id: string, userId = 'u-1', asociatieId: string | null = 'asoc-1'): AppNotification => ({
+  id,
+  userId,
+  asociatieId,
+  kind: 'generic',
+  title: `Notif ${id}`,
+  body: 'body',
+  link: null,
+  priority: 'normal',
+  readAt: null,
+  createdAt: 1700000000000,
+  data: {},
+});
+
+describe('applyNotificationInsert', () => {
+  it('prepends a new notification to an empty list', () => {
+    const result = applyNotificationInsert([], notif('n-1'));
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('n-1');
+  });
+
+  it('prepends before existing notifications', () => {
+    const result = applyNotificationInsert([notif('n-1')], notif('n-2'));
+    expect(result[0].id).toBe('n-2');
+    expect(result).toHaveLength(2);
+  });
+
+  it('deduplicates when id is already present', () => {
+    const n = notif('n-1');
+    expect(applyNotificationInsert([n], n)).toHaveLength(1);
+  });
+
+  it('preserves all existing notifications when prepending', () => {
+    const list = [notif('n-1'), notif('n-2')];
+    const result = applyNotificationInsert(list, notif('n-3'));
+    expect(result).toHaveLength(3);
+    expect(result[0].id).toBe('n-3');
+  });
+
+  it('does not mutate the original list', () => {
+    const list = [notif('n-1')];
+    applyNotificationInsert(list, notif('n-2'));
+    expect(list).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Petition signatures
+// ---------------------------------------------------------------------------
+
+const petition = (id: string, signatures = 0, threshold = 50, total = 10): Petition => ({
+  id,
+  asociatie_id: 'asoc-1',
+  author_user_id: 'u-1',
+  author_name: 'Ion',
+  title: `Petition ${id}`,
+  body: 'body',
+  threshold_percent: threshold,
+  status: 'deschisa',
+  created_at: '2026-01-01T00:00:00Z',
+  signatures,
+  total_apartments: total,
+});
+
+describe('applyPetitionSignatureInsert', () => {
+  it('increments signatures on the matching petition', () => {
+    const result = applyPetitionSignatureInsert([petition('p-1', 2)], 'p-1');
+    expect(result[0].signatures).toBe(3);
+  });
+
+  it('does not modify other petitions', () => {
+    const list = [petition('p-1', 1), petition('p-2', 5)];
+    const result = applyPetitionSignatureInsert(list, 'p-1');
+    expect(result[1].signatures).toBe(5);
+  });
+
+  it('is a no-op when petitionId is absent', () => {
+    const list = [petition('p-1', 1)];
+    expect(applyPetitionSignatureInsert(list, 'p-99')).toEqual(list);
+  });
+
+  it('flips status to inaintata when threshold is reached', () => {
+    // threshold = 50% of 10 = 5; signatures starts at 4, increment -> 5
+    const result = applyPetitionSignatureInsert([petition('p-1', 4, 50, 10)], 'p-1');
+    expect(result[0].status).toBe('inaintata');
+  });
+
+  it('keeps status when threshold is not yet reached', () => {
+    const result = applyPetitionSignatureInsert([petition('p-1', 1, 50, 10)], 'p-1');
+    expect(result[0].status).toBe('deschisa');
+  });
+
+  it('does not lower count below current when called correctly', () => {
+    const result = applyPetitionSignatureInsert([petition('p-1', 0)], 'p-1');
+    expect(result[0].signatures).toBe(1);
+  });
+
+  it('does not mutate the original array', () => {
+    const list = [petition('p-1', 2)];
+    applyPetitionSignatureInsert(list, 'p-1');
+    expect(list[0].signatures).toBe(2);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Vote insert (poll counts)
+// ---------------------------------------------------------------------------
+
+describe('applyVoteInsert', () => {
+  it('increments a single option from zero', () => {
+    const result = applyVoteInsert({}, ['opt-1']);
+    expect(result['opt-1']).toBe(1);
+  });
+
+  it('increments an existing count', () => {
+    const result = applyVoteInsert({ 'opt-1': 3 }, ['opt-1']);
+    expect(result['opt-1']).toBe(4);
+  });
+
+  it('increments multiple options in one vote', () => {
+    const result = applyVoteInsert({}, ['opt-1', 'opt-2']);
+    expect(result['opt-1']).toBe(1);
+    expect(result['opt-2']).toBe(1);
+  });
+
+  it('does not modify counts for other options', () => {
+    const result = applyVoteInsert({ 'opt-x': 7 }, ['opt-1']);
+    expect(result['opt-x']).toBe(7);
+  });
+
+  it('is a no-op on an empty optionIds array', () => {
+    const counts = { 'opt-1': 2 };
+    expect(applyVoteInsert(counts, [])).toEqual(counts);
+  });
+
+  it('does not mutate the original counts map', () => {
+    const counts = { 'opt-1': 1 };
+    applyVoteInsert(counts, ['opt-1']);
+    expect(counts['opt-1']).toBe(1);
+  });
+
+  it('handles duplicate option ids in the same vote by incrementing twice', () => {
+    const result = applyVoteInsert({}, ['opt-1', 'opt-1']);
+    expect(result['opt-1']).toBe(2);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// RSVP change (own-RSVP cross-device sync)
+// ---------------------------------------------------------------------------
+
+describe('applyRsvpChange', () => {
+  it('sets going=true for a new RSVP', () => {
+    const result = applyRsvpChange({}, 'ev-1', true);
+    expect(result['ev-1']).toBe(true);
+  });
+
+  it('removes the entry when going=false', () => {
+    const result = applyRsvpChange({ 'ev-1': true }, 'ev-1', false);
+    expect('ev-1' in result).toBe(false);
+  });
+
+  it('does not affect other events when adding', () => {
+    const result = applyRsvpChange({ 'ev-2': true }, 'ev-1', true);
+    expect(result['ev-2']).toBe(true);
+  });
+
+  it('does not affect other events when removing', () => {
+    const result = applyRsvpChange({ 'ev-1': true, 'ev-2': true }, 'ev-1', false);
+    expect(result['ev-2']).toBe(true);
+  });
+
+  it('cancelling a non-existent RSVP returns a map without that key', () => {
+    const result = applyRsvpChange({}, 'ev-1', false);
+    expect('ev-1' in result).toBe(false);
+  });
+
+  it('does not mutate the original map', () => {
+    const rsvps = { 'ev-1': true };
+    applyRsvpChange(rsvps, 'ev-1', false);
+    expect(rsvps['ev-1']).toBe(true);
   });
 });
