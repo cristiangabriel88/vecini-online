@@ -6,6 +6,12 @@ Reference only — not read during a normal `make progress` task.
 
 ---
 
+### T15 P1 ✅ 2026-06-04 -- Telegram bot go-live: complete all command/callback handlers + integration tests
+- extended: src/shared/server/telegramWebhook.ts -- added `PRIMARY_COMMANDS` dict (8 primary BotFather-menu commands: /anunturi, /voturi, /sesizare, /sesizarile_mele, /rezervari, /evenimente, /urgenta, /setari); added `MENU_CALLBACK_REPLIES` router (menu:anunturi/voturi/sesizare/rezervari callbacks now send meaningful informational replies instead of stub "Ai ales:" string); fixed @botname suffix stripping in command dispatch; restructured handleMessage to check /menu|/help before PRIMARY_COMMANDS before FEATURE_COMMANDS
+- extended: tests/unit/telegramWebhook.test.ts -- expanded from 5 to 29 integration tests covering all primary commands, all menu callbacks, unknown callback fallback, /start with/without payload, @botname suffix, feature commands, no-op updates; exported PRIMARY_COMMANDS for assertion in test
+- no changes needed: validateInitData + verifyWebhookSecret already tested end-to-end in telegramAuth.test.ts (8 assertions); BOT_SETUP.md is complete and non-developer-friendly; Netlify function adapter unchanged (thin; wires correctly)
+- 260 files / 2394 tests / lint + typecheck + build + build:pi + build:demo all green
+
 ### T219 P2 ✅ 2026-06-03 -- Live-activate F57 Marketplace + F58 Carpool + F59 Babysitting + F60 Barter + F61 Cumpărături comune + F62 Welcome kit + F63 Aniversări + F64 Copii + F65 Feedback
 - new: src/features/marketplace/marketplaceApi.ts (hydrateListings, addListingLive)
 - new: src/features/carpool/carpoolApi.ts (hydrateCarpool, saveCarpoolProfile, leaveCarpoolProfile)

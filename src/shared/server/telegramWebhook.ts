@@ -42,6 +42,30 @@ export interface Update {
   callback_query?: CallbackQuery;
 }
 
+/**
+ * Primary navigation commands listed in the BotFather command menu. Each reply
+ * guides the resident to the equivalent in-app section. These are checked before
+ * the extended FEATURE_COMMANDS dictionary so they are always reachable.
+ */
+export const PRIMARY_COMMANDS: Record<string, string> = {
+  '/anunturi': '📢 Anunțuri recente — vezi cele mai recente anunțuri ale asociației în secțiunea „Anunțuri" din aplicație.',
+  '/voturi': '🗳 Voturi active — participă la voturile deschise din secțiunea „Vot pe propunere" din aplicație.',
+  '/sesizare': '⚠ Sesizare — trimite o sesizare (inclusiv cu foto) din secțiunea „Sesizări" din aplicație.',
+  '/sesizarile_mele': '📋 Sesizările mele — urmărește starea sesizărilor tale din secțiunea „Sesizări" din aplicație.',
+  '/rezervari': '📅 Rezervări — rezervă spații comune (spălătorie, sală, lift) din secțiunea „Rezervări" din aplicație.',
+  '/evenimente': '📅 Evenimente — vezi și înscrie-te la evenimentele blocului din secțiunea „Evenimente" din aplicație.',
+  '/urgenta': '🚨 Urgență — numere de urgență și contacte ale comitetului în secțiunea „Urgențe" din aplicație.',
+  '/setari': '⚙ Setări notificări — configurează preferințele de notificare din secțiunea „Setări" din aplicație.',
+};
+
+/** Replies for inline-keyboard menu callbacks, keyed on callback_data. */
+const MENU_CALLBACK_REPLIES: Record<string, string> = {
+  'menu:anunturi': PRIMARY_COMMANDS['/anunturi'],
+  'menu:voturi': PRIMARY_COMMANDS['/voturi'],
+  'menu:sesizare': PRIMARY_COMMANDS['/sesizare'],
+  'menu:rezervari': PRIMARY_COMMANDS['/rezervari'],
+};
+
 /** Slash commands that map to a feature page. The reply guides the resident to
  *  the in-app Mini App; richer flows are handled there. */
 export const FEATURE_COMMANDS: Record<string, string> = {
@@ -138,12 +162,9 @@ export async function handleMessage(msg: TelegramMessage): Promise<void> {
     await telegram.sendMessage(msg.chat.id, replyChecking(normalizeStartPayload(start.payload)));
     return;
   }
-  const command = text.split(/\s+/)[0].toLowerCase();
-  if (FEATURE_COMMANDS[command]) {
-    await telegram.sendMessage(msg.chat.id, FEATURE_COMMANDS[command]);
-    return;
-  }
-  if (text === '/menu' || text === '/help') {
+  // Strip optional @botname suffix (e.g. /menu@vecini_bot) before routing.
+  const command = text.split(/\s+/)[0].toLowerCase().split('@')[0];
+  if (command === '/menu' || command === '/help') {
     await telegram.sendMessage(msg.chat.id, 'Meniul principal:', {
       reply_markup: {
         inline_keyboard: [
@@ -160,14 +181,26 @@ export async function handleMessage(msg: TelegramMessage): Promise<void> {
     });
     return;
   }
+  if (PRIMARY_COMMANDS[command]) {
+    await telegram.sendMessage(msg.chat.id, PRIMARY_COMMANDS[command]);
+    return;
+  }
+  if (FEATURE_COMMANDS[command]) {
+    await telegram.sendMessage(msg.chat.id, FEATURE_COMMANDS[command]);
+    return;
+  }
   await telegram.sendMessage(msg.chat.id, 'Nu am înțeles. Scrie /menu pentru opțiuni.');
 }
 
 export async function handleCallback(cq: CallbackQuery): Promise<void> {
   await telegram.answerCallbackQuery(cq.id);
-  if (cq.message) {
-    await telegram.sendMessage(cq.message.chat.id, `Ai ales: ${cq.data}`);
-  }
+  const chatId = cq.message?.chat.id;
+  if (!chatId) return;
+  const data = cq.data ?? '';
+  const reply =
+    MENU_CALLBACK_REPLIES[data] ??
+    'Deschide aplicația vecini.online pentru mai multe detalii. Scrie /menu pentru opțiuni.';
+  await telegram.sendMessage(chatId, reply);
 }
 
 /** Dispatch a single Telegram update to the right handler. */
