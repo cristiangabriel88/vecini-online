@@ -42,8 +42,8 @@ describe('data lookups', () => {
 });
 
 describe('data entries respect role + feature flags', () => {
-  it('drops contact lookups when the source feature is disabled', () => {
-    const flags = { ...allFlags, F56: false, F36: false };
+  it('drops all data entries when every data-backed feature is disabled', () => {
+    const flags = { ...allFlags, F56: false, F36: false, F08: false, F09: false, F17: false };
     const visible = visibleEntries([...KNOWLEDGE_BASE, ...DATA_ENTRIES], 'proprietar', flags);
     expect(visible.some((e) => e.kind === 'data')).toBe(false);
   });

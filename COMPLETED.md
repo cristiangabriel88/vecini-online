@@ -6,6 +6,12 @@ Reference only — not read during a normal `make progress` task.
 
 ---
 
+### ✅ T226 — [P2] Assistant widget Phase 2 — live open polls + my ticket status + upcoming events
+
+Done: Added three new builder functions to `dataSources.ts`: `buildPollEntries` (filters to published, non-closed polls within their open window), `buildMyTicketEntries` (filters to non-terminal tickets reported by the current user), `buildEventEntries` (filters to events whose `starts_at` is in the future). Updated `useDataEntries()` to read from `useAsociatiePolls()`, `useAsociatieTickets()`, `useAsociatieEvents()`, and `useAuthStore` (for current user ID, falling back to `DEMO_CURRENT_USER_ID`); all three stores are seeded with demo data and hydrated live by their API layers. Updated `DATA_ENTRIES` static constant to include demo-backed poll/ticket/event entries. Fixed `assistant.data.test.ts` to disable all five data-backed features (F56, F36, F08, F09, F17) when testing the no-data-entries assertion. Added 16 new unit tests across three describe blocks in `assistant.engine.test.ts` covering open-poll filtering, closed-poll exclusion, my-ticket filtering, closed-status exclusion, upcoming-event filtering, past-event exclusion, empty-input, and term-keyword coverage. 260 files / 2437 tests / lint + typecheck + build + build:pi + build:demo all green.
+
+---
+
 ### ✅ T225 — [P2] Realtime sync extended to governance + community tables
 
 Done: Extended `realtimeLogic.ts` with four new pure apply helpers: `applyNotificationInsert` (dedup-prepend for the notifications inbox), `applyPetitionSignatureInsert` (increments signature count and auto-flips status to 'inaintata' at threshold), `applyVoteInsert` (increments running poll-option counts for all selected_option_ids in one vote), `applyRsvpChange` (updates own-RSVP map for cross-device sync; INSERT=true, DELETE-equivalent=false). Extended `useRealtimeSync` with five new channel subscriptions on the existing per-asociatie realtime channel: notifications INSERT (with `asociatie_id` filter; DB row mapped snake->camelCase before applying), petition_signatures INSERT (no column filter; RLS scopes via petitions join), votes INSERT (with `asociatie_id` filter; delegates to `mergeCounts`), event_rsvps INSERT and UPDATE (no column filter; "self rsvp" RLS limits to own rows enabling cross-device sync). Added 25 new unit tests across the four helpers. 260 files / 2420 tests / lint + typecheck + build + build:pi + build:demo all green.

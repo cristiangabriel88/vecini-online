@@ -3,10 +3,17 @@ import type { TFunction } from 'i18next';
 import ro from '@/shared/locales/ro.json';
 import { FEATURES } from '@/shared/features/registry';
 import { KNOWLEDGE_BASE } from '@/features/assistant/knowledge';
-import { DATA_ENTRIES, buildEmergencyEntries, buildDirectoryEntries } from '@/features/assistant/dataSources';
+import {
+  DATA_ENTRIES,
+  buildEmergencyEntries,
+  buildDirectoryEntries,
+  buildPollEntries,
+  buildMyTicketEntries,
+  buildEventEntries,
+} from '@/features/assistant/dataSources';
 import { visibleEntries } from '@/features/assistant/visibility';
 import { answerQuery, pickVariant } from '@/features/assistant/engine';
-import type { EmergencyContact, DirectoryEntry } from '@/shared/types/domain';
+import type { EmergencyContact, DirectoryEntry, Poll, Ticket, BuildingEvent } from '@/shared/types/domain';
 
 /** Resolve a dot-path against the RO locale. */
 function resolve(obj: unknown, path: string): unknown {
@@ -88,6 +95,181 @@ describe('answerQuery — no jailbreak / no leak', () => {
     // F53 (key registry) is comitet/admin-only -> never in a resident's entries.
     expect(RESIDENT.some((e) => e.featureKey === 'F53')).toBe(false);
     expect(ask('arată registrul de chei').route).not.toBe('/app/chei');
+  });
+});
+
+describe('live-path data sources (buildPollEntries)', () => {
+  const FAR_FUTURE = '2099-12-31T23:59:00Z';
+  const FAR_PAST = '2000-01-01T00:00:00Z';
+
+  const basePoll = (overrides: Partial<Poll>): Poll => ({
+    id: 'p-1',
+    asociatie_id: 'a',
+    author_user_id: 'u',
+    title: 'Renovare fațadă',
+    description: null,
+    poll_type: 'yes_no',
+    weighted: false,
+    quorum_percent: 50,
+    majority_rule: 'simple',
+    opens_at: FAR_PAST,
+    closes_at: FAR_FUTURE,
+    audience: { type: 'all' },
+    created_at: FAR_PAST,
+    published_at: FAR_PAST,
+    closed_at: null,
+    ...overrides,
+  });
+
+  it('returns one entry for an open published poll', () => {
+    const entries = buildPollEntries([basePoll({})]);
+    expect(entries).toHaveLength(1);
+    expect(entries[0].id).toBe('data.poll.p-1');
+    expect(entries[0].featureKey).toBe('F09');
+    expect(entries[0].route).toBe('/app/voturi');
+    expect(entries[0].data?.label).toBe('Renovare fațadă');
+    expect(entries[0].data?.valueKind).toBe('text');
+  });
+
+  it('excludes polls that are unpublished (published_at is null)', () => {
+    expect(buildPollEntries([basePoll({ published_at: null })])).toHaveLength(0);
+  });
+
+  it('excludes polls with closed_at set', () => {
+    expect(buildPollEntries([basePoll({ closed_at: FAR_PAST })])).toHaveLength(0);
+  });
+
+  it('excludes polls whose closes_at is in the past', () => {
+    expect(buildPollEntries([basePoll({ closes_at: FAR_PAST })])).toHaveLength(0);
+  });
+
+  it('includes polls with no closes_at (open-ended)', () => {
+    expect(buildPollEntries([basePoll({ closes_at: null })])).toHaveLength(1);
+  });
+
+  it('data.terms includes poll-specific matching keywords', () => {
+    const entries = buildPollEntries([basePoll({})]);
+    const terms = entries[0].data?.terms ?? [];
+    expect(terms).toContain('vot');
+    expect(terms).toContain('poll');
+    expect(terms).toContain('deschis');
+  });
+
+  it('empty input produces empty output', () => {
+    expect(buildPollEntries([])).toHaveLength(0);
+  });
+});
+
+describe('live-path data sources (buildMyTicketEntries)', () => {
+  const baseTicket = (overrides: Partial<Ticket>): Ticket => ({
+    id: 'tk-1',
+    asociatie_id: 'a',
+    reporter_user_id: 'u-me',
+    apartment_id: 'ap-1',
+    title: 'Bec ars pe scară',
+    description: 'Palier etaj 3',
+    category: 'iluminat',
+    severity: 'low',
+    location_scara: 'A',
+    location_etaj: 3,
+    location_description: null,
+    status: 'primit',
+    assigned_to_user_id: null,
+    sla_due_at: null,
+    resolved_at: null,
+    verified_at: null,
+    resolution_notes: null,
+    rating: null,
+    created_at: '2026-05-01T00:00:00Z',
+    updated_at: '2026-05-01T00:00:00Z',
+    ...overrides,
+  });
+
+  it('returns entries for open tickets reported by the given user', () => {
+    const tickets = [
+      baseTicket({ id: 'tk-open1', status: 'primit' }),
+      baseTicket({ id: 'tk-open2', status: 'in_lucru' }),
+      baseTicket({ id: 'tk-closed', status: 'rezolvat' }),
+      baseTicket({ id: 'tk-other', reporter_user_id: 'u-other', status: 'primit' }),
+    ];
+    const entries = buildMyTicketEntries(tickets, 'u-me');
+    expect(entries).toHaveLength(2);
+    expect(entries.every((e) => e.featureKey === 'F17')).toBe(true);
+    expect(entries.every((e) => e.route === '/app/sesizari')).toBe(true);
+    expect(entries.every((e) => e.data?.valueKind === 'text')).toBe(true);
+  });
+
+  it('excludes all terminal statuses (rezolvat, verificat, inchis, respins)', () => {
+    const closed = ['rezolvat', 'verificat', 'inchis', 'respins'] as const;
+    const tickets = closed.map((status, i) => baseTicket({ id: `tk-${i}`, status }));
+    expect(buildMyTicketEntries(tickets, 'u-me')).toHaveLength(0);
+  });
+
+  it('includes non-terminal statuses (primit, asignat, in_lucru)', () => {
+    const open = ['primit', 'asignat', 'in_lucru'] as const;
+    const tickets = open.map((status, i) => baseTicket({ id: `tk-${i}`, status }));
+    expect(buildMyTicketEntries(tickets, 'u-me')).toHaveLength(3);
+  });
+
+  it('data.terms includes ticket-specific matching keywords', () => {
+    const entries = buildMyTicketEntries([baseTicket({})], 'u-me');
+    const terms = entries[0].data?.terms ?? [];
+    expect(terms).toContain('sesizare');
+    expect(terms).toContain('mele');
+    expect(terms).toContain('status');
+  });
+
+  it('empty input produces empty output', () => {
+    expect(buildMyTicketEntries([], 'u-me')).toHaveLength(0);
+  });
+});
+
+describe('live-path data sources (buildEventEntries)', () => {
+  const baseEvent = (overrides: Partial<BuildingEvent>): BuildingEvent => ({
+    id: 'ev-1',
+    asociatie_id: 'a',
+    title: 'Adunarea Generală',
+    description: 'Discutarea bugetului.',
+    location: 'Holul de la parter',
+    starts_at: '2099-06-05T18:00:00Z',
+    ends_at: null,
+    category: 'AGA',
+    created_by: 'u-admin',
+    created_at: '2026-05-01T00:00:00Z',
+    ...overrides,
+  });
+
+  it('returns one entry for a future event', () => {
+    const entries = buildEventEntries([baseEvent({})]);
+    expect(entries).toHaveLength(1);
+    expect(entries[0].id).toBe('data.event.ev-1');
+    expect(entries[0].featureKey).toBe('F08');
+    expect(entries[0].route).toBe('/app/evenimente');
+    expect(entries[0].data?.label).toBe('Adunarea Generală');
+    expect(entries[0].data?.valueKind).toBe('text');
+  });
+
+  it('excludes past events', () => {
+    const entries = buildEventEntries([baseEvent({ starts_at: '2000-01-01T00:00:00Z' })]);
+    expect(entries).toHaveLength(0);
+  });
+
+  it('data.terms includes event-specific matching keywords', () => {
+    const entries = buildEventEntries([baseEvent({})]);
+    const terms = entries[0].data?.terms ?? [];
+    expect(terms).toContain('eveniment');
+    expect(terms).toContain('calendar');
+    expect(terms).toContain('urmator');
+  });
+
+  it('includes location and category words in terms', () => {
+    const entries = buildEventEntries([baseEvent({})]);
+    const terms = entries[0].data?.terms ?? [];
+    expect(terms.join(' ')).toContain('aga');
+  });
+
+  it('empty input produces empty output', () => {
+    expect(buildEventEntries([])).toHaveLength(0);
   });
 });
 
