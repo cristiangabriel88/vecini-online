@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Box, Plus } from 'lucide-react';
@@ -9,13 +9,18 @@ import { Badge } from '@/shared/components/Badge';
 import { Input, Textarea } from '@/shared/components/Input';
 import { Select } from '@/shared/components/Select';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
-import { useStorageStore } from './storageStore';
+import { useAuthStore } from '@/shared/store/authStore';
 import { isValidStorageUnit, searchStorageUnits, type StorageFilter } from './storageLogic';
+import { useStorageStore, useAsociatieStorageUnits } from './storageStore';
+import { hydrateStorageUnits, addStorageUnit } from './storageApi';
 
 export default function StoragePage() {
   const { t } = useTranslation();
-  const { units, add } = useStorageStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const fetchError = useStorageStore((s) => s.fetchError);
+  const units = useAsociatieStorageUnits();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<StorageFilter>('all');
   const [open, setOpen] = useState(false);
@@ -23,18 +28,44 @@ export default function StoragePage() {
   const [apartment, setApartment] = useState('');
   const [notes, setNotes] = useState('');
 
+  useEffect(() => {
+    if (asociatieId) void hydrateStorageUnits(asociatieId);
+  }, [asociatieId]);
+
   const results = searchStorageUnits(units, query, filter);
   const valid = isValidStorageUnit(label);
 
   const submit = () => {
-    if (!valid) return;
-    add({ label, apartment_label: apartment, notes });
+    if (!valid || !asociatieId) return;
+    const apt = apartment.trim();
+    const unit = {
+      id: `su-${Date.now()}`,
+      asociatie_id: asociatieId,
+      label: label.trim(),
+      apartment_id: apt ? `ap-${apt}` : null,
+      apartment_label: apt || null,
+      notes: notes.trim() || null,
+    };
+    addStorageUnit(asociatieId, unit);
     toast.success(t('storage.added'));
     setOpen(false);
     setLabel('');
     setApartment('');
     setNotes('');
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydrateStorageUnits(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>

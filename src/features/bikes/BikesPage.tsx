@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Bike as BikeIcon, Plus } from 'lucide-react';
@@ -9,30 +9,65 @@ import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
 import { Select } from '@/shared/components/Select';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
-import { useBikesStore } from './bikesStore';
+import { useAuthStore } from '@/shared/store/authStore';
 import { isValidBike, searchBikes, type BikeFilter } from './bikeLogic';
+import { useBikesStore, useAsociatieBikes } from './bikesStore';
+import { hydrateBikes, addBike, toggleBikeAbandoned } from './bikesApi';
 
 export default function BikesPage() {
   const { t } = useTranslation();
-  const { bikes, add, toggleAbandoned } = useBikesStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const userId = useAuthStore((s) => s.session?.user?.id ?? '');
+  const profile = useAuthStore((s) => s.profile);
+  const fetchError = useBikesStore((s) => s.fetchError);
+  const bikes = useAsociatieBikes();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<BikeFilter>('all');
   const [open, setOpen] = useState(false);
   const [description, setDescription] = useState('');
   const [serial, setSerial] = useState('');
 
+  useEffect(() => {
+    if (asociatieId) void hydrateBikes(asociatieId);
+  }, [asociatieId]);
+
   const results = searchBikes(bikes, query, filter);
   const valid = isValidBike(description);
 
   const submit = () => {
-    if (!valid) return;
-    add({ description, serial });
+    if (!valid || !asociatieId) return;
+    const bike = {
+      id: `bk-${Date.now()}`,
+      asociatie_id: asociatieId,
+      owner_user_id: userId,
+      owner_name: profile?.full_name ?? userId,
+      description: description.trim(),
+      serial: serial.trim() || null,
+      photo_path: null,
+      abandoned: false,
+      created_at: new Date().toISOString(),
+    };
+    addBike(asociatieId, bike);
     toast.success(t('bikes.added'));
     setOpen(false);
     setDescription('');
     setSerial('');
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydrateBikes(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>
@@ -80,7 +115,11 @@ export default function BikesPage() {
               </div>
               <div className="flex items-center gap-2">
                 {b.abandoned && <Badge tone="warning">{t('bikes.abandoned')}</Badge>}
-                <Button size="sm" variant="ghost" onClick={() => toggleAbandoned(b.id)}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => asociatieId && toggleBikeAbandoned(asociatieId, b)}
+                >
                   {b.abandoned ? t('bikes.markActive') : t('bikes.markAbandoned')}
                 </Button>
               </div>

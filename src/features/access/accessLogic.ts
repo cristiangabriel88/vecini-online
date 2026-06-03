@@ -1,4 +1,5 @@
 import type { AccessCode } from '@/shared/types/domain';
+import { DEMO_ASOCIATIE, DEMO_ACCESS_CODES } from '@/shared/demo/demoData';
 
 /** Courier codes are valid for 30 minutes (spec F32). */
 export const CODE_TTL_MINUTES = 30;
@@ -28,4 +29,37 @@ export function minutesLeft(code: AccessCode, now: Date | string | number = new 
 /** Codes ordered newest first. */
 export function sortedCodes(codes: AccessCode[]): AccessCode[] {
   return [...codes].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+}
+
+// ── Per-asociatie access codes catalog ───────────────────────────────────────
+
+export type AccessByAsociatie = Record<string, AccessCode[]>;
+
+const EMPTY_CODES: AccessCode[] = [];
+
+export function accessForAsociatie(
+  map: AccessByAsociatie,
+  asociatieId: string | null,
+): AccessCode[] {
+  if (!asociatieId) return EMPTY_CODES;
+  return map[asociatieId] ?? EMPTY_CODES;
+}
+
+export function seedAccessCodes(): AccessByAsociatie {
+  return { [DEMO_ASOCIATIE.id]: [...DEMO_ACCESS_CODES] };
+}
+
+export function addAccessCodeIn(
+  map: AccessByAsociatie,
+  asociatieId: string,
+  code: AccessCode,
+): AccessByAsociatie {
+  const current = map[asociatieId] ?? [];
+  return { ...map, [asociatieId]: [code, ...current] };
+}
+
+export function migrateAccessState(persisted: unknown): AccessByAsociatie {
+  const p = persisted as { byAsociatie?: AccessByAsociatie } | null;
+  const existing = p?.byAsociatie ?? {};
+  return { ...existing, [DEMO_ASOCIATIE.id]: [...DEMO_ACCESS_CODES] };
 }

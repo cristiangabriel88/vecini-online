@@ -5,18 +5,34 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-03
-- last_task: T214 [P2] Live-activate F21 Sesizari recurente + F22 Solicitare oferte + F23 Vecin de garda + F24 Imprumutabile
+- last_task: T215 [P2] Live-activate F28 Parcare + F29 Bicicletaria + F30 Boxa + F31 Plante + F32 Acces curierat
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 226 files / 2233 tests
+- counts: 231 files / 2256 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T215 [P2] Live-activate F28 Parcare + F29 Bicicletaria + F30 Boxa + F31 Plante + F32 Acces curierat
-- features: 67/67 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01-F24 + F33 (25 features) + auth/invites/onboarding; remaining 42 features offline-first, live-activation queued T215-T219. F28/F36/F66 cross-feature glue wired (T104). Platform console: shell + provisioning + live list read + E2E done (T93/T94/T119/T120/T121); oversight tools T95-T99 on hold.
+- next: T216 [P2] Live-activate F34 Furnizori + F35 Apartament info + F36 Directory + F37 Animale + F38 Multumiri + F39 Wiki + F40 Glosar
+- features: 67/67 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01-F24 + F28-F32 + F33 (30 features) + auth/invites/onboarding; remaining 37 features offline-first, live-activation queued T216-T219. F28/F36/F66 cross-feature glue wired (T104). Platform console: shell + provisioning + live list read + E2E done (T93/T94/T119/T120/T121); oversight tools T95-T99 on hold.
 - e2e: F01/F02/F03/F04/F05/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F18/F25/F26/F27/F33/F35/F36/F40 happy paths green on chromium + mobile (24 features / 36%). Platform shell + provisioning E2E (T119/T121) done. Full smoke harness reworked (T211 done). E2E closure queued T220–T223.
 - blockers: none (T212 done closes the privileged-session gap). T16 blocker cleared.
-- completion_estimate: 60% of original product vision delivered end-to-end (updated 2026-06-03). Detail: all 67 features demo-complete and offline-functional; 22/67 live-wired (33%); security posture ~93% (T212 done, remaining: T141 JWT hook); GDPR surface ~85% (T72 erasure done, T75 ROPA/DPA persistence done, remaining: T76 breach fan-out); Telegram bot 0% (fully deferred); SaaS billing 0% (T19 on hold); platform console ~42% (shell + provisioning + T119/T121 E2E + T120 live list done, oversight T95–T99 on hold); E2E coverage 36% (24/67 features). Blockers to 75%+: live-wire remaining 42 features (T215–T219), ship Telegram (T15).
+- completion_estimate: 62% of original product vision delivered end-to-end (updated 2026-06-03). Detail: all 67 features demo-complete and offline-functional; 30/67 live-wired (45%); security posture ~93% (T212 done, remaining: T141 JWT hook); GDPR surface ~85% (T72 erasure done, T75 ROPA/DPA persistence done, remaining: T76 breach fan-out); Telegram bot 0% (fully deferred); SaaS billing 0% (T19 on hold); platform console ~42% (shell + provisioning + T119/T121 E2E + T120 live list done, oversight T95–T99 on hold); E2E coverage 36% (24/67 features). Blockers to 75%+: live-wire remaining 37 features (T216–T219), ship Telegram (T15).
 
 ---
+
+### T215 P2 ✅ 2026-06-03 -- Live-activate F28 Parcare + F29 Bicicletaria + F30 Boxa + F31 Plante + F32 Acces curierat
+- new: src/features/parking/parkingApi.ts (hydrateParking, addParkingSpot)
+- new: src/features/bikes/bikesApi.ts (hydrateBikes, addBike, toggleBikeAbandoned)
+- new: src/features/storage/storageApi.ts (hydrateStorageUnits, addStorageUnit)
+- new: src/features/greenspace/greenApi.ts (hydrateGreenTasks, addGreenTask, signUpForTask, releaseTask)
+- new: src/features/access/accessApi.ts (hydrateAccessCodes, persistAccessCode)
+- new: supabase/migrations/20260603000008_f28_f32_columns.sql (denormalized columns + member policies)
+- new: tests/unit/parkingApi.test.ts (4 assertions) + bikesApi.test.ts (6) + storageApi.test.ts (4) + greenApi.test.ts (6) + accessApi.test.ts (4)
+- updated: parkingLogic.ts (ParkingByAsociatie types), parkingStore.ts (per-asociatie persisted + useAsociatieParking), ParkingPage.tsx (hydrate + ErrorState)
+- updated: bikeLogic.ts (BikesByAsociatie types), bikesStore.ts (per-asociatie persisted + useAsociatieBikes), BikesPage.tsx (hydrate + ErrorState)
+- updated: storageLogic.ts (StorageByAsociatie types), storageStore.ts (per-asociatie persisted + useAsociatieStorageUnits), StoragePage.tsx (hydrate + ErrorState)
+- updated: greenLogic.ts (GreenByAsociatie types), greenStore.ts (per-asociatie persisted + useAsociatieGreenTasks), GreenSpacePage.tsx (hydrate + ErrorState)
+- updated: accessLogic.ts (AccessByAsociatie types), accessStore.ts (per-asociatie persisted + useAsociatieAccessCodes), AccessPage.tsx (hydrate + ErrorState)
+- updated: MyDataPage.tsx (useAsociatieBikes migration)
+- result: 231 files / 2256 tests / lint + typecheck + build + build:pi + build:demo all green
 
 ### T214 P2 ✅ 2026-06-03 -- Live-activate F21 Sesizari recurente + F22 Solicitare oferte + F23 Vecin de garda + F24 Imprumutabile
 - new: src/features/rfp/rfpApi.ts (hydrateRfps, addRfpItem, addRfpQuote, decideRfpItem)

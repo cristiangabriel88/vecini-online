@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Car, Plus } from 'lucide-react';
@@ -8,14 +8,19 @@ import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
+import { useAuthStore } from '@/shared/store/authStore';
 import { useMyIdentity, useProfileStore } from '@/features/profile/profileStore';
-import { useParkingStore } from './parkingStore';
 import { countFree, isOccupied, isValidSpot, residentPlateSuggestion, searchSpots, sortSpots } from './parkingLogic';
+import { useParkingStore, useAsociatieParking } from './parkingStore';
+import { hydrateParking, addParkingSpot } from './parkingApi';
 
 export default function ParkingPage() {
   const { t } = useTranslation();
-  const { spots, add } = useParkingStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const fetchError = useParkingStore((s) => s.fetchError);
+  const spots = useAsociatieParking();
   const { userId, email } = useMyIdentity();
   const profileGet = useProfileStore((s) => s.get);
   const myPlate = residentPlateSuggestion(profileGet(userId, email).carPlate);
@@ -27,6 +32,10 @@ export default function ParkingPage() {
   const [isVisitor, setIsVisitor] = useState(false);
   const [apartmentLabel, setApartmentLabel] = useState('');
   const [licensePlate, setLicensePlate] = useState('');
+
+  useEffect(() => {
+    if (asociatieId) void hydrateParking(asociatieId);
+  }, [asociatieId]);
 
   const list = sortSpots(searchSpots(spots, query));
   const free = countFree(spots);
@@ -42,11 +51,33 @@ export default function ParkingPage() {
   };
 
   const submit = () => {
-    if (!valid) return;
-    add({ label, zone, isVisitor, apartmentLabel, licensePlate });
+    if (!valid || !asociatieId) return;
+    const spot = {
+      id: `pk-${Date.now()}`,
+      asociatie_id: asociatieId,
+      label: label.trim(),
+      zone: zone.trim() || null,
+      is_visitor: isVisitor,
+      apartment_label: apartmentLabel.trim() || null,
+      license_plate: licensePlate.trim() || null,
+    };
+    addParkingSpot(asociatieId, spot);
     toast.success(t('parking.added'));
     setOpen(false);
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydrateParking(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>

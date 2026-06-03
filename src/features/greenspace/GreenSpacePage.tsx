@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Sprout, Plus } from 'lucide-react';
@@ -8,32 +8,64 @@ import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
 import { formatDate } from '@/shared/lib/format';
-import { useGreenStore, DEMO_USER } from './greenStore';
+import { useAuthStore } from '@/shared/store/authStore';
 import { isAssigned, isMine, isValidTask, openTaskCount, sortTasks } from './greenLogic';
+import { useGreenStore, useAsociatieGreenTasks } from './greenStore';
+import { hydrateGreenTasks, addGreenTask, signUpForTask, releaseTask } from './greenApi';
 
 const today = () => new Date().toISOString().slice(0, 10);
 
 export default function GreenSpacePage() {
   const { t } = useTranslation();
-  const { tasks, add, signUp, release } = useGreenStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const userId = useAuthStore((s) => s.session?.user?.id ?? 'u-res');
+  const profile = useAuthStore((s) => s.profile);
+  const userName = profile?.full_name ?? userId;
+  const fetchError = useGreenStore((s) => s.fetchError);
+  const tasks = useAsociatieGreenTasks();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [week, setWeek] = useState(today());
+
+  useEffect(() => {
+    if (asociatieId) void hydrateGreenTasks(asociatieId);
+  }, [asociatieId]);
 
   const ordered = sortTasks(tasks);
   const free = openTaskCount(tasks);
   const valid = isValidTask(title, week);
 
   const submit = () => {
-    if (!valid) return;
-    add(title, week);
+    if (!valid || !asociatieId) return;
+    addGreenTask(asociatieId, {
+      id: `gt-${Date.now()}`,
+      asociatie_id: asociatieId,
+      title: title.trim(),
+      week_start: week,
+      volunteer_user_id: null,
+      volunteer_name: null,
+    });
     toast.success(t('green.added'));
     setOpen(false);
     setTitle('');
     setWeek(today());
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydrateGreenTasks(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>
@@ -58,7 +90,7 @@ export default function GreenSpacePage() {
       ) : (
         <div className="space-y-3">
           {ordered.map((tk) => {
-            const mine = isMine(tk, DEMO_USER.id);
+            const mine = isMine(tk, userId);
             return (
               <Card key={tk.id} className="space-y-2 p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -71,12 +103,20 @@ export default function GreenSpacePage() {
                   </Badge>
                 </div>
                 {mine ? (
-                  <Button size="sm" variant="ghost" onClick={() => release(tk.id)}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => asociatieId && releaseTask(asociatieId, tk.id)}
+                  >
                     {t('green.release')}
                   </Button>
                 ) : (
-                  !isAssigned(tk) && (
-                    <Button size="sm" variant="secondary" onClick={() => signUp(tk.id)}>
+                  !isAssigned(tk) && asociatieId && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => signUpForTask(asociatieId, tk.id, userId, userName)}
+                    >
                       {t('green.signUp')}
                     </Button>
                   )

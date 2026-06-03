@@ -29,7 +29,7 @@ import { useCarpoolStore } from '@/features/carpool/carpoolStore';
 import { useSitterStore } from '@/features/sitters/sitterStore';
 import { useBarterStore } from '@/features/barter/barterStore';
 import { usePetsStore } from '@/features/pets/petsStore';
-import { useBikesStore } from '@/features/bikes/bikesStore';
+import { useAsociatieBikes } from '@/features/bikes/bikesStore';
 import { useAsociatieLending } from '@/features/lending/lendingStore';
 import { useFeedbackStore } from '@/features/feedback/feedbackStore';
 import { useKidsStore } from '@/features/kids/kidsStore';
@@ -101,7 +101,7 @@ export default function MyDataPage() {
   const sitters = useSitterStore((s) => s.profiles);
   const barter = useBarterStore((s) => s.offerings);
   const pets = usePetsStore((s) => s.pets);
-  const bikes = useBikesStore((s) => s.bikes);
+  const bikes = useAsociatieBikes();
   const lending = useAsociatieLending();
   const feedback = useFeedbackStore((s) => s.items);
   const kidsRanges = useKidsStore((s) => s.ranges);

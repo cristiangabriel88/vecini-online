@@ -1,5 +1,6 @@
 import type { ParkingSpot } from '@/shared/types/domain';
 import { normalizeSearch } from '@/features/faq/faqLogic';
+import { DEMO_ASOCIATIE, DEMO_PARKING } from '@/shared/demo/demoData';
 
 /** Pre-fill suggestion for the plate field from the resident's F66 profile. */
 export function residentPlateSuggestion(carPlate: string): string | null {
@@ -38,4 +39,37 @@ export function sortSpots(spots: ParkingSpot[]): ParkingSpot[] {
 /** Count free (unassigned, non-visitor) spots. */
 export function countFree(spots: ParkingSpot[]): number {
   return spots.filter((s) => !s.is_visitor && !isOccupied(s)).length;
+}
+
+// ── Per-asociatie parking catalog ────────────────────────────────────────────
+
+export type ParkingByAsociatie = Record<string, ParkingSpot[]>;
+
+const EMPTY_SPOTS: ParkingSpot[] = [];
+
+export function parkingForAsociatie(
+  map: ParkingByAsociatie,
+  asociatieId: string | null,
+): ParkingSpot[] {
+  if (!asociatieId) return EMPTY_SPOTS;
+  return map[asociatieId] ?? EMPTY_SPOTS;
+}
+
+export function seedParking(): ParkingByAsociatie {
+  return { [DEMO_ASOCIATIE.id]: [...DEMO_PARKING] };
+}
+
+export function addParkingIn(
+  map: ParkingByAsociatie,
+  asociatieId: string,
+  spot: ParkingSpot,
+): ParkingByAsociatie {
+  const current = map[asociatieId] ?? [];
+  return { ...map, [asociatieId]: [spot, ...current] };
+}
+
+export function migrateParkingState(persisted: unknown): ParkingByAsociatie {
+  const p = persisted as { byAsociatie?: ParkingByAsociatie } | null;
+  const existing = p?.byAsociatie ?? {};
+  return { ...existing, [DEMO_ASOCIATIE.id]: [...DEMO_PARKING] };
 }

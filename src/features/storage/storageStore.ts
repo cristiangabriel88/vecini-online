@@ -1,35 +1,47 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { StorageUnit } from '@/shared/types/domain';
-import { DEMO_STORAGE_UNITS } from '@/shared/demo/demoData';
-
-interface NewStorageUnit {
-  label: string;
-  apartment_label: string;
-  notes: string;
-}
+import { useAuthStore } from '@/shared/store/authStore';
+import {
+  type StorageByAsociatie,
+  seedStorageUnits,
+  storageForAsociatie,
+  addStorageIn,
+  migrateStorageState,
+} from './storageLogic';
 
 interface StorageState {
-  units: StorageUnit[];
-  add: (input: NewStorageUnit) => void;
+  byAsociatie: StorageByAsociatie;
+  fetchError: string | null;
+  addUnit: (asociatieId: string, unit: StorageUnit) => void;
+  replaceForAsociatie: (asociatieId: string, units: StorageUnit[]) => void;
+  setFetchError: (msg: string | null) => void;
 }
 
-export const useStorageStore = create<StorageState>((set) => ({
-  units: [...DEMO_STORAGE_UNITS],
-  add: ({ label, apartment_label, notes }) =>
-    set((s) => {
-      const apt = apartment_label.trim();
-      return {
-        units: [
-          {
-            id: `su-${Date.now()}`,
-            asociatie_id: 'demo-asoc',
-            label: label.trim(),
-            apartment_id: apt ? `ap-${apt}` : null,
-            apartment_label: apt || null,
-            notes: notes.trim() || null,
-          },
-          ...s.units,
-        ],
-      };
+export const useStorageStore = create<StorageState>()(
+  persist(
+    (set) => ({
+      byAsociatie: seedStorageUnits(),
+      fetchError: null,
+
+      addUnit: (asociatieId, unit) =>
+        set((s) => ({ byAsociatie: addStorageIn(s.byAsociatie, asociatieId, unit) })),
+
+      replaceForAsociatie: (asociatieId, units) =>
+        set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: units } })),
+
+      setFetchError: (msg) => set({ fetchError: msg }),
     }),
-}));
+    {
+      name: 'vecini.storage',
+      version: 1,
+      partialize: (s) => ({ byAsociatie: s.byAsociatie }),
+      migrate: (persisted) => ({ byAsociatie: migrateStorageState(persisted) }),
+    },
+  ),
+);
+
+export function useAsociatieStorageUnits(): StorageUnit[] {
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  return useStorageStore((s) => storageForAsociatie(s.byAsociatie, asociatieId));
+}

@@ -1,32 +1,47 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { AccessCode } from '@/shared/types/domain';
-import { DEMO_ACCESS_CODES } from '@/shared/demo/demoData';
-import { expiryFrom, generateCode } from './accessLogic';
-
-const CURRENT_USER_ID = 'u-res';
+import { useAuthStore } from '@/shared/store/authStore';
+import {
+  type AccessByAsociatie,
+  seedAccessCodes,
+  accessForAsociatie,
+  addAccessCodeIn,
+  migrateAccessState,
+} from './accessLogic';
 
 interface AccessState {
-  codes: AccessCode[];
-  currentUserId: string;
-  /** Generate a fresh 30-minute code and return it. */
-  generate: () => AccessCode;
+  byAsociatie: AccessByAsociatie;
+  fetchError: string | null;
+  addCode: (asociatieId: string, code: AccessCode) => void;
+  replaceForAsociatie: (asociatieId: string, codes: AccessCode[]) => void;
+  setFetchError: (msg: string | null) => void;
 }
 
-export const useAccessStore = create<AccessState>((set) => ({
-  codes: [...DEMO_ACCESS_CODES],
-  currentUserId: CURRENT_USER_ID,
-  generate: () => {
-    const now = new Date().toISOString();
-    const code: AccessCode = {
-      id: `ac-${Date.now()}`,
-      asociatie_id: 'demo-asoc',
-      generated_by: CURRENT_USER_ID,
-      code: generateCode(),
-      expires_at: expiryFrom(now),
-      used_at: null,
-      created_at: now,
-    };
-    set((s) => ({ codes: [code, ...s.codes] }));
-    return code;
-  },
-}));
+export const useAccessStore = create<AccessState>()(
+  persist(
+    (set) => ({
+      byAsociatie: seedAccessCodes(),
+      fetchError: null,
+
+      addCode: (asociatieId, code) =>
+        set((s) => ({ byAsociatie: addAccessCodeIn(s.byAsociatie, asociatieId, code) })),
+
+      replaceForAsociatie: (asociatieId, codes) =>
+        set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: codes } })),
+
+      setFetchError: (msg) => set({ fetchError: msg }),
+    }),
+    {
+      name: 'vecini.access',
+      version: 1,
+      partialize: (s) => ({ byAsociatie: s.byAsociatie }),
+      migrate: (persisted) => ({ byAsociatie: migrateAccessState(persisted) }),
+    },
+  ),
+);
+
+export function useAsociatieAccessCodes(): AccessCode[] {
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  return useAccessStore((s) => accessForAsociatie(s.byAsociatie, asociatieId));
+}

@@ -1,5 +1,6 @@
 import type { StorageUnit } from '@/shared/types/domain';
 import { normalizeSearch } from '@/features/faq/faqLogic';
+import { DEMO_ASOCIATIE, DEMO_STORAGE_UNITS } from '@/shared/demo/demoData';
 
 export type StorageFilter = 'all' | 'assigned' | 'unassigned';
 
@@ -29,4 +30,37 @@ export function searchStorageUnits(
       if (aAssigned !== bAssigned) return aAssigned - bAssigned;
       return a.label.localeCompare(b.label, 'ro');
     });
+}
+
+// ── Per-asociatie storage catalog ────────────────────────────────────────────
+
+export type StorageByAsociatie = Record<string, StorageUnit[]>;
+
+const EMPTY_UNITS: StorageUnit[] = [];
+
+export function storageForAsociatie(
+  map: StorageByAsociatie,
+  asociatieId: string | null,
+): StorageUnit[] {
+  if (!asociatieId) return EMPTY_UNITS;
+  return map[asociatieId] ?? EMPTY_UNITS;
+}
+
+export function seedStorageUnits(): StorageByAsociatie {
+  return { [DEMO_ASOCIATIE.id]: [...DEMO_STORAGE_UNITS] };
+}
+
+export function addStorageIn(
+  map: StorageByAsociatie,
+  asociatieId: string,
+  unit: StorageUnit,
+): StorageByAsociatie {
+  const current = map[asociatieId] ?? [];
+  return { ...map, [asociatieId]: [unit, ...current] };
+}
+
+export function migrateStorageState(persisted: unknown): StorageByAsociatie {
+  const p = persisted as { byAsociatie?: StorageByAsociatie } | null;
+  const existing = p?.byAsociatie ?? {};
+  return { ...existing, [DEMO_ASOCIATIE.id]: [...DEMO_STORAGE_UNITS] };
 }
