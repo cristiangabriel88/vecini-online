@@ -364,6 +364,34 @@ test('F16 — resident signs a petition and the progress bar updates', async ({ 
   await expect(page.getByRole('button', { name: /Ai semnat/i }).first()).toBeDisabled();
 });
 
+test('T205 — comitet posts official response on forwarded petition; resident sees it', async ({ page }) => {
+  // Default demo role is 'admin' which satisfies canManagePetitions.
+  await enterDemo(page);
+  await page.goto('/app/petitii');
+  // The seeded forwarded petition (pt-2) is visible.
+  await expect(page.getByText('Instalare interfon video')).toBeVisible();
+  // The "Adaugă răspuns" button is shown on the forwarded card.
+  const card = page.getByText('Instalare interfon video').locator('../..');
+  await card.getByRole('button', { name: /Adaugă răspuns/i }).click();
+  // Fill the response textarea (min 20 chars).
+  await card.getByLabel(/Răspuns oficial/i).fill('Am analizat cererea și vom instala interfonul în luna iulie.');
+  await card.getByRole('button', { name: /Adaugă răspuns/i }).last().click();
+  // Success toast.
+  await expect(page.getByText(/Răspuns publicat/i)).toBeVisible();
+  // Response text appears on the card.
+  await expect(card.getByText('Am analizat cererea și vom instala interfonul în luna iulie.')).toBeVisible();
+
+  // Switch to resident role; response should still be visible.
+  await page.evaluate(() => {
+    try {
+      localStorage.setItem('iv.demo.role', 'proprietar');
+    } catch { /* storage unavailable */ }
+  });
+  await page.reload();
+  await page.goto('/app/petitii');
+  await expect(page.getByText('Am analizat cererea și vom instala interfonul în luna iulie.')).toBeVisible();
+});
+
 test('F17 — resident submits a new ticket and it appears with Primit badge', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/sesizari');

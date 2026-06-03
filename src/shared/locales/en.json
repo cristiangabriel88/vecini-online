@@ -1392,7 +1392,12 @@
     "created": "Petition published.",
     "open": "Open",
     "forwarded": "Forwarded to committee",
-    "empty": "No petitions. Start the first with the button above."
+    "empty": "No petitions. Start the first with the button above.",
+    "response": "Official response",
+    "respond": "Post response",
+    "responded": "Response published.",
+    "awaitingResponse": "Awaiting official response",
+    "responseBy": "{{name}} on {{date}}"
   },
   "crowdfund": {
     "title": "Crowdfunding",

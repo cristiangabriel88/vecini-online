@@ -101,3 +101,30 @@ export function newPetition(
 export function addPetitionIn(catalog: PetitionCatalog, petition: Petition): PetitionCatalog {
   return { items: [petition, ...catalog.items] };
 }
+
+/** Whether a petition already has a published official committee response. */
+export function petitionHasResponse(p: Petition): boolean {
+  return typeof p.response === 'string' && p.response.trim().length > 0;
+}
+
+/** A committee response must be at least 20 characters. */
+export function isValidPetitionResponse(text: string): boolean {
+  return text.trim().length >= 20;
+}
+
+/** Return a new catalog with the response applied to one petition. */
+export function addPetitionResponse(
+  catalog: PetitionCatalog,
+  petitionId: string,
+  response: string,
+  respondedAt: string,
+  respondedByName: string,
+): PetitionCatalog {
+  return {
+    items: catalog.items.map((p) =>
+      p.id !== petitionId
+        ? p
+        : { ...p, response, responded_at: respondedAt, responded_by_name: respondedByName },
+    ),
+  };
+}

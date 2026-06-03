@@ -668,6 +668,12 @@ export interface Petition {
   signatures: number;
   /** Apartment count used to compute the forwarding threshold (demo). */
   total_apartments: number;
+  /** Official committee response text (null when not yet responded). */
+  response?: string | null;
+  /** When the official response was posted. */
+  responded_at?: string | null;
+  /** Display name of the committee member who responded. */
+  responded_by_name?: string | null;
 }
 
 /** F44 — small-project crowdfund (`crowdfunds`) with demo pledge total. */

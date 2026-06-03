@@ -28,6 +28,9 @@ interface PetitionRow {
   threshold_percent: number;
   status: string;
   created_at: string;
+  response: string | null;
+  responded_at: string | null;
+  responded_by_name: string | null;
 }
 
 interface SignatureRow {
@@ -50,6 +53,9 @@ function rowToPetition(row: PetitionRow, signatures: number, totalApartments: nu
     created_at: row.created_at,
     signatures,
     total_apartments: totalApartments,
+    response: row.response ?? null,
+    responded_at: row.responded_at ?? null,
+    responded_by_name: row.responded_by_name ?? null,
   };
 }
 
@@ -68,7 +74,7 @@ export async function hydratePetitions(
   try {
     const { data: petitionRows, error: petErr } = await supabase
       .from('petitions')
-      .select('id, asociatie_id, author_user_id, title, body, threshold_percent, status, created_at')
+      .select('id, asociatie_id, author_user_id, title, body, threshold_percent, status, created_at, response, responded_at, responded_by_name')
       .eq('asociatie_id', asociatieId)
       .order('created_at', { ascending: false });
     if (petErr || !petitionRows) {
@@ -126,6 +132,36 @@ export function createPetition(
         });
       } catch (err) {
         reportError(err, { source: 'petitionApi.create' });
+      }
+    })();
+  }
+}
+
+/**
+ * Publish an official committee response on a forwarded petition: apply to the
+ * store synchronously then mirror an update to `petitions` when a backend is
+ * configured. Requires the caller to pass the responder's display name and
+ * user id.
+ */
+export function savePetitionResponse(
+  asociatieId: string,
+  petitionId: string,
+  response: string,
+  respondedByName: string,
+  userId: string | null,
+): void {
+  const now = new Date().toISOString();
+  usePetitionStore.getState().addResponse(asociatieId, petitionId, response, now, respondedByName);
+  if (isSupabaseConfigured && userId) {
+    void (async () => {
+      try {
+        await supabase
+          .from('petitions')
+          .update({ response, responded_at: now, responded_by_name: respondedByName })
+          .eq('id', petitionId)
+          .eq('asociatie_id', asociatieId);
+      } catch (err) {
+        reportError(err, { source: 'petitionApi.saveResponse' });
       }
     })();
   }

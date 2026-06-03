@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
   addPetitionIn,
+  addPetitionResponse,
   canManagePetitions,
   isThresholdReached,
   isValidPetition,
+  isValidPetitionResponse,
   migratePetitionsState,
   newPetition,
+  petitionHasResponse,
   petitionsForAsociatie,
   progress,
   seedPetitions,
@@ -144,5 +147,44 @@ describe('addPetitionIn', () => {
     const added = addPetitionIn(catalog, p({ id: 'new' }));
     expect(added.items[0].id).toBe('new');
     expect(added.items).toHaveLength(2);
+  });
+});
+
+describe('petitionHasResponse', () => {
+  it('returns false when response is null or empty', () => {
+    expect(petitionHasResponse(p({ response: null }))).toBe(false);
+    expect(petitionHasResponse(p({ response: '' }))).toBe(false);
+    expect(petitionHasResponse(p({ response: '   ' }))).toBe(false);
+    expect(petitionHasResponse(p({}))).toBe(false);
+  });
+
+  it('returns true when response has content', () => {
+    expect(petitionHasResponse(p({ response: 'Am analizat cererea și vom lua măsuri.' }))).toBe(true);
+  });
+});
+
+describe('isValidPetitionResponse', () => {
+  it('requires at least 20 characters', () => {
+    expect(isValidPetitionResponse('prea scurt')).toBe(false);
+    expect(isValidPetitionResponse('Răspuns oficial de cel puțin douăzeci de caractere.')).toBe(true);
+  });
+});
+
+describe('addPetitionResponse', () => {
+  it('applies the response to the matching petition and leaves others unchanged', () => {
+    const catalog = { items: [p({ id: 'pt-1' }), p({ id: 'pt-2' })] };
+    const result = addPetitionResponse(catalog, 'pt-1', 'Răspuns comitet.', '2026-06-03T10:00:00Z', 'Ion');
+    const updated = result.items.find((x) => x.id === 'pt-1');
+    const unchanged = result.items.find((x) => x.id === 'pt-2');
+    expect(updated?.response).toBe('Răspuns comitet.');
+    expect(updated?.responded_at).toBe('2026-06-03T10:00:00Z');
+    expect(updated?.responded_by_name).toBe('Ion');
+    expect(unchanged?.response).toBeUndefined();
+  });
+
+  it('returns a new catalog object (immutable)', () => {
+    const catalog = { items: [p({ id: 'pt-1' })] };
+    const result = addPetitionResponse(catalog, 'pt-1', 'R', '2026-06-03T10:00:00Z', 'Ana');
+    expect(result).not.toBe(catalog);
   });
 });

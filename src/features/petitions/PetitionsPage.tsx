@@ -14,12 +14,20 @@ import { recordAudit } from '@/shared/store/auditStore';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useAsociatieApartments } from '@/features/admin/apartmentsStore';
 import { findVoterApartmentId } from '@/features/polls/pollLogic';
-import { createPetition, hydratePetitions, signPetition } from './petitionApi';
+import {
+  createPetition,
+  hydratePetitions,
+  savePetitionResponse,
+  signPetition,
+} from './petitionApi';
 import { usePetitionStore, useAsociatiePetitions } from './petitionStore';
 import {
+  canManagePetitions,
   isThresholdReached,
   isValidPetition,
+  isValidPetitionResponse,
   newPetition,
+  petitionHasResponse,
   progress,
   sortPetitions,
   thresholdCount,
@@ -29,6 +37,8 @@ export default function PetitionsPage() {
   const { t } = useTranslation();
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
   const userId = useAuthStore((s) => s.profile?.id ?? null);
+  const userName = useAuthStore((s) => s.profile?.full_name ?? '');
+  const role = useAuthStore((s) => s.activeRole());
   const apartments = useAsociatieApartments();
   const apartmentId = userId ? findVoterApartmentId(apartments, userId) : null;
 
@@ -36,9 +46,15 @@ export default function PetitionsPage() {
   const mySigned = usePetitionStore((s) => s.mySigned);
   const fetchError = usePetitionStore((s) => s.fetchError);
 
+  const canManage = canManagePetitions(role);
+
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
+
+  // Per-petition inline response form state (only one open at a time).
+  const [respondingTo, setRespondingTo] = useState<string | null>(null);
+  const [responseText, setResponseText] = useState('');
 
   useEffect(() => {
     if (asociatieId) {
@@ -70,6 +86,20 @@ export default function PetitionsPage() {
     if (!asociatieId) return;
     signPetition(asociatieId, id, apartmentId);
     toast.success(t('petitions.signed'));
+  };
+
+  const onSubmitResponse = (petitionId: string) => {
+    if (!asociatieId || !isValidPetitionResponse(responseText)) return;
+    savePetitionResponse(
+      asociatieId,
+      petitionId,
+      responseText.trim(),
+      userName || 'Comitet',
+      userId,
+    );
+    toast.success(t('petitions.responded'));
+    setRespondingTo(null);
+    setResponseText('');
   };
 
   if (fetchError) {
@@ -113,6 +143,9 @@ export default function PetitionsPage() {
             const isSigned = mySigned[p.id] ?? false;
             const reached = isThresholdReached(p);
             const target = thresholdCount(p);
+            const hasResponse = petitionHasResponse(p);
+            const isForwarded = p.status === 'inaintata';
+            const isResponding = respondingTo === p.id;
             return (
               <Card key={p.id} className="space-y-2 p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -149,6 +182,67 @@ export default function PetitionsPage() {
                     {isSigned ? t('petitions.signedLabel') : t('petitions.sign')}
                   </Button>
                 </div>
+
+                {/* Official response section (only for forwarded petitions) */}
+                {isForwarded && (
+                  <div className="border-t border-border pt-3 space-y-2">
+                    {hasResponse ? (
+                      <div className="space-y-1">
+                        <p className="text-xs font-semibold text-muted uppercase tracking-wide">
+                          {t('petitions.response')}
+                        </p>
+                        <p className="text-sm text-text">{p.response}</p>
+                        {p.responded_by_name && p.responded_at && (
+                          <p className="text-xs text-muted">
+                            {t('petitions.responseBy', {
+                              name: p.responded_by_name,
+                              date: new Date(p.responded_at).toLocaleDateString(),
+                            })}
+                          </p>
+                        )}
+                      </div>
+                    ) : canManage ? (
+                      isResponding ? (
+                        <div className="space-y-2">
+                          <Textarea
+                            label={t('petitions.response')}
+                            value={responseText}
+                            onChange={(e) => setResponseText(e.target.value)}
+                          />
+                          <div className="flex gap-2 justify-end">
+                            <Button
+                              variant="ghost"
+                              onClick={() => {
+                                setRespondingTo(null);
+                                setResponseText('');
+                              }}
+                            >
+                              {t('common.cancel')}
+                            </Button>
+                            <Button
+                              onClick={() => onSubmitResponse(p.id)}
+                              disabled={!isValidPetitionResponse(responseText)}
+                            >
+                              {t('petitions.respond')}
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="secondary"
+                          onClick={() => {
+                            setRespondingTo(p.id);
+                            setResponseText('');
+                          }}
+                        >
+                          {t('petitions.respond')}
+                        </Button>
+                      )
+                    ) : (
+                      <p className="text-xs text-muted italic">{t('petitions.awaitingResponse')}</p>
+                    )}
+                  </div>
+                )}
               </Card>
             );
           })}

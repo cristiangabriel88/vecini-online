@@ -1,7 +1,12 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import { usePetitionStore } from '@/features/petitions/petitionStore';
-import { createPetition, hydratePetitions, signPetition } from '@/features/petitions/petitionApi';
-import { newPetition, petitionsForAsociatie } from '@/features/petitions/petitionLogic';
+import {
+  createPetition,
+  hydratePetitions,
+  savePetitionResponse,
+  signPetition,
+} from '@/features/petitions/petitionApi';
+import { newPetition, petitionHasResponse, petitionsForAsociatie } from '@/features/petitions/petitionLogic';
 
 const ASOC = 'test-asoc';
 
@@ -106,5 +111,34 @@ describe('signPetition (offline path)', () => {
     const items = petitionsForAsociatie(usePetitionStore.getState().byAsociatie, ASOC).items;
     const updated = items.find((p) => p.id === petition.id);
     expect(updated?.status).toBe('inaintata');
+  });
+});
+
+describe('savePetitionResponse (offline path)', () => {
+  it('applies the response to the store synchronously', () => {
+    const petition = freshPetition();
+    createPetition(ASOC, petition, null);
+
+    savePetitionResponse(ASOC, petition.id, 'Comitetul a luat act și va răspunde în 30 de zile.', 'Ion Popescu', null);
+
+    const items = petitionsForAsociatie(usePetitionStore.getState().byAsociatie, ASOC).items;
+    const updated = items.find((p) => p.id === petition.id);
+    expect(petitionHasResponse(updated!)).toBe(true);
+    expect(updated?.response).toBe('Comitetul a luat act și va răspunde în 30 de zile.');
+    expect(updated?.responded_by_name).toBe('Ion Popescu');
+    expect(updated?.responded_at).toBeTruthy();
+  });
+
+  it('is idempotent if called twice (second call overwrites)', () => {
+    const petition = freshPetition();
+    createPetition(ASOC, petition, null);
+
+    savePetitionResponse(ASOC, petition.id, 'Primul răspuns de cel puțin douăzeci de caractere.', 'A', null);
+    savePetitionResponse(ASOC, petition.id, 'Al doilea răspuns de cel puțin douăzeci de caractere.', 'B', null);
+
+    const items = petitionsForAsociatie(usePetitionStore.getState().byAsociatie, ASOC).items;
+    const updated = items.find((p) => p.id === petition.id);
+    expect(updated?.response).toBe('Al doilea răspuns de cel puțin douăzeci de caractere.');
+    expect(updated?.responded_by_name).toBe('B');
   });
 });

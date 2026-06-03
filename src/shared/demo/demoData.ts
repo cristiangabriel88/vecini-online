@@ -584,6 +584,7 @@ export const DEMO_PARKING: ParkingSpot[] = [
 // F16 — Petiții interne.
 export const DEMO_PETITIONS: Petition[] = [
   { id: 'pt-1', asociatie_id: 'demo-asoc', author_user_id: 'u-res2', author_name: 'Georgescu Elena', title: 'Schimbarea firmei de curățenie', body: 'Calitatea curățeniei a scăzut în ultimele luni. Cerem comitetului să analizeze oferte alternative.', threshold_percent: 25, status: 'deschisa', created_at: new Date(Date.now() - 3 * 86_400_000).toISOString(), signatures: 1, total_apartments: 5 },
+  { id: 'pt-2', asociatie_id: 'demo-asoc', author_user_id: 'u-res2', author_name: 'Georgescu Elena', title: 'Instalare interfon video', body: 'Interfonul actual este defect și nu are cameră video. Propunem instalarea unui sistem modern cu interfon video pentru mai multă siguranță.', threshold_percent: 25, status: 'inaintata', created_at: new Date(Date.now() - 7 * 86_400_000).toISOString(), signatures: 2, total_apartments: 5, response: null, responded_at: null, responded_by_name: null },
 ];
 
 // F44 — Crowdfunding proiecte mici.

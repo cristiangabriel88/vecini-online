@@ -5,6 +5,7 @@ import { useAuthStore } from '@/shared/store/authStore';
 import {
   type PetitionCatalog,
   type PetitionsByAsociatie,
+  addPetitionResponse,
   isThresholdReached,
   migratePetitionsState,
   petitionsForAsociatie,
@@ -24,6 +25,14 @@ interface PetitionState {
   signPetition: (asociatieId: string, petitionId: string) => void;
   /** Replace one asociație's full petition list (used by live hydration). */
   replaceForAsociatie: (asociatieId: string, items: Petition[]) => void;
+  /** Apply an official committee response to one petition. */
+  addResponse: (
+    asociatieId: string,
+    petitionId: string,
+    response: string,
+    respondedAt: string,
+    respondedByName: string,
+  ) => void;
   /** Set or clear the live-fetch error (called by the API layer). */
   setFetchError: (msg: string | null) => void;
   /** The petition catalog for one asociație (stable reference). */
@@ -79,6 +88,17 @@ export const usePetitionStore = create<PetitionState>()(
 
       replaceForAsociatie: (asociatieId, items) =>
         set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: { items } } })),
+
+      addResponse: (asociatieId, petitionId, response, respondedAt, respondedByName) =>
+        set((s) => {
+          const catalog = petitionsForAsociatie(s.byAsociatie, asociatieId);
+          return {
+            byAsociatie: {
+              ...s.byAsociatie,
+              [asociatieId]: addPetitionResponse(catalog, petitionId, response, respondedAt, respondedByName),
+            },
+          };
+        }),
 
       setFetchError: (msg) => set({ fetchError: msg }),
 

@@ -1392,7 +1392,12 @@
     "created": "Petiție publicată.",
     "open": "Deschisă",
     "forwarded": "Înaintată comitetului",
-    "empty": "Nicio petiție. Pornește prima cu butonul de mai sus."
+    "empty": "Nicio petiție. Pornește prima cu butonul de mai sus.",
+    "response": "Răspuns oficial",
+    "respond": "Adaugă răspuns",
+    "responded": "Răspuns publicat.",
+    "awaitingResponse": "Răspuns oficial în așteptare",
+    "responseBy": "{{name}} în {{date}}"
   },
   "crowdfund": {
     "title": "Finanțare colectivă",
