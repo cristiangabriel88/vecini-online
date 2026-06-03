@@ -4,6 +4,9 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### ✅ T212 — [P1] Privileged-role absolute session expiry (force re-auth after 8 h for admin/comitet)
+Done: `src/features/auth/sessionExpiry.ts` -- pure helper: `PRIVILEGED_SESSION_MAX_MS` (8 h), `isPrivilegedRole` (admin/presedinte/comitet/cenzor), `stampPrivilegedSignin`/`clearPrivilegedSigninStamp`/`getPrivilegedSigninAgeMs`/`isPrivilegedSessionExpired` (localStorage), `markForcedSignout`/`consumeForcedSignoutReason` (sessionStorage). `authStore.signIn()` stamps after a successful live sign-in; `authStore.hydrate()` checks expiry after state is applied, forces inline sign-out + `markForcedSignout()` when the privileged session age exceeds 8 h; `signOut()`/`signOutEverywhere()` clear the stamp. `LoginPage` reads `consumeForcedSignoutReason()` on mount and fires a bilingual toast (`auth.privilegedSessionExpired`). New locale keys in en.json + ro.json (real diacritics). `tests/unit/sessionExpiry.test.ts` (13 assertions: isPrivilegedRole matrix, stamp/clear/age, expiry at threshold, non-privileged/null unaffected, forced-signout consume). 215 files / 2158 tests / lint + typecheck + build + build:pi + build:demo all green.
+
 ### ✅ T211 — [P1] Rework stale E2E harness (auth / consent / isolation / smoke specs)
 Done: Foundation (T211 progress 2026-06-03) + all four leaf tasks (T230–T233) complete. auth/consent/isolation/batch fully reworked and green. smoke.spec.ts: T42/T126 heading strict-mode fix (T230); T09/T54 were already passing (T231); T140 demo-build detection moved before sign-out to prevent page-context crash on both chromium + mobile (T232); F04/F10/F13 proprietar-gated pages were already passing on mobile (T233). T16 blocker cleared. 214 files / 2141 tests / build + build:pi + build:demo all green.
 

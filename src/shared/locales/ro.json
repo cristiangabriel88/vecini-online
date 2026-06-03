@@ -135,6 +135,7 @@
     "logout": "Deconectare",
     "rememberMe": "Ține-mă minte pe acest dispozitiv",
     "idleSignedOut": "Te-am deconectat din motive de securitate după o perioadă de inactivitate.",
+    "privilegedSessionExpired": "Sesiunea ta privilegiată a expirat (limita de 8 ore). Te rugăm să te autentifici din nou.",
     "signUp": "Creează cont",
     "enterDemo": "Intră în modul demonstrativ",
     "demoPreviewAs": "Vizualizează demo ca",

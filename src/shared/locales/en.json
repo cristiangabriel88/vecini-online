@@ -135,6 +135,7 @@
     "logout": "Sign out",
     "rememberMe": "Keep me signed in on this device",
     "idleSignedOut": "You were signed out for security after a period of inactivity.",
+    "privilegedSessionExpired": "Your privileged session expired (8-hour limit). Please sign in again.",
     "signUp": "Create account",
     "enterDemo": "Enter demo mode",
     "demoPreviewAs": "Preview demo as",

@@ -23,6 +23,7 @@ import {
   recordResetRequest,
   remainingCooldownMs,
 } from './passwordResetCooldown';
+import { consumeForcedSignoutReason } from './sessionExpiry';
 import { evaluatePassword } from './passwordPolicy';
 import { PasswordStrengthMeter } from './PasswordStrengthMeter';
 import { type MfaChannel, isValidOtpFormat } from './otpChannelLogic';
@@ -181,6 +182,13 @@ export default function LoginPage() {
       });
     }, 1000);
   }, []);
+
+  useEffect(() => {
+    const reason = consumeForcedSignoutReason();
+    if (reason === 'privileged-expiry') {
+      toast(t('auth.privilegedSessionExpired'), { icon: '🔒' });
+    }
+  }, [t]);
 
   useEffect(() => {
     return () => {

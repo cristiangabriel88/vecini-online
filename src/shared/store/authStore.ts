@@ -7,6 +7,12 @@ import type { Membership, Role, UserProfile } from '@/shared/types/domain';
 import { mergeHydration, roleFor, sortByPrivilege } from '@/features/auth/hydrationLogic';
 import { demoTenantContext } from '@/features/auth/demoTenant';
 import { rememberExpired, setRemembered } from '@/features/auth/sessionPersistence';
+import {
+  clearPrivilegedSigninStamp,
+  isPrivilegedSessionExpired,
+  markForcedSignout,
+  stampPrivilegedSignin,
+} from '@/features/auth/sessionExpiry';
 import { reconcileLockMs } from '@/features/auth/serverLockout';
 import { buildFounderMembership, newLocalAsociatieId } from '@/features/onboarding/onboardingLogic';
 import {
@@ -224,6 +230,29 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         // the platform surface.
         isPlatformSuperAdmin: superAdminRes.error ? false : Boolean(superAdminRes.data),
       });
+      // Privileged roles (admin/presedinte/comitet/cenzor) must re-authenticate
+      // after 8 hours. Check after state is applied so the role is current.
+      if (seq === hydrateSeq && isPrivilegedSessionExpired(get().activeRole(), Date.now())) {
+        markForcedSignout();
+        clearPrivilegedSigninStamp();
+        const email = get().session?.user?.email ?? null;
+        useSecurityStore.getState().log('logout', email);
+        hydrateSeq++;
+        if (isSupabaseConfigured) await supabase.auth.signOut();
+        setRemembered(false);
+        set({
+          session: null,
+          profile: null,
+          memberships: [],
+          currentAsociatieId: null,
+          isPlatformSuperAdmin: false,
+          localAsociatii: [],
+          hydrating: false,
+          demo: false,
+          recovery: false,
+        });
+        return;
+      }
     } catch (error) {
       reportError(error, { source: 'authStore.hydrate' });
     } finally {
@@ -397,6 +426,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     sec.registerSuccess(email);
     void sec.clearServerLock(email);
     sec.log('login', email);
+    stampPrivilegedSignin(Date.now());
     return { error: null, lockedMs: 0 };
   },
 
@@ -460,6 +490,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const email = get().session?.user?.email ?? null;
     if (isSupabaseConfigured) await supabase.auth.signOut();
     setRemembered(false); // reset to the secure default for the next sign-in
+    clearPrivilegedSigninStamp();
     useSecurityStore.getState().log('logout', email);
     hydrateSeq++; // invalidate any in-flight hydrate for the old session
     set({
@@ -481,6 +512,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // so a session on another device or a stolen token is invalidated too.
     if (isSupabaseConfigured) await supabase.auth.signOut({ scope: 'global' });
     setRemembered(false); // reset to the secure default for the next sign-in
+    clearPrivilegedSigninStamp();
     useSecurityStore.getState().log('logoutEverywhere', email);
     hydrateSeq++; // invalidate any in-flight hydrate for the old session
     set({
