@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { FileSpreadsheet, Plus } from 'lucide-react';
@@ -8,14 +8,21 @@ import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input, Textarea } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
 import { formatLei } from '@/shared/lib/format';
-import { useRfpStore } from './rfpStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useRfpStore, useAsociatieRfps } from './rfpStore';
 import { cheapestQuote, isValidQuote, isValidRfp, sortRfps, sortedQuotes } from './rfpLogic';
+import { hydrateRfps, addRfpItem, addRfpQuote, decideRfpItem } from './rfpApi';
+import type { Rfp } from '@/shared/types/domain';
 
 export default function RfpPage() {
   const { t } = useTranslation();
-  const { rfps, addRfp, addQuote, decide } = useRfpStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const fetchError = useRfpStore((s) => s.fetchError);
+  const rfps = useAsociatieRfps();
+
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -23,14 +30,27 @@ export default function RfpPage() {
   const [contractor, setContractor] = useState('');
   const [amount, setAmount] = useState('');
 
+  useEffect(() => {
+    if (asociatieId) void hydrateRfps(asociatieId);
+  }, [asociatieId]);
+
   const ordered = sortRfps(rfps);
   const validRfp = isValidRfp(title);
   const quoteAmount = Number(amount);
   const validQuote = isValidQuote(contractor, quoteAmount);
 
   const submitRfp = () => {
-    if (!validRfp) return;
-    addRfp({ title, description });
+    if (!validRfp || !asociatieId) return;
+    const rfp: Rfp = {
+      id: `rfp-${Date.now()}`,
+      asociatie_id: asociatieId,
+      title: title.trim(),
+      description: description.trim(),
+      status: 'deschis',
+      created_at: new Date().toISOString(),
+      quotes: [],
+    };
+    addRfpItem(asociatieId, rfp);
     toast.success(t('rfp.added'));
     setOpen(false);
     setTitle('');
@@ -38,13 +58,33 @@ export default function RfpPage() {
   };
 
   const submitQuote = () => {
-    if (!quoteFor || !validQuote) return;
-    addQuote(quoteFor, contractor, quoteAmount);
+    if (!quoteFor || !validQuote || !asociatieId) return;
+    addRfpQuote(asociatieId, quoteFor, {
+      id: `q-${Date.now()}`,
+      rfp_id: quoteFor,
+      contractor: contractor.trim(),
+      amount: quoteAmount,
+      selected: false,
+    });
     toast.success(t('rfp.quoteAdded'));
     setQuoteFor(null);
     setContractor('');
     setAmount('');
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        title={t('common.errorTitle')}
+        body={t('common.loadError')}
+        action={
+          <Button variant="ghost" onClick={() => { if (asociatieId) void hydrateRfps(asociatieId); }}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>
@@ -94,8 +134,12 @@ export default function RfpPage() {
                         </span>
                         <span className="flex items-center gap-2">
                           <span className="font-medium">{formatLei(q.amount)}</span>
-                          {r.status === 'deschis' && (
-                            <Button size="sm" variant="ghost" onClick={() => decide(r.id, q.id)}>
+                          {r.status === 'deschis' && asociatieId && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => decideRfpItem(asociatieId, r.id, q.id)}
+                            >
                               {t('rfp.choose')}
                             </Button>
                           )}

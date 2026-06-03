@@ -1,37 +1,67 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { DutySlot } from '@/shared/types/domain';
-import { DEMO_DUTY } from '@/shared/demo/demoData';
-
-/** Demo identity of the signed-in resident. */
-export const DEMO_USER = { id: 'u-res', name: 'Popescu Andrei' };
+import { useAuthStore } from '@/shared/store/authStore';
+import {
+  type DutyByAsociatie,
+  seedDuty,
+  dutyForAsociatie,
+  signUpIn,
+  releaseIn,
+  migrateDutyState,
+} from './dutyLogic';
 
 interface DutyState {
-  slots: DutySlot[];
-  signUp: (id: string, note: string) => void;
-  release: (id: string) => void;
+  byAsociatie: DutyByAsociatie;
+  fetchError: string | null;
+  signUp: (
+    asociatieId: string,
+    id: string,
+    volunteerId: string,
+    volunteerName: string,
+    note: string,
+  ) => void;
+  release: (asociatieId: string, id: string) => void;
+  replaceForAsociatie: (asociatieId: string, slots: DutySlot[]) => void;
+  setFetchError: (msg: string | null) => void;
 }
 
-export const useDutyStore = create<DutyState>((set) => ({
-  slots: [...DEMO_DUTY],
-  signUp: (id, note) =>
-    set((s) => ({
-      slots: s.slots.map((slot) =>
-        slot.id === id
-          ? {
-              ...slot,
-              volunteer_user_id: DEMO_USER.id,
-              volunteer_name: DEMO_USER.name,
-              note: note.trim() || null,
-            }
-          : slot,
-      ),
-    })),
-  release: (id) =>
-    set((s) => ({
-      slots: s.slots.map((slot) =>
-        slot.id === id
-          ? { ...slot, volunteer_user_id: null, volunteer_name: null, note: null }
-          : slot,
-      ),
-    })),
-}));
+export const useDutyStore = create<DutyState>()(
+  persist(
+    (set) => ({
+      byAsociatie: seedDuty(),
+      fetchError: null,
+
+      signUp: (asociatieId, id, volunteerId, volunteerName, note) =>
+        set((s) => ({
+          byAsociatie: signUpIn(
+            s.byAsociatie,
+            asociatieId,
+            id,
+            volunteerId,
+            volunteerName,
+            note.trim() || null,
+          ),
+        })),
+
+      release: (asociatieId, id) =>
+        set((s) => ({ byAsociatie: releaseIn(s.byAsociatie, asociatieId, id) })),
+
+      replaceForAsociatie: (asociatieId, slots) =>
+        set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: slots } })),
+
+      setFetchError: (msg) => set({ fetchError: msg }),
+    }),
+    {
+      name: 'vecini.duty',
+      version: 1,
+      partialize: (s) => ({ byAsociatie: s.byAsociatie }),
+      migrate: (persisted) => ({ byAsociatie: migrateDutyState(persisted) }),
+    },
+  ),
+);
+
+export function useAsociatieDuty(): DutySlot[] {
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  return useDutyStore((s) => dutyForAsociatie(s.byAsociatie, asociatieId));
+}

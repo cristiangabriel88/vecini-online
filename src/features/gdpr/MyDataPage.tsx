@@ -30,7 +30,7 @@ import { useSitterStore } from '@/features/sitters/sitterStore';
 import { useBarterStore } from '@/features/barter/barterStore';
 import { usePetsStore } from '@/features/pets/petsStore';
 import { useBikesStore } from '@/features/bikes/bikesStore';
-import { useLendingStore } from '@/features/lending/lendingStore';
+import { useAsociatieLending } from '@/features/lending/lendingStore';
 import { useFeedbackStore } from '@/features/feedback/feedbackStore';
 import { useKidsStore } from '@/features/kids/kidsStore';
 import { useLaundryStore } from '@/features/laundry/laundryStore';
@@ -102,7 +102,7 @@ export default function MyDataPage() {
   const barter = useBarterStore((s) => s.offerings);
   const pets = usePetsStore((s) => s.pets);
   const bikes = useBikesStore((s) => s.bikes);
-  const lending = useLendingStore((s) => s.items);
+  const lending = useAsociatieLending();
   const feedback = useFeedbackStore((s) => s.items);
   const kidsRanges = useKidsStore((s) => s.ranges);
   const kidsEvents = useKidsStore((s) => s.events);

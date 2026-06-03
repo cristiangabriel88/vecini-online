@@ -1,4 +1,5 @@
 import type { Ticket, TicketSeverity } from '@/shared/types/domain';
+import { DEMO_ASOCIATIE } from '@/shared/demo/demoData';
 
 /* F21 — Sesizări recurente.
    Computed entirely over the existing `tickets` data: no table of its own.
@@ -115,4 +116,42 @@ export function detectRecurring(tickets: Ticket[], now: Date = new Date()): Recu
   return issues.sort(
     (a, b) => b.count - a.count || new Date(b.lastAt).getTime() - new Date(a.lastAt).getTime(),
   );
+}
+
+// ── Per-asociatie acknowledged-key state ─────────────────────────────────────
+
+/** Acknowledged pattern keys keyed by asociatie id. */
+export type AcknowledgedByAsociatie = Record<string, string[]>;
+
+const EMPTY_ACKS: string[] = [];
+
+export function isAcknowledgedIn(
+  map: AcknowledgedByAsociatie,
+  asociatieId: string | null,
+  key: string,
+): boolean {
+  if (!asociatieId) return false;
+  return (map[asociatieId] ?? EMPTY_ACKS).includes(key);
+}
+
+export function toggleAckIn(
+  map: AcknowledgedByAsociatie,
+  asociatieId: string,
+  key: string,
+): AcknowledgedByAsociatie {
+  const current = map[asociatieId] ?? [];
+  const updated = current.includes(key)
+    ? current.filter((k) => k !== key)
+    : [...current, key];
+  return { ...map, [asociatieId]: updated };
+}
+
+export function seedAcknowledged(): AcknowledgedByAsociatie {
+  return { [DEMO_ASOCIATIE.id]: [] };
+}
+
+export function migrateAcknowledgedState(persisted: unknown): AcknowledgedByAsociatie {
+  const p = persisted as { byAsociatie?: AcknowledgedByAsociatie } | null;
+  const existing = p?.byAsociatie ?? {};
+  return { ...existing, [DEMO_ASOCIATIE.id]: existing[DEMO_ASOCIATIE.id] ?? [] };
 }

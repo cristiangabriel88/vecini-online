@@ -1,21 +1,41 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { useAuthStore } from '@/shared/store/authStore';
+import {
+  type AcknowledgedByAsociatie,
+  seedAcknowledged,
+  toggleAckIn,
+  migrateAcknowledgedState,
+} from './recurringLogic';
 
-/* F21 keeps no domain data of its own — issues are computed from tickets.
-   The only state worth holding is which detected patterns the comitet has
-   already acknowledged ("known"), so they drop out of the active list. */
 interface RecurringState {
-  acknowledged: string[];
-  isAcknowledged: (key: string) => boolean;
-  toggleAck: (key: string) => void;
+  byAsociatie: AcknowledgedByAsociatie;
+  fetchError: string | null;
+  toggleAck: (asociatieId: string, key: string) => void;
+  setFetchError: (msg: string | null) => void;
 }
 
-export const useRecurringStore = create<RecurringState>((set, get) => ({
-  acknowledged: [],
-  isAcknowledged: (key) => get().acknowledged.includes(key),
-  toggleAck: (key) =>
-    set((s) => ({
-      acknowledged: s.acknowledged.includes(key)
-        ? s.acknowledged.filter((k) => k !== key)
-        : [...s.acknowledged, key],
-    })),
-}));
+export const useRecurringStore = create<RecurringState>()(
+  persist(
+    (set) => ({
+      byAsociatie: seedAcknowledged(),
+      fetchError: null,
+
+      toggleAck: (asociatieId, key) =>
+        set((s) => ({ byAsociatie: toggleAckIn(s.byAsociatie, asociatieId, key) })),
+
+      setFetchError: (msg) => set({ fetchError: msg }),
+    }),
+    {
+      name: 'vecini.recurring',
+      version: 1,
+      partialize: (s) => ({ byAsociatie: s.byAsociatie }),
+      migrate: (persisted) => ({ byAsociatie: migrateAcknowledgedState(persisted) }),
+    },
+  ),
+);
+
+export function useRecurringAcknowledged(): string[] {
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  return useRecurringStore((s) => s.byAsociatie[asociatieId ?? ''] ?? []);
+}

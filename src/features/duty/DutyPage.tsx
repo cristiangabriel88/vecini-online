@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { ShieldCheck } from 'lucide-react';
@@ -8,28 +8,55 @@ import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
 import { formatDate } from '@/shared/lib/format';
-import { useDutyStore, DEMO_USER } from './dutyStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { DEMO_CURRENT_USER_ID, DEMO_CURRENT_USER_NAME } from '@/shared/demo/demoData';
+import { useDutyStore, useAsociatieDuty } from './dutyStore';
 import { currentDuty, isCovered, isMine, sortDuty } from './dutyLogic';
+import { hydrateDutySlots, signUpForDuty, releaseFromDuty } from './dutyApi';
 
 export default function DutyPage() {
   const { t } = useTranslation();
-  const { slots, signUp, release } = useDutyStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const userId = useAuthStore((s) => s.profile?.id) ?? DEMO_CURRENT_USER_ID;
+  const userName = useAuthStore((s) => s.profile?.full_name) ?? DEMO_CURRENT_USER_NAME;
+  const fetchError = useDutyStore((s) => s.fetchError);
+  const slots = useAsociatieDuty();
+
   const [signFor, setSignFor] = useState<string | null>(null);
   const [note, setNote] = useState('');
+
+  useEffect(() => {
+    if (asociatieId) void hydrateDutySlots(asociatieId);
+  }, [asociatieId]);
 
   const today = new Date().toISOString();
   const ordered = sortDuty(slots);
   const current = currentDuty(slots, today);
 
   const submit = () => {
-    if (!signFor) return;
-    signUp(signFor, note);
+    if (!signFor || !asociatieId) return;
+    signUpForDuty(asociatieId, signFor, userId, userName, note);
     toast.success(t('duty.signedUp'));
     setSignFor(null);
     setNote('');
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        title={t('common.errorTitle')}
+        body={t('common.loadError')}
+        action={
+          <Button variant="ghost" onClick={() => { if (asociatieId) void hydrateDutySlots(asociatieId); }}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>
@@ -49,7 +76,7 @@ export default function DutyPage() {
       ) : (
         <div className="space-y-3">
           {ordered.map((s) => {
-            const mine = isMine(s, DEMO_USER.id);
+            const mine = isMine(s, userId);
             return (
               <Card key={s.id} className="space-y-2 p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -66,8 +93,8 @@ export default function DutyPage() {
                 ) : (
                   <p className="text-sm text-muted">{t('duty.freeHint')}</p>
                 )}
-                {mine ? (
-                  <Button size="sm" variant="ghost" onClick={() => release(s.id)}>
+                {mine && asociatieId ? (
+                  <Button size="sm" variant="ghost" onClick={() => releaseFromDuty(asociatieId, s.id)}>
                     {t('duty.release')}
                   </Button>
                 ) : (

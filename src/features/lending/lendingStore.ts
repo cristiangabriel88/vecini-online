@@ -1,34 +1,52 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { LendingItem } from '@/shared/types/domain';
-import { DEMO_LENDING_ITEMS } from '@/shared/demo/demoData';
+import { useAuthStore } from '@/shared/store/authStore';
+import {
+  type LendingByAsociatie,
+  seedLending,
+  lendingForAsociatie,
+  addLendingIn,
+  toggleAvailableIn,
+  migrateLendingState,
+} from './lendingLogic';
 
 interface LendingState {
-  items: LendingItem[];
-  add: (input: { name: string; category: string }) => void;
-  toggleAvailable: (id: string) => void;
+  byAsociatie: LendingByAsociatie;
+  fetchError: string | null;
+  addItem: (asociatieId: string, item: LendingItem) => void;
+  toggleAvailable: (asociatieId: string, id: string) => void;
+  replaceForAsociatie: (asociatieId: string, items: LendingItem[]) => void;
+  setFetchError: (msg: string | null) => void;
 }
 
-export const useLendingStore = create<LendingState>((set) => ({
-  items: [...DEMO_LENDING_ITEMS],
-  add: ({ name, category }) =>
-    set((s) => ({
-      items: [
-        {
-          id: `li-${Date.now()}`,
-          asociatie_id: 'demo-asoc',
-          owner_user_id: 'u-res',
-          owner_name: 'Popescu Andrei',
-          name: name.trim(),
-          category: category.trim(),
-          photo_path: null,
-          available: true,
-          created_at: new Date().toISOString(),
-        },
-        ...s.items,
-      ],
-    })),
-  toggleAvailable: (id) =>
-    set((s) => ({
-      items: s.items.map((it) => (it.id === id ? { ...it, available: !it.available } : it)),
-    })),
-}));
+export const useLendingStore = create<LendingState>()(
+  persist(
+    (set) => ({
+      byAsociatie: seedLending(),
+      fetchError: null,
+
+      addItem: (asociatieId, item) =>
+        set((s) => ({ byAsociatie: addLendingIn(s.byAsociatie, asociatieId, item) })),
+
+      toggleAvailable: (asociatieId, id) =>
+        set((s) => ({ byAsociatie: toggleAvailableIn(s.byAsociatie, asociatieId, id) })),
+
+      replaceForAsociatie: (asociatieId, items) =>
+        set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: items } })),
+
+      setFetchError: (msg) => set({ fetchError: msg }),
+    }),
+    {
+      name: 'vecini.lending',
+      version: 1,
+      partialize: (s) => ({ byAsociatie: s.byAsociatie }),
+      migrate: (persisted) => ({ byAsociatie: migrateLendingState(persisted) }),
+    },
+  ),
+);
+
+export function useAsociatieLending(): LendingItem[] {
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  return useLendingStore((s) => lendingForAsociatie(s.byAsociatie, asociatieId));
+}

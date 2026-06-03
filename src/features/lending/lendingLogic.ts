@@ -1,5 +1,6 @@
 import type { LendingItem } from '@/shared/types/domain';
 import { normalizeSearch } from '@/features/faq/faqLogic';
+import { DEMO_ASOCIATIE, DEMO_LENDING_ITEMS } from '@/shared/demo/demoData';
 
 export type AvailabilityFilter = 'all' | 'available';
 
@@ -26,4 +27,52 @@ export function searchLendingItems(
       return normalizeSearch(`${it.name} ${it.category}`).includes(q);
     })
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+}
+
+// ── Per-asociatie lending item catalog ───────────────────────────────────────
+
+/** Lending items keyed by asociatie id. */
+export type LendingByAsociatie = Record<string, LendingItem[]>;
+
+const EMPTY_LENDING: LendingItem[] = [];
+
+export function lendingForAsociatie(
+  map: LendingByAsociatie,
+  asociatieId: string | null,
+): LendingItem[] {
+  if (!asociatieId) return EMPTY_LENDING;
+  return map[asociatieId] ?? EMPTY_LENDING;
+}
+
+export function seedLending(): LendingByAsociatie {
+  return { [DEMO_ASOCIATIE.id]: [...DEMO_LENDING_ITEMS] };
+}
+
+export function addLendingIn(
+  map: LendingByAsociatie,
+  asociatieId: string,
+  item: LendingItem,
+): LendingByAsociatie {
+  const current = map[asociatieId] ?? [];
+  return { ...map, [asociatieId]: [item, ...current] };
+}
+
+export function toggleAvailableIn(
+  map: LendingByAsociatie,
+  asociatieId: string,
+  id: string,
+): LendingByAsociatie {
+  const items = map[asociatieId] ?? [];
+  return {
+    ...map,
+    [asociatieId]: items.map((it) =>
+      it.id === id ? { ...it, available: !it.available } : it,
+    ),
+  };
+}
+
+export function migrateLendingState(persisted: unknown): LendingByAsociatie {
+  const p = persisted as { byAsociatie?: LendingByAsociatie } | null;
+  const existing = p?.byAsociatie ?? {};
+  return { ...existing, [DEMO_ASOCIATIE.id]: [...DEMO_LENDING_ITEMS] };
 }

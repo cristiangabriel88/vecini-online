@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Handshake, Plus } from 'lucide-react';
@@ -9,30 +9,67 @@ import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
 import { Select } from '@/shared/components/Select';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
-import { useLendingStore } from './lendingStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { DEMO_CURRENT_USER_ID, DEMO_CURRENT_USER_NAME } from '@/shared/demo/demoData';
+import { useLendingStore, useAsociatieLending } from './lendingStore';
 import { isValidItem, searchLendingItems, type AvailabilityFilter } from './lendingLogic';
+import { hydrateLendingItems, addLendingItem, toggleLendingAvailable } from './lendingApi';
 
 export default function LendingPage() {
   const { t } = useTranslation();
-  const { items, add, toggleAvailable } = useLendingStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const userId = useAuthStore((s) => s.profile?.id) ?? DEMO_CURRENT_USER_ID;
+  const userName = useAuthStore((s) => s.profile?.full_name) ?? DEMO_CURRENT_USER_NAME;
+  const fetchError = useLendingStore((s) => s.fetchError);
+  const items = useAsociatieLending();
+
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<AvailabilityFilter>('all');
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [category, setCategory] = useState('');
 
+  useEffect(() => {
+    if (asociatieId) void hydrateLendingItems(asociatieId);
+  }, [asociatieId]);
+
   const results = searchLendingItems(items, query, filter);
   const valid = isValidItem(name, category);
 
   const submit = () => {
-    if (!valid) return;
-    add({ name, category });
+    if (!valid || !asociatieId) return;
+    addLendingItem(asociatieId, {
+      id: `li-${Date.now()}`,
+      asociatie_id: asociatieId,
+      owner_user_id: userId,
+      owner_name: userName,
+      name: name.trim(),
+      category: category.trim(),
+      photo_path: null,
+      available: true,
+      created_at: new Date().toISOString(),
+    });
     toast.success(t('lending.added'));
     setOpen(false);
     setName('');
     setCategory('');
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        title={t('common.errorTitle')}
+        body={t('common.loadError')}
+        action={
+          <Button variant="ghost" onClick={() => { if (asociatieId) void hydrateLendingItems(asociatieId); }}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>
@@ -80,9 +117,15 @@ export default function LendingPage() {
                 <Badge tone={it.available ? 'success' : 'neutral'}>
                   {it.available ? t('lending.available') : t('lending.borrowed')}
                 </Badge>
-                <Button size="sm" variant="ghost" onClick={() => toggleAvailable(it.id)}>
-                  {it.available ? t('lending.markBorrowed') : t('lending.markAvailable')}
-                </Button>
+                {asociatieId && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => toggleLendingAvailable(asociatieId, it)}
+                  >
+                    {it.available ? t('lending.markBorrowed') : t('lending.markAvailable')}
+                  </Button>
+                )}
               </div>
             </Card>
           ))}

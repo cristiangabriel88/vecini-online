@@ -9,6 +9,7 @@ import { EmptyState } from '@/shared/components/EmptyState';
 import { formatDate } from '@/shared/lib/format';
 import { cn } from '@/shared/lib/cn';
 import { useAsociatieTickets } from '@/features/tickets/ticketsStore';
+import { useAuthStore } from '@/shared/store/authStore';
 import { useRecurringStore } from './recurringStore';
 import {
   detectRecurring,
@@ -22,8 +23,9 @@ function capitalize(value: string): string {
 
 export default function RecurringPage() {
   const { t } = useTranslation();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
   const items = useAsociatieTickets();
-  const acknowledged = useRecurringStore((s) => s.acknowledged);
+  const acknowledged = useRecurringStore((s) => s.byAsociatie[asociatieId ?? ''] ?? []);
   const toggleAck = useRecurringStore((s) => s.toggleAck);
 
   const issues = useMemo(() => detectRecurring(items), [items]);
@@ -87,7 +89,7 @@ export default function RecurringPage() {
         </div>
 
         <div className="flex justify-end">
-          <Button size="sm" variant="ghost" onClick={() => toggleAck(issue.key)}>
+          <Button size="sm" variant="ghost" onClick={() => toggleAck(asociatieId ?? '', issue.key)}>
             {known ? (
               <>
                 <RotateCcw className="h-4 w-4" /> {t('recurring.reactivate')}
