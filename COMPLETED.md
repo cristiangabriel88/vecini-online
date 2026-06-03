@@ -4,6 +4,13 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T119 P2 ✅ 2026-06-03 -- Platform-shell access E2E
+- new: tests/e2e/platform.spec.ts (4 tests: login page gate, demo smoke round-trip, asociatii navigation, live-path guard skip)
+- demo smoke: enter demo console → /consola overview (welcome h1, .platform-demobadge, stats region) → sign out → back at login
+- navigation: section card link click to /consola/asociatii (uses link not sidebar button, works on mobile viewports)
+- live guard: skips in demo builds; verifies email form shown and heading present in live mode
+- result: 220 files / 2190 tests / 6 passing + 2 skipped on chromium + mobile / lint + typecheck + build + build:pi + build:demo all green
+
 ### T75 P2 ✅ 2026-06-03 -- Live activation: persist ROPA snapshot + DPA adoption record
 - new: supabase/migrations/20260603000004_ropa_dpa.sql (ropa_snapshots + dpa_adoptions tables, RLS: admin/presedinte insert, members select)
 - new: src/features/legal/ropaApi.ts (saveRopaSnapshot, loadRopaSnapshots, adoptDpa, loadDpaAdoptions; all no-ops offline)
