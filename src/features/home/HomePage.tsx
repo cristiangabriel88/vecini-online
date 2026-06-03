@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -40,6 +40,7 @@ import {
   visibleCards,
 } from './homeLayoutLogic';
 import { useHomeLayoutKey, useHomeLayoutStore } from './homeLayoutStore';
+import { deleteHomeLayout, hydrateHomeLayout, persistHomeLayout } from './homeLayoutApi';
 import { useHomeReorder } from './useHomeReorder';
 
 /** A read-only feature shortcut card (view mode). */
@@ -189,9 +190,16 @@ export default function HomePage() {
   const layout = useMemo(() => reconcileLayout(saved, flags), [saved, flags]);
   const [editing, setEditing] = useState(false);
 
+  useEffect(() => {
+    if (userId && asociatieId) void hydrateHomeLayout(userId, asociatieId);
+  }, [userId, asociatieId]);
+
   const canPersist = Boolean(asociatieId);
   const apply = (next: HomeCard[]) => {
-    if (asociatieId) persist(userId, asociatieId, next);
+    if (asociatieId) {
+      persist(userId, asociatieId, next);
+      void persistHomeLayout(userId, asociatieId, next);
+    }
   };
 
   // Pointer-driven reorder (mouse + touch + pen). The caret slot it reports is
@@ -220,7 +228,12 @@ export default function HomePage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => asociatieId && resetLayout(userId, asociatieId)}
+                  onClick={() => {
+                    if (asociatieId) {
+                      resetLayout(userId, asociatieId);
+                      void deleteHomeLayout(userId, asociatieId);
+                    }
+                  }}
                   disabled={atDefault}
                 >
                   <RotateCcw size={15} /> {t('home.reset')}
