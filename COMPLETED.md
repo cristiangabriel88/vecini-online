@@ -4,6 +4,9 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### ✅ T230 — [P1] E2E: invite-redeem welcome redirect (smoke T42 + T126)
+Done: T42 was already welcome-aware (`/(app|bun-venit)/`). T126 failed due to a strict-mode violation: `/app/notificari` renders both `<h1>Notificări</h1>` and `<h3>Preferințe notificări</h3>`, so the regex matched 2 elements. Fixed by using `{ name: 'Notificări', level: 1 }` to target only the page `<h1>`. All 6 T42 + T126 tests pass on chromium + mobile. 214 files / 2141 tests / build + build:pi + build:demo all green.
+
 ### ✅ T210 — [P3] E2E coverage for F33 Document archive (admin upload + download + delete)
 Done: Two happy paths added to `tests/e2e/features.spec.ts`, green on chromium + mobile (4/4) -- (1) admin uploads a synthetic PDF-backed document ("Contract ascensor 2026"), download button appears on the card, delete with confirm dialog removes it and the toast confirms; (2) admin uploads a second doc, switches to resident role (proprietar) mid-test via localStorage + reload (also marks welcome as seen to bypass RequireWelcome), resident sees the uploaded card with its download button but "Adaugă document" is absent and no delete control appears. 215 files / 2138 tests / lint + typecheck + build + build:pi + build:demo all green.
 

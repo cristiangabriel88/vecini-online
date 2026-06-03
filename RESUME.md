@@ -5,18 +5,22 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-03
-- last_task: replenish pass (T211–T229 filed; T63/T61/T103/T106/T72/T75/T119–T121 reactivated from on-hold)
+- last_task: T230 [P1] E2E invite-redeem welcome redirect (smoke T42 + T126) -- fixed strict-mode heading violation on NotificationsPage
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 215 files / 2138 tests (no code changes this pass)
+- counts: 214 files / 2141 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T211 [P1] rework stale E2E harness (auth/consent/isolation/smoke specs), then T212 [P1] privileged-role session expiry, then P2 live-activation wave 2 (F18–F67) and E2E closure
+- next: T231 [P1] E2E audit-log toggle badge + MVP loop (smoke T09 + T54), then T232/T233, then T211 close, then T212 [P1] privileged-role session expiry
 - features: 67/67 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F33 (18 features) + auth/invites/onboarding; remaining 49 features offline-first, live-activation queued T213–T219. F28/F36/F66 cross-feature glue wired (T104). Platform console: shell + provisioning done (T93/T94); oversight tools T95–T99 on hold.
-- e2e: F01/F02/F03/F04/F05/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F18/F25/F26/F27/F33/F35/F36/F40 happy paths green on chromium + mobile (24 features / 36%). auth/consent/isolation/smoke specs still predate the auto-demo-entry harness (T16 = T211 in wave 2). E2E closure queued T220–T223.
-- blockers: stale E2E harness (T211, P1); privileged-session absolute expiry gap (T212, P1). No pipeline blockers.
+- e2e: F01/F02/F03/F04/F05/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F18/F25/F26/F27/F33/F35/F36/F40 happy paths green on chromium + mobile (24 features / 36%). T230 done (T42+T126 green). T231-T233 remain for T211 close. E2E closure queued T220–T223.
+- blockers: T211 leaf tasks T231-T233 remain (P1); privileged-session absolute expiry gap (T212, P1). No pipeline blockers.
 - completion_estimate: 57% of original product vision delivered end-to-end (2026-06-03 replenish audit, revised from 54%). Detail: all 67 features demo-complete and offline-functional; 18/67 live-wired (27%); security posture ~88% (session expiry gap + notification INSERT hardening queued); GDPR surface ~70% (server-side erasure T72 + breach fan-out T76 queued); Telegram bot 0% (fully deferred); SaaS billing 0% (T19 on hold); platform console ~30% (shell + provisioning done, T119–T121 reactivated, oversight T95–T99 on hold); E2E coverage 36% (24/67 features). Blockers to 75%+: live-wire remaining 49 features (T213–T219), close E2E harness (T211), ship Telegram (T15).
 
 ---
+
+### T230 P1 ✅ 2026-06-03 -- E2E invite-redeem welcome redirect (smoke T42 + T126)
+- fixed: tests/e2e/smoke.spec.ts line 684: `getByRole('heading', { name: /Notificări/i })` -> `{ name: 'Notificări', level: 1 }` (strict-mode violation: page has h1 + h3 both matching)
+- result: 214 files / 2141 tests / lint+typecheck+build+pi+demo green; 6/6 E2E green (T42 x2 + T126 x2 + T42/T124 x2) chromium + mobile
 
 ### T210 P3 ✅ 2026-06-03 -- E2E coverage for F33 Document archive (admin upload + download + delete)
 - new: tests/e2e/features.spec.ts (+2 happy paths: admin upload+download+delete; resident read-only access with download visible but no manage controls)

@@ -681,7 +681,7 @@ test('T126: admin sees a "joined" notification after a resident redeems an invit
   // Navigate to the notifications inbox — the admin's bell should now have a
   // badge and the inbox should list the "joined" event.
   await page.goto('/app/notificari');
-  await expect(page.getByRole('heading', { name: /Notificări/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Notificări', level: 1 })).toBeVisible();
   // The membership.joined notice appears (the invitee name may vary since the
   // code is freshly issued with no inviteeName; the role is "proprietar").
   await expect(page.locator('main').getByText(/s-a alăturat/i).first()).toBeVisible();
