@@ -8,6 +8,7 @@ import {
   actionRequest as applyAction,
   makeRequest,
 } from '@/features/gdpr/gdprLogic';
+import { triggerErasure } from '@/features/gdpr/gdprErasureApi';
 
 /**
  * Data-subject request queue (T06): export and erasure requests with the
@@ -106,6 +107,8 @@ export const useGdprStore = create<GdprState>()(
           if (!ids.includes(done.subject_user_id)) {
             set({ erasedUserIds: [...ids, done.subject_user_id] });
           }
+          // Trigger server-side erasure execution behind isSupabaseConfigured.
+          void triggerErasure(done.id);
         }
         mirrorAction(done);
       },

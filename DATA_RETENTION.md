@@ -68,12 +68,39 @@ work offline (the `gdprStore`), and no destructive mutation runs because there
 is no backend store to mutate. Wiring the live routine is tracked alongside the
 GDPR live-activation work (see `BACKLOG.md`).
 
+## Live-activation apply steps (T72)
+
+The server-side erasure execution and retention purge are in:
+- `netlify/functions/gdpr-erasure.ts` — POST endpoint, called automatically
+  when `gdprStore.action(id, 'completed', actor)` completes an erasure request.
+  Applies the full ERASURE_PLAN (anonymize + delete) scoped to the request's
+  `asociatie_id`, then removes the subject's membership. If no memberships
+  remain the subject's Supabase auth account is also deleted.
+- `netlify/functions/gdpr-retention-purge.ts` — Monthly scheduled cleanup.
+  Purges `auth_audit_events` older than 12 months and resolved tickets past
+  their 1-year retention window. Runs automatically via `export const config =
+  { schedule: '@monthly' }` (Netlify scheduled function).
+
+Both functions require the service-role key (`SUPABASE_SERVICE_ROLE_KEY`) and
+the Supabase URL (`VITE_SUPABASE_URL`) to be set in the Netlify environment.
+No additional migrations are needed; the tables referenced by the erasure plan
+already exist from prior feature migrations.
+
+To manually trigger the retention purge (e.g. to run immediately):
+```
+POST /.netlify/functions/gdpr-retention-purge
+Authorization: Bearer <admin-session-token>
+```
+
 ## Where this lives in code
 
 - `src/features/gdpr/gdprLogic.ts` — `RETENTION_POLICY`, `ERASURE_PLAN`,
   `ANONYMIZED_NAME`, the export collector/serializers, and the request model.
+- `src/features/gdpr/gdprErasureApi.ts` — client-side callers for the two
+  Netlify functions; no-ops when `isSupabaseConfigured` is false.
 - `src/shared/store/gdprStore.ts` — persisted request queue + erased-id marker,
-  best-effort mirrored to `data_subject_requests` when a backend is present.
+  best-effort mirrored to `data_subject_requests` when a backend is present;
+  fires `triggerErasure` when a completed erasure is actioned.
 - `supabase/migrations/20260522000018_data_subject_requests.sql` — the request
   table with append/no-delete RLS (resident files + reads own; admin/president
   reads + actions).

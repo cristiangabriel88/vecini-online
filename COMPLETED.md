@@ -4,6 +4,15 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T72 P2 ✅ 2026-06-03 -- Live activation: server-side erasure execution + retention cleanup
+- new: netlify/functions/gdpr-erasure.ts (POST, bearer auth, ERASURE_PLAN phases 1+2, membership removal, auth.admin.deleteUser when no remaining memberships, rate-limit 10/hr/uid)
+- new: netlify/functions/gdpr-retention-purge.ts (monthly scheduled + manual POST, purges auth_audit_events >12 months + resolved tickets >1 year, rate-limit 5/hr/IP)
+- new: src/features/gdpr/gdprErasureApi.ts (triggerErasure + triggerRetentionPurge, no-ops offline)
+- updated: src/shared/store/gdprStore.ts (fires triggerErasure on completed erasure action)
+- updated: DATA_RETENTION.md (live-activation apply steps documented)
+- new: tests/unit/gdprErasureApi.test.ts (7 assertions: offline-path no-ops, erasedUserIds flow)
+- result: 218 files / 2181 tests / lint + typecheck + build + build:pi + build:demo all green
+
 ### ✅ T106 — [P2] Live activation: persist the per-resident home layout (`home_layouts`)
 Done: New `src/features/home/homeLayoutApi.ts` -- `hydrateHomeLayout(residentId, asociatieId)` reads the resident's row from `home_layouts` under owner RLS (unique on resident+asociatie), writes raw cards to the local `homeLayoutStore` (the component reconciles against current feature flags via `reconcileLayout` exactly as it does offline); `persistHomeLayout(residentId, asociatieId, cards)` upserts on the unique constraint so the personalized layout follows the resident across devices; `deleteHomeLayout(residentId, asociatieId)` removes the row when the resident resets to the default. All functions guard on `isSupabaseConfigured` with offline fallback. `HomePage.tsx` wired: `useEffect` hydrates on mount when both ids are available; `apply()` calls `persistHomeLayout` fire-and-forget alongside the synchronous store write; the reset button also calls `deleteHomeLayout` fire-and-forget. No new migration needed -- `home_layouts` table + owner-RLS policy already shipped in `20260524000001_home_layouts.sql`. New `tests/unit/homeLayoutApi.test.ts` (5 assertions: offline-path no-ops for hydrate/empty-ids/persist/delete). 217 files / 2174 tests / lint + typecheck + build + build:pi + build:demo all green.
 
