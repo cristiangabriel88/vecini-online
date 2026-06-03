@@ -105,6 +105,12 @@ interface MfaState {
    * user to copy them. Never persisted. Cleared once acknowledged.
    */
   recoveryCodes: string[] | null;
+  /**
+   * Count of unused recovery codes remaining for this account.
+   * null = not yet loaded. Demo: tracks demoRecoveryHashes.length.
+   * Live: loaded from mfa_recovery_codes via loadRecoveryCodesCount().
+   */
+  recoveryCodesRemaining: number | null;
 
   // Demo-only persisted state (no backend to hold it). Never used in the live
   // path, where Supabase is the source of truth.
@@ -164,6 +170,8 @@ interface MfaState {
   pendingDemoRole: Role | null;
 
   // Actions -- TOTP / recovery (unchanged from T02/T31)
+  /** Load (or recompute) the count of unused recovery codes for display in the security card. */
+  loadRecoveryCodesCount: () => Promise<void>;
   load: () => Promise<void>;
   beginEnroll: (account: string) => Promise<OpResult>;
   confirmEnroll: (code: string) => Promise<OpResult>;
@@ -268,6 +276,7 @@ export const useMfaStore = create<MfaState>()(
       enrolled: false,
       draft: null,
       recoveryCodes: null,
+      recoveryCodesRemaining: null,
       demoSecret: null,
       demoRecoveryHashes: [],
       challengeThrottle: emptyThrottle(),
@@ -279,6 +288,21 @@ export const useMfaStore = create<MfaState>()(
       demoResendAt: {},
       otpThrottles: {},
       pendingDemoRole: null,
+
+      loadRecoveryCodesCount: async () => {
+        if (!isSupabaseConfigured) {
+          set({ recoveryCodesRemaining: get().demoRecoveryHashes.length });
+          return;
+        }
+        const { data } = await supabase.auth.getUser();
+        const userId = data.user?.id;
+        if (!userId) return;
+        const { count } = await supabase
+          .from('mfa_recovery_codes')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', userId);
+        set({ recoveryCodesRemaining: count ?? 0 });
+      },
 
       load: async () => {
         if (!isSupabaseConfigured) {
@@ -340,6 +364,7 @@ export const useMfaStore = create<MfaState>()(
             enrolled: true,
             draft: null,
             recoveryCodes: codes,
+            recoveryCodesRemaining: codes.length,
           });
           useSecurityStore.getState().log('mfaEnabled');
           return { error: null };
@@ -363,7 +388,7 @@ export const useMfaStore = create<MfaState>()(
         } catch {
           /* recovery storage is best-effort; enrolment itself succeeded */
         }
-        set({ enrolled: true, draft: null, recoveryCodes: codes });
+        set({ enrolled: true, draft: null, recoveryCodes: codes, recoveryCodesRemaining: codes.length });
         useSecurityStore.getState().log('mfaEnabled');
         return { error: null };
       },
@@ -378,7 +403,7 @@ export const useMfaStore = create<MfaState>()(
 
       disable: async () => {
         if (!isSupabaseConfigured) {
-          set({ demoSecret: null, demoRecoveryHashes: [], enrolled: false, recoveryCodes: null });
+          set({ demoSecret: null, demoRecoveryHashes: [], enrolled: false, recoveryCodes: null, recoveryCodesRemaining: 0 });
           useSecurityStore.getState().log('mfaDisabled');
           return { error: null };
         }
@@ -395,7 +420,7 @@ export const useMfaStore = create<MfaState>()(
         } catch {
           /* non-fatal */
         }
-        set({ enrolled: false, recoveryCodes: null });
+        set({ enrolled: false, recoveryCodes: null, recoveryCodesRemaining: 0 });
         useSecurityStore.getState().log('mfaDisabled');
         return { error: null };
       },
@@ -405,7 +430,7 @@ export const useMfaStore = create<MfaState>()(
         const codes = generateRecoveryCodes();
         const hashes = await hashRecoveryCodes(codes);
         if (!isSupabaseConfigured) {
-          set({ demoRecoveryHashes: hashes, recoveryCodes: codes });
+          set({ demoRecoveryHashes: hashes, recoveryCodes: codes, recoveryCodesRemaining: codes.length });
           useSecurityStore.getState().log('recoveryCodesRegenerated');
           return { error: null };
         }
@@ -414,7 +439,7 @@ export const useMfaStore = create<MfaState>()(
         } catch {
           /* best-effort */
         }
-        set({ recoveryCodes: codes });
+        set({ recoveryCodes: codes, recoveryCodesRemaining: codes.length });
         useSecurityStore.getState().log('recoveryCodesRegenerated');
         return { error: null };
       },
@@ -471,7 +496,7 @@ export const useMfaStore = create<MfaState>()(
               input,
             );
             if (!matched) return { error: 'invalid-code' };
-            set({ demoRecoveryHashes: remaining });
+            set({ demoRecoveryHashes: remaining, recoveryCodesRemaining: remaining.length });
             return { error: null };
           }
 

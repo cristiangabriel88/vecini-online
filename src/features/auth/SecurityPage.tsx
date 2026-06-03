@@ -15,6 +15,7 @@ import {
   Send,
   MessageCircle,
   CheckCircle2,
+  AlertTriangle,
 } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
@@ -65,7 +66,9 @@ export default function SecurityPage() {
     enrolled,
     draft,
     recoveryCodes,
+    recoveryCodesRemaining,
     load,
+    loadRecoveryCodesCount,
     loadChannels,
     beginEnroll,
     confirmEnroll,
@@ -89,6 +92,7 @@ export default function SecurityPage() {
   const [busy, setBusy] = useState(false);
   const [confirmDisable, setConfirmDisable] = useState(false);
   const [confirmSignOutAll, setConfirmSignOutAll] = useState(false);
+  const [confirmRegen, setConfirmRegen] = useState(false);
   // In-app AAL2 step-up: a re-gated session (enrolled but still at AAL1) is
   // steered here by `useMfaEnforcement`, but the TOTP/recovery challenge itself
   // otherwise lives only in the login flow. Surface it here so the session can
@@ -113,7 +117,8 @@ export default function SecurityPage() {
   useEffect(() => {
     void load();
     void loadChannels();
-  }, [load, loadChannels]);
+    void loadRecoveryCodesCount();
+  }, [load, loadChannels, loadRecoveryCodesCount]);
 
   // Clean up the resend countdown timer when the component unmounts.
   useEffect(() => {
@@ -288,6 +293,7 @@ export default function SecurityPage() {
   };
 
   const onRegenerate = async () => {
+    setConfirmRegen(false);
     setBusy(true);
     try {
       const { error } = await regenerateRecoveryCodes();
@@ -675,19 +681,50 @@ export default function SecurityPage() {
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
               {enrolled ? (
-                <>
-                  <Button variant="secondary" onClick={onRegenerate} loading={busy}>
-                    <KeyRound className="h-4 w-4" /> {t('auth.mfa.regenerate')}
-                  </Button>
-                  <Button variant="danger" onClick={() => setConfirmDisable(true)} disabled={busy}>
-                    {t('auth.mfa.disable')}
-                  </Button>
-                </>
+                <Button variant="danger" onClick={() => setConfirmDisable(true)} disabled={busy}>
+                  {t('auth.mfa.disable')}
+                </Button>
               ) : (
                 <Button onClick={onBegin} loading={busy}>
                   <ShieldCheck className="h-4 w-4" /> {t('auth.mfa.enable')}
                 </Button>
               )}
+            </div>
+          </Card>
+        )}
+
+        {/* Recovery codes card — shown only when TOTP is enrolled. */}
+        {enrolled && !draft && !recoveryCodes && (
+          <Card title={t('auth.mfa.codesCardTitle')}>
+            <p className="text-sm text-muted">{t('auth.mfa.codesCardBody')}</p>
+            <div className="mt-3 flex items-center gap-2">
+              <KeyRound className="h-4 w-4 shrink-0 text-muted" />
+              <span
+                className="text-sm font-medium"
+                style={{
+                  color:
+                    recoveryCodesRemaining === 0
+                      ? 'var(--warning)'
+                      : 'var(--text)',
+                }}
+              >
+                {recoveryCodesRemaining === null
+                  ? null
+                  : t('auth.mfa.codesRemaining', { count: recoveryCodesRemaining })}
+              </span>
+            </div>
+            {needsStepUp && isSupabaseConfigured && (
+              <p className="mt-3 text-sm text-muted">{t('auth.mfa.codesStepUpHint')}</p>
+            )}
+            <div className="mt-4">
+              <Button
+                variant="secondary"
+                onClick={() => setConfirmRegen(true)}
+                loading={busy}
+                disabled={needsStepUp && isSupabaseConfigured}
+              >
+                <KeyRound className="h-4 w-4" /> {t('auth.mfa.regenerate')}
+              </Button>
             </div>
           </Card>
         )}
@@ -842,6 +879,27 @@ export default function SecurityPage() {
         }
       >
         <p className="text-sm text-muted">{t('auth.sessions.confirmBody')}</p>
+      </Modal>
+
+      <Modal
+        open={confirmRegen}
+        onClose={() => setConfirmRegen(false)}
+        title={t('auth.mfa.regenConfirmTitle')}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setConfirmRegen(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button variant="danger" onClick={onRegenerate} loading={busy}>
+              {t('auth.mfa.regenConfirm')}
+            </Button>
+          </>
+        }
+      >
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
+          <p className="text-sm text-muted">{t('auth.mfa.regenConfirmBody')}</p>
+        </div>
       </Modal>
     </div>
   );

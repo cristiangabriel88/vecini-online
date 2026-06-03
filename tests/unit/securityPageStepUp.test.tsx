@@ -28,9 +28,16 @@ vi.mock('@/shared/lib/supabase', () => ({
       getUser: async () => ({ data: { user: { id: 'u1' } } }),
       getSession: async () => ({ data: { session: null } }),
     },
-    // loadChannels() queries mfa_channels; return empty list so the demo
-    // channel state (seeded via useMfaStore.setState) drives the tests.
-    from: () => ({ select: () => Promise.resolve({ data: [], error: null }) }),
+    // loadChannels() queries mfa_channels; loadRecoveryCodesCount() queries
+    // mfa_recovery_codes. Return empty/zero results so the seeded store state
+    // drives the tests.
+    from: () => ({
+      select: (_cols?: string, _opts?: unknown) => ({
+        eq: async () => ({ count: 5, error: null }),
+        then: (resolve: (v: { data: unknown[]; error: null }) => void) =>
+          Promise.resolve({ data: [], error: null }).then(resolve),
+      }),
+    }),
   },
 }));
 

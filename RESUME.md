@@ -5,18 +5,25 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-03
-- last_task: T206 (P2) F17 Sesizări: photo attachments live wiring
+- last_task: T207 (P2) Recovery codes view + regenerate in SecurityPage
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 214 files / 2128 tests
+- counts: 214 files / 2134 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T207 Recovery codes view + regenerate in SecurityPage [P2]
+- next: T208 E2E coverage for shared-resource booking features [P3]
 - features: 67/67 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F33 (18 features) + auth/invites/onboarding; rest offline-first, pending live-activation track. F28/F36/F66 cross-feature glue wired (T104). Platform console: shell + provisioning done (T93/T94); oversight tools T95-T99 on hold.
 - e2e: F01/F02/F03/F04/F05/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F18/F35/F36/F40 happy paths green on chromium + mobile (20 features with passing E2E). auth/consent/isolation/smoke/batch specs still predate the auto-demo-entry harness (T16)
 - blockers: full e2e harness rework (entry helpers + login-page specs) deferred to T16; Chromium installed locally
 - completion_estimate: 54% of original product vision delivered end-to-end (2026-06-03 replenish audit). Detail: all 67 features demo-complete and offline-functional (high-value deliverable); 18/67 live-wired to real Supabase backend; GDPR surface ~70% (server-side erasure + breach fan-out pending); security posture ~85% (rate-limit gaps on 4 functions, idle-timeout not enforced); Telegram bot 0% (fully deferred, passive in codebase); SaaS billing 0% (T19 on hold); platform console ~30% (shell + provisioning done, oversight tools T95-T99 pending); E2E coverage 25% (17/67 features with passing happy-path tests). Main blockers to 70%+: live-wire remaining 49 features (on-hold track), ship Telegram bot (T15), close security gaps (T197-T198), build E2E for core features (T199/T201/T203).
 
 ---
+
+### T207 P2 ✅ 2026-06-03 -- Recovery codes view + regenerate in SecurityPage
+- extended: src/shared/store/mfaStore.ts (recoveryCodesRemaining state; loadRecoveryCodesCount action; confirmEnroll/disable/regenerateRecoveryCodes/verifyChallenge all update count)
+- updated: src/features/auth/SecurityPage.tsx (new "Coduri de recuperare" card with count + gated regenerate button + confirmation modal; regenerate removed from TOTP status card)
+- updated: src/shared/locales/en.json + ro.json (11 new auth.mfa keys: codesCardTitle/Body, codesRemaining_zero/one/few/other, codesStepUpHint, regenConfirmTitle/Body/Confirm)
+- updated: tests/unit/securityPageStepUp.test.tsx (supabase stub extended to support .eq chain)
+- new: tests/unit/recoveryCodesView.test.ts (5 assertions)
 
 ### T206 P2 ✅ 2026-06-03 -- F17 Sesizări: photo attachments live wiring
 - new: src/shared/types/domain.ts (TicketAttachment type; Ticket.attachments optional field)
