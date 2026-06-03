@@ -26,7 +26,7 @@ test('F06 — resident publishes a neighbour post', async ({ page }) => {
 test('F07 — resident searches the FAQ and marks an answer helpful', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/faq');
-  await page.getByLabel(/caută/i).fill('apa calda');
+  await page.getByRole('textbox', { name: /caută/i }).fill('apa calda');
   const card = page.getByRole('heading', { name: /apa caldă/i });
   await expect(card).toBeVisible();
   await page.getByRole('button', { name: /^Util$/i }).first().click();
@@ -59,7 +59,7 @@ test('F14 — resident upvotes an idea and sees the vote count change', async ({
 test('F18 — committee searches the repair history', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/istoric-reparatii');
-  await page.getByLabel(/caută/i).fill('pompa');
+  await page.getByRole('textbox', { name: /caută/i }).fill('pompa');
   await expect(page.getByRole('heading', { name: /pompă hidrofor/i })).toBeVisible();
   await expect(page.getByRole('heading', { name: /revizie/i })).toHaveCount(0);
 });
@@ -83,6 +83,17 @@ test('F21 — committee reviews and acknowledges a recurring issue', async ({ pa
 });
 
 test('F35 — resident sees their apartment info aggregation', async ({ page }) => {
+  // F35 audience is 'proprietar' only; set that persona and mark the welcome flow
+  // as already seen so RequireWelcome does not redirect to /bun-venit.
+  await page.addInitScript(() => {
+    try {
+      localStorage.setItem('iv.demo.role', 'proprietar');
+      localStorage.setItem('vecini.welcome', JSON.stringify({
+        state: { seenByUser: { 'u-res': '2026-01-01T00:00:00.000Z' } },
+        version: 0,
+      }));
+    } catch { /* storage unavailable */ }
+  });
   await enterDemo(page);
   await page.goto('/app/apartament-info');
   // Apartment summary header.
@@ -97,7 +108,7 @@ test('F36 — resident searches the opt-in neighbour directory', async ({ page }
   await enterDemo(page);
   await page.goto('/app/vecini');
   await expect(page.getByText('Georgescu Elena')).toBeVisible();
-  await page.getByLabel(/caută/i).fill('georgescu');
+  await page.getByRole('textbox', { name: /caută/i }).fill('georgescu');
   await expect(page.getByText('Georgescu Elena')).toBeVisible();
   await expect(page.getByText('Stan Gabriela')).toHaveCount(0);
 });
@@ -115,10 +126,12 @@ test('F38 — resident posts a thank-you to the wall', async ({ page }) => {
 test('F40 — resident searches the glossary', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/glosar');
-  await expect(page.getByText('Cenzor')).toBeVisible();
-  await page.getByLabel(/caută/i).fill('rulment');
+  // Scope to #main-content to avoid matching the demo role-switcher chip.
+  const main = page.locator('#main-content');
+  await expect(main.getByText('Cenzor')).toBeVisible();
+  await page.getByRole('textbox', { name: /caută/i }).fill('rulment');
   await expect(page.getByText('Fond de rulment')).toBeVisible();
-  await expect(page.getByText('Cenzor')).toHaveCount(0);
+  await expect(main.getByText('Cenzor')).toHaveCount(0);
 });
 
 test('T67 - admin advances a ticket through the status lifecycle', async ({ page }) => {
