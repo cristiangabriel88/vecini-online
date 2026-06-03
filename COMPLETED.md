@@ -4,6 +4,9 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### ✅ T120 — [P2] Live activation: cross-tenant asociații list read + server-mediated provisioning
+Done: New `src/platform/platformApi.ts` — `hydrateAsociatiiList()` reads 4 tables in parallel (`asociatii`, `memberships`, `apartments`, `auth_audit_events`) using the T91 super_admin cross-tenant RLS policies; groups member + apartment counts in JS; derives the last sign-in per asociatie from sign_in events; calls `replaceAsociatii` on success, `setFetchError('load')` on failure, behind `isSupabaseConfigured`. New migration `20260603000005_platform_superadmin_auth_audit.sql` adds the missing super_admin SELECT policy on `auth_audit_events` (needed for the dormant signal). `platformAsociatiiStore` extended with `fetchError / setFetchError / replaceAsociatii` (not persisted — live data is always refetched on mount). `PlatformAsociatiiPage` wires a `useEffect` that calls `hydrateAsociatiiList()` on mount, shows `ErrorState` with retry on failure, and hides the list while hydrating an empty result. Provisioning was already server-mediated via the T152 `provision-asociatie` Netlify function (no change needed there). 6 new assertions in `tests/unit/platformApi.test.ts` (offline no-op, replaceAsociatii updates list, setFetchError sets/clears). 221 files / 2196 tests / lint + typecheck + build + build:pi + build:demo all green.
+
 ### T119 P2 ✅ 2026-06-03 -- Platform-shell access E2E
 - new: tests/e2e/platform.spec.ts (4 tests: login page gate, demo smoke round-trip, asociatii navigation, live-path guard skip)
 - demo smoke: enter demo console → /consola overview (welcome h1, .platform-demobadge, stats region) → sign out → back at login

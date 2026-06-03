@@ -93,6 +93,12 @@ interface PlatformAsociatiiState {
    * during the onboarding wizard (T154) after accepting.
    */
   pendingInvites: PendingAdminInvite[];
+  /** Set by the live hydration path when a fetch fails; null when healthy. */
+  fetchError: string | null;
+  /** Replace the asociatii list with live data from the DB (T120 live read). */
+  replaceAsociatii: (rows: PlatformAsociatieSummary[]) => void;
+  /** Set or clear the fetch error (called by platformApi). */
+  setFetchError: (err: string | null) => void;
   /** Provision a new asociație + its first admin (offline path). */
   provision: (input: ProvisionInput) => ProvisionResult;
   /**
@@ -129,6 +135,15 @@ export const usePlatformAsociatiiStore = create<PlatformAsociatiiState>()(
       asociatii: sortAsociatii(DEMO_PLATFORM_ASOCIATII),
       provisions: {},
       pendingInvites: [],
+      fetchError: null,
+
+      replaceAsociatii: (rows) => {
+        set(() => ({ asociatii: rows }));
+      },
+
+      setFetchError: (err) => {
+        set(() => ({ fetchError: err }));
+      },
 
       provision: (input) => {
         const existingCodes = Object.values(get().provisions).map((p) => p.setupCode);

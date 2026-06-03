@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -17,9 +18,12 @@ import { PageHeader } from '@/shared/components/PageHeader';
 import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { formatDate } from '@/shared/lib/format';
+import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import { usePlatformAsociatiiStore } from './platformAsociatiiStore';
 import { isDormant } from './platformProvisioningLogic';
+import { hydrateAsociatiiList } from './platformApi';
 
 /**
  * Superadmin console: asociații list page (T94, updated T152).
@@ -39,6 +43,19 @@ export default function PlatformAsociatiiPage() {
   const asociatii = usePlatformAsociatiiStore((s) => s.asociatii);
   const provisions = usePlatformAsociatiiStore((s) => s.provisions);
   const pendingInvites = usePlatformAsociatiiStore((s) => s.pendingInvites);
+  const fetchError = usePlatformAsociatiiStore((s) => s.fetchError);
+  const [isHydrating, setIsHydrating] = useState(false);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    setIsHydrating(true);
+    void hydrateAsociatiiList().finally(() => setIsHydrating(false));
+  }, []);
+
+  const retry = () => {
+    setIsHydrating(true);
+    void hydrateAsociatiiList().finally(() => setIsHydrating(false));
+  };
 
   const openAddPage = () => navigate('/consola/asociatii/adauga');
 
@@ -80,138 +97,152 @@ export default function PlatformAsociatiiPage() {
         </section>
       )}
 
-      {/* ── Asociații list ─────────────────────────────────────────────── */}
-      <div className="platform-asoc-listhead">
-        <h2 className="platform-overview__sectionhead">{t('platform.asociatii.listTitle')}</h2>
-        <span className="platform-asoc-count">
-          {t('platform.asociatii.count', { count: asociatii.length })}
-        </span>
-      </div>
-
-      {asociatii.length === 0 ? (
-        <EmptyState
-          icon={<Building2 size={22} />}
-          body={t('platform.asociatii.empty')}
+      {/* ── Fetch error ──────────────────────────────────────────────────── */}
+      {fetchError && !isHydrating && (
+        <ErrorState
+          title={t('common.errorTitle')}
+          body={t('common.loadError')}
           action={
-            <Button onClick={openAddPage}>
-              <Plus className="h-4 w-4" /> {t('platform.asociatii.provisionCta')}
+            <Button variant="ghost" onClick={retry}>
+              {t('common.retry')}
             </Button>
           }
         />
-      ) : (
-        <div className="platform-asoc-grid">
-          {asociatii.map((a) => {
-            const dormant = isDormant(a.lastAdminSignInAt);
-            const prov = provisions[a.id];
-            return (
-              <article key={a.id} className="platform-asoc-card">
-                <header className="platform-asoc-card__head">
-                  <span className="platform-asoc-card__icon" aria-hidden="true">
-                    <Building2 size={18} />
-                  </span>
-                  <div className="platform-asoc-card__title-wrap">
-                    <h3 className="platform-asoc-card__title">{a.name}</h3>
-                    <p className="platform-asoc-card__city">{a.city}</p>
-                  </div>
-                  <Badge tone={dormant ? 'warning' : 'success'}>
-                    {dormant ? t('platform.asociatii.dormant') : t('platform.asociatii.active')}
-                  </Badge>
-                </header>
+      )}
 
-                <div className="platform-asoc-card__stats">
-                  <span className="platform-asoc-stat">
-                    <Users size={14} aria-hidden="true" />
-                    {t('platform.asociatii.members', { count: a.members })}
-                  </span>
-                  <span className="platform-asoc-stat">
-                    <HomeIcon size={14} aria-hidden="true" />
-                    {t('platform.asociatii.apartments', { count: a.apartments })}
-                  </span>
-                </div>
+      {/* ── Asociații list ─────────────────────────────────────────────── */}
+      {!fetchError && (
+        <>
+          <div className="platform-asoc-listhead">
+            <h2 className="platform-overview__sectionhead">{t('platform.asociatii.listTitle')}</h2>
+            <span className="platform-asoc-count">
+              {t('platform.asociatii.count', { count: asociatii.length })}
+            </span>
+          </div>
 
-                <p className="platform-asoc-card__signin">
-                  {a.lastAdminSignInAt
-                    ? t('platform.asociatii.lastSignIn', { date: formatDate(a.lastAdminSignInAt) })
-                    : t('platform.asociatii.neverSignedIn')}
-                </p>
-
-                {(a.address || a.cui || a.iban || a.contactPhone || a.contactEmail) && (
-                  <dl className="platform-asoc-card__identity">
-                    {a.address && (
-                      <div className="platform-asoc-identity-row">
-                        <dt>
-                          <MapPin size={13} aria-hidden="true" />
-                          {t('platform.asociatii.fields.address')}
-                        </dt>
-                        <dd>{a.address}</dd>
-                      </div>
-                    )}
-                    {a.cui && (
-                      <div className="platform-asoc-identity-row">
-                        <dt>
-                          <Hash size={13} aria-hidden="true" />
-                          {t('platform.asociatii.fields.cui')}
-                        </dt>
-                        <dd>{a.cui}</dd>
-                      </div>
-                    )}
-                    {a.iban && (
-                      <div className="platform-asoc-identity-row">
-                        <dt>
-                          <Landmark size={13} aria-hidden="true" />
-                          {t('platform.asociatii.fields.iban')}
-                        </dt>
-                        <dd>{a.iban}</dd>
-                      </div>
-                    )}
-                    {a.contactPhone && (
-                      <div className="platform-asoc-identity-row">
-                        <dt>
-                          <Phone size={13} aria-hidden="true" />
-                          {t('platform.asociatii.fields.contactPhone')}
-                        </dt>
-                        <dd>{a.contactPhone}</dd>
-                      </div>
-                    )}
-                    {a.contactEmail && (
-                      <div className="platform-asoc-identity-row">
-                        <dt>
-                          <Mail size={13} aria-hidden="true" />
-                          {t('platform.asociatii.fields.contactEmail')}
-                        </dt>
-                        <dd>{a.contactEmail}</dd>
-                      </div>
-                    )}
-                  </dl>
-                )}
-
-                {/* Admin info (old provisioning records): name/email + badge only.
-                    Setup codes and links are no longer shown in the UI (T152);
-                    they live in the emailed invitation (T153 template). */}
-                {prov && !prov.redeemedAt && (
-                  <div className="platform-asoc-card__admin">
-                    <div className="platform-asoc-card__admin-head">
-                      <span className="platform-asoc-card__admin-icon" aria-hidden="true">
-                        <UserCog size={14} />
+          {asociatii.length === 0 && !isHydrating ? (
+            <EmptyState
+              icon={<Building2 size={22} />}
+              body={t('platform.asociatii.empty')}
+              action={
+                <Button onClick={openAddPage}>
+                  <Plus className="h-4 w-4" /> {t('platform.asociatii.provisionCta')}
+                </Button>
+              }
+            />
+          ) : (
+            <div className="platform-asoc-grid">
+              {asociatii.map((a) => {
+                const dormant = isDormant(a.lastAdminSignInAt);
+                const prov = provisions[a.id];
+                return (
+                  <article key={a.id} className="platform-asoc-card">
+                    <header className="platform-asoc-card__head">
+                      <span className="platform-asoc-card__icon" aria-hidden="true">
+                        <Building2 size={18} />
                       </span>
-                      <div className="platform-asoc-card__admin-meta">
-                        <span className="platform-asoc-card__admin-label">
-                          {t('platform.asociatii.adminLabel')}
-                        </span>
-                        <span className="platform-asoc-card__admin-name">{prov.name}</span>
-                        <span className="platform-asoc-card__admin-email">{prov.email}</span>
+                      <div className="platform-asoc-card__title-wrap">
+                        <h3 className="platform-asoc-card__title">{a.name}</h3>
+                        {a.city && <p className="platform-asoc-card__city">{a.city}</p>}
                       </div>
-                      <Badge tone="warning">{t('platform.asociatii.pendingSetup')}</Badge>
+                      <Badge tone={dormant ? 'warning' : 'success'}>
+                        {dormant ? t('platform.asociatii.dormant') : t('platform.asociatii.active')}
+                      </Badge>
+                    </header>
+
+                    <div className="platform-asoc-card__stats">
+                      <span className="platform-asoc-stat">
+                        <Users size={14} aria-hidden="true" />
+                        {t('platform.asociatii.members', { count: a.members })}
+                      </span>
+                      <span className="platform-asoc-stat">
+                        <HomeIcon size={14} aria-hidden="true" />
+                        {t('platform.asociatii.apartments', { count: a.apartments })}
+                      </span>
                     </div>
-                    <p className="platform-asoc-card__provisioned">
-                      {t('platform.asociatii.provisionedOn', { date: formatDate(prov.provisionedAt) })}
+
+                    <p className="platform-asoc-card__signin">
+                      {a.lastAdminSignInAt
+                        ? t('platform.asociatii.lastSignIn', { date: formatDate(a.lastAdminSignInAt) })
+                        : t('platform.asociatii.neverSignedIn')}
                     </p>
-                  </div>
-                )}
-              </article>
-            );
-          })}
-        </div>
+
+                    {(a.address || a.cui || a.iban || a.contactPhone || a.contactEmail) && (
+                      <dl className="platform-asoc-card__identity">
+                        {a.address && (
+                          <div className="platform-asoc-identity-row">
+                            <dt>
+                              <MapPin size={13} aria-hidden="true" />
+                              {t('platform.asociatii.fields.address')}
+                            </dt>
+                            <dd>{a.address}</dd>
+                          </div>
+                        )}
+                        {a.cui && (
+                          <div className="platform-asoc-identity-row">
+                            <dt>
+                              <Hash size={13} aria-hidden="true" />
+                              {t('platform.asociatii.fields.cui')}
+                            </dt>
+                            <dd>{a.cui}</dd>
+                          </div>
+                        )}
+                        {a.iban && (
+                          <div className="platform-asoc-identity-row">
+                            <dt>
+                              <Landmark size={13} aria-hidden="true" />
+                              {t('platform.asociatii.fields.iban')}
+                            </dt>
+                            <dd>{a.iban}</dd>
+                          </div>
+                        )}
+                        {a.contactPhone && (
+                          <div className="platform-asoc-identity-row">
+                            <dt>
+                              <Phone size={13} aria-hidden="true" />
+                              {t('platform.asociatii.fields.contactPhone')}
+                            </dt>
+                            <dd>{a.contactPhone}</dd>
+                          </div>
+                        )}
+                        {a.contactEmail && (
+                          <div className="platform-asoc-identity-row">
+                            <dt>
+                              <Mail size={13} aria-hidden="true" />
+                              {t('platform.asociatii.fields.contactEmail')}
+                            </dt>
+                            <dd>{a.contactEmail}</dd>
+                          </div>
+                        )}
+                      </dl>
+                    )}
+
+                    {prov && !prov.redeemedAt && (
+                      <div className="platform-asoc-card__admin">
+                        <div className="platform-asoc-card__admin-head">
+                          <span className="platform-asoc-card__admin-icon" aria-hidden="true">
+                            <UserCog size={14} />
+                          </span>
+                          <div className="platform-asoc-card__admin-meta">
+                            <span className="platform-asoc-card__admin-label">
+                              {t('platform.asociatii.adminLabel')}
+                            </span>
+                            <span className="platform-asoc-card__admin-name">{prov.name}</span>
+                            <span className="platform-asoc-card__admin-email">{prov.email}</span>
+                          </div>
+                          <Badge tone="warning">{t('platform.asociatii.pendingSetup')}</Badge>
+                        </div>
+                        <p className="platform-asoc-card__provisioned">
+                          {t('platform.asociatii.provisionedOn', { date: formatDate(prov.provisionedAt) })}
+                        </p>
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
