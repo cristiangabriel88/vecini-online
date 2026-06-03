@@ -14,10 +14,10 @@ export function genId(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID();
   }
-  // Fallback: 8 hex chars of timestamp + 12 hex chars of random = 20 chars.
+  // Fallback: timestamp fills groups 1-2, two random values fill groups 3-5.
   const t = Date.now().toString(16).padStart(12, '0');
-  const r = Math.floor(Math.random() * 0xffffffffffff)
-    .toString(16)
-    .padStart(12, '0');
-  return `${t.slice(0, 8)}-${t.slice(8)}-4${r.slice(0, 3)}-${r.slice(3, 7)}-${r.slice(7)}`;
+  const r = Math.floor(Math.random() * 0xffffffffffff).toString(16).padStart(12, '0');
+  const r2 = Math.floor(Math.random() * 0xffffffffffff).toString(16).padStart(12, '0');
+  const v = (8 | (Math.random() * 4 | 0)).toString(16); // variant: 8, 9, a, or b
+  return `${t.slice(0, 8)}-${t.slice(8)}-4${r.slice(0, 3)}-${v}${r.slice(3, 6)}-${r2}`;
 }
