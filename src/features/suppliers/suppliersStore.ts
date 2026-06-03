@@ -1,36 +1,47 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { Supplier } from '@/shared/types/domain';
-import { DEMO_SUPPLIERS } from '@/shared/demo/demoData';
-
-interface NewSupplier {
-  name: string;
-  kind: string;
-  contact: string;
-  contract_end: string;
-}
+import { useAuthStore } from '@/shared/store/authStore';
+import {
+  type SuppliersByAsociatie,
+  seedSuppliers,
+  suppliersForAsociatie,
+  addSupplierIn,
+  migrateSuppliersState,
+} from './supplierLogic';
 
 interface SuppliersState {
-  suppliers: Supplier[];
-  add: (input: NewSupplier) => void;
+  byAsociatie: SuppliersByAsociatie;
+  fetchError: string | null;
+  addSupplier: (asociatieId: string, supplier: Supplier) => void;
+  replaceForAsociatie: (asociatieId: string, suppliers: Supplier[]) => void;
+  setFetchError: (msg: string | null) => void;
 }
 
-export const useSuppliersStore = create<SuppliersState>((set) => ({
-  suppliers: [...DEMO_SUPPLIERS],
-  add: ({ name, kind, contact, contract_end }) =>
-    set((s) => ({
-      suppliers: [
-        {
-          id: `sup-${Date.now()}`,
-          asociatie_id: 'demo-asoc',
-          name: name.trim(),
-          kind: kind.trim(),
-          contact: contact.trim() || null,
-          account_number: null,
-          contract_start: null,
-          contract_end: contract_end || null,
-          last_invoice_date: null,
-        },
-        ...s.suppliers,
-      ],
-    })),
-}));
+export const useSuppliersStore = create<SuppliersState>()(
+  persist(
+    (set) => ({
+      byAsociatie: seedSuppliers(),
+      fetchError: null,
+
+      addSupplier: (asociatieId, supplier) =>
+        set((s) => ({ byAsociatie: addSupplierIn(s.byAsociatie, asociatieId, supplier) })),
+
+      replaceForAsociatie: (asociatieId, suppliers) =>
+        set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: suppliers } })),
+
+      setFetchError: (msg) => set({ fetchError: msg }),
+    }),
+    {
+      name: 'vecini.suppliers',
+      version: 1,
+      partialize: (s) => ({ byAsociatie: s.byAsociatie }),
+      migrate: (persisted) => ({ byAsociatie: migrateSuppliersState(persisted) }),
+    },
+  ),
+);
+
+export function useAsociatieSuppliers(): Supplier[] {
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  return useSuppliersStore((s) => suppliersForAsociatie(s.byAsociatie, asociatieId));
+}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { PawPrint, Plus } from 'lucide-react';
@@ -9,13 +9,21 @@ import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
 import { Select } from '@/shared/components/Select';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
-import { usePetsStore } from './petsStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useMyIdentity, useProfileStore } from '@/features/profile/profileStore';
+import { usePetsStore, useAsociatiePets } from './petsStore';
+import { hydratePets, addPetLive, togglePetLostLive } from './petsApi';
 import { isValidPet, PET_SPECIES, searchPets, type PetSpecies } from './petLogic';
 
 export default function PetsPage() {
   const { t } = useTranslation();
-  const { pets, add, toggleLost } = usePetsStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const fetchError = usePetsStore((s) => s.fetchError);
+  const pets = useAsociatiePets();
+  const { userId, email } = useMyIdentity();
+  const profileGet = useProfileStore((s) => s.get);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<PetSpecies | 'all'>('all');
   const [open, setOpen] = useState(false);
@@ -23,18 +31,49 @@ export default function PetsPage() {
   const [species, setSpecies] = useState<PetSpecies>('caine');
   const [contact, setContact] = useState('');
 
+  useEffect(() => {
+    if (asociatieId) void hydratePets(asociatieId);
+  }, [asociatieId]);
+
   const results = searchPets(pets, query, filter);
   const valid = isValidPet(name, species);
 
   const submit = () => {
-    if (!valid) return;
-    add({ name, species, emergencyContact: contact });
+    if (!valid || !asociatieId) return;
+    const profile = profileGet(userId, email);
+    const ownerName = profile.fullName || profile.displayName || 'Rezident';
+    const newPet = {
+      id: `pet-${Date.now()}`,
+      asociatie_id: asociatieId,
+      owner_user_id: userId ?? 'u-res',
+      owner_name: ownerName,
+      name: name.trim(),
+      species: species.trim(),
+      photo_path: null,
+      emergency_contact: contact.trim() || null,
+      lost: false,
+      created_at: new Date().toISOString(),
+    };
+    addPetLive(asociatieId, newPet);
     toast.success(t('pets.added'));
     setOpen(false);
     setName('');
     setSpecies('caine');
     setContact('');
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydratePets(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>
@@ -87,7 +126,13 @@ export default function PetsPage() {
               </div>
               <div className="flex items-center gap-2">
                 {p.lost && <Badge tone="danger">{t('pets.lost')}</Badge>}
-                <Button size="sm" variant="ghost" onClick={() => toggleLost(p.id)}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() =>
+                    asociatieId && togglePetLostLive(asociatieId, p.id, !p.lost)
+                  }
+                >
                   {p.lost ? t('pets.markFound') : t('pets.markLost')}
                 </Button>
               </div>

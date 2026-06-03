@@ -1,5 +1,6 @@
 import type { Supplier } from '@/shared/types/domain';
 import { warrantyStatus, type WarrantyStatus } from '@/features/repairs/repairLogic';
+import { DEMO_ASOCIATIE, DEMO_SUPPLIERS } from '@/shared/demo/demoData';
 
 /** Contract status reuses the warranty classifier: a contract end date is
  *  `active`, `expiring` (within 30 days) or `expired`; missing dates are `none`. */
@@ -30,4 +31,37 @@ export function countContractAlerts(suppliers: Supplier[], now: Date = new Date(
     const status = contractStatus(s.contract_end, now);
     return status === 'expired' || status === 'expiring';
   }).length;
+}
+
+// ── Per-asociatie supplier catalog ───────────────────────────────────────────
+
+export type SuppliersByAsociatie = Record<string, Supplier[]>;
+
+const EMPTY_SUPPLIERS: Supplier[] = [];
+
+export function suppliersForAsociatie(
+  map: SuppliersByAsociatie,
+  asociatieId: string | null,
+): Supplier[] {
+  if (!asociatieId) return EMPTY_SUPPLIERS;
+  return map[asociatieId] ?? EMPTY_SUPPLIERS;
+}
+
+export function seedSuppliers(): SuppliersByAsociatie {
+  return { [DEMO_ASOCIATIE.id]: [...DEMO_SUPPLIERS] };
+}
+
+export function addSupplierIn(
+  map: SuppliersByAsociatie,
+  asociatieId: string,
+  supplier: Supplier,
+): SuppliersByAsociatie {
+  const current = map[asociatieId] ?? [];
+  return { ...map, [asociatieId]: [supplier, ...current] };
+}
+
+export function migrateSuppliersState(persisted: unknown): SuppliersByAsociatie {
+  const p = persisted as { byAsociatie?: SuppliersByAsociatie } | null;
+  const existing = p?.byAsociatie ?? {};
+  return { ...existing, [DEMO_ASOCIATIE.id]: [...DEMO_SUPPLIERS] };
 }

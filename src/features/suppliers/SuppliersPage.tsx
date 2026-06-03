@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Building2, Plus } from 'lucide-react';
@@ -8,9 +8,12 @@ import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
 import { formatDate } from '@/shared/lib/format';
-import { useSuppliersStore } from './suppliersStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useSuppliersStore, useAsociatieSuppliers } from './suppliersStore';
+import { hydrateSuppliers, addSupplierLive } from './suppliersApi';
 import {
   contractStatus,
   countContractAlerts,
@@ -28,20 +31,37 @@ const STATUS_TONE: Record<ContractStatus, 'success' | 'warning' | 'danger' | 'ne
 
 export default function SuppliersPage() {
   const { t } = useTranslation();
-  const { suppliers, add } = useSuppliersStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const fetchError = useSuppliersStore((s) => s.fetchError);
+  const suppliers = useAsociatieSuppliers();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [kind, setKind] = useState('');
   const [contact, setContact] = useState('');
   const [contractEnd, setContractEnd] = useState('');
 
+  useEffect(() => {
+    if (asociatieId) void hydrateSuppliers(asociatieId);
+  }, [asociatieId]);
+
   const ordered = sortByContractEnd(suppliers);
   const alerts = countContractAlerts(suppliers);
   const valid = isValidSupplier(name, kind);
 
   const submit = () => {
-    if (!valid) return;
-    add({ name, kind, contact, contract_end: contractEnd });
+    if (!valid || !asociatieId) return;
+    const newSupplier = {
+      id: `sup-${Date.now()}`,
+      asociatie_id: asociatieId,
+      name: name.trim(),
+      kind: kind.trim(),
+      contact: contact.trim() || null,
+      account_number: null,
+      contract_start: null,
+      contract_end: contractEnd || null,
+      last_invoice_date: null,
+    };
+    addSupplierLive(asociatieId, newSupplier);
     toast.success(t('suppliers.added'));
     setOpen(false);
     setName('');
@@ -49,6 +69,19 @@ export default function SuppliersPage() {
     setContact('');
     setContractEnd('');
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydrateSuppliers(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>

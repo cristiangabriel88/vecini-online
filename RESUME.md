@@ -5,18 +5,34 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-03
-- last_task: T215 [P2] Live-activate F28 Parcare + F29 Bicicletaria + F30 Boxa + F31 Plante + F32 Acces curierat
+- last_task: T216 [P2] Live-activate F34 Furnizori + F35 Apartament info + F36 Directory + F37 Animale + F38 Multumiri + F39 Wiki + F40 Glosar
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 231 files / 2256 tests
+- counts: 237 files / 2280 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T216 [P2] Live-activate F34 Furnizori + F35 Apartament info + F36 Directory + F37 Animale + F38 Multumiri + F39 Wiki + F40 Glosar
-- features: 67/67 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01-F24 + F28-F32 + F33 (30 features) + auth/invites/onboarding; remaining 37 features offline-first, live-activation queued T216-T219. F28/F36/F66 cross-feature glue wired (T104). Platform console: shell + provisioning + live list read + E2E done (T93/T94/T119/T120/T121); oversight tools T95-T99 on hold.
+- next: T217 [P2] Live-activate F41 Project tracker + F42 Photo journal + F43 Contractori + F44 Crowdfunding + F45 Plan multianual + F47 Energie + F48 Garantii
+- features: 67/67 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01-F24 + F28-F32 + F33-F40 (37 features) + auth/invites/onboarding; remaining 30 features offline-first, live-activation queued T217-T219. F28/F36/F66 cross-feature glue wired (T104). Platform console: shell + provisioning + live list read + E2E done (T93/T94/T119/T120/T121); oversight tools T95-T99 on hold.
 - e2e: F01/F02/F03/F04/F05/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F18/F25/F26/F27/F33/F35/F36/F40 happy paths green on chromium + mobile (24 features / 36%). Platform shell + provisioning E2E (T119/T121) done. Full smoke harness reworked (T211 done). E2E closure queued T220–T223.
 - blockers: none (T212 done closes the privileged-session gap). T16 blocker cleared.
-- completion_estimate: 62% of original product vision delivered end-to-end (updated 2026-06-03). Detail: all 67 features demo-complete and offline-functional; 30/67 live-wired (45%); security posture ~93% (T212 done, remaining: T141 JWT hook); GDPR surface ~85% (T72 erasure done, T75 ROPA/DPA persistence done, remaining: T76 breach fan-out); Telegram bot 0% (fully deferred); SaaS billing 0% (T19 on hold); platform console ~42% (shell + provisioning + T119/T121 E2E + T120 live list done, oversight T95–T99 on hold); E2E coverage 36% (24/67 features). Blockers to 75%+: live-wire remaining 37 features (T216–T219), ship Telegram (T15).
+- completion_estimate: 64% of original product vision delivered end-to-end (updated 2026-06-03). Detail: all 67 features demo-complete and offline-functional; 37/67 live-wired (55%); security posture ~93% (T212 done, remaining: T141 JWT hook); GDPR surface ~85% (T72 erasure done, T75 ROPA/DPA persistence done, remaining: T76 breach fan-out); Telegram bot 0% (fully deferred); SaaS billing 0% (T19 on hold); platform console ~42% (shell + provisioning + T119/T121 E2E + T120 live list done, oversight T95–T99 on hold); E2E coverage 36% (24/67 features). Blockers to 75%+: live-wire remaining 30 features (T217–T219), ship Telegram (T15).
 
 ---
+
+### T216 P2 ✅ 2026-06-03 -- Live-activate F34 Furnizori + F35 Apartament info + F36 Directory + F37 Animale + F38 Multumiri + F39 Wiki + F40 Glosar
+- new: src/features/suppliers/suppliersApi.ts (hydrateSuppliers, addSupplierLive)
+- new: src/features/directory/directoryApi.ts (hydrateDirectory, syncDirectoryConsent)
+- new: src/features/pets/petsApi.ts (hydratePets, addPetLive, togglePetLostLive)
+- new: src/features/thankyous/thankYousApi.ts (hydrateThankYous, postThankYouLive)
+- new: src/features/wiki/wikiApi.ts (hydrateWiki, addWikiPageLive, updateWikiPageLive)
+- new: src/features/glossary/glossaryApi.ts (hydrateGlossary)
+- new: src/features/glossary/glossaryStore.ts (per-asociatie persisted + useAsociatieGlossary hook)
+- new: supabase/migrations/20260603000009_f34_f40_member_policies.sql (owner_name/from_name denorm + member insert + consent profile columns)
+- new: tests/unit/suppliersApi.test.ts (4) + directoryApi.test.ts (3) + petsApi.test.ts (5) + thankYousApi.test.ts (4) + wikiApi.test.ts (5) + glossaryApi.test.ts (3)
+- updated: supplierLogic.ts, directoryLogic.ts, petLogic.ts, thankYouLogic.ts, wikiLogic.ts, glossaryLogic.ts (per-asociatie types + helpers)
+- updated: suppliersStore.ts, directoryStore.ts, petsStore.ts, thankYousStore.ts, wikiStore.ts (rebuilt per-asociatie persisted + hooks)
+- updated: SuppliersPage.tsx, DirectoryPage.tsx, PetsPage.tsx, ThankYousPage.tsx, WikiPage.tsx, GlossaryPage.tsx (hydrate + ErrorState retry)
+- updated: MyDataPage.tsx (byAsociatie flatMap for thankYous/directory/pets), dataSources.ts (useAsociatieDirectory hook)
+- result: 237 files / 2280 tests / lint + typecheck + build + build:pi + build:demo all green
 
 ### T215 P2 ✅ 2026-06-03 -- Live-activate F28 Parcare + F29 Bicicletaria + F30 Boxa + F31 Plante + F32 Acces curierat
 - new: src/features/parking/parkingApi.ts (hydrateParking, addParkingSpot)

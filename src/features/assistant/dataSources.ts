@@ -18,7 +18,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { DEMO_EMERGENCY, DEMO_DIRECTORY } from '@/shared/demo/demoData';
 import { isListed, visibleEntry } from '@/features/directory/directoryLogic';
-import { useDirectoryStore } from '@/features/directory/directoryStore';
+import { useAsociatieDirectory } from '@/features/directory/directoryStore';
 import { useAuthStore } from '@/shared/store/authStore';
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import { normalize } from './match';
@@ -124,7 +124,7 @@ export function useAsociatieEmergencyContacts(): EmergencyContact[] {
  */
 export function useDataEntries(): KbEntry[] {
   const emergencyContacts = useAsociatieEmergencyContacts();
-  const directoryEntries = useDirectoryStore((s) => s.entries);
+  const directoryEntries = useAsociatieDirectory();
   return useMemo(
     () => [...buildEmergencyEntries(emergencyContacts), ...buildDirectoryEntries(directoryEntries)],
     [emergencyContacts, directoryEntries],

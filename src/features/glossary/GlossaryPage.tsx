@@ -1,17 +1,42 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BookA } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
+import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
-import { DEMO_GLOSSARY } from '@/shared/demo/demoData';
+import { ErrorState } from '@/shared/components/ErrorState';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useGlossaryStore, useAsociatieGlossary } from './glossaryStore';
+import { hydrateGlossary } from './glossaryApi';
 import { searchGlossary } from './glossaryLogic';
 
 export default function GlossaryPage() {
   const { t } = useTranslation();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const fetchError = useGlossaryStore((s) => s.fetchError);
+  const entries = useAsociatieGlossary();
   const [query, setQuery] = useState('');
-  const results = searchGlossary(DEMO_GLOSSARY, query);
+
+  useEffect(() => {
+    if (asociatieId) void hydrateGlossary(asociatieId);
+  }, [asociatieId]);
+
+  const results = searchGlossary(entries, query);
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydrateGlossary(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>

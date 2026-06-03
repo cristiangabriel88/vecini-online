@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { BookOpen, Plus, Search, Pencil } from 'lucide-react';
@@ -7,14 +7,20 @@ import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Input, Textarea } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
 import { formatDate } from '@/shared/lib/format';
-import { useWikiStore } from './wikiStore';
-import { isValidPage, searchPages, sortPages } from './wikiLogic';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useWikiStore, useAsociatieWiki } from './wikiStore';
+import { hydrateWiki, addWikiPageLive, updateWikiPageLive } from './wikiApi';
+import { isValidPage, searchPages, sortPages, slugify, canManageWiki } from './wikiLogic';
 
 export default function WikiPage() {
   const { t } = useTranslation();
-  const { pages, add, update } = useWikiStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const role = useAuthStore((s) => s.activeRole)();
+  const fetchError = useWikiStore((s) => s.fetchError);
+  const pages = useAsociatieWiki();
   const [query, setQuery] = useState('');
   const [openId, setOpenId] = useState<string | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
@@ -22,9 +28,14 @@ export default function WikiPage() {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
 
+  useEffect(() => {
+    if (asociatieId) void hydrateWiki(asociatieId);
+  }, [asociatieId]);
+
   const results = useMemo(() => sortPages(searchPages(pages, query)), [pages, query]);
   const valid = isValidPage(title, body);
   const editing = editId !== null || creating;
+  const canManage = canManageWiki(role);
 
   const startCreate = () => {
     setCreating(true);
@@ -46,16 +57,37 @@ export default function WikiPage() {
   };
 
   const submit = () => {
-    if (!valid) return;
+    if (!valid || !asociatieId) return;
     if (editId) {
-      update(editId, title, body);
+      updateWikiPageLive(asociatieId, editId, title, body);
       toast.success(t('wiki.updated'));
     } else {
-      add(title, body);
+      const newPage = {
+        id: `wk-${Date.now()}`,
+        asociatie_id: asociatieId,
+        slug: slugify(title),
+        title: title.trim(),
+        body_md: body.trim(),
+        updated_at: new Date().toISOString(),
+      };
+      addWikiPageLive(asociatieId, newPage);
       toast.success(t('wiki.added'));
     }
     closeEditor();
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydrateWiki(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>
@@ -63,9 +95,11 @@ export default function WikiPage() {
         title={t('wiki.title')}
         subtitle={t('wiki.subtitle')}
         action={
-          <Button onClick={startCreate}>
-            <Plus className="h-4 w-4" /> {t('wiki.new')}
-          </Button>
+          canManage ? (
+            <Button onClick={startCreate}>
+              <Plus className="h-4 w-4" /> {t('wiki.new')}
+            </Button>
+          ) : undefined
         }
       />
 
@@ -96,9 +130,11 @@ export default function WikiPage() {
                   >
                     {p.title}
                   </button>
-                  <Button size="sm" variant="ghost" onClick={() => startEdit(p.id)}>
-                    <Pencil className="h-4 w-4" /> {t('common.edit')}
-                  </Button>
+                  {canManage && (
+                    <Button size="sm" variant="ghost" onClick={() => startEdit(p.id)}>
+                      <Pencil className="h-4 w-4" /> {t('common.edit')}
+                    </Button>
+                  )}
                 </div>
                 {expanded && (
                   <>

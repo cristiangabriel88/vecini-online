@@ -1,5 +1,6 @@
 import type { DirectoryEntry } from '@/shared/types/domain';
 import { normalizeSearch } from '@/features/faq/faqLogic';
+import { DEMO_ASOCIATIE, DEMO_DIRECTORY } from '@/shared/demo/demoData';
 
 /** A neighbour-visible custom field surfaced in the F36 directory card. */
 export interface DirectoryCustomField {
@@ -48,4 +49,47 @@ export function searchDirectory(
     .filter(isListed)
     .map((e) => visibleEntry(e, neighbourFieldsMap[e.id] ?? []))
     .filter((v) => !q || normalizeSearch(`${v.name ?? ''} ${v.apartment ?? ''}`).includes(q));
+}
+
+// ── Per-asociatie directory catalog ─────────────────────────────────────────
+
+export type DirectoryByAsociatie = Record<string, DirectoryEntry[]>;
+
+const EMPTY_DIRECTORY: DirectoryEntry[] = [];
+
+export function directoryForAsociatie(
+  map: DirectoryByAsociatie,
+  asociatieId: string | null,
+): DirectoryEntry[] {
+  if (!asociatieId) return EMPTY_DIRECTORY;
+  return map[asociatieId] ?? EMPTY_DIRECTORY;
+}
+
+export function seedDirectory(): DirectoryByAsociatie {
+  return { [DEMO_ASOCIATIE.id]: [...DEMO_DIRECTORY] };
+}
+
+export function replaceDirectoryIn(
+  map: DirectoryByAsociatie,
+  asociatieId: string,
+  entries: DirectoryEntry[],
+): DirectoryByAsociatie {
+  return { ...map, [asociatieId]: entries };
+}
+
+export function toggleConsentIn(
+  map: DirectoryByAsociatie,
+  asociatieId: string,
+  userId: string,
+  field: 'show_name' | 'show_apartment' | 'show_phone' | 'show_email',
+): DirectoryByAsociatie {
+  const entries = map[asociatieId] ?? [];
+  const updated = entries.map((e) => (e.user_id === userId ? { ...e, [field]: !e[field] } : e));
+  return { ...map, [asociatieId]: updated };
+}
+
+export function migrateDirectoryState(persisted: unknown): DirectoryByAsociatie {
+  const p = persisted as { byAsociatie?: DirectoryByAsociatie } | null;
+  const existing = p?.byAsociatie ?? {};
+  return { ...existing, [DEMO_ASOCIATIE.id]: [...DEMO_DIRECTORY] };
 }

@@ -94,13 +94,19 @@ export default function MyDataPage() {
   const petitions = usePetitionStore((s) =>
     Object.values(s.byAsociatie).flatMap((cat) => cat.items),
   );
-  const thankYous = useThankYousStore((s) => s.items);
-  const directory = useDirectoryStore((s) => s.entries);
+  const thankYous = useThankYousStore((s) =>
+    Object.values(s.byAsociatie).flatMap((items) => items),
+  );
+  const directory = useDirectoryStore((s) =>
+    Object.values(s.byAsociatie).flatMap((entries) => entries),
+  );
   const birthdays = useBirthdaysStore((s) => s.consents);
   const carpool = useCarpoolStore((s) => s.profiles);
   const sitters = useSitterStore((s) => s.profiles);
   const barter = useBarterStore((s) => s.offerings);
-  const pets = usePetsStore((s) => s.pets);
+  const pets = usePetsStore((s) =>
+    Object.values(s.byAsociatie).flatMap((items) => items),
+  );
   const bikes = useAsociatieBikes();
   const lending = useAsociatieLending();
   const feedback = useFeedbackStore((s) => s.items);

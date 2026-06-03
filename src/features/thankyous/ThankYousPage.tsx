@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Heart, Plus } from 'lucide-react';
@@ -7,23 +7,46 @@ import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
 import { Input, Textarea } from '@/shared/components/Input';
 import { formatDateLong } from '@/shared/lib/format';
-import { useThankYousStore } from './thankYousStore';
-import { isValidThankYou } from './thankYouLogic';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useMyIdentity, useProfileStore } from '@/features/profile/profileStore';
+import { useThankYousStore, useAsociatieThankYous } from './thankYousStore';
+import { hydrateThankYous, postThankYouLive } from './thankYousApi';
+import { isValidThankYou, formatApartmentLabel } from './thankYouLogic';
 
 export default function ThankYousPage() {
   const { t } = useTranslation();
-  const { items, add } = useThankYousStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const fetchError = useThankYousStore((s) => s.fetchError);
+  const items = useAsociatieThankYous();
+  const { userId, email } = useMyIdentity();
+  const profileGet = useProfileStore((s) => s.get);
   const [open, setOpen] = useState(false);
   const [toApartment, setToApartment] = useState('');
   const [message, setMessage] = useState('');
   const valid = isValidThankYou(message, toApartment);
 
+  useEffect(() => {
+    if (asociatieId) void hydrateThankYous(asociatieId);
+  }, [asociatieId]);
+
   const submit = () => {
-    if (!valid) return;
-    add({ toApartment, message });
+    if (!valid || !asociatieId) return;
+    const profile = profileGet(userId, email);
+    const fromName = profile.fullName || profile.displayName || 'Rezident';
+    const newItem = {
+      id: `ty-${Date.now()}`,
+      asociatie_id: asociatieId,
+      from_user_id: userId ?? 'u-res',
+      from_name: fromName,
+      to_apartment: formatApartmentLabel(toApartment),
+      message: message.trim(),
+      created_at: new Date().toISOString(),
+    };
+    postThankYouLive(asociatieId, newItem);
     toast.success(t('thankyous.posted'));
     setOpen(false);
     setToApartment('');
@@ -33,6 +56,19 @@ export default function ThankYousPage() {
   const ordered = [...items].sort(
     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
   );
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydrateThankYous(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Contact, Phone, Mail, DoorOpen, Car, User, ChevronRight } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
@@ -8,17 +8,23 @@ import { Input } from '@/shared/components/Input';
 import { Switch } from '@/shared/components/Switch';
 import { Modal } from '@/shared/components/Modal';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useProfileStore } from '@/features/profile/profileStore';
 import { canViewAnyProfile, neighbourVisibleFields, sortedCustomFields } from '@/features/profile/profileLogic';
-import { useDirectoryStore } from './directoryStore';
+import { useDirectoryStore, useAsociatieDirectory } from './directoryStore';
+import { hydrateDirectory, syncDirectoryConsent } from './directoryApi';
 import { searchDirectory, type DirectoryCustomField } from './directoryLogic';
 
 const FIELDS = ['show_name', 'show_apartment', 'show_phone', 'show_email'] as const;
+type ConsentField = typeof FIELDS[number];
 
 export default function DirectoryPage() {
   const { t } = useTranslation();
-  const { entries, myId, toggle } = useDirectoryStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const currentUserId = useAuthStore((s) => s.session?.user?.id ?? null);
+  const { myUserId, toggle, fetchError } = useDirectoryStore();
+  const entries = useAsociatieDirectory();
   const profileGet = useProfileStore((s) => s.get);
   const role = useAuthStore((s) => s.activeRole)();
   const isAdmin = canViewAnyProfile(role);
@@ -26,8 +32,13 @@ export default function DirectoryPage() {
   const [query, setQuery] = useState('');
   const [adminViewEntry, setAdminViewEntry] = useState<string | null>(null);
 
-  const me = entries.find((e) => e.id === myId)!;
-  const otherEntries = entries.filter((e) => e.id !== myId);
+  useEffect(() => {
+    if (asociatieId) void hydrateDirectory(asociatieId);
+  }, [asociatieId]);
+
+  const effectiveMyUserId = currentUserId ?? myUserId;
+  const me = entries.find((e) => e.user_id === effectiveMyUserId);
+  const otherEntries = entries.filter((e) => e.user_id !== effectiveMyUserId);
 
   const neighbourFieldsMap: Record<string, DirectoryCustomField[]> = {};
   for (const e of otherEntries) {
@@ -45,21 +56,44 @@ export default function DirectoryPage() {
     : null;
   const adminProfile = adminEntry ? profileGet(adminEntry.user_id, adminEntry.email) : null;
 
+  const handleToggle = (field: ConsentField) => {
+    if (!asociatieId) return;
+    toggle(asociatieId, field);
+    if (me) {
+      void syncDirectoryConsent(asociatieId, effectiveMyUserId ?? '', me, field);
+    }
+  };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydrateDirectory(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
+
   return (
     <div>
       <PageHeader title={t('directory.title')} subtitle={t('directory.subtitle')} />
 
-      <Card title={t('directory.myConsent')} className="mb-5">
-        <p className="mb-3 text-sm text-muted">{t('directory.consentHint')}</p>
-        <div className="space-y-3">
-          {FIELDS.map((f) => (
-            <div key={f} className="flex items-center justify-between">
-              <span>{t(`directory.${f}`)}</span>
-              <Switch checked={me[f]} onChange={() => toggle(f)} label={t(`directory.${f}`)} />
-            </div>
-          ))}
-        </div>
-      </Card>
+      {me && (
+        <Card title={t('directory.myConsent')} className="mb-5">
+          <p className="mb-3 text-sm text-muted">{t('directory.consentHint')}</p>
+          <div className="space-y-3">
+            {FIELDS.map((f) => (
+              <div key={f} className="flex items-center justify-between">
+                <span>{t(`directory.${f}`)}</span>
+                <Switch checked={me[f]} onChange={() => handleToggle(f)} label={t(`directory.${f}`)} />
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       <div className="mb-4">
         <Input
@@ -116,7 +150,7 @@ export default function DirectoryPage() {
                 {isAdmin && (
                   <button
                     onClick={() =>
-                      setAdminViewEntry(entries.find((e) => e.id !== myId && v.id === e.id)?.id ?? null)
+                      setAdminViewEntry(entries.find((e) => e.id !== me?.id && v.id === e.id)?.id ?? null)
                     }
                     className="shrink-0 text-muted transition-colors hover:text-primary"
                     aria-label={t('directory.viewProfile')}
