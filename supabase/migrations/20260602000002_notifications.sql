@@ -3,8 +3,12 @@
 --   owner (user_id) may select and update their own rows (to mark read);
 --   any authenticated member of the asociatie may insert (enables member-to-admin
 --   notifications such as membership.joined from a newly joined proprietar).
+--
+-- Production-safe: table may already exist with an older shape; CREATE TABLE IF
+-- NOT EXISTS is a no-op in that case. Missing columns are then reconciled via
+-- ALTER TABLE ... ADD COLUMN IF NOT EXISTS so existing data is preserved.
 
-create table notifications (
+create table if not exists public.notifications (
   id             text primary key,
   user_id        uuid not null references auth.users(id) on delete cascade,
   asociatie_id   uuid references asociatii(id) on delete cascade,
@@ -18,29 +22,50 @@ create table notifications (
   data           jsonb not null default '{}'
 );
 
-create index on notifications (user_id, asociatie_id, created_at desc);
-create index on notifications (asociatie_id);
+-- Reconcile columns that may be absent from an older table shape.
+-- The default values ensure the statement is safe even when existing rows are present.
+alter table public.notifications add column if not exists kind         text not null default 'generic';
+alter table public.notifications add column if not exists title        text not null default '';
+alter table public.notifications add column if not exists body         text not null default '';
+alter table public.notifications add column if not exists link         text;
+alter table public.notifications add column if not exists priority     text not null default 'normal';
+alter table public.notifications add column if not exists read_at      timestamptz;
+alter table public.notifications add column if not exists data         jsonb not null default '{}';
 
-alter table notifications enable row level security;
+create index if not exists notifications_user_assoc_created_idx
+  on public.notifications (user_id, asociatie_id, created_at desc);
+create index if not exists notifications_asociatie_idx
+  on public.notifications (asociatie_id);
+
+alter table public.notifications enable row level security;
 
 -- Owner may read their own notifications.
-create policy "owner_read" on notifications
-  for select using (user_id = auth.uid());
+do $$ begin
+  create policy "owner_read" on public.notifications
+    for select using (user_id = auth.uid());
+exception when duplicate_object then null;
+end $$;
 
 -- Owner may mark their own notifications read (update read_at).
-create policy "owner_mark_read" on notifications
-  for update using (user_id = auth.uid())
-  with check (user_id = auth.uid());
+do $$ begin
+  create policy "owner_mark_read" on public.notifications
+    for update using (user_id = auth.uid())
+    with check (user_id = auth.uid());
+exception when duplicate_object then null;
+end $$;
 
 -- Any authenticated member of the asociatie may insert notifications for
 -- recipients in the same asociatie (e.g. a newly joined proprietar notifying
 -- the inviting admin via membership.joined).
-create policy "member_insert" on notifications
-  for insert with check (
-    asociatie_id is not null
-    and is_member(asociatie_id)
-  );
+do $$ begin
+  create policy "member_insert" on public.notifications
+    for insert with check (
+      asociatie_id is not null
+      and is_member(asociatie_id)
+    );
+exception when duplicate_object then null;
+end $$;
 
-comment on table notifications is
+comment on table public.notifications is
   'In-app notification inbox, one row per recipient per event (T127). '
   'RLS: owner-scoped read/update; any member may insert for the same asociatie.';

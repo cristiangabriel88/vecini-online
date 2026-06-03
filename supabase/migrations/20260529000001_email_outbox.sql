@@ -21,6 +21,11 @@ create index if not exists email_outbox_asociatie_idx on email_outbox (asociatie
 
 alter table email_outbox enable row level security;
 
+-- Production safety: memberships.active may be absent from older schemas;
+-- the policy below references it so ensure the column exists first.
+alter table memberships
+  add column if not exists active boolean generated always as (ended_at is null) stored;
+
 -- Admins and presedinti can read outbox rows for their asociatie.
 create policy "admin_read_email_outbox" on email_outbox
   for select

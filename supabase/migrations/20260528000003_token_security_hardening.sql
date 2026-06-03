@@ -38,7 +38,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 -- sha256 digests are also 64 lower-case hex chars and unique for distinct
 -- plaintext tokens.
 UPDATE public.invite_codes
-SET token = encode(digest(token, 'sha256'), 'hex')
+SET token = encode(extensions.digest(token, 'sha256'), 'hex')
 WHERE token IS NOT NULL;
 
 -- ── 2. Rate-limit tracking table ─────────────────────────────────────────────
@@ -76,7 +76,7 @@ BEGIN
   END IF;
 
   -- Hash the plaintext token; lookup is always by hash (T128).
-  v_token_hash := encode(digest(p_token, 'sha256'), 'hex');
+  v_token_hash := encode(extensions.digest(p_token, 'sha256'), 'hex');
 
   SELECT * INTO v_row
   FROM public.invite_codes
@@ -159,7 +159,7 @@ BEGIN
   END IF;
 
   -- Hash the plaintext token; lookup is always by hash (T128).
-  v_token_hash := encode(digest(p_token, 'sha256'), 'hex');
+  v_token_hash := encode(extensions.digest(p_token, 'sha256'), 'hex');
 
   -- Rate-limit check: count attempts for this token hash in the last 15 min.
   -- We check before locking the invite row to fail fast without a row lock.
