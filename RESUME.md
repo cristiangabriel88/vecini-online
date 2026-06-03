@@ -5,18 +5,23 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-03
-- last_task: T201 (P2) Fix five failing E2E tests -- getByRole('textbox') for search inputs (F07/F18/F36/F40 topbar-button clash), proprietar role + vecini.welcome pre-seed for F35, #main-content scope for F40 Cenzor ambiguity; 10/10 E2E green (chromium + mobile)
+- last_task: T202 (P2) Fix locale plural-form asymmetry -- added 16 missing EN _few keys (apartments x8, breach, recurring x2, platform.asociatii x5); new localeKeys.test.ts guards against future divergence
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 209 files / 2097 tests
+- counts: 210 files / 2101 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T202 Fix locale plural-form asymmetry (EN plural keys missing from en.json) [P2]
+- next: T203 E2E happy path for F01 Anunțuri (compose + scheduled badge + attachment) [P2]
 - features: 67/67 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F33 (18 features) + auth/invites/onboarding; rest offline-first, pending live-activation track. F28/F36/F66 cross-feature glue wired (T104). Platform console: shell + provisioning done (T93/T94); oversight tools T95-T99 on hold.
 - e2e: F02/F03/F04/F05/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F18/F35/F36/F40 happy paths green on chromium + mobile (19 features with passing E2E). auth/consent/isolation/smoke/batch specs still predate the auto-demo-entry harness (T16)
 - blockers: full e2e harness rework (entry helpers + login-page specs) deferred to T16; Chromium installed locally
 - completion_estimate: 54% of original product vision delivered end-to-end (2026-06-03 replenish audit). Detail: all 67 features demo-complete and offline-functional (high-value deliverable); 18/67 live-wired to real Supabase backend; GDPR surface ~70% (server-side erasure + breach fan-out pending); security posture ~85% (rate-limit gaps on 4 functions, idle-timeout not enforced); Telegram bot 0% (fully deferred, passive in codebase); SaaS billing 0% (T19 on hold); platform console ~30% (shell + provisioning done, oversight tools T95-T99 pending); E2E coverage 25% (17/67 features with passing happy-path tests). Main blockers to 70%+: live-wire remaining 49 features (on-hold track), ship Telegram bot (T15), close security gaps (T197-T198), build E2E for core features (T199/T201/T203).
 
 ---
+
+### T202 P2 ✅ 2026-06-03 -- Fix locale plural-form asymmetry (EN plural keys missing from en.json)
+- updated: src/shared/locales/en.json (16 _few keys added: apartments x8, breach.awaitingBanner, recurring.banner + timesInWindow, platform.asociatii x5)
+- new: tests/unit/localeKeys.test.ts (4 assertions: key-set parity guard between en.json and ro.json)
+- result: 210 files / 2101 tests / lint+typecheck+build+pi+demo green
 
 ### T200 P2 ✅ 2026-06-03 -- Live hydration + write for asociație identity (BuildingSettingsPage)
 - new: src/features/admin/asociatieApi.ts (hydrateAsociatie reads asociatii row under RLS, calls hydrateFromRemote; saveAsociatie local update + DB write with conflict detection)
