@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { KanbanSquare, Plus, HardHat, Wallet } from 'lucide-react';
@@ -10,8 +10,11 @@ import { Input, Textarea } from '@/shared/components/Input';
 import { Select } from '@/shared/components/Select';
 import { Modal } from '@/shared/components/Modal';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { formatLei } from '@/shared/lib/format';
-import { useProjectsStore } from './projectsStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useProjectsStore, useAsociatieProjects } from './projectsStore';
+import { hydrateProjects, addProjectLive, setProjectStatusLive } from './projectsApi';
 import {
   PROJECT_STATUSES,
   budgetRemaining,
@@ -31,7 +34,9 @@ const PHASE_TONE: Record<ProjectPhaseStatus, 'success' | 'primary' | 'neutral'> 
 
 export default function ProjectsPage() {
   const { t } = useTranslation();
-  const { projects, addProject, setStatus, advancePhase } = useProjectsStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const fetchError = useProjectsStore((s) => s.fetchError);
+  const projects = useAsociatieProjects();
 
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
@@ -39,13 +44,29 @@ export default function ProjectsPage() {
   const [contractor, setContractor] = useState('');
   const [budget, setBudget] = useState('');
 
+  useEffect(() => {
+    if (asociatieId) void hydrateProjects(asociatieId);
+  }, [asociatieId]);
+
   const budgetNum = Number(budget);
   const valid = isValidProject(title, budgetNum);
   const ordered = sortProjects(projects);
 
   const submit = () => {
-    if (!valid) return;
-    addProject(title.trim(), description.trim(), contractor.trim(), budgetNum);
+    if (!valid || !asociatieId) return;
+    const project: Project = {
+      id: `pr-${Date.now()}`,
+      asociatie_id: asociatieId,
+      title: title.trim(),
+      description: description.trim(),
+      contractor: contractor.trim(),
+      status: 'planificat',
+      budget_allocated: budgetNum,
+      budget_spent: 0,
+      phases: [],
+      created_at: new Date().toISOString(),
+    };
+    addProjectLive(asociatieId, project);
     toast.success(t('projects.added'));
     setTitle('');
     setDescription('');
@@ -81,7 +102,9 @@ export default function ProjectsPage() {
             <Select
               aria-label={t('projects.changeStatus')}
               value={p.status}
-              onChange={(e) => setStatus(p.id, e.target.value as ProjectStatus)}
+              onChange={(e) => {
+                if (asociatieId) setProjectStatusLive(asociatieId, p.id, e.target.value as ProjectStatus);
+              }}
             >
               {PROJECT_STATUSES.map((s) => (
                 <option key={s} value={s}>
@@ -92,7 +115,6 @@ export default function ProjectsPage() {
           </div>
         </div>
 
-        {/* Progress */}
         <div className="mt-3">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted">{t('projects.progress')}</span>
@@ -103,7 +125,6 @@ export default function ProjectsPage() {
           </div>
         </div>
 
-        {/* Budget */}
         <div className="mt-3">
           <div className="flex items-center justify-between text-sm">
             <span className="inline-flex items-center gap-1 text-muted">
@@ -126,7 +147,6 @@ export default function ProjectsPage() {
           </p>
         </div>
 
-        {/* Phases */}
         {p.phases.length > 0 && (
           <div className="mt-3 border-t border-border pt-3">
             <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
@@ -140,7 +160,14 @@ export default function ProjectsPage() {
                     {ph.name}
                   </span>
                   {ph.status !== 'finalizat' && (
-                    <Button size="sm" variant="ghost" onClick={() => advancePhase(p.id, ph.id)}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        if (asociatieId)
+                          useProjectsStore.getState().advancePhase(asociatieId, p.id, ph.id);
+                      }}
+                    >
                       {ph.status === 'asteptare' ? t('projects.start') : t('projects.finish')}
                     </Button>
                   )}
@@ -152,6 +179,19 @@ export default function ProjectsPage() {
       </Card>
     );
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydrateProjects(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>

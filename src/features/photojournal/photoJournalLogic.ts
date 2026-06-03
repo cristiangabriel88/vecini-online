@@ -1,4 +1,5 @@
 import type { ProjectPhoto } from '@/shared/types/domain';
+import { DEMO_ASOCIATIE, DEMO_PROJECT_PHOTOS } from '@/shared/demo/demoData';
 
 /** Gradient swatches cycled through as image stand-ins in demo mode. */
 export const PHOTO_SWATCHES = [
@@ -43,4 +44,37 @@ export function groupByDate(photos: ProjectPhoto[]): { date: string; photos: Pro
         a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : 0,
       ),
     }));
+}
+
+// ── Per-asociatie photo journal catalog ──────────────────────────────────────
+
+export type PhotosByAsociatie = Record<string, ProjectPhoto[]>;
+
+const EMPTY_PHOTOS: ProjectPhoto[] = [];
+
+export function photosForAsociatie(
+  map: PhotosByAsociatie,
+  asociatieId: string | null,
+): ProjectPhoto[] {
+  if (!asociatieId) return EMPTY_PHOTOS;
+  return map[asociatieId] ?? EMPTY_PHOTOS;
+}
+
+export function seedPhotos(): PhotosByAsociatie {
+  return { [DEMO_ASOCIATIE.id]: [...DEMO_PROJECT_PHOTOS] };
+}
+
+export function addPhotoIn(
+  map: PhotosByAsociatie,
+  asociatieId: string,
+  photo: ProjectPhoto,
+): PhotosByAsociatie {
+  const current = map[asociatieId] ?? [];
+  return { ...map, [asociatieId]: [...current, photo] };
+}
+
+export function migratePhotosState(persisted: unknown): PhotosByAsociatie {
+  const p = persisted as { byAsociatie?: PhotosByAsociatie } | null;
+  const existing = p?.byAsociatie ?? {};
+  return { ...existing, [DEMO_ASOCIATIE.id]: [...DEMO_PROJECT_PHOTOS] };
 }

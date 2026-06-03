@@ -1,4 +1,5 @@
 import type { Project, ProjectPhase, ProjectPhaseStatus, ProjectStatus } from '@/shared/types/domain';
+import { DEMO_ASOCIATIE, DEMO_PROJECTS } from '@/shared/demo/demoData';
 
 /** All project statuses, in the order shown in the status picker. */
 export const PROJECT_STATUSES: ProjectStatus[] = ['planificat', 'in_curs', 'finalizat', 'suspendat'];
@@ -75,4 +76,48 @@ export function sortProjects(projects: Project[]): Project[] {
     if (byStatus !== 0) return byStatus;
     return a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : 0;
   });
+}
+
+// ── Per-asociatie project catalog ────────────────────────────────────────────
+
+export type ProjectsByAsociatie = Record<string, Project[]>;
+
+const EMPTY_PROJECTS: Project[] = [];
+
+export function projectsForAsociatie(
+  map: ProjectsByAsociatie,
+  asociatieId: string | null,
+): Project[] {
+  if (!asociatieId) return EMPTY_PROJECTS;
+  return map[asociatieId] ?? EMPTY_PROJECTS;
+}
+
+export function seedProjects(): ProjectsByAsociatie {
+  return {
+    [DEMO_ASOCIATIE.id]: DEMO_PROJECTS.map((p) => ({
+      ...p,
+      phases: p.phases.map((ph) => ({ ...ph })),
+    })),
+  };
+}
+
+export function addProjectIn(
+  map: ProjectsByAsociatie,
+  asociatieId: string,
+  project: Project,
+): ProjectsByAsociatie {
+  const current = map[asociatieId] ?? [];
+  return { ...map, [asociatieId]: [...current, project] };
+}
+
+export function migrateProjectsState(persisted: unknown): ProjectsByAsociatie {
+  const p = persisted as { byAsociatie?: ProjectsByAsociatie } | null;
+  const existing = p?.byAsociatie ?? {};
+  return {
+    ...existing,
+    [DEMO_ASOCIATIE.id]: DEMO_PROJECTS.map((proj) => ({
+      ...proj,
+      phases: proj.phases.map((ph) => ({ ...ph })),
+    })),
+  };
 }

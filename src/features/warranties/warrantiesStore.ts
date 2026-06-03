@@ -1,28 +1,47 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { Warranty } from '@/shared/types/domain';
-import { DEMO_WARRANTIES } from '@/shared/demo/demoData';
-import { computeExpiry } from './warrantyLogic';
+import { useAuthStore } from '@/shared/store/authStore';
+import {
+  type WarrantiesByAsociatie,
+  seedWarranties,
+  warrantiesForAsociatie,
+  addWarrantyIn,
+  migrateWarrantiesState,
+} from './warrantyLogic';
 
 interface WarrantiesState {
-  warranties: Warranty[];
-  add: (input: { asset: string; purchasedAt: string; months: number }) => void;
+  byAsociatie: WarrantiesByAsociatie;
+  fetchError: string | null;
+  addWarranty: (asociatieId: string, warranty: Warranty) => void;
+  replaceForAsociatie: (asociatieId: string, warranties: Warranty[]) => void;
+  setFetchError: (msg: string | null) => void;
 }
 
-export const useWarrantiesStore = create<WarrantiesState>((set) => ({
-  warranties: [...DEMO_WARRANTIES],
-  add: ({ asset, purchasedAt, months }) =>
-    set((s) => ({
-      warranties: [
-        {
-          id: `wr-${Date.now()}`,
-          asociatie_id: 'demo-asoc',
-          asset: asset.trim(),
-          purchased_at: purchasedAt,
-          warranty_months: months,
-          expires_at: computeExpiry(purchasedAt, months),
-          document_path: null,
-        },
-        ...s.warranties,
-      ],
-    })),
-}));
+export const useWarrantiesStore = create<WarrantiesState>()(
+  persist(
+    (set) => ({
+      byAsociatie: seedWarranties(),
+      fetchError: null,
+
+      addWarranty: (asociatieId, warranty) =>
+        set((s) => ({ byAsociatie: addWarrantyIn(s.byAsociatie, asociatieId, warranty) })),
+
+      replaceForAsociatie: (asociatieId, warranties) =>
+        set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: warranties } })),
+
+      setFetchError: (msg) => set({ fetchError: msg }),
+    }),
+    {
+      name: 'vecini.warranties',
+      version: 1,
+      partialize: (s) => ({ byAsociatie: s.byAsociatie }),
+      migrate: (persisted) => ({ byAsociatie: migrateWarrantiesState(persisted) }),
+    },
+  ),
+);
+
+export function useAsociatieWarranties(): Warranty[] {
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  return useWarrantiesStore((s) => warrantiesForAsociatie(s.byAsociatie, asociatieId));
+}

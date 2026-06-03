@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { HandCoins, Plus } from 'lucide-react';
@@ -8,9 +8,12 @@ import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input, Textarea } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
 import { formatLei, formatDate } from '@/shared/lib/format';
-import { useCrowdfundStore } from './crowdfundStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useCrowdfundStore, useAsociatieCrowdfunds } from './crowdfundStore';
+import { hydrateCrowdfunds, createCrowdfundLive, pledgeLive } from './crowdfundApi';
 import {
   fundedRatio,
   isFunded,
@@ -28,24 +31,41 @@ function defaultDeadline(): string {
 
 export default function CrowdfundPage() {
   const { t } = useTranslation();
-  const { funds, pledged, create, pledge } = useCrowdfundStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const userId = useAuthStore((s) => s.session?.user?.id ?? '');
+  const fetchError = useCrowdfundStore((s) => s.fetchError);
+  const myPledged = useCrowdfundStore((s) => s.myPledged);
+  const funds = useAsociatieCrowdfunds();
 
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [target, setTarget] = useState('');
   const [deadline, setDeadline] = useState(defaultDeadline());
-
   const [pledgeId, setPledgeId] = useState<string | null>(null);
   const [pledgeAmount, setPledgeAmount] = useState('');
+
+  useEffect(() => {
+    if (asociatieId) void hydrateCrowdfunds(asociatieId, userId || null);
+  }, [asociatieId, userId]);
 
   const list = sortCrowdfunds(funds);
   const valid = isValidCrowdfund(title, Number(target));
   const pledgeValid = isValidPledge(Number(pledgeAmount));
 
   const submit = () => {
-    if (!valid) return;
-    create({ title, description, target: Number(target), deadline });
+    if (!valid || !asociatieId) return;
+    const fund = {
+      id: `cf-${Date.now()}`,
+      asociatie_id: asociatieId,
+      title: title.trim(),
+      description: description.trim(),
+      target_amount: Number(target),
+      deadline,
+      created_at: new Date().toISOString(),
+      pledged: 0,
+    };
+    createCrowdfundLive(asociatieId, fund);
     toast.success(t('crowdfund.created'));
     setOpen(false);
     setTitle('');
@@ -55,12 +75,25 @@ export default function CrowdfundPage() {
   };
 
   const submitPledge = () => {
-    if (!pledgeId || !pledgeValid) return;
-    pledge(pledgeId, Number(pledgeAmount));
+    if (!pledgeId || !pledgeValid || !asociatieId) return;
+    pledgeLive(asociatieId, pledgeId, Number(pledgeAmount), userId);
     toast.success(t('crowdfund.pledged'));
     setPledgeId(null);
     setPledgeAmount('');
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydrateCrowdfunds(asociatieId, userId || null)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>
@@ -80,7 +113,7 @@ export default function CrowdfundPage() {
         <div className="space-y-3">
           {list.map((c) => {
             const open2 = isOpen(c);
-            const hasPledged = pledged.includes(c.id);
+            const hasPledged = myPledged.includes(c.id);
             return (
               <Card key={c.id} className={`space-y-2 p-4 ${open2 ? '' : 'opacity-70'}`}>
                 <div className="flex items-start justify-between gap-3">

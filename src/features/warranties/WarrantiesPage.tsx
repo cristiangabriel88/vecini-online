@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { BadgeCheck, Plus } from 'lucide-react';
@@ -8,10 +8,19 @@ import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
 import { formatDate } from '@/shared/lib/format';
-import { useWarrantiesStore } from './warrantiesStore';
-import { isValidWarranty, sortByExpiry, warrantyStatus, type WarrantyStatus } from './warrantyLogic';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useWarrantiesStore, useAsociatieWarranties } from './warrantiesStore';
+import { hydrateWarranties, addWarrantyLive } from './warrantiesApi';
+import {
+  computeExpiry,
+  isValidWarranty,
+  sortByExpiry,
+  warrantyStatus,
+  type WarrantyStatus,
+} from './warrantyLogic';
 
 const TONE: Record<WarrantyStatus, 'success' | 'warning' | 'danger' | 'neutral'> = {
   active: 'success',
@@ -22,25 +31,54 @@ const TONE: Record<WarrantyStatus, 'success' | 'warning' | 'danger' | 'neutral'>
 
 export default function WarrantiesPage() {
   const { t } = useTranslation();
-  const { warranties, add } = useWarrantiesStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const fetchError = useWarrantiesStore((s) => s.fetchError);
+  const warranties = useAsociatieWarranties();
+
   const [open, setOpen] = useState(false);
   const [asset, setAsset] = useState('');
   const [purchasedAt, setPurchasedAt] = useState('');
   const [months, setMonths] = useState('24');
+
+  useEffect(() => {
+    if (asociatieId) void hydrateWarranties(asociatieId);
+  }, [asociatieId]);
 
   const monthsNum = Number(months);
   const valid = isValidWarranty(asset, purchasedAt, monthsNum);
   const ordered = sortByExpiry(warranties);
 
   const submit = () => {
-    if (!valid) return;
-    add({ asset, purchasedAt, months: monthsNum });
+    if (!valid || !asociatieId) return;
+    const warranty = {
+      id: `wr-${Date.now()}`,
+      asociatie_id: asociatieId,
+      asset: asset.trim(),
+      purchased_at: purchasedAt,
+      warranty_months: monthsNum,
+      expires_at: computeExpiry(purchasedAt, monthsNum),
+      document_path: null,
+    };
+    addWarrantyLive(asociatieId, warranty);
     toast.success(t('warranties.added'));
     setOpen(false);
     setAsset('');
     setPurchasedAt('');
     setMonths('24');
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydrateWarranties(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>

@@ -1,43 +1,76 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { Contractor } from '@/shared/types/domain';
-import { DEMO_CONTRACTORS } from '@/shared/demo/demoData';
-import { applyRating } from './contractorLogic';
+import { useAuthStore } from '@/shared/store/authStore';
+import {
+  type ContractorsByAsociatie,
+  seedContractors,
+  contractorsForAsociatie,
+  addContractorIn,
+  migrateContractorsState,
+  applyRating,
+} from './contractorLogic';
 
 interface ContractorState {
-  contractors: Contractor[];
-  add: (input: { name: string; specialty: string; price_tier: string; contact: string }) => void;
-  rate: (id: string, value: number) => void;
-  toggleAvailable: (id: string) => void;
+  byAsociatie: ContractorsByAsociatie;
+  fetchError: string | null;
+  addContractor: (asociatieId: string, contractor: Contractor) => void;
+  rateContractor: (asociatieId: string, id: string, value: number) => void;
+  toggleAvailable: (asociatieId: string, id: string) => void;
+  replaceForAsociatie: (asociatieId: string, contractors: Contractor[]) => void;
+  setFetchError: (msg: string | null) => void;
 }
 
-export const useContractorStore = create<ContractorState>((set) => ({
-  contractors: [...DEMO_CONTRACTORS],
-  add: ({ name, specialty, price_tier, contact }) =>
-    set((s) => ({
-      contractors: [
-        {
-          id: `ct-${Date.now()}`,
-          asociatie_id: 'demo-asoc',
-          name: name.trim(),
-          specialty: specialty.trim(),
-          price_tier: price_tier || 'mediu',
-          contact: contact.trim(),
-          last_used: null,
-          available: true,
-          rating: 0,
-          rating_count: 0,
-        },
-        ...s.contractors,
-      ],
-    })),
-  rate: (id, value) =>
-    set((s) => ({
-      contractors: s.contractors.map((c) => (c.id === id ? { ...c, ...applyRating(c, value) } : c)),
-    })),
-  toggleAvailable: (id) =>
-    set((s) => ({
-      contractors: s.contractors.map((c) =>
-        c.id === id ? { ...c, available: !c.available } : c,
-      ),
-    })),
-}));
+export const useContractorStore = create<ContractorState>()(
+  persist(
+    (set) => ({
+      byAsociatie: seedContractors(),
+      fetchError: null,
+
+      addContractor: (asociatieId, contractor) =>
+        set((s) => ({ byAsociatie: addContractorIn(s.byAsociatie, asociatieId, contractor) })),
+
+      rateContractor: (asociatieId, id, value) =>
+        set((s) => {
+          const list = s.byAsociatie[asociatieId] ?? [];
+          return {
+            byAsociatie: {
+              ...s.byAsociatie,
+              [asociatieId]: list.map((c) =>
+                c.id === id ? { ...c, ...applyRating(c, value) } : c,
+              ),
+            },
+          };
+        }),
+
+      toggleAvailable: (asociatieId, id) =>
+        set((s) => {
+          const list = s.byAsociatie[asociatieId] ?? [];
+          return {
+            byAsociatie: {
+              ...s.byAsociatie,
+              [asociatieId]: list.map((c) =>
+                c.id === id ? { ...c, available: !c.available } : c,
+              ),
+            },
+          };
+        }),
+
+      replaceForAsociatie: (asociatieId, contractors) =>
+        set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: contractors } })),
+
+      setFetchError: (msg) => set({ fetchError: msg }),
+    }),
+    {
+      name: 'vecini.contractors',
+      version: 1,
+      partialize: (s) => ({ byAsociatie: s.byAsociatie }),
+      migrate: (persisted) => ({ byAsociatie: migrateContractorsState(persisted) }),
+    },
+  ),
+);
+
+export function useAsociatieContractors(): Contractor[] {
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  return useContractorStore((s) => contractorsForAsociatie(s.byAsociatie, asociatieId));
+}

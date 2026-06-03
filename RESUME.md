@@ -5,18 +5,29 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-03
-- last_task: T216 [P2] Live-activate F34 Furnizori + F35 Apartament info + F36 Directory + F37 Animale + F38 Multumiri + F39 Wiki + F40 Glosar
+- last_task: T217 [P2] Live-activate F41 Project tracker + F42 Photo journal + F43 Contractori + F44 Crowdfunding + F45 Plan multianual + F47 Energie + F48 Garantii
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 237 files / 2280 tests
+- counts: 244 files / 2310 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T217 [P2] Live-activate F41 Project tracker + F42 Photo journal + F43 Contractori + F44 Crowdfunding + F45 Plan multianual + F47 Energie + F48 Garantii
-- features: 67/67 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01-F24 + F28-F32 + F33-F40 (37 features) + auth/invites/onboarding; remaining 30 features offline-first, live-activation queued T217-T219. F28/F36/F66 cross-feature glue wired (T104). Platform console: shell + provisioning + live list read + E2E done (T93/T94/T119/T120/T121); oversight tools T95-T99 on hold.
+- next: T218 [P2] Live-activate F49 Cod portari + F50 Evacuare + F51 PSI + F52 Asigurare + F53 Chei + F54 Vizitatori + F55 Alarmă
+- features: 67/67 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01-F24 + F28-F32 + F33-F48 (44 features) + auth/invites/onboarding; remaining 23 features offline-first, live-activation queued T218-T219. F28/F36/F66 cross-feature glue wired (T104). Platform console: shell + provisioning + live list read + E2E done (T93/T94/T119/T120/T121); oversight tools T95-T99 on hold.
 - e2e: F01/F02/F03/F04/F05/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F18/F25/F26/F27/F33/F35/F36/F40 happy paths green on chromium + mobile (24 features / 36%). Platform shell + provisioning E2E (T119/T121) done. Full smoke harness reworked (T211 done). E2E closure queued T220–T223.
 - blockers: none (T212 done closes the privileged-session gap). T16 blocker cleared.
-- completion_estimate: 64% of original product vision delivered end-to-end (updated 2026-06-03). Detail: all 67 features demo-complete and offline-functional; 37/67 live-wired (55%); security posture ~93% (T212 done, remaining: T141 JWT hook); GDPR surface ~85% (T72 erasure done, T75 ROPA/DPA persistence done, remaining: T76 breach fan-out); Telegram bot 0% (fully deferred); SaaS billing 0% (T19 on hold); platform console ~42% (shell + provisioning + T119/T121 E2E + T120 live list done, oversight T95–T99 on hold); E2E coverage 36% (24/67 features). Blockers to 75%+: live-wire remaining 30 features (T217–T219), ship Telegram (T15).
+- completion_estimate: 66% of original product vision delivered end-to-end (updated 2026-06-03). Detail: all 67 features demo-complete and offline-functional; 44/67 live-wired (66%); security posture ~93% (T212 done, remaining: T141 JWT hook); GDPR surface ~85% (T72 erasure done, T75 ROPA/DPA persistence done, remaining: T76 breach fan-out); Telegram bot 0% (fully deferred); SaaS billing 0% (T19 on hold); platform console ~42% (shell + provisioning + T119/T121 E2E + T120 live list done, oversight T95–T99 on hold); E2E coverage 36% (24/67 features). Blockers to 75%+: live-wire remaining 23 features (T218–T219), ship Telegram (T15).
 
 ---
+
+### T217 P2 ✅ 2026-06-03 -- Live-activate F41 Project tracker + F42 Photo journal + F43 Contractori + F44 Crowdfunding + F45 Plan multianual + F47 Energie + F48 Garantii
+- new: src/features/projects/projectsApi.ts (hydrateProjects, addProjectLive, setProjectStatusLive)
+- new: src/features/photojournal/photoJournalApi.ts (hydratePhotos, addPhotoLive)
+- new: src/features/contractors/contractorsApi.ts (hydrateContractors, addContractorLive, rateContractorLive, toggleContractorAvailableLive)
+- new: src/features/crowdfund/crowdfundApi.ts (hydrateCrowdfunds, createCrowdfundLive, pledgeLive)
+- new: src/features/multiyear/multiyearApi.ts (hydrateMultiyear, addMultiyearItemLive)
+- new: src/features/energy/energyApi.ts (hydrateEnergy, addEnergyRecordLive)
+- new: src/features/warranties/warrantiesApi.ts (hydrateWarranties, addWarrantyLive)
+- rebuilt: projectsStore/photoJournalStore/contractorStore/crowdfundStore/multiyearStore/energyStore/warrantiesStore (all per-asociatie persisted)
+- new: tests/unit/projectsApi.test.ts (4) + photoJournalApi.test.ts (4) + contractorsApi.test.ts (5) + crowdfundApi.test.ts (5) + multiyearApi.test.ts (3) + energyApi.test.ts (4) + warrantiesApi.test.ts (3)
 
 ### T216 P2 ✅ 2026-06-03 -- Live-activate F34 Furnizori + F35 Apartament info + F36 Directory + F37 Animale + F38 Multumiri + F39 Wiki + F40 Glosar
 - new: src/features/suppliers/suppliersApi.ts (hydrateSuppliers, addSupplierLive)

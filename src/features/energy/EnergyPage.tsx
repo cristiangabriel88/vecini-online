@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Zap, Plus } from 'lucide-react';
@@ -8,9 +8,12 @@ import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
 import { Select } from '@/shared/components/Select';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
 import { formatLei } from '@/shared/lib/format';
-import { useEnergyStore } from './energyStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useEnergyStore, useAsociatieEnergy } from './energyStore';
+import { hydrateEnergy, addEnergyRecordLive } from './energyApi';
 import {
   ENERGY_KINDS,
   formatPeriod,
@@ -26,13 +29,19 @@ function currentMonth(): string {
 
 export default function EnergyPage() {
   const { t } = useTranslation();
-  const { records, add } = useEnergyStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const fetchError = useEnergyStore((s) => s.fetchError);
+  const records = useAsociatieEnergy();
 
   const [open, setOpen] = useState(false);
   const [month, setMonth] = useState(currentMonth());
   const [kind, setKind] = useState<string>(ENERGY_KINDS[0]);
   const [amount, setAmount] = useState('');
   const [cost, setCost] = useState('');
+
+  useEffect(() => {
+    if (asociatieId) void hydrateEnergy(asociatieId);
+  }, [asociatieId]);
 
   const amountNum = Number(amount.replace(',', '.'));
   const costNum = Number(cost.replace(',', '.'));
@@ -42,13 +51,34 @@ export default function EnergyPage() {
   const byKind = totalsByKind(records);
 
   const submit = () => {
-    if (!valid) return;
-    add({ period: `${month}-01`, kind, amount: amountNum, cost: costNum });
+    if (!valid || !asociatieId) return;
+    const record = {
+      id: `en-${Date.now()}`,
+      asociatie_id: asociatieId,
+      period: `${month}-01`,
+      kind,
+      amount: amountNum,
+      cost: costNum,
+    };
+    addEnergyRecordLive(asociatieId, record);
     toast.success(t('energy.added'));
     setOpen(false);
     setAmount('');
     setCost('');
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydrateEnergy(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>

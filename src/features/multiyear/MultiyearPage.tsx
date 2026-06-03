@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { CalendarRange, Plus } from 'lucide-react';
@@ -7,14 +7,19 @@ import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Input, Textarea } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
 import { formatLei } from '@/shared/lib/format';
-import { useMultiyearStore } from './multiyearStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useMultiyearStore, useAsociatieMultiyear } from './multiyearStore';
+import { hydrateMultiyear, addMultiyearItemLive } from './multiyearApi';
 import { groupByYear, isValidPlanItem, totalEstimated } from './multiyearLogic';
 
 export default function MultiyearPage() {
   const { t } = useTranslation();
-  const { items, add } = useMultiyearStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const fetchError = useMultiyearStore((s) => s.fetchError);
+  const items = useAsociatieMultiyear();
 
   const [open, setOpen] = useState(false);
   const [year, setYear] = useState(String(new Date().getFullYear() + 1));
@@ -22,20 +27,45 @@ export default function MultiyearPage() {
   const [cost, setCost] = useState('');
   const [notes, setNotes] = useState('');
 
+  useEffect(() => {
+    if (asociatieId) void hydrateMultiyear(asociatieId);
+  }, [asociatieId]);
+
   const yearNum = Number(year);
   const valid = isValidPlanItem(yearNum, title);
   const groups = groupByYear(items);
 
   const submit = () => {
-    if (!valid) return;
+    if (!valid || !asociatieId) return;
     const costNum = Math.max(0, Number(cost.replace(',', '.')) || 0);
-    add({ year: yearNum, title, estimated_cost: costNum, notes });
+    const item = {
+      id: `mp-${Date.now()}`,
+      asociatie_id: asociatieId,
+      year: yearNum,
+      title: title.trim(),
+      estimated_cost: costNum,
+      notes: notes.trim() || null,
+    };
+    addMultiyearItemLive(asociatieId, item);
     toast.success(t('multiyear.added'));
     setOpen(false);
     setTitle('');
     setCost('');
     setNotes('');
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydrateMultiyear(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>

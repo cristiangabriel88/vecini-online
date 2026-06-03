@@ -1,4 +1,5 @@
 import type { EnergyRecord } from '@/shared/types/domain';
+import { DEMO_ASOCIATIE, DEMO_ENERGY } from '@/shared/demo/demoData';
 
 /** Common-area energy consumption categories. */
 export const ENERGY_KINDS = [
@@ -60,4 +61,34 @@ export function totalsByKind(records: EnergyRecord[]): Record<string, { amount: 
     out[r.kind] = e;
   }
   return out;
+}
+
+// ── Per-asociatie energy catalog ─────────────────────────────────────────────
+
+export type EnergyByAsociatie = Record<string, EnergyRecord[]>;
+
+const EMPTY_ENERGY: EnergyRecord[] = [];
+
+export function energyForAsociatie(map: EnergyByAsociatie, asociatieId: string | null): EnergyRecord[] {
+  if (!asociatieId) return EMPTY_ENERGY;
+  return map[asociatieId] ?? EMPTY_ENERGY;
+}
+
+export function seedEnergy(): EnergyByAsociatie {
+  return { [DEMO_ASOCIATIE.id]: [...DEMO_ENERGY] };
+}
+
+export function addEnergyIn(
+  map: EnergyByAsociatie,
+  asociatieId: string,
+  record: EnergyRecord,
+): EnergyByAsociatie {
+  const current = map[asociatieId] ?? [];
+  return { ...map, [asociatieId]: [record, ...current] };
+}
+
+export function migrateEnergyState(persisted: unknown): EnergyByAsociatie {
+  const p = persisted as { byAsociatie?: EnergyByAsociatie } | null;
+  const existing = p?.byAsociatie ?? {};
+  return { ...existing, [DEMO_ASOCIATIE.id]: [...DEMO_ENERGY] };
 }

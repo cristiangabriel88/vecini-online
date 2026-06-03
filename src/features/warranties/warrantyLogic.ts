@@ -1,5 +1,6 @@
 import type { Warranty } from '@/shared/types/domain';
 import { warrantyStatus, type WarrantyStatus } from '@/features/repairs/repairLogic';
+import { DEMO_ASOCIATIE, DEMO_WARRANTIES } from '@/shared/demo/demoData';
 
 export { warrantyStatus, WARRANTY_ALERT_DAYS } from '@/features/repairs/repairLogic';
 export type { WarrantyStatus } from '@/features/repairs/repairLogic';
@@ -36,4 +37,34 @@ export function countAlerts(warranties: Warranty[], now: Date = new Date()): num
     const s: WarrantyStatus = warrantyStatus(w.expires_at, now);
     return s === 'expired' || s === 'expiring';
   }).length;
+}
+
+// ── Per-asociatie warranty catalog ───────────────────────────────────────────
+
+export type WarrantiesByAsociatie = Record<string, Warranty[]>;
+
+const EMPTY_WARRANTIES: Warranty[] = [];
+
+export function warrantiesForAsociatie(map: WarrantiesByAsociatie, asociatieId: string | null): Warranty[] {
+  if (!asociatieId) return EMPTY_WARRANTIES;
+  return map[asociatieId] ?? EMPTY_WARRANTIES;
+}
+
+export function seedWarranties(): WarrantiesByAsociatie {
+  return { [DEMO_ASOCIATIE.id]: [...DEMO_WARRANTIES] };
+}
+
+export function addWarrantyIn(
+  map: WarrantiesByAsociatie,
+  asociatieId: string,
+  warranty: Warranty,
+): WarrantiesByAsociatie {
+  const current = map[asociatieId] ?? [];
+  return { ...map, [asociatieId]: [warranty, ...current] };
+}
+
+export function migrateWarrantiesState(persisted: unknown): WarrantiesByAsociatie {
+  const p = persisted as { byAsociatie?: WarrantiesByAsociatie } | null;
+  const existing = p?.byAsociatie ?? {};
+  return { ...existing, [DEMO_ASOCIATIE.id]: [...DEMO_WARRANTIES] };
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Images, Plus, Camera } from 'lucide-react';
@@ -9,17 +9,23 @@ import { Input } from '@/shared/components/Input';
 import { Select } from '@/shared/components/Select';
 import { Modal } from '@/shared/components/Modal';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { formatDateLong } from '@/shared/lib/format';
-import { useProjectsStore } from '@/features/projects/projectsStore';
-import { usePhotoJournalStore } from './photoJournalStore';
-import { filterByProject, groupByDate, isValidPhoto } from './photoJournalLogic';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useAsociatieProjects } from '@/features/projects/projectsStore';
+import { usePhotoJournalStore, useAsociatiePhotos, DEMO_USER } from './photoJournalStore';
+import { hydratePhotos, addPhotoLive } from './photoJournalApi';
+import { filterByProject, groupByDate, isValidPhoto, swatchForIndex } from './photoJournalLogic';
 
 const today = () => new Date().toISOString().slice(0, 10);
 
 export default function PhotoJournalPage() {
   const { t } = useTranslation();
-  const { projects } = useProjectsStore();
-  const { photos, addPhoto } = usePhotoJournalStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const userName = useAuthStore((s) => s.profile?.full_name ?? DEMO_USER.name);
+  const fetchError = usePhotoJournalStore((s) => s.fetchError);
+  const photos = useAsociatiePhotos();
+  const projects = useAsociatieProjects();
 
   const [filter, setFilter] = useState('all');
   const [open, setOpen] = useState(false);
@@ -28,18 +34,47 @@ export default function PhotoJournalPage() {
   const [caption, setCaption] = useState('');
   const [phase, setPhase] = useState('');
 
+  useEffect(() => {
+    if (asociatieId) void hydratePhotos(asociatieId);
+  }, [asociatieId]);
+
   const valid = isValidPhoto(caption, date) && projectId !== '';
   const groups = groupByDate(filterByProject(photos, filter));
 
   const submit = () => {
-    if (!valid) return;
+    if (!valid || !asociatieId) return;
     const project = projects.find((p) => p.id === projectId);
-    addPhoto(projectId, project?.title ?? '', date, caption.trim(), phase.trim());
+    const photo = {
+      id: `pp-${Date.now()}`,
+      asociatie_id: asociatieId,
+      project_id: projectId,
+      project_title: project?.title ?? '',
+      date,
+      caption: caption.trim(),
+      phase: phase.trim(),
+      swatch: swatchForIndex(photos.length),
+      author_name: userName,
+      created_at: new Date().toISOString(),
+    };
+    addPhotoLive(asociatieId, photo);
     toast.success(t('photoJournal.added'));
     setCaption('');
     setPhase('');
     setOpen(false);
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydratePhotos(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>
@@ -93,7 +128,9 @@ export default function PhotoJournalPage() {
                         {photo.phase && <Badge tone="primary">{photo.phase}</Badge>}
                       </div>
                       <p className="mt-2 text-sm">{photo.caption}</p>
-                      <p className="mt-2 text-xs text-muted">{photo.author_name}</p>
+                      {photo.author_name && (
+                        <p className="mt-2 text-xs text-muted">{photo.author_name}</p>
+                      )}
                     </div>
                   </div>
                 ))}

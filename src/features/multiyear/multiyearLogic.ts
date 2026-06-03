@@ -1,4 +1,5 @@
 import type { MultiyearPlanItem } from '@/shared/types/domain';
+import { DEMO_ASOCIATIE, DEMO_MULTIYEAR } from '@/shared/demo/demoData';
 
 /** A plan item needs a plausible year and a short title. */
 export function isValidPlanItem(year: number, title: string): boolean {
@@ -25,4 +26,37 @@ export function groupByYear(items: MultiyearPlanItem[]): { year: number; items: 
     buckets.set(item.year, list);
   }
   return [...buckets.entries()].map(([year, list]) => ({ year, items: list }));
+}
+
+// ── Per-asociatie multiyear catalog ──────────────────────────────────────────
+
+export type MultiyearByAsociatie = Record<string, MultiyearPlanItem[]>;
+
+const EMPTY_MULTIYEAR: MultiyearPlanItem[] = [];
+
+export function multiyearForAsociatie(
+  map: MultiyearByAsociatie,
+  asociatieId: string | null,
+): MultiyearPlanItem[] {
+  if (!asociatieId) return EMPTY_MULTIYEAR;
+  return map[asociatieId] ?? EMPTY_MULTIYEAR;
+}
+
+export function seedMultiyear(): MultiyearByAsociatie {
+  return { [DEMO_ASOCIATIE.id]: [...DEMO_MULTIYEAR] };
+}
+
+export function addMultiyearIn(
+  map: MultiyearByAsociatie,
+  asociatieId: string,
+  item: MultiyearPlanItem,
+): MultiyearByAsociatie {
+  const current = map[asociatieId] ?? [];
+  return { ...map, [asociatieId]: [item, ...current] };
+}
+
+export function migrateMultiyearState(persisted: unknown): MultiyearByAsociatie {
+  const p = persisted as { byAsociatie?: MultiyearByAsociatie } | null;
+  const existing = p?.byAsociatie ?? {};
+  return { ...existing, [DEMO_ASOCIATIE.id]: [...DEMO_MULTIYEAR] };
 }

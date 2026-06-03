@@ -1,4 +1,5 @@
 import type { Crowdfund } from '@/shared/types/domain';
+import { DEMO_ASOCIATIE, DEMO_CROWDFUNDS } from '@/shared/demo/demoData';
 
 /** A crowdfund needs a title and a positive target amount. */
 export function isValidCrowdfund(title: string, target: number): boolean {
@@ -36,4 +37,37 @@ export function sortCrowdfunds(funds: Crowdfund[], now: Date = new Date()): Crow
     .filter((c) => !isOpen(c, now))
     .sort((a, b) => new Date(b.deadline).getTime() - new Date(a.deadline).getTime());
   return [...open, ...closed];
+}
+
+// ── Per-asociatie crowdfund catalog ──────────────────────────────────────────
+
+export type CrowdfundsByAsociatie = Record<string, Crowdfund[]>;
+
+const EMPTY_CROWDFUNDS: Crowdfund[] = [];
+
+export function crowdfundsForAsociatie(
+  map: CrowdfundsByAsociatie,
+  asociatieId: string | null,
+): Crowdfund[] {
+  if (!asociatieId) return EMPTY_CROWDFUNDS;
+  return map[asociatieId] ?? EMPTY_CROWDFUNDS;
+}
+
+export function seedCrowdfunds(): CrowdfundsByAsociatie {
+  return { [DEMO_ASOCIATIE.id]: [...DEMO_CROWDFUNDS] };
+}
+
+export function addCrowdfundIn(
+  map: CrowdfundsByAsociatie,
+  asociatieId: string,
+  fund: Crowdfund,
+): CrowdfundsByAsociatie {
+  const current = map[asociatieId] ?? [];
+  return { ...map, [asociatieId]: [fund, ...current] };
+}
+
+export function migrateCrowdfundsState(persisted: unknown): CrowdfundsByAsociatie {
+  const p = persisted as { byAsociatie?: CrowdfundsByAsociatie } | null;
+  const existing = p?.byAsociatie ?? {};
+  return { ...existing, [DEMO_ASOCIATIE.id]: [...DEMO_CROWDFUNDS] };
 }
