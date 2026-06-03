@@ -6,6 +6,12 @@ Reference only — not read during a normal `make progress` task.
 
 ---
 
+### ✅ T227 — [P2] PWA manifest + mobile installability
+
+Done: Created `public/manifest.webmanifest` with all required fields (`name`, `short_name`, `start_url: "/app"`, `display: "standalone"`, `theme_color: "#3d6b4f"`, `background_color: "#1d2b25"`, `lang`, `scope`, `categories`) and three icon entries referencing the existing `favicon.svg` at 192x192, 512x512, and `any` size (SVG is resolution-independent). Added `<link rel="manifest" href="/manifest.webmanifest">` to `index.html` (`theme-color` meta was already present). Created `tests/unit/pwaManifest.test.ts` with 4 assertions: file exists, required fields present (name/short_name/display/theme_color/background_color), icons array non-empty, and start_url equals `/app`. 261 files / 2441 tests / lint + typecheck + build + build:pi + build:demo all green.
+
+---
+
 ### ✅ T226 — [P2] Assistant widget Phase 2 — live open polls + my ticket status + upcoming events
 
 Done: Added three new builder functions to `dataSources.ts`: `buildPollEntries` (filters to published, non-closed polls within their open window), `buildMyTicketEntries` (filters to non-terminal tickets reported by the current user), `buildEventEntries` (filters to events whose `starts_at` is in the future). Updated `useDataEntries()` to read from `useAsociatiePolls()`, `useAsociatieTickets()`, `useAsociatieEvents()`, and `useAuthStore` (for current user ID, falling back to `DEMO_CURRENT_USER_ID`); all three stores are seeded with demo data and hydrated live by their API layers. Updated `DATA_ENTRIES` static constant to include demo-backed poll/ticket/event entries. Fixed `assistant.data.test.ts` to disable all five data-backed features (F56, F36, F08, F09, F17) when testing the no-data-entries assertion. Added 16 new unit tests across three describe blocks in `assistant.engine.test.ts` covering open-poll filtering, closed-poll exclusion, my-ticket filtering, closed-status exclusion, upcoming-event filtering, past-event exclusion, empty-input, and term-keyword coverage. 260 files / 2437 tests / lint + typecheck + build + build:pi + build:demo all green.

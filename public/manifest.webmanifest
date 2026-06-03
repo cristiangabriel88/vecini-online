@@ -1,0 +1,33 @@
+{
+  "name": "vecini.online",
+  "short_name": "Vecini",
+  "description": "Platforma digitală pentru asociațiile de proprietari din România.",
+  "start_url": "/app",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#3d6b4f",
+  "background_color": "#1d2b25",
+  "lang": "ro",
+  "scope": "/",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
