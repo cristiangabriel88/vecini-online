@@ -122,3 +122,93 @@ test('T119: live — unauthenticated access to /consola is denied (live path onl
     page.getByRole('heading', { name: /Operator sign in|Autentificare operator/i }),
   ).toBeVisible();
 });
+
+/**
+ * T121 — Provisioning console E2E: add-association form validation + happy path.
+ *
+ * Covers: (1) empty-form submit blocks and shows validation errors; (2) filling
+ * in a valid admin name + email, submitting, observing the success banner, then
+ * navigating back to the list and asserting the new invite appears in the Pending
+ * invitations section with a "Setup pending" badge. Runs offline in demo.
+ */
+
+// T121-1: Validation — empty form submit shows per-field required errors.
+test('T121: demo — add-association form rejects empty submission', async ({ page }) => {
+  await goPlatformLogin(page);
+  if (!(await isDemoMode(page))) { test.skip(); return; }
+
+  await page.getByRole('button', { name: /Enter demo console|Intră în consola demo/i }).click();
+  await expect(page).toHaveURL(/\/consola$/);
+
+  await page.getByRole('link', { name: /Asociații|Associations/i }).click();
+  await expect(page).toHaveURL(/\/consola\/asociatii$/);
+
+  // Click the "Add association" CTA (matches "Provizionează asociație nouă" / "Add association").
+  await page.getByRole('button', { name: /Provizionează|Add association/i }).click();
+  await expect(page).toHaveURL(/\/consola\/asociatii\/adauga$/);
+
+  // The page heading confirms we are on the add form.
+  await expect(
+    page.getByRole('heading', { name: /Add new association|Adaugă asociație nouă/i }),
+  ).toBeVisible();
+
+  // Submit with both fields empty — validation fires on the first click.
+  await page.getByRole('button', { name: /Send invitation|Trimite invitație/i }).click();
+
+  // At least one "Required field" error should be visible.
+  await expect(
+    page.getByText(/Required field|Câmp obligatoriu/i).first(),
+  ).toBeVisible();
+});
+
+// T121-2: Happy path — provision a new admin invite and verify it appears with a
+// "Setup pending" badge on the associations list.
+test('T121: demo — provision new admin invite, verify pending-setup badge on list', async ({
+  page,
+}) => {
+  await goPlatformLogin(page);
+  if (!(await isDemoMode(page))) { test.skip(); return; }
+
+  await page.getByRole('button', { name: /Enter demo console|Intră în consola demo/i }).click();
+  await expect(page).toHaveURL(/\/consola$/);
+
+  await page.getByRole('link', { name: /Asociații|Associations/i }).click();
+  await expect(page).toHaveURL(/\/consola\/asociatii$/);
+
+  // Same pattern as T119-3: matches "Provizionează asociație nouă" (RO) / "Add association" (EN).
+  await page.getByRole('button', { name: /Provizionează|Add association/i }).click();
+  await expect(page).toHaveURL(/\/consola\/asociatii\/adauga$/);
+
+  // Fill in valid admin details using a unique email so the test is idempotent.
+  const testEmail = 't121-admin@example.com';
+  await page.getByLabel(/Administrator name|Numele administratorului/i).fill('Ion Popescu');
+  await page.getByLabel(/Administrator email|Email administrator/i).fill(testEmail);
+
+  // Submit — demo path resolves after a short simulated delay.
+  await page.getByRole('button', { name: /Send invitation|Trimite invitație/i }).click();
+
+  // Success banner shows the email and the demo-mode note in the success note paragraph.
+  const successBanner = page.getByRole('status');
+  await expect(successBanner).toContainText(testEmail);
+  // The `.platform-add-asoc__success-note` paragraph is scoped to avoid the
+  // topbar badge which also contains "Mod demonstrativ".
+  await expect(
+    page.locator('.platform-add-asoc__success-note'),
+  ).toContainText(/Demo mode|Mod demonstrativ/i);
+
+  // Navigate back to the list via the "View associations list" button.
+  await page.getByRole('button', { name: /View associations list|Vezi lista de asociații/i }).click();
+  await expect(page).toHaveURL(/\/consola\/asociatii$/);
+
+  // The new invite appears in the "Pending invitations" section.
+  await expect(
+    page.getByRole('region', { name: /Pending invitations|Invitații în așteptare/i }),
+  ).toBeVisible();
+  await expect(page.getByText('Ion Popescu')).toBeVisible();
+  await expect(page.getByText(testEmail)).toBeVisible();
+
+  // The "Setup pending" badge confirms the invite is in the right state.
+  await expect(
+    page.getByText(/Setup pending|Configurare în așteptare/i).first(),
+  ).toBeVisible();
+});
