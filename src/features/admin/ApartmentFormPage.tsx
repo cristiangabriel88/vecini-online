@@ -67,6 +67,7 @@ export default function ApartmentFormPage() {
   // Required-field errors stay silent until the admin actually tries to save,
   // so a pristine form never greets them with red text.
   const [submitted, setSubmitted] = useState(false);
+  const [saving, setSaving] = useState(false);
   // Invite-by-email modal state.
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState('');
@@ -117,7 +118,7 @@ export default function ApartmentFormPage() {
 
   /** Persist the current form (create or update) and return the saved apartment,
    *  or null when the asociație is missing or a field is invalid. */
-  const persist = (): Apartment | null => {
+  const persist = async (): Promise<Apartment | null> => {
     setSubmitted(true);
     if (!asociatieId) return null;
     if (Object.keys(errors).length > 0) {
@@ -126,21 +127,25 @@ export default function ApartmentFormPage() {
     }
     if (isEdit && apartment) {
       const updated = { ...applyApartmentEdit(apartment, input, persons), is_active: active };
-      updateApartment(asociatieId, apartment, updated, handleWriteError);
-      return updated;
+      return (await updateApartment(asociatieId, apartment, updated, handleWriteError)) ? updated : null;
     }
     const created = { ...newApartment(input, asociatieId, persons), is_active: active };
-    createApartments(asociatieId, [created], handleWriteError);
-    return created;
+    return (await createApartments(asociatieId, [created], handleWriteError)) ? created : null;
   };
 
-  const onSave = () => {
-    const saved = persist();
-    if (!saved) return;
-    toast.success(
-      isEdit ? t('apartments.saved', { label: apartmentShortLabel(saved) }) : t('apartments.created', { count: 1 }),
-    );
-    navigate('/app/admin/apartamente');
+  const onSave = async () => {
+    if (saving) return;
+    setSaving(true);
+    try {
+      const saved = await persist();
+      if (!saved) return;
+      toast.success(
+        isEdit ? t('apartments.saved', { label: apartmentShortLabel(saved) }) : t('apartments.created', { count: 1 }),
+      );
+      navigate('/app/admin/apartamente');
+    } finally {
+      setSaving(false);
+    }
   };
 
   // Persons with a valid email -- used to populate the invite modal's selection list.
@@ -165,7 +170,7 @@ export default function ApartmentFormPage() {
       toast.error(t('apartments.emailInvalid'));
       return;
     }
-    if (!persist()) return;
+    if (!(await persist())) return;
     const invite = issue({
       asociatieId,
       asociatieName,
@@ -466,7 +471,7 @@ export default function ApartmentFormPage() {
         <Button variant="ghost" onClick={() => navigate('/app/admin/apartamente')}>
           <ArrowLeft className="h-4 w-4" /> {t('common.back')}
         </Button>
-        <Button onClick={onSave}>
+        <Button onClick={onSave} loading={saving}>
           <Check className="h-4 w-4" /> {t('common.save')}
         </Button>
       </div>

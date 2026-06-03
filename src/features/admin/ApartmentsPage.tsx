@@ -429,9 +429,10 @@ export default function ApartmentsPage() {
 
       const newApartments = toCreate.map((row) => rowToApartment(row, asociatieId));
       if (newApartments.length > 0) {
-        createApartments(asociatieId, newApartments, (err) => {
+        const created = await createApartments(asociatieId, newApartments, (err) => {
           toast.error(t(err === 'conflict' ? 'apartments.conflictError' : 'apartments.saveFailed'));
         });
+        if (!created) return;
       }
 
       let invitesSent = 0;

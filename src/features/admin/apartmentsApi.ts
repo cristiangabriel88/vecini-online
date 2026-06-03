@@ -76,16 +76,29 @@ export async function hydrateApartments(asociatieId: string): Promise<void> {
 
 /**
  * Create one or more apartments in an asociație.
- * The local store is updated synchronously; the Supabase mirror is async.
+ * With a backend configured, wait for the Supabase write before updating the
+ * local store so route hydration cannot overwrite a pending optimistic item.
  * A failed live write calls onError with a discriminated error code so the
  * caller can surface a bilingual toast without silent data-loss.
  */
-export function createApartments(
+export async function createApartments(
   asociatieId: string,
   apartments: Apartment[],
   onError?: (err: ApartmentWriteError) => void,
-): void {
-  if (apartments.length === 0) return;
+): Promise<boolean> {
+  if (apartments.length === 0) return true;
+  if (isSupabaseConfigured) {
+    try {
+      const { error } = await supabase.from('apartments').insert(apartments.map(toRow));
+      if (error) {
+        onError?.(classify(error));
+        return false;
+      }
+    } catch {
+      onError?.('write-failed');
+      return false;
+    }
+  }
   useApartmentsStore.getState().addMany(asociatieId, apartments);
   recordAudit({
     action: 'apartment.created',
@@ -96,28 +109,35 @@ export function createApartments(
         : `${apartments.length}`,
     after: apartments.map((a) => apartmentShortLabel(a)).join(', '),
   });
-  if (isSupabaseConfigured) {
-    void (async () => {
-      try {
-        const { error } = await supabase.from('apartments').insert(apartments.map(toRow));
-        if (error) onError?.(classify(error));
-      } catch {
-        onError?.('write-failed');
-      }
-    })();
-  }
+  return true;
 }
 
 /**
  * Replace an existing apartment with its edited version.
  * Surfaces a live write failure via onError (same discriminant as createApartments).
  */
-export function updateApartment(
+export async function updateApartment(
   asociatieId: string,
   before: Apartment,
   after: Apartment,
   onError?: (err: ApartmentWriteError) => void,
-): void {
+): Promise<boolean> {
+  if (isSupabaseConfigured) {
+    try {
+      const dbId = toDbId(after.id);
+      const { error } = await supabase
+        .from('apartments')
+        .update(toRow(after))
+        .eq('id', dbId);
+      if (error) {
+        onError?.(classify(error));
+        return false;
+      }
+    } catch {
+      onError?.('write-failed');
+      return false;
+    }
+  }
   useApartmentsStore.getState().update(asociatieId, after);
   recordAudit({
     action: 'apartment.updated',
@@ -126,20 +146,7 @@ export function updateApartment(
     before: before.proprietar_principal_name ?? '',
     after: after.proprietar_principal_name ?? '',
   });
-  if (isSupabaseConfigured) {
-    void (async () => {
-      try {
-        const dbId = toDbId(after.id);
-        const { error } = await supabase
-          .from('apartments')
-          .update(toRow(after))
-          .eq('id', dbId);
-        if (error) onError?.(classify(error));
-      } catch {
-        onError?.('write-failed');
-      }
-    })();
-  }
+  return true;
 }
 
 /**
