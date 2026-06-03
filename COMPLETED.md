@@ -4,6 +4,14 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T75 P2 ✅ 2026-06-03 -- Live activation: persist ROPA snapshot + DPA adoption record
+- new: supabase/migrations/20260603000004_ropa_dpa.sql (ropa_snapshots + dpa_adoptions tables, RLS: admin/presedinte insert, members select)
+- new: src/features/legal/ropaApi.ts (saveRopaSnapshot, loadRopaSnapshots, adoptDpa, loadDpaAdoptions; all no-ops offline)
+- updated: src/features/legal/ProcessingRecordsPage.tsx (Save snapshot button + Adopt DPA button; loads history on mount; shows last saved/adopted by+date; all behind isSupabaseConfigured)
+- updated: src/shared/locales/en.json + ro.json (6 new keys: adoptDpa, dpaAdopted, lastAdoption, saveSnapshot, snapshotSaved, lastSnapshot)
+- new: tests/unit/ropaApi.test.ts (9 assertions: offline-path no-ops for all four API functions)
+- result: 219 files / 2190 tests / lint + typecheck + build + build:pi + build:demo all green
+
 ### T72 P2 ✅ 2026-06-03 -- Live activation: server-side erasure execution + retention cleanup
 - new: netlify/functions/gdpr-erasure.ts (POST, bearer auth, ERASURE_PLAN phases 1+2, membership removal, auth.admin.deleteUser when no remaining memberships, rate-limit 10/hr/uid)
 - new: netlify/functions/gdpr-retention-purge.ts (monthly scheduled + manual POST, purges auth_audit_events >12 months + resolved tickets >1 year, rate-limit 5/hr/IP)

@@ -5,16 +5,16 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-03
-- last_task: T72 [P2] Live activation: server-side erasure execution + retention cleanup
+- last_task: T75 [P2] Live activation: persist ROPA snapshot + DPA adoption record
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 218 files / 2181 tests
+- counts: 219 files / 2190 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T75 [P2] live-activate ROPA snapshot + DPA adoption record
+- next: T119 [P2] platform-shell access E2E
 - features: 67/67 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F33 (18 features) + auth/invites/onboarding; remaining 49 features offline-first, live-activation queued T213–T219. F28/F36/F66 cross-feature glue wired (T104). Platform console: shell + provisioning done (T93/T94); oversight tools T95–T99 on hold.
 - e2e: F01/F02/F03/F04/F05/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F18/F25/F26/F27/F33/F35/F36/F40 happy paths green on chromium + mobile (24 features / 36%). Full smoke harness reworked (T211 done). E2E closure queued T220–T223.
 - blockers: none (T212 done closes the privileged-session gap). T16 blocker cleared.
-- completion_estimate: 59% of original product vision delivered end-to-end (updated 2026-06-03). Detail: all 67 features demo-complete and offline-functional; 18/67 live-wired (27%); security posture ~93% (T212 done, remaining: T141 JWT hook); GDPR surface ~75% (T72 erasure done, remaining: T75 ROPA snapshot + T76 breach fan-out); Telegram bot 0% (fully deferred); SaaS billing 0% (T19 on hold); platform console ~30% (shell + provisioning done, T119–T121 reactivated, oversight T95–T99 on hold); E2E coverage 36% (24/67 features). Blockers to 75%+: live-wire remaining 49 features (T213–T219), ship Telegram (T15).
+- completion_estimate: 59% of original product vision delivered end-to-end (updated 2026-06-03). Detail: all 67 features demo-complete and offline-functional; 18/67 live-wired (27%); security posture ~93% (T212 done, remaining: T141 JWT hook); GDPR surface ~85% (T72 erasure done, T75 ROPA/DPA persistence done, remaining: T76 breach fan-out); Telegram bot 0% (fully deferred); SaaS billing 0% (T19 on hold); platform console ~30% (shell + provisioning done, T119–T121 reactivated, oversight T95–T99 on hold); E2E coverage 36% (24/67 features). Blockers to 75%+: live-wire remaining 49 features (T213–T219), ship Telegram (T15).
 
 ---
 

@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { ClipboardList, Download, FileDown, FileJson, FileSpreadsheet, ShieldAlert } from 'lucide-react';
+import { Archive, CheckCircle, ClipboardList, Download, FileDown, FileJson, FileSpreadsheet, ShieldAlert } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
@@ -10,6 +10,7 @@ import { useAuthStore } from '@/shared/store/authStore';
 import { FEATURE_MAP, featureDescription, featureTitle } from '@/shared/features/registry';
 import { useAsociatieFlags } from '@/shared/features/featureStore';
 import { DEMO_ASOCIATIE } from '@/shared/demo/demoData';
+import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import type { Lang } from './legalContent';
 import { dpaTemplate, dpaToText } from './dpaContent';
 import {
@@ -19,6 +20,14 @@ import {
   ropaToJson,
   type ProcessingActivity,
 } from './ropaLogic';
+import {
+  adoptDpa,
+  loadDpaAdoptions,
+  loadRopaSnapshots,
+  saveRopaSnapshot,
+  type DpaAdoption,
+  type RopaSnapshot,
+} from './ropaApi';
 
 function download(filename: string, contents: string, mime: string) {
   const blob = new Blob([contents], { type: mime });
@@ -53,6 +62,8 @@ export default function ProcessingRecordsPage() {
   const role = activeRole();
   const canView = role !== null && (ROPA_ADMIN_ROLES as readonly string[]).includes(role);
 
+  const userId = useAuthStore((s) => s.session)?.user?.id ?? null;
+
   const asociatieName =
     localAsociatii.find((a) => a.id === currentAsociatieId)?.name ?? DEMO_ASOCIATIE.name;
 
@@ -63,6 +74,19 @@ export default function ProcessingRecordsPage() {
   const activities = useMemo(() => buildRopa(enabledKeys), [enabledKeys]);
 
   const doc = useMemo(() => dpaTemplate(lang, asociatieName), [lang, asociatieName]);
+
+  const [snapshots, setSnapshots] = useState<RopaSnapshot[]>([]);
+  const [adoptions, setAdoptions] = useState<DpaAdoption[]>([]);
+  const [savingSnapshot, setSavingSnapshot] = useState(false);
+  const [adoptingDpa, setAdoptingDpa] = useState(false);
+
+  useEffect(() => {
+    if (!canView || !currentAsociatieId || !isSupabaseConfigured) return;
+    void loadRopaSnapshots(currentAsociatieId).then(setSnapshots);
+    void loadDpaAdoptions(currentAsociatieId).then(setAdoptions);
+  }, [canView, currentAsociatieId]);
+
+  const displayName = useAuthStore((s) => s.profile)?.full_name ?? role ?? 'admin';
 
   if (!canView) {
     return (
@@ -82,6 +106,32 @@ export default function ProcessingRecordsPage() {
       </div>
     );
   }
+
+  const handleSaveSnapshot = async () => {
+    if (!currentAsociatieId) return;
+    setSavingSnapshot(true);
+    const result = await saveRopaSnapshot(currentAsociatieId, displayName, enabledKeys, activities);
+    setSavingSnapshot(false);
+    if (result.ok) {
+      toast.success(t('ropa.snapshotSaved'));
+      void loadRopaSnapshots(currentAsociatieId).then(setSnapshots);
+    } else {
+      toast.error(t('common.loadError'));
+    }
+  };
+
+  const handleAdoptDpa = async () => {
+    if (!currentAsociatieId) return;
+    setAdoptingDpa(true);
+    const result = await adoptDpa(currentAsociatieId, doc.updated, displayName, userId);
+    setAdoptingDpa(false);
+    if (result.ok) {
+      toast.success(t('ropa.dpaAdopted'));
+      void loadDpaAdoptions(currentAsociatieId).then(setAdoptions);
+    } else {
+      toast.error(t('common.loadError'));
+    }
+  };
 
   const activityTitle = (a: ProcessingActivity): string =>
     a.kind === 'feature' && a.featureKey
@@ -153,10 +203,25 @@ export default function ProcessingRecordsPage() {
             </section>
           ))}
         </article>
-        <div style={{ marginTop: 12 }}>
+        <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           <Button variant="secondary" onClick={downloadDpa}>
             <FileDown size={15} /> {t('ropa.downloadDpa')}
           </Button>
+          {isSupabaseConfigured && (
+            <Button onClick={handleAdoptDpa} loading={adoptingDpa}>
+              <CheckCircle size={15} /> {t('ropa.adoptDpa')}
+            </Button>
+          )}
+          {adoptions.length > 0 && (
+            <span className="text-sm text-muted">
+              {t('ropa.lastAdoption', {
+                name: adoptions[0].adopted_by_name,
+                date: new Date(adoptions[0].adopted_at).toLocaleDateString(
+                  lang === 'ro' ? 'ro-RO' : 'en-GB',
+                ),
+              })}
+            </span>
+          )}
         </div>
       </Card>
 
@@ -164,13 +229,28 @@ export default function ProcessingRecordsPage() {
         <p className="text-sm text-muted" style={{ marginTop: 0 }}>
           {t('ropa.registerBody')}
         </p>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12, alignItems: 'center' }}>
           <Button onClick={exportJson}>
             <FileJson size={15} /> {t('gdpr.downloadJson')}
           </Button>
           <Button variant="secondary" onClick={exportCsv}>
             <FileSpreadsheet size={15} /> {t('gdpr.downloadCsv')}
           </Button>
+          {isSupabaseConfigured && (
+            <Button variant="secondary" onClick={handleSaveSnapshot} loading={savingSnapshot}>
+              <Archive size={15} /> {t('ropa.saveSnapshot')}
+            </Button>
+          )}
+          {snapshots.length > 0 && (
+            <span className="text-sm text-muted">
+              {t('ropa.lastSnapshot', {
+                name: snapshots[0].generated_by_name,
+                date: new Date(snapshots[0].generated_at).toLocaleDateString(
+                  lang === 'ro' ? 'ro-RO' : 'en-GB',
+                ),
+              })}
+            </span>
+          )}
         </div>
 
         <div className="ropa-table" role="table" aria-label={t('ropa.registerTitle')}>
