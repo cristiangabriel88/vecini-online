@@ -6,6 +6,19 @@ Reference only — not read during a normal `make progress` task.
 
 ---
 
+### T221 P2 ✅ 2026-06-04 -- E2E batch for shared spaces + information + community registry (F28-F34, F37-F39)
+- new: tests/e2e/registry.spec.ts (9 happy-path tests)
+- F28: add parking spot "P5" + plate "B 100 NEW", search by plate
+- F29: register bike "Trek Marlin albastru", verify list entry
+- F30: verify seeded assigned ("Ap. 1" badge) and unassigned ("Neatribuită") storage rooms
+- F31: sign up for "Tuns gazonul din față" free green task, "Renunț" replaces "Mă înscriu"
+- F32: generate courier code, verify "Activ · 30 min" badge
+- F34: add "EnergoMax SRL" with past contract end, verify "Expirat" badge + alert banner
+- F37: register pet "Lola", mark lost, verify "Pierdut" badge
+- F38: post thank-you to Ap. 7, verify message in feed
+- F39: add wiki page "Reguli de zgomot", search returns it
+- 260 files / 2394 unit tests / lint + typecheck + build + build:pi + build:demo all green
+
 ### T220 P2 ✅ 2026-06-04 -- E2E batch for maintenance + issues features (F18-F24)
 - new: tests/e2e/maintenance.spec.ts -- 7 happy-path tests covering F18 (add repair + warranty badge), F19 (add scheduled maintenance + mark done), F20 (high meter reading + anomaly flag), F21 (recurring banner + lift pattern heading), F22 (post RFP + add quote + cheapest badge), F23 (sign up duty + covered badge), F24 (add lending item + mark borrowed)
 - all tests run on Chromium + Pixel 7 mobile via existing playwright.config.ts projects
