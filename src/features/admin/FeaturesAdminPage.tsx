@@ -24,10 +24,13 @@ import { hydrateFeatureFlags, setFeatureFlagLive } from '@/shared/features/featu
 import { useFeatureRequestStore } from '@/shared/store/featureRequestStore';
 import { useAuthStore } from '@/shared/store/authStore';
 import { recordAudit } from '@/shared/store/auditStore';
+import { useCurrentAsociatie } from '@/features/admin/asociatieStore';
+import { EmptyState } from '@/shared/components/EmptyState';
 
 export default function FeaturesAdminPage() {
   const { t } = useTranslation();
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const asociatie = useCurrentAsociatie();
   const flags = useAsociatieFlags();
   const categories = Object.keys(FEATURE_CATEGORIES) as FeatureCategory[];
 
@@ -102,7 +105,14 @@ export default function FeaturesAdminPage() {
   return (
     <div>
       <PageHeader title={t('features.title')} subtitle={t('features.subtitle')} />
+      {!asociatieId ? (
+        <EmptyState
+          title={t('features.noAsociatieTitle')}
+          body={t('features.noAsociatieBody')}
+        />
+      ) : (
       <div className="space-y-6">
+        <p className="text-sm text-muted">{t('features.managingFor', { name: asociatie?.name ?? asociatieId })}</p>
         {triage.length > 0 && (
           <section aria-label={t('features.requestsTitle')}>
             <h2 className="mb-2 flex items-center gap-2 text-lg font-semibold">
@@ -194,6 +204,7 @@ export default function FeaturesAdminPage() {
           </section>
         ))}
       </div>
+      )}
 
       <Modal
         open={pendingDismiss !== null}

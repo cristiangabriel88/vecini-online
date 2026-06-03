@@ -440,7 +440,10 @@
     "requestDismiss": "Dismiss",
     "requestDismissTitle": "Dismiss request?",
     "requestDismissBody": "The requests for \"{{feature}}\" will be cleared from the list without enabling the module. The decision is recorded in the audit log.",
-    "requestDismissedToast": "Requests for {{feature}} dismissed"
+    "requestDismissedToast": "Requests for {{feature}} dismissed",
+    "managingFor": "Managing features for: {{name}}",
+    "noAsociatieTitle": "No association selected",
+    "noAsociatieBody": "Select or create an association first to manage its features."
   },
   "announcements": {
     "title": "Announcements",

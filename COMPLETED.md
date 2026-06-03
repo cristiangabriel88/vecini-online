@@ -4,6 +4,9 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### ✅ T63 — [P2] Show the active asociație on FeaturesAdminPage + empty-state when none
+Done: `useCurrentAsociatie()` added to `FeaturesAdminPage`. When `currentAsociatieId` is null the entire feature list is replaced by a bilingual `EmptyState` (title + body). When an asociație is active a muted `managingFor` line appears above the triage/category list showing the resolved name. Three new i18n keys in en.json + ro.json (with real diacritics): `features.managingFor`, `features.noAsociatieTitle`, `features.noAsociatieBody`. 215 files / 2158 tests / lint + typecheck + build + build:pi + build:demo all green.
+
 ### ✅ T212 — [P1] Privileged-role absolute session expiry (force re-auth after 8 h for admin/comitet)
 Done: `src/features/auth/sessionExpiry.ts` -- pure helper: `PRIVILEGED_SESSION_MAX_MS` (8 h), `isPrivilegedRole` (admin/presedinte/comitet/cenzor), `stampPrivilegedSignin`/`clearPrivilegedSigninStamp`/`getPrivilegedSigninAgeMs`/`isPrivilegedSessionExpired` (localStorage), `markForcedSignout`/`consumeForcedSignoutReason` (sessionStorage). `authStore.signIn()` stamps after a successful live sign-in; `authStore.hydrate()` checks expiry after state is applied, forces inline sign-out + `markForcedSignout()` when the privileged session age exceeds 8 h; `signOut()`/`signOutEverywhere()` clear the stamp. `LoginPage` reads `consumeForcedSignoutReason()` on mount and fires a bilingual toast (`auth.privilegedSessionExpired`). New locale keys in en.json + ro.json (real diacritics). `tests/unit/sessionExpiry.test.ts` (13 assertions: isPrivilegedRole matrix, stamp/clear/age, expiry at threshold, non-privileged/null unaffected, forced-signout consume). 215 files / 2158 tests / lint + typecheck + build + build:pi + build:demo all green.
 

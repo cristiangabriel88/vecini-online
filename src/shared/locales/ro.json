@@ -440,7 +440,10 @@
     "requestDismiss": "Respinge",
     "requestDismissTitle": "Respingi cererea?",
     "requestDismissBody": "Cererile pentru „{{feature}}” vor fi șterse din listă, fără a activa modulul. Decizia este înregistrată în jurnalul de audit.",
-    "requestDismissedToast": "Cererile pentru {{feature}} au fost respinse"
+    "requestDismissedToast": "Cererile pentru {{feature}} au fost respinse",
+    "managingFor": "Gestionezi funcționalitățile pentru: {{name}}",
+    "noAsociatieTitle": "Nicio asociație selectată",
+    "noAsociatieBody": "Selectează sau creează o asociație pentru a gestiona funcționalitățile acesteia."
   },
   "announcements": {
     "title": "Anunțuri",
