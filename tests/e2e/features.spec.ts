@@ -350,3 +350,44 @@ test('F16 — resident signs a petition and the progress bar updates', async ({ 
   // The sign button is now disabled/replaced with "Ai semnat".
   await expect(page.getByRole('button', { name: /Ai semnat/i }).first()).toBeDisabled();
 });
+
+test('F17 — resident submits a new ticket and it appears with Primit badge', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/sesizari');
+  await page.getByRole('button', { name: /Sesizare nouă/i }).click();
+  await page.getByLabel('Titlu').fill('Umiditate pe peretele casei scării');
+  await page.getByLabel('Descriere').fill('Se observă pete de umezeală și mucegai pe peretele de lângă geam, etajul 3.');
+  await page.getByLabel(/Locație/i).fill('Scara A, etaj 3');
+  await page.getByRole('button', { name: /Creează/i }).click();
+  const heading = page.getByRole('heading', { name: /Umiditate pe peretele/i });
+  await expect(heading).toBeVisible();
+  const card = heading.locator('../..');
+  await expect(card.getByText('Primit')).toBeVisible();
+});
+
+test('F17 — manager resolves a ticket and reporter rates the resolution', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/sesizari');
+  // Demo ticket t-2 starts at "Primit" and is reported by the demo user (u-res).
+  const card = page.getByRole('heading', { name: /Infiltrație în garaj/i }).locator('../..');
+  await expect(card.getByText('Primit')).toBeVisible();
+  // Assign the ticket.
+  await card.getByRole('button', { name: /Asignează/i }).click();
+  await expect(card.getByText('Asignat')).toBeVisible();
+  // Advance to in-progress.
+  await card.getByRole('button', { name: /Marchează în lucru/i }).click();
+  await expect(card.getByText('În lucru')).toBeVisible();
+  // Advance to resolved via the notes modal.
+  await card.getByRole('button', { name: /Marchează rezolvat/i }).click();
+  await page.getByLabel(/Note de rezolvare/i).fill('Fisura a fost etanșată și peretele impermeabilizat.');
+  await page.getByRole('button', { name: /Marchează rezolvat/i }).last().click();
+  await expect(card.getByText('Rezolvat')).toBeVisible();
+  await expect(card.getByText(/Fisura a fost etanșată/i)).toBeVisible();
+  // Reporter (same demo user) sees the rating button and rates the resolution.
+  await card.getByRole('button', { name: /Evaluează rezolvarea/i }).click();
+  await page.getByRole('button', { name: '4 stele' }).click();
+  await page.getByRole('button', { name: /Salvează/i }).click();
+  // Stars are saved and the rating button is gone.
+  await expect(page.getByText(/Mulțumim pentru evaluare/i)).toBeVisible();
+  await expect(card.getByRole('button', { name: /Evaluează rezolvarea/i })).toHaveCount(0);
+});
