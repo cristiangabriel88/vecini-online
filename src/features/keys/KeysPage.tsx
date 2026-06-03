@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { KeySquare, Plus, ArrowLeftRight } from 'lucide-react';
@@ -7,13 +7,18 @@ import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Input, Textarea } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
-import { useKeysStore } from './keysStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useKeysStore, useAsociatieKeys } from './keysStore';
+import { hydrateKeys, addKeyLive, handoverKeyLive } from './keysApi';
 import { isValidHandover, isValidKey, searchKeys, sortKeys } from './keysLogic';
 
 export default function KeysPage() {
   const { t } = useTranslation();
-  const { keys, add, handover } = useKeysStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId ?? 'demo-asoc');
+  const fetchError = useKeysStore((s) => s.fetchError);
+  const keys = useAsociatieKeys();
 
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
@@ -24,13 +29,23 @@ export default function KeysPage() {
   const [handoverId, setHandoverId] = useState<string | null>(null);
   const [newHolder, setNewHolder] = useState('');
 
+  useEffect(() => {
+    void hydrateKeys(asociatieId);
+  }, [asociatieId]);
+
   const list = sortKeys(searchKeys(keys, query));
   const valid = isValidKey(space, holder);
   const handoverValid = isValidHandover(newHolder);
 
   const submit = () => {
     if (!valid) return;
-    add({ space, holder, notes });
+    addKeyLive(asociatieId, {
+      id: `key-${Date.now()}`,
+      asociatie_id: asociatieId,
+      space: space.trim(),
+      holder_name: holder.trim(),
+      notes: notes.trim() || null,
+    });
     toast.success(t('keys.added'));
     setOpen(false);
     setSpace('');
@@ -40,11 +55,24 @@ export default function KeysPage() {
 
   const submitHandover = () => {
     if (!handoverId || !handoverValid) return;
-    handover(handoverId, newHolder);
+    handoverKeyLive(asociatieId, handoverId, newHolder);
     toast.success(t('keys.handedOver'));
     setHandoverId(null);
     setNewHolder('');
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => void hydrateKeys(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>

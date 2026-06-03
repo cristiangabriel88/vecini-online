@@ -1,5 +1,6 @@
 import type { InsurancePolicy } from '@/shared/types/domain';
 import { warrantyStatus, type WarrantyStatus } from '@/features/repairs/repairLogic';
+import { DEMO_ASOCIATIE, DEMO_INSURANCE } from '@/shared/demo/demoData';
 
 /** Policy status: expired, expiring soon (renewal due) or active. */
 export type PolicyStatus = 'expired' | 'expiring' | 'active';
@@ -29,4 +30,30 @@ export function sortByExpiry(policies: InsurancePolicy[]): InsurancePolicy[] {
 /** Count policies that are expired or expiring soon — used by the renewal alert. */
 export function countExpiring(policies: InsurancePolicy[], now: Date = new Date()): number {
   return policies.filter((p) => policyStatus(p.expires_at, now) !== 'active').length;
+}
+
+// ── Per-asociatie insurance policy catalog ───────────────────────────────────
+
+export type InsuranceByAsociatie = Record<string, InsurancePolicy[]>;
+
+const EMPTY_INSURANCE: InsurancePolicy[] = [];
+
+export function insuranceForAsociatie(map: InsuranceByAsociatie, asociatieId: string | null): InsurancePolicy[] {
+  if (!asociatieId) return EMPTY_INSURANCE;
+  return map[asociatieId] ?? EMPTY_INSURANCE;
+}
+
+export function seedInsurance(): InsuranceByAsociatie {
+  return { [DEMO_ASOCIATIE.id]: [...DEMO_INSURANCE] };
+}
+
+export function addInsuranceIn(map: InsuranceByAsociatie, asociatieId: string, policy: InsurancePolicy): InsuranceByAsociatie {
+  const current = map[asociatieId] ?? [];
+  return { ...map, [asociatieId]: [policy, ...current] };
+}
+
+export function migrateInsuranceState(persisted: unknown): InsuranceByAsociatie {
+  const p = persisted as { byAsociatie?: InsuranceByAsociatie } | null;
+  const existing = p?.byAsociatie ?? {};
+  return { ...existing, [DEMO_ASOCIATIE.id]: [...DEMO_INSURANCE] };
 }

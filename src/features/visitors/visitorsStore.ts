@@ -1,34 +1,52 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { VisitorReport } from '@/shared/types/domain';
-import { DEMO_VISITOR_REPORTS } from '@/shared/demo/demoData';
-import { nextStatus } from './visitorLogic';
+import { useAuthStore } from '@/shared/store/authStore';
+import {
+  type VisitorsByAsociatie,
+  visitorsForAsociatie,
+  seedVisitors,
+  addVisitorIn,
+  cycleStatusIn,
+  migrateVisitorsState,
+} from './visitorLogic';
 
 interface VisitorsState {
-  reports: VisitorReport[];
-  add: (note: string) => void;
-  cycleStatus: (id: string) => void;
+  byAsociatie: VisitorsByAsociatie;
+  fetchError: string | null;
+  addReport: (asociatieId: string, report: VisitorReport) => void;
+  cycleStatus: (asociatieId: string, id: string) => void;
+  replaceForAsociatie: (asociatieId: string, reports: VisitorReport[]) => void;
+  setFetchError: (msg: string | null) => void;
 }
 
-export const useVisitorsStore = create<VisitorsState>((set) => ({
-  reports: [...DEMO_VISITOR_REPORTS],
-  add: (note) =>
-    set((s) => ({
-      reports: [
-        {
-          id: `vr-${Date.now()}`,
-          asociatie_id: 'demo-asoc',
-          reporter_user_id: 'u-res',
-          reporter_name: 'Popescu Andrei',
-          note: note.trim(),
-          photo_path: null,
-          status: 'nou',
-          created_at: new Date().toISOString(),
-        },
-        ...s.reports,
-      ],
-    })),
-  cycleStatus: (id) =>
-    set((s) => ({
-      reports: s.reports.map((r) => (r.id === id ? { ...r, status: nextStatus(r.status) } : r)),
-    })),
-}));
+export const useVisitorsStore = create<VisitorsState>()(
+  persist(
+    (set) => ({
+      byAsociatie: seedVisitors(),
+      fetchError: null,
+
+      addReport: (asociatieId, report) =>
+        set((s) => ({ byAsociatie: addVisitorIn(s.byAsociatie, asociatieId, report) })),
+
+      cycleStatus: (asociatieId, id) =>
+        set((s) => ({ byAsociatie: cycleStatusIn(s.byAsociatie, asociatieId, id) })),
+
+      replaceForAsociatie: (asociatieId, reports) =>
+        set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: reports } })),
+
+      setFetchError: (msg) => set({ fetchError: msg }),
+    }),
+    {
+      name: 'vecini.visitors',
+      version: 1,
+      partialize: (s) => ({ byAsociatie: s.byAsociatie }),
+      migrate: (persisted) => ({ byAsociatie: migrateVisitorsState(persisted) }),
+    },
+  ),
+);
+
+export function useAsociatieVisitors(): VisitorReport[] {
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  return useVisitorsStore((s) => visitorsForAsociatie(s.byAsociatie, asociatieId));
+}

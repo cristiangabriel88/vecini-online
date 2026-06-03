@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Lock, Plus, Phone, Trash2, KeyRound, ShieldCheck } from 'lucide-react';
@@ -8,40 +8,80 @@ import { Button } from '@/shared/components/Button';
 import { Input, Textarea } from '@/shared/components/Input';
 import { Modal } from '@/shared/components/Modal';
 import { EmptyState } from '@/shared/components/EmptyState';
-import { useSafetyStore } from './safetyStore';
+import { ErrorState } from '@/shared/components/ErrorState';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useSafetyStore, useCurrentSafetyProfile } from './safetyStore';
+import { hydrateSafetyProfile, persistSafetyProfile } from './safetyApi';
 import { isValidContact, isValidPassphrase, sortContacts, telHref } from './safetyLogic';
 
 export default function SafetyCodePage() {
   const { t } = useTranslation();
-  const { profile, saveDetails, addContact, removeContact } = useSafetyStore();
+  const userId = useAuthStore((s) => s.session?.user?.id ?? 'u-res');
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId ?? 'demo-asoc');
+  const fetchError = useSafetyStore((s) => s.fetchError);
+  const profile = useCurrentSafetyProfile();
 
-  const [passphrase, setPassphrase] = useState(profile.passphrase);
-  const [note, setNote] = useState(profile.note);
+  const [passphrase, setPassphrase] = useState(profile?.passphrase ?? '');
+  const [note, setNote] = useState(profile?.note ?? '');
+  const profileId = profile?.id;
 
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [relationship, setRelationship] = useState('');
   const [phone, setPhone] = useState('');
 
+  useEffect(() => {
+    void hydrateSafetyProfile(userId, asociatieId);
+  }, [userId, asociatieId]);
+
+  useEffect(() => {
+    if (profileId) {
+      setPassphrase(profile?.passphrase ?? '');
+      setNote(profile?.note ?? '');
+    }
+  }, [profileId, profile?.passphrase, profile?.note]);
+
   const detailsValid = isValidPassphrase(passphrase);
   const contactValid = isValidContact(name, phone);
-  const contacts = sortContacts(profile.contacts);
+  const contacts = sortContacts(profile?.contacts ?? []);
 
   const saveProfile = () => {
-    if (!detailsValid) return;
-    saveDetails(passphrase.trim(), note.trim());
+    if (!detailsValid || !profile) return;
+    const updated = { ...profile, passphrase: passphrase.trim(), note: note.trim(), updated_at: new Date().toISOString() };
+    persistSafetyProfile(userId, asociatieId, updated);
     toast.success(t('safety.saved'));
   };
 
   const submitContact = () => {
-    if (!contactValid) return;
-    addContact(name.trim(), relationship.trim(), phone.trim());
+    if (!contactValid || !profile) return;
+    const contact = { id: `tc-${Date.now()}`, name: name.trim(), relationship: relationship.trim(), phone: phone.trim() };
+    const updated = { ...profile, contacts: [...profile.contacts, contact], updated_at: new Date().toISOString() };
+    persistSafetyProfile(userId, asociatieId, updated);
     toast.success(t('safety.contactAdded'));
     setName('');
     setRelationship('');
     setPhone('');
     setOpen(false);
   };
+
+  const removeContact = (id: string) => {
+    if (!profile) return;
+    const updated = { ...profile, contacts: profile.contacts.filter((c) => c.id !== id), updated_at: new Date().toISOString() };
+    persistSafetyProfile(userId, asociatieId, updated);
+  };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => void hydrateSafetyProfile(userId, asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>

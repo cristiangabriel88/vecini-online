@@ -5,18 +5,31 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-03
-- last_task: T217 [P2] Live-activate F41 Project tracker + F42 Photo journal + F43 Contractori + F44 Crowdfunding + F45 Plan multianual + F47 Energie + F48 Garantii
+- last_task: T218 [P2] Live-activate F49 Cod portari + F50 Evacuare + F51 PSI + F52 Asigurare + F53 Chei + F54 Vizitatori + F55 Alarmă
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 244 files / 2310 tests
+- counts: 251 files / 2337 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T218 [P2] Live-activate F49 Cod portari + F50 Evacuare + F51 PSI + F52 Asigurare + F53 Chei + F54 Vizitatori + F55 Alarmă
-- features: 67/67 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01-F24 + F28-F32 + F33-F48 (44 features) + auth/invites/onboarding; remaining 23 features offline-first, live-activation queued T218-T219. F28/F36/F66 cross-feature glue wired (T104). Platform console: shell + provisioning + live list read + E2E done (T93/T94/T119/T120/T121); oversight tools T95-T99 on hold.
+- next: T219 [P2] Live-activate F57 Marketplace + F58 Carpool + F59 Babysitting + F60 Barter + F61 Cumpărături comune + F62 Welcome kit + F63 Aniversări + F64 Copii + F65 Feedback
+- features: 67/67 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01-F24 + F28-F32 + F33-F55 (51 features) + auth/invites/onboarding; remaining 16 features offline-first, live-activation queued T219. F28/F36/F66 cross-feature glue wired (T104). Platform console: shell + provisioning + live list read + E2E done (T93/T94/T119/T120/T121); oversight tools T95-T99 on hold.
 - e2e: F01/F02/F03/F04/F05/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F18/F25/F26/F27/F33/F35/F36/F40 happy paths green on chromium + mobile (24 features / 36%). Platform shell + provisioning E2E (T119/T121) done. Full smoke harness reworked (T211 done). E2E closure queued T220–T223.
 - blockers: none (T212 done closes the privileged-session gap). T16 blocker cleared.
-- completion_estimate: 66% of original product vision delivered end-to-end (updated 2026-06-03). Detail: all 67 features demo-complete and offline-functional; 44/67 live-wired (66%); security posture ~93% (T212 done, remaining: T141 JWT hook); GDPR surface ~85% (T72 erasure done, T75 ROPA/DPA persistence done, remaining: T76 breach fan-out); Telegram bot 0% (fully deferred); SaaS billing 0% (T19 on hold); platform console ~42% (shell + provisioning + T119/T121 E2E + T120 live list done, oversight T95–T99 on hold); E2E coverage 36% (24/67 features). Blockers to 75%+: live-wire remaining 23 features (T218–T219), ship Telegram (T15).
+- completion_estimate: 69% of original product vision delivered end-to-end (updated 2026-06-03). Detail: all 67 features demo-complete and offline-functional; 51/67 live-wired (76%); security posture ~93% (T212 done, remaining: T141 JWT hook); GDPR surface ~85% (T72 erasure done, T75 ROPA/DPA persistence done, remaining: T76 breach fan-out); Telegram bot 0% (fully deferred); SaaS billing 0% (T19 on hold); platform console ~42% (shell + provisioning + T119/T121 E2E + T120 live list done, oversight T95–T99 on hold); E2E coverage 36% (24/67 features). Blockers to 80%+: live-wire remaining 16 features (T219), ship Telegram (T15).
 
 ---
+
+### T218 P2 ✅ 2026-06-03 -- Live-activate F49 Cod portari + F50 Evacuare + F51 PSI + F52 Asigurare + F53 Chei + F54 Vizitatori + F55 Alarmă
+- new: src/features/safety/safetyApi.ts (hydrateSafetyProfile, persistSafetyProfile + AES-GCM encryption)
+- new: src/features/evacuation/evacuationApi.ts (hydrateEvacuation, persistPetMarker, removePetMarker)
+- new: src/features/psi/psiApi.ts (hydratePsiAssets, addPsiAssetLive, markPsiCheckedLive)
+- new: src/features/insurance/insuranceApi.ts (hydrateInsurance, addInsurancePolicyLive)
+- new: src/features/keys/keysApi.ts (hydrateKeys, addKeyLive, handoverKeyLive)
+- new: src/features/visitors/visitorsApi.ts (hydrateVisitors, addVisitorReportLive, cycleVisitorStatusLive)
+- new: src/features/alarm/alarmApi.ts (hydrateAlarm, addAlarmSystemLive, logAlarmTestLive, reportAlarmFaultLive)
+- rebuilt: safetyStore/evacuationStore/psiStore/insuranceStore/keysStore/visitorsStore/alarmStore (all per-asociatie persisted)
+- migration: supabase/migrations/20260603000010_f49_f55_columns.sql (route/equipment/apartment_label/user_id/holder_name/reporter_name columns + member-insert/owner-manage policies)
+- fixed: MyDataPage migrated from useVisitorsStore().reports to useAsociatieVisitors()
+- new: tests/unit/safetyApi.test.ts (4) + evacuationApi.test.ts (4) + psiApi.test.ts (3) + insuranceApi.test.ts (3) + keysApi.test.ts (4) + visitorsApi.test.ts (4) + alarmApi.test.ts (5) = 27 assertions
 
 ### T217 P2 ✅ 2026-06-03 -- Live-activate F41 Project tracker + F42 Photo journal + F43 Contractori + F44 Crowdfunding + F45 Plan multianual + F47 Energie + F48 Garantii
 - new: src/features/projects/projectsApi.ts (hydrateProjects, addProjectLive, setProjectStatusLive)

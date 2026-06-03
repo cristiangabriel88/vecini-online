@@ -1,32 +1,47 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { InsurancePolicy } from '@/shared/types/domain';
-import { DEMO_INSURANCE } from '@/shared/demo/demoData';
-
-interface NewPolicy {
-  insurer: string;
-  policyNumber: string;
-  expiresAt: string;
-}
+import { useAuthStore } from '@/shared/store/authStore';
+import {
+  type InsuranceByAsociatie,
+  insuranceForAsociatie,
+  seedInsurance,
+  addInsuranceIn,
+  migrateInsuranceState,
+} from './insuranceLogic';
 
 interface InsuranceState {
-  policies: InsurancePolicy[];
-  add: (input: NewPolicy) => void;
+  byAsociatie: InsuranceByAsociatie;
+  fetchError: string | null;
+  addPolicy: (asociatieId: string, policy: InsurancePolicy) => void;
+  replaceForAsociatie: (asociatieId: string, policies: InsurancePolicy[]) => void;
+  setFetchError: (msg: string | null) => void;
 }
 
-export const useInsuranceStore = create<InsuranceState>((set) => ({
-  policies: [...DEMO_INSURANCE],
-  add: ({ insurer, policyNumber, expiresAt }) =>
-    set((s) => ({
-      policies: [
-        {
-          id: `ins-${Date.now()}`,
-          asociatie_id: 'demo-asoc',
-          insurer: insurer.trim(),
-          policy_number: policyNumber.trim(),
-          expires_at: expiresAt,
-          document_path: null,
-        },
-        ...s.policies,
-      ],
-    })),
-}));
+export const useInsuranceStore = create<InsuranceState>()(
+  persist(
+    (set) => ({
+      byAsociatie: seedInsurance(),
+      fetchError: null,
+
+      addPolicy: (asociatieId, policy) =>
+        set((s) => ({ byAsociatie: addInsuranceIn(s.byAsociatie, asociatieId, policy) })),
+
+      replaceForAsociatie: (asociatieId, policies) =>
+        set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: policies } })),
+
+      setFetchError: (msg) => set({ fetchError: msg }),
+    }),
+    {
+      name: 'vecini.insurance',
+      version: 1,
+      partialize: (s) => ({ byAsociatie: s.byAsociatie }),
+      migrate: (persisted) => ({ byAsociatie: migrateInsuranceState(persisted) }),
+    },
+  ),
+);
+
+export function useAsociatieInsurance(): InsurancePolicy[] {
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  return useInsuranceStore((s) => insuranceForAsociatie(s.byAsociatie, asociatieId));
+}

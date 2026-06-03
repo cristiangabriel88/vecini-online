@@ -36,7 +36,7 @@ import { useKidsStore } from '@/features/kids/kidsStore';
 import { useLaundryStore } from '@/features/laundry/laundryStore';
 import { useMovingStore } from '@/features/moving/movingStore';
 import { useVenueStore } from '@/features/venue/venueStore';
-import { useVisitorsStore } from '@/features/visitors/visitorsStore';
+import { useAsociatieVisitors } from '@/features/visitors/visitorsStore';
 import { formatDateTime } from '@/shared/lib/format';
 import {
   DEMO_APARTMENTS,
@@ -115,7 +115,7 @@ export default function MyDataPage() {
   const laundryBookings = useLaundryStore((s) => s.bookings);
   const movingBookings = useMovingStore((s) => s.bookings);
   const venueBookings = useVenueStore((s) => s.bookings);
-  const visitorReports = useVisitorsStore((s) => s.reports);
+  const visitorReports = useAsociatieVisitors();
   const consentHistory = useConsentStore((s) => s.history);
   const securityEvents = useSecurityStore((s) => s.events);
 

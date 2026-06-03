@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { BellRing, Plus } from 'lucide-react';
@@ -8,9 +8,12 @@ import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
 import { formatDate, formatDateTime } from '@/shared/lib/format';
-import { useAlarmStore } from './alarmStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useAlarmStore, useAsociatieAlarm } from './alarmStore';
+import { hydrateAlarm, addAlarmSystemLive, logAlarmTestLive, reportAlarmFaultLive } from './alarmApi';
 import {
   attentionCount,
   daysSinceTest,
@@ -21,9 +24,16 @@ import {
 
 export default function AlarmPage() {
   const { t } = useTranslation();
-  const { systems, add, logTest, reportFault } = useAlarmStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId ?? 'demo-asoc');
+  const fetchError = useAlarmStore((s) => s.fetchError);
+  const systems = useAsociatieAlarm();
+
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
+
+  useEffect(() => {
+    void hydrateAlarm(asociatieId);
+  }, [asociatieId]);
 
   const today = new Date().toISOString();
   const ordered = sortSystems(systems, today);
@@ -32,11 +42,31 @@ export default function AlarmPage() {
 
   const submit = () => {
     if (!valid) return;
-    add(name);
+    addAlarmSystemLive(asociatieId, {
+      id: `al-${Date.now()}`,
+      asociatie_id: asociatieId,
+      name: name.trim(),
+      status: 'ok',
+      last_test: null,
+      events: [],
+    });
     toast.success(t('alarm.added'));
     setOpen(false);
     setName('');
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => void hydrateAlarm(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>
@@ -83,10 +113,10 @@ export default function AlarmPage() {
                   </ul>
                 )}
                 <div className="flex gap-2">
-                  <Button size="sm" variant="secondary" onClick={() => logTest(sys.id)}>
+                  <Button size="sm" variant="secondary" onClick={() => logAlarmTestLive(asociatieId, sys.id)}>
                     {t('alarm.logTest')}
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => reportFault(sys.id)}>
+                  <Button size="sm" variant="ghost" onClick={() => reportAlarmFaultLive(asociatieId, sys.id)}>
                     {t('alarm.reportFault')}
                   </Button>
                 </div>

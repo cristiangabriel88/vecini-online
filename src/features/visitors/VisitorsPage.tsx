@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { UserSearch, Plus } from 'lucide-react';
@@ -8,10 +8,13 @@ import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Textarea } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
 import { formatDateTime } from '@/shared/lib/format';
-import { useVisitorsStore } from './visitorsStore';
-import { isValidReport, recentReports } from './visitorLogic';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useVisitorsStore, useAsociatieVisitors } from './visitorsStore';
+import { hydrateVisitors, addVisitorReportLive, cycleVisitorStatusLive } from './visitorsApi';
+import { isValidReport, nextStatus, recentReports } from './visitorLogic';
 import type { VisitorStatus } from '@/shared/types/domain';
 
 const STATUS_TONE: Record<VisitorStatus, 'danger' | 'warning' | 'success'> = {
@@ -22,20 +25,56 @@ const STATUS_TONE: Record<VisitorStatus, 'danger' | 'warning' | 'success'> = {
 
 export default function VisitorsPage() {
   const { t } = useTranslation();
-  const { reports, add, cycleStatus } = useVisitorsStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId ?? 'demo-asoc');
+  const userId = useAuthStore((s) => s.session?.user?.id ?? 'u-res');
+  const profile = useAuthStore((s) => s.profile);
+  const fetchError = useVisitorsStore((s) => s.fetchError);
+  const reports = useAsociatieVisitors();
+
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState('');
+
+  useEffect(() => {
+    void hydrateVisitors(asociatieId);
+  }, [asociatieId]);
 
   const ordered = recentReports(reports);
   const valid = isValidReport(note);
 
   const submit = () => {
     if (!valid) return;
-    add(note);
+    const report = {
+      id: `vr-${Date.now()}`,
+      asociatie_id: asociatieId,
+      reporter_user_id: userId,
+      reporter_name: profile?.full_name ?? 'Locatar',
+      note: note.trim(),
+      photo_path: null,
+      status: 'nou' as VisitorStatus,
+      created_at: new Date().toISOString(),
+    };
+    addVisitorReportLive(asociatieId, report);
     toast.success(t('visitors.added'));
     setOpen(false);
     setNote('');
   };
+
+  const onCycleStatus = (id: string, currentStatus: VisitorStatus) => {
+    cycleVisitorStatusLive(asociatieId, id, nextStatus(currentStatus));
+  };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => void hydrateVisitors(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>
@@ -63,7 +102,7 @@ export default function VisitorsPage() {
                 <p className="text-sm text-muted">
                   {r.reporter_name} · {formatDateTime(r.created_at)}
                 </p>
-                <Button size="sm" variant="ghost" onClick={() => cycleStatus(r.id)}>
+                <Button size="sm" variant="ghost" onClick={() => onCycleStatus(r.id, r.status)}>
                   {t('visitors.changeStatus')}
                 </Button>
               </div>

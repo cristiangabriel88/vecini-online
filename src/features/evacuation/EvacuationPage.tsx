@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Map, Route, PawPrint, Plus, Trash2 } from 'lucide-react';
@@ -9,8 +9,13 @@ import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
 import { Modal } from '@/shared/components/Modal';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Icon } from '@/shared/components/Icon';
-import { useEvacuationStore } from './evacuationStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useAsociatieApartments } from '@/features/admin/apartmentsStore';
+import { findVoterApartmentId } from '@/features/polls/pollLogic';
+import { useEvacuationStore, useAsociatieEvacuation } from './evacuationStore';
+import { hydrateEvacuation, persistPetMarker, removePetMarker } from './evacuationApi';
 import {
   equipmentIcon,
   isValidPetMarker,
@@ -22,25 +27,63 @@ import type { EvacuationEquipmentKind } from '@/shared/types/domain';
 
 export default function EvacuationPage() {
   const { t } = useTranslation();
-  const { plans, markers, currentApartmentId, setMyMarker, clearMyMarker } = useEvacuationStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId ?? 'demo-asoc');
+  const userId = useAuthStore((s) => s.session?.user?.id ?? 'u-res');
+  const fetchError = useEvacuationStore((s) => s.fetchError);
+  const { plans, markers } = useAsociatieEvacuation();
+  const apartments = useAsociatieApartments();
 
   const [open, setOpen] = useState(false);
   const [species, setSpecies] = useState('');
 
+  useEffect(() => {
+    void hydrateEvacuation(asociatieId);
+  }, [asociatieId]);
+
+  const apartmentId = findVoterApartmentId(apartments, userId) ?? 'ap-2';
   const orderedPlans = sortPlans(plans);
-  const myMarker = markersForApartment(markers, currentApartmentId)[0] ?? null;
+  const myMarker = markersForApartment(markers, apartmentId).find((m) => m.user_id === userId) ?? null;
   const petCount = petApartmentCount(markers);
-  const valid = isValidPetMarker(currentApartmentId, species);
+  const valid = isValidPetMarker(apartmentId, species);
 
   const kindLabel = (k: EvacuationEquipmentKind) => t(`evacuation.equipment.${k}`);
 
   const submitMarker = () => {
     if (!valid) return;
-    setMyMarker(species.trim());
+    const marker = {
+      id: myMarker?.id ?? `pm-${Date.now()}`,
+      asociatie_id: asociatieId,
+      apartment_id: apartmentId,
+      apartment_label: apartments.find((a) => a.id === apartmentId)?.numar_apartament
+        ? `Ap. ${apartments.find((a) => a.id === apartmentId)!.numar_apartament}`
+        : '',
+      species: species.trim(),
+      user_id: userId,
+    };
+    persistPetMarker(asociatieId, marker);
     toast.success(t('evacuation.markerSaved'));
     setSpecies('');
     setOpen(false);
   };
+
+  const onClearMarker = () => {
+    if (!myMarker) return;
+    removePetMarker(asociatieId, userId, apartmentId, myMarker.id);
+    toast.success(t('evacuation.markerRemoved'));
+  };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => void hydrateEvacuation(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>
@@ -81,7 +124,6 @@ export default function EvacuationPage() {
         </div>
       )}
 
-      {/* Pet markers — so firefighters know where animals are. */}
       <Card className="mt-4 p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -99,7 +141,7 @@ export default function EvacuationPage() {
                 <PawPrint className="h-4 w-4 text-primary" />
                 {t('evacuation.myMarker', { species: myMarker.species })}
               </span>
-              <Button size="sm" variant="ghost" onClick={() => clearMyMarker()}>
+              <Button size="sm" variant="ghost" onClick={onClearMarker}>
                 <Trash2 className="h-4 w-4 text-danger" /> {t('evacuation.removeMarker')}
               </Button>
             </>

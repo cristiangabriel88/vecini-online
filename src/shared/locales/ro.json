@@ -1996,6 +1996,7 @@
     "addMarker": "Marchează animale",
     "removeMarker": "Șterge",
     "markerSaved": "Marcaj salvat.",
+    "markerRemoved": "Marcaj eliminat.",
     "speciesLabel": "Animale (pe scurt)",
     "speciesHint": "ex: 1 pisică, 2 câini"
   },

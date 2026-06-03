@@ -1,44 +1,47 @@
 import { create } from 'zustand';
-import type { SafetyProfile, TrustedContact } from '@/shared/types/domain';
-import { DEMO_SAFETY_PROFILE } from '@/shared/demo/demoData';
-
-const CURRENT_USER_ID = 'u-res';
+import { persist } from 'zustand/middleware';
+import type { SafetyProfile } from '@/shared/types/domain';
+import { useAuthStore } from '@/shared/store/authStore';
+import {
+  type SafetyByUser,
+  safetyForUser,
+  seedSafetyByUser,
+  setSafetyProfileIn,
+  migrateSafetyState,
+} from './safetyLogic';
 
 interface SafetyState {
-  profile: SafetyProfile;
-  /** Update the passphrase and instructions. */
-  saveDetails: (passphrase: string, note: string) => void;
-  /** Append a trusted contact. */
-  addContact: (name: string, relationship: string, phone: string) => void;
-  /** Remove a trusted contact by id. */
-  removeContact: (id: string) => void;
+  byUser: SafetyByUser;
+  fetchError: string | null;
+  setProfile: (userId: string, profile: SafetyProfile) => void;
+  replaceForUser: (userId: string, profile: SafetyProfile) => void;
+  setFetchError: (msg: string | null) => void;
 }
 
-export const useSafetyStore = create<SafetyState>((set) => ({
-  profile: { ...DEMO_SAFETY_PROFILE, contacts: DEMO_SAFETY_PROFILE.contacts.map((c) => ({ ...c })) },
-  saveDetails: (passphrase, note) =>
-    set((s) => ({
-      profile: { ...s.profile, passphrase, note, updated_at: new Date().toISOString() },
-    })),
-  addContact: (name, relationship, phone) =>
-    set((s) => {
-      const contact: TrustedContact = { id: `tc-${Date.now()}`, name, relationship, phone };
-      return {
-        profile: {
-          ...s.profile,
-          contacts: [...s.profile.contacts, contact],
-          updated_at: new Date().toISOString(),
-        },
-      };
-    }),
-  removeContact: (id) =>
-    set((s) => ({
-      profile: {
-        ...s.profile,
-        contacts: s.profile.contacts.filter((c) => c.id !== id),
-        updated_at: new Date().toISOString(),
-      },
-    })),
-}));
+export const useSafetyStore = create<SafetyState>()(
+  persist(
+    (set) => ({
+      byUser: seedSafetyByUser(),
+      fetchError: null,
 
-export { CURRENT_USER_ID };
+      setProfile: (userId, profile) =>
+        set((s) => ({ byUser: setSafetyProfileIn(s.byUser, userId, profile) })),
+
+      replaceForUser: (userId, profile) =>
+        set((s) => ({ byUser: setSafetyProfileIn(s.byUser, userId, profile) })),
+
+      setFetchError: (msg) => set({ fetchError: msg }),
+    }),
+    {
+      name: 'vecini.safety',
+      version: 1,
+      partialize: (s) => ({ byUser: s.byUser }),
+      migrate: (persisted) => ({ byUser: migrateSafetyState(persisted) }),
+    },
+  ),
+);
+
+export function useCurrentSafetyProfile(): SafetyProfile | null {
+  const userId = useAuthStore((s) => s.session?.user?.id ?? 'u-res');
+  return useSafetyStore((s) => safetyForUser(s.byUser, userId));
+}

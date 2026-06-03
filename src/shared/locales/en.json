@@ -1996,6 +1996,7 @@
     "addMarker": "Mark pets",
     "removeMarker": "Remove",
     "markerSaved": "Marker saved.",
+    "markerRemoved": "Marker removed.",
     "speciesLabel": "Pets (short)",
     "speciesHint": "e.g. 1 cat, 2 dogs"
   },

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Umbrella, Plus } from 'lucide-react';
@@ -8,9 +8,12 @@ import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
 import { formatDate } from '@/shared/lib/format';
-import { useInsuranceStore } from './insuranceStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useInsuranceStore, useAsociatieInsurance } from './insuranceStore';
+import { hydrateInsurance, addInsurancePolicyLive } from './insuranceApi';
 import { countExpiring, isValidPolicy, policyStatus, sortByExpiry, type PolicyStatus } from './insuranceLogic';
 
 function defaultExpiry(): string {
@@ -27,12 +30,18 @@ const TONE: Record<PolicyStatus, 'danger' | 'warning' | 'success'> = {
 
 export default function InsurancePage() {
   const { t } = useTranslation();
-  const { policies, add } = useInsuranceStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId ?? 'demo-asoc');
+  const fetchError = useInsuranceStore((s) => s.fetchError);
+  const policies = useAsociatieInsurance();
 
   const [open, setOpen] = useState(false);
   const [insurer, setInsurer] = useState('');
   const [policyNumber, setPolicyNumber] = useState('');
   const [expiresAt, setExpiresAt] = useState(defaultExpiry());
+
+  useEffect(() => {
+    void hydrateInsurance(asociatieId);
+  }, [asociatieId]);
 
   const sorted = sortByExpiry(policies);
   const expiring = countExpiring(policies);
@@ -40,13 +49,33 @@ export default function InsurancePage() {
 
   const submit = () => {
     if (!valid) return;
-    add({ insurer, policyNumber, expiresAt });
+    addInsurancePolicyLive(asociatieId, {
+      id: `ins-${Date.now()}`,
+      asociatie_id: asociatieId,
+      insurer: insurer.trim(),
+      policy_number: policyNumber.trim(),
+      expires_at: expiresAt,
+      document_path: null,
+    });
     toast.success(t('insurance.added'));
     setOpen(false);
     setInsurer('');
     setPolicyNumber('');
     setExpiresAt(defaultExpiry());
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => void hydrateInsurance(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>

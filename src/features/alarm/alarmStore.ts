@@ -1,56 +1,57 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { AlarmSystem } from '@/shared/types/domain';
-import { DEMO_ALARM_SYSTEMS } from '@/shared/demo/demoData';
+import { useAuthStore } from '@/shared/store/authStore';
+import {
+  type AlarmByAsociatie,
+  alarmForAsociatie,
+  seedAlarmSystems,
+  addAlarmIn,
+  logTestIn,
+  reportFaultIn,
+  migrateAlarmState,
+} from './alarmLogic';
 
 interface AlarmState {
-  systems: AlarmSystem[];
-  add: (name: string) => void;
-  logTest: (id: string) => void;
-  reportFault: (id: string) => void;
+  byAsociatie: AlarmByAsociatie;
+  fetchError: string | null;
+  addSystem: (asociatieId: string, system: AlarmSystem) => void;
+  logTest: (asociatieId: string, id: string) => void;
+  reportFault: (asociatieId: string, id: string) => void;
+  replaceForAsociatie: (asociatieId: string, systems: AlarmSystem[]) => void;
+  setFetchError: (msg: string | null) => void;
 }
 
-function prependEvent(system: AlarmSystem, kind: string) {
-  return [
-    { id: `ae-${Date.now()}`, system_id: system.id, kind, occurred_at: new Date().toISOString() },
-    ...system.events,
-  ];
-}
+export const useAlarmStore = create<AlarmState>()(
+  persist(
+    (set) => ({
+      byAsociatie: seedAlarmSystems(),
+      fetchError: null,
 
-export const useAlarmStore = create<AlarmState>((set) => ({
-  systems: [...DEMO_ALARM_SYSTEMS],
-  add: (name) =>
-    set((s) => ({
-      systems: [
-        {
-          id: `al-${Date.now()}`,
-          asociatie_id: 'demo-asoc',
-          name: name.trim(),
-          status: 'ok',
-          last_test: null,
-          events: [],
-        },
-        ...s.systems,
-      ],
-    })),
-  logTest: (id) =>
-    set((s) => ({
-      systems: s.systems.map((sys) =>
-        sys.id === id
-          ? {
-              ...sys,
-              status: 'ok',
-              last_test: new Date().toISOString().slice(0, 10),
-              events: prependEvent(sys, 'Test efectuat'),
-            }
-          : sys,
-      ),
-    })),
-  reportFault: (id) =>
-    set((s) => ({
-      systems: s.systems.map((sys) =>
-        sys.id === id
-          ? { ...sys, status: 'defect', events: prependEvent(sys, 'Defecțiune semnalată') }
-          : sys,
-      ),
-    })),
-}));
+      addSystem: (asociatieId, system) =>
+        set((s) => ({ byAsociatie: addAlarmIn(s.byAsociatie, asociatieId, system) })),
+
+      logTest: (asociatieId, id) =>
+        set((s) => ({ byAsociatie: logTestIn(s.byAsociatie, asociatieId, id) })),
+
+      reportFault: (asociatieId, id) =>
+        set((s) => ({ byAsociatie: reportFaultIn(s.byAsociatie, asociatieId, id) })),
+
+      replaceForAsociatie: (asociatieId, systems) =>
+        set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: systems } })),
+
+      setFetchError: (msg) => set({ fetchError: msg }),
+    }),
+    {
+      name: 'vecini.alarm',
+      version: 1,
+      partialize: (s) => ({ byAsociatie: s.byAsociatie }),
+      migrate: (persisted) => ({ byAsociatie: migrateAlarmState(persisted) }),
+    },
+  ),
+);
+
+export function useAsociatieAlarm(): AlarmSystem[] {
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  return useAlarmStore((s) => alarmForAsociatie(s.byAsociatie, asociatieId));
+}

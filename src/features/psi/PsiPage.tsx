@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Flame, Plus, CheckCircle2 } from 'lucide-react';
@@ -8,9 +8,12 @@ import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
 import { formatDate } from '@/shared/lib/format';
-import { usePsiStore } from './psiStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { usePsiStore, useAsociatiePsiAssets } from './psiStore';
+import { hydratePsiAssets, addPsiAssetLive, markPsiCheckedLive } from './psiApi';
 import { countDue, isValidAsset, psiStatus, sortByNextCheck, type PsiStatus } from './psiLogic';
 
 function defaultNextCheck(): string {
@@ -27,7 +30,9 @@ const TONE: Record<PsiStatus, 'danger' | 'warning' | 'success'> = {
 
 export default function PsiPage() {
   const { t } = useTranslation();
-  const { assets, add, markChecked } = usePsiStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId ?? 'demo-asoc');
+  const fetchError = usePsiStore((s) => s.fetchError);
+  const assets = useAsociatiePsiAssets();
 
   const [open, setOpen] = useState(false);
   const [asset, setAsset] = useState('');
@@ -35,13 +40,25 @@ export default function PsiPage() {
   const [location, setLocation] = useState('');
   const [nextCheck, setNextCheck] = useState(defaultNextCheck());
 
+  useEffect(() => {
+    void hydratePsiAssets(asociatieId);
+  }, [asociatieId]);
+
   const sorted = sortByNextCheck(assets);
   const due = countDue(assets);
   const valid = isValidAsset(asset, nextCheck);
 
   const submit = () => {
     if (!valid) return;
-    add({ asset, kind, location, nextCheck });
+    const newAsset = {
+      id: `psi-${Date.now()}`,
+      asociatie_id: asociatieId,
+      asset: asset.trim(),
+      kind: kind.trim() || 'Altele',
+      location: location.trim() || null,
+      next_check: nextCheck,
+    };
+    addPsiAssetLive(asociatieId, newAsset);
     toast.success(t('psi.added'));
     setOpen(false);
     setAsset('');
@@ -51,9 +68,23 @@ export default function PsiPage() {
   };
 
   const onChecked = (id: string) => {
-    markChecked(id, 365);
+    const newDate = new Date(Date.now() + 365 * 86_400_000).toISOString().slice(0, 10);
+    markPsiCheckedLive(asociatieId, id, newDate);
     toast.success(t('psi.markedChecked'));
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => void hydratePsiAssets(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>
