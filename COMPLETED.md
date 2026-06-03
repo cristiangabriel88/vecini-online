@@ -4,6 +4,9 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### ✅ T211 — [P1] Rework stale E2E harness (auth / consent / isolation / smoke specs)
+Done: Foundation (T211 progress 2026-06-03) + all four leaf tasks (T230–T233) complete. auth/consent/isolation/batch fully reworked and green. smoke.spec.ts: T42/T126 heading strict-mode fix (T230); T09/T54 were already passing (T231); T140 demo-build detection moved before sign-out to prevent page-context crash on both chromium + mobile (T232); F04/F10/F13 proprietar-gated pages were already passing on mobile (T233). T16 blocker cleared. 214 files / 2141 tests / build + build:pi + build:demo all green.
+
 ### ✅ T230 — [P1] E2E: invite-redeem welcome redirect (smoke T42 + T126)
 Done: T42 was already welcome-aware (`/(app|bun-venit)/`). T126 failed due to a strict-mode violation: `/app/notificari` renders both `<h1>Notificări</h1>` and `<h3>Preferințe notificări</h3>`, so the regex matched 2 elements. Fixed by using `{ name: 'Notificări', level: 1 }` to target only the page `<h1>`. All 6 T42 + T126 tests pass on chromium + mobile. 214 files / 2141 tests / build + build:pi + build:demo all green.
 
