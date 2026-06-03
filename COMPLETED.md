@@ -1,9 +1,11 @@
-# COMPLETED — vecini.online
+﻿# COMPLETED — vecini.online
 
 Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### ✅ T200 — [P2] Live hydration + write for asociație identity (BuildingSettingsPage)
+Done: `asociatieApi.ts` -- `hydrateAsociatie(asociatieId)` reads the `asociatii` row under RLS (name/address/cui/registration_number/iban/contact_phone/contact_email/settings) and calls `hydrateFromRemote` on the store (no audit entry, no double-write); `saveAsociatie(asociatieId, patch)` applies the patch to the local store synchronously (triggering the audit entry) then, behind `isSupabaseConfigured`, validates with `validateBuildingIdentity` and does the DB `update` returning `'conflict'` on `23505` (CUI unique constraint). `asociatieStore.ts` refactored: Supabase write removed from `update` (responsibility moved to `saveAsociatie`); new `hydrateFromRemote` action added (local state only). `BuildingSettingsPage.tsx` wired: `useEffect` hydrates from DB on mount; `dirty` state prevents hydration from overwriting mid-edit form values and resets after a successful save; `save()` made async and routes through `saveAsociatie`, shows `building.err.cuiConflict` toast on conflict, `loading` prop on Save button. `building.err.cuiConflict` key added to en.json and ro.json (with real diacritics). `tests/unit/asociatieApi.test.ts` (4 assertions: hydrate no-op when unconfigured/empty, save updates store synchronously, merges patches, persists null optional fields). 209 files / 2097 tests / lint + typecheck + build + build:pi + build:demo all green.
 ### ✅ T199 — [P1] E2E happy path for F17 Sesizări (resident submit + admin lifecycle + resolution rating)
 Done: two happy paths added to `tests/e2e/features.spec.ts` -- (1) resident submits a new ticket ("Umiditate pe peretele casei scării", fills title/description/location, clicks Creează) → "Primit" badge visible on the card; (2) admin advances demo ticket t-2 "Infiltrație în garaj" from primit → asignat → in_lucru → rezolvat with notes modal ("Fisura a fost etanșată și peretele impermeabilizat") → "Rezolvat" badge + resolution notes visible → reporter rates 4 stele via the rating modal → "Mulțumim pentru evaluare" toast appears + "Evaluează rezolvarea" button gone. 4/4 tests pass (chromium + mobile). 208 files / 2091 unit tests / lint + typecheck + build + build:pi + build:demo all green.
 

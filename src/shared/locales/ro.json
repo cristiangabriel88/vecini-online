@@ -999,7 +999,8 @@
       "email": "Adresă de email invalidă",
       "cui": "CUI invalid (doar cifre, opțional prefix RO)",
       "iban": "IBAN invalid",
-      "phone": "Număr de telefon invalid"
+      "phone": "Număr de telefon invalid",
+      "cuiConflict": "Acest CUI este deja folosit de o altă asociație."
     }
   },
   "invites": {

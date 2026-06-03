@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Asociatie } from '@/shared/types/domain';
-import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import { DEMO_ASOCIATIE } from '@/shared/demo/demoData';
 import { recordAudit } from '@/shared/store/auditStore';
 import { useAuthStore } from '@/shared/store/authStore';
@@ -9,8 +8,7 @@ import { useAuthStore } from '@/shared/store/authStore';
 /* Editable building/association profile. The asociație is otherwise stored only
    as a minimal { id, name } in the auth store (offline) or fetched read-only from
    Supabase. This store keeps the admin's profile edits keyed by asociație id,
-   seeded from the demo asociație, and mirrors them to the `asociatii` table when a
-   backend is configured. */
+   seeded from the demo asociație. Remote reads/writes are handled by asociatieApi. */
 
 /** The admin-editable subset of an asociație profile. */
 export type AsociatieProfilePatch = Partial<
@@ -32,7 +30,10 @@ type ProfileById = Record<string, AsociatieProfilePatch>;
 interface AsociatieState {
   /** Profile edits per asociație id, merged onto the base record by selectors. */
   edits: ProfileById;
+  /** User-initiated save: merges patch into edits and records an audit entry. */
   update: (asociatieId: string, patch: AsociatieProfilePatch) => void;
+  /** Remote hydration: merges a DB row into edits without recording an audit entry. */
+  hydrateFromRemote: (asociatieId: string, patch: AsociatieProfilePatch) => void;
 }
 
 export const useAsociatieStore = create<AsociatieState>()(
@@ -42,15 +43,6 @@ export const useAsociatieStore = create<AsociatieState>()(
       update: (asociatieId, patch) =>
         set((s) => {
           const next = { ...(s.edits[asociatieId] ?? {}), ...patch };
-          if (isSupabaseConfigured) {
-            void (async () => {
-              try {
-                await supabase.from('asociatii').update(patch).eq('id', asociatieId);
-              } catch {
-                /* mirroring is best-effort; the local profile drives the UI */
-              }
-            })();
-          }
           recordAudit({
             action: 'building.updated',
             entity: 'building',
@@ -58,6 +50,10 @@ export const useAsociatieStore = create<AsociatieState>()(
           });
           return { edits: { ...s.edits, [asociatieId]: next } };
         }),
+      hydrateFromRemote: (asociatieId, patch) =>
+        set((s) => ({
+          edits: { ...s.edits, [asociatieId]: { ...(s.edits[asociatieId] ?? {}), ...patch } },
+        })),
     }),
     { name: 'vecini.asociatie', version: 1 },
   ),

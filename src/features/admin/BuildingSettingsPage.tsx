@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Check } from 'lucide-react';
@@ -8,7 +8,7 @@ import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
 import { Select } from '@/shared/components/Select';
 import { useAuthStore } from '@/shared/store/authStore';
-import { useAsociatieStore, useCurrentAsociatie } from './asociatieStore';
+import { useCurrentAsociatie } from './asociatieStore';
 import {
   type BuildingIdentityForm,
   type EntranceMode,
@@ -18,19 +18,20 @@ import {
   scariList,
   validateBuildingIdentity,
 } from './buildingLogic';
+import { hydrateAsociatie, saveAsociatie } from './asociatieApi';
 
 export default function BuildingSettingsPage() {
   const { t } = useTranslation();
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
   const asociatie = useCurrentAsociatie();
-  const update = useAsociatieStore((s) => s.update);
 
   const initialEntrances = useMemo(
     () => detectEntranceConfig(scariList(asociatie?.settings)),
-    [asociatie?.settings],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
   );
 
-  const [form, setForm] = useState(() => ({
+  const [form, setFormState] = useState(() => ({
     name: asociatie?.name ?? '',
     address: asociatie?.address ?? '',
     cui: asociatie?.cui ?? '',
@@ -43,6 +44,32 @@ export default function BuildingSettingsPage() {
   const [first, setFirst] = useState(initialEntrances.first);
   const [last, setLast] = useState(initialEntrances.last);
   const [touched, setTouched] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // Hydrate from DB on mount
+  useEffect(() => {
+    void hydrateAsociatie(asociatieId ?? '');
+  }, [asociatieId]);
+
+  // Sync form from store after hydration, unless the user has made edits
+  useEffect(() => {
+    if (dirty || !asociatie) return;
+    setFormState({
+      name: asociatie.name ?? '',
+      address: asociatie.address ?? '',
+      cui: asociatie.cui ?? '',
+      registration_number: asociatie.registration_number ?? '',
+      iban: asociatie.iban ?? '',
+      contact_phone: asociatie.contact_phone ?? '',
+      contact_email: asociatie.contact_email ?? '',
+    });
+    const cfg = detectEntranceConfig(scariList(asociatie.settings));
+    setMode(cfg.mode);
+    setFirst(cfg.first);
+    setLast(cfg.last);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [asociatie]);
 
   const options = entranceOptions(mode);
   const preview = entranceInterval(mode, first, last);
@@ -52,28 +79,31 @@ export default function BuildingSettingsPage() {
     [form],
   );
 
-  const set = (key: keyof typeof form, value: string) =>
-    setForm((prev) => ({ ...prev, [key]: value }));
+  const set = (key: keyof typeof form, value: string) => {
+    setFormState((prev) => ({ ...prev, [key]: value }));
+    setDirty(true);
+  };
 
   const fieldError = (key: keyof BuildingIdentityForm) =>
     touched && errors[key] ? t(`building.err.${errors[key]}`) : undefined;
 
   const changeMode = (next: EntranceMode) => {
     setMode(next);
-    // Reset the bounds to the first option of the new mode so they stay valid.
     const opts = entranceOptions(next);
     setFirst(opts[0]);
     setLast(opts[0]);
+    setDirty(true);
   };
 
-  const save = () => {
+  const save = async () => {
     if (!asociatieId || !asociatie) return;
     setTouched(true);
     if (!validated) {
       toast.error(t('building.fixErrors'));
       return;
     }
-    update(asociatieId, {
+    setSaving(true);
+    const result = await saveAsociatie(asociatieId, {
       name: validated.name,
       address: validated.address,
       cui: validated.cui || null,
@@ -83,7 +113,13 @@ export default function BuildingSettingsPage() {
       contact_email: validated.contact_email || null,
       settings: { ...asociatie.settings, scari: preview },
     });
+    setSaving(false);
+    if (result === 'conflict') {
+      toast.error(t('building.err.cuiConflict'));
+      return;
+    }
     toast.success(t('building.saved'));
+    setDirty(false);
   };
 
   return (
@@ -180,7 +216,7 @@ export default function BuildingSettingsPage() {
         </div>
       </Card>
       <div className="mt-5 flex justify-end">
-        <Button onClick={save}>
+        <Button onClick={save} loading={saving}>
           <Check className="h-4 w-4" /> {t('common.save')}
         </Button>
       </div>
