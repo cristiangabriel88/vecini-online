@@ -404,3 +404,64 @@ test('F17 — manager resolves a ticket and reporter rates the resolution', asyn
   await expect(page.getByText(/Mulțumim pentru evaluare/i)).toBeVisible();
   await expect(card.getByRole('button', { name: /Evaluează rezolvarea/i })).toHaveCount(0);
 });
+
+test('F01 — admin publishes announcement; category badge and unread indicator appear', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/anunturi');
+  await page.getByRole('button', { name: /Anunț nou/i }).click();
+  await page.getByLabel('Titlu').fill('Dezinsecție subsol Scara A');
+  await page.getByLabel('Conținut').fill('Firma autorizată va efectua dezinsecție în toată casa scării joi la 10:00.');
+  await page.getByRole('button', { name: /Publică/i }).click();
+  const heading = page.getByRole('heading', { name: /Dezinsecție subsol/i });
+  await expect(heading).toBeVisible();
+  const card = heading.locator('../..');
+  // Default category is "Informativ".
+  await expect(card.getByText('Informativ')).toBeVisible();
+  // Unread indicator: mark-read button is present and enabled.
+  await expect(card.getByRole('button', { name: /Marchează ca citit/i })).toBeVisible();
+});
+
+test('F01 — manager sees Programat badge on scheduled announcement; resident cannot see it', async ({ page }) => {
+  // Seeded an-0 has scheduled_at=2026-06-15 (future) and published_at=null.
+  await enterDemo(page);
+  await page.goto('/app/anunturi');
+  const heading = page.getByRole('heading', { name: /Revizia anuală a centralei termice/i });
+  await expect(heading).toBeVisible();
+  await expect(heading.locator('../..').getByText('Programat', { exact: true })).toBeVisible();
+  // Switch to resident role; scheduled-future announcements must be hidden.
+  await page.evaluate(() => {
+    try {
+      localStorage.setItem('iv.demo.role', 'proprietar');
+      // Mark the welcome flow as seen so RequireWelcome does not redirect to /bun-venit.
+      localStorage.setItem('vecini.welcome', JSON.stringify({
+        state: { seenByUser: { 'u-res': '2026-01-01T00:00:00.000Z' } },
+        version: 0,
+      }));
+    } catch { /* storage unavailable */ }
+  });
+  await enterDemo(page);
+  await page.goto('/app/anunturi');
+  await expect(page.getByRole('heading', { name: /Revizia anuală a centralei termice/i })).not.toBeVisible();
+  // Already-published announcements remain visible to residents.
+  await expect(page.getByRole('heading', { name: /Întrerupere apă caldă/i })).toBeVisible();
+});
+
+test('F01 — admin attaches a file; download button appears on the published card', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/anunturi');
+  await page.getByRole('button', { name: /Anunț nou/i }).click();
+  await page.getByLabel('Titlu').fill('Instrucțiuni evacuare urgentă');
+  await page.getByLabel('Conținut').fill('Citiți cu atenție instrucțiunile atașate.');
+  // Attach a synthetic PNG (well under the 10 MB limit).
+  await page.locator('input[type="file"]').setInputFiles({
+    name: 'evacuare.png',
+    mimeType: 'image/png',
+    buffer: Buffer.alloc(64, 0xff),
+  });
+  await expect(page.getByText('evacuare.png')).toBeVisible();
+  await page.getByRole('button', { name: /Publică/i }).click();
+  const cardHeading = page.getByRole('heading', { name: /Instrucțiuni evacuare urgentă/i });
+  await expect(cardHeading).toBeVisible();
+  // Download button aria-label is "Descarcă: evacuare.png".
+  await expect(cardHeading.locator('../..').getByRole('button', { name: /Descarcă.*evacuare/i })).toBeVisible();
+});

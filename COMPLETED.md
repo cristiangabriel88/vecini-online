@@ -4,6 +4,9 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### ✅ T203 — [P2] E2E happy path for F01 Anunțuri (compose + scheduled badge + attachment)
+Done: Three happy paths added to `tests/e2e/features.spec.ts` -- (1) admin publishes immediately: title input + body input + Publică click, asserts new heading visible, "Informativ" category badge visible, "Marchează ca citit" unread button visible; (2) manager sees "Programat" badge on seeded `an-0` (scheduled_at 2026-06-15, no published_at), then switches demo persona to `proprietar` via `page.evaluate` + welcome-state bypass and asserts the scheduled heading is NOT visible while an already-published announcement IS visible; (3) admin attaches a synthetic PNG (`Buffer.alloc(64, 0xff)`, `image/png`) via `page.locator('input[type="file"]').setInputFiles`, publishes, asserts download button with `aria-label` "Descarcă: evacuare.png" visible on the card. All 6 runs (chromium + mobile) green. 210 files / 2101 tests / lint + typecheck + build + build:pi + build:demo all green.
+
 ### ✅ T202 — [P2] Fix locale plural-form asymmetry (EN plural keys missing from en.json)
 Done: Added 16 missing `_few` plural variants to `en.json` across 5 sections (apartments: 8 keys -- created/deleteSelectedTitle/deleteSelectedConfirm/deletedSelected/importSuccessApts/importSuccessInvites/importErrorsTitle/importWarningsTitle; breach: awaitingBanner; recurring: banner + timesInWindow; platform.asociatii: count/members/apartments/expiresInHours/expiresInDays). English `_few` = `_other` (English has no grammatical few form). New `tests/unit/localeKeys.test.ts` (4 assertions): recursively flattens both files, then fails if en.json is missing any ro.json key or vice versa -- prevents silent future divergence. 210 files / 2101 tests / lint + typecheck + build + build:pi + build:demo all green.
 
