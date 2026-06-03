@@ -5,18 +5,25 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-03
-- last_task: T61 [P2] Wire ApartmentsPage bulk-invite button (Generează invitații)
+- last_task: T103 [P2] Live activation: persist profile + custom fields + Storage avatar
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 215 files / 2158 tests
+- counts: 216 files / 2169 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T61 [P2] wire/remove ApartmentsPage generate-codes button, then T103 [P2] live-activate profile + avatar
+- next: T106 [P2] live-activate per-resident home layout
 - features: 67/67 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F33 (18 features) + auth/invites/onboarding; remaining 49 features offline-first, live-activation queued T213–T219. F28/F36/F66 cross-feature glue wired (T104). Platform console: shell + provisioning done (T93/T94); oversight tools T95–T99 on hold.
 - e2e: F01/F02/F03/F04/F05/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F18/F25/F26/F27/F33/F35/F36/F40 happy paths green on chromium + mobile (24 features / 36%). Full smoke harness reworked (T211 done). E2E closure queued T220–T223.
 - blockers: none (T212 done closes the privileged-session gap). T16 blocker cleared.
 - completion_estimate: 59% of original product vision delivered end-to-end (updated 2026-06-03). Detail: all 67 features demo-complete and offline-functional; 18/67 live-wired (27%); security posture ~93% (T212 done, remaining: T141 JWT hook, T72 erasure); GDPR surface ~70% (server-side erasure T72 + breach fan-out T76 queued); Telegram bot 0% (fully deferred); SaaS billing 0% (T19 on hold); platform console ~30% (shell + provisioning done, T119–T121 reactivated, oversight T95–T99 on hold); E2E coverage 36% (24/67 features). Blockers to 75%+: live-wire remaining 49 features (T213–T219), ship Telegram (T15).
 
 ---
+
+### T103 P2 ✅ 2026-06-03 -- Live activation: profile + custom fields + Storage avatar
+- new: src/features/profile/profileApi.ts (hydrateProfile, persistProfile, uploadProfileAvatar, clearProfileAvatar, getAvatarSignedUrl)
+- updated: src/features/profile/ProfilePage.tsx (useEffect hydrate on mount; debounced persistProfile in update(); uploadProfileAvatar in onPickPhoto; onRemovePhoto calls clearProfileAvatar)
+- new: tests/unit/profileApi.test.ts (11 assertions: offline-path no-ops for all API functions)
+- no migration needed: avatars bucket + owner RLS already in 20260121000003_storage.sql
+- result: 216 files / 2169 tests / lint + typecheck + build + build:pi + build:demo all green
 
 ### T211/T232 P1 ✅ 2026-06-03 -- E2E harness closed (T140 fix + T231/T233 verified passing)
 - fixed: tests/e2e/smoke.spec.ts T140: demo-build detection moved before email-channel enable (before sign-out), detecting via "modul demonstrativ" button count at '/' — prevents page-context crash on both chromium + mobile

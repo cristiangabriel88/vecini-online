@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { genId } from '@/shared/lib/id';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -32,6 +32,13 @@ import { useCurrentAsociatie } from '@/features/admin/asociatieStore';
 import type { Locale } from '@/shared/types/domain';
 import { useMyIdentity, useProfileStore } from './profileStore';
 import { fileToAvatar } from './avatarImage';
+import {
+  clearProfileAvatar,
+  hydrateProfile,
+  persistProfile,
+  uploadProfileAvatar,
+} from './profileApi';
+import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import {
   AVATAR_MAX_BYTES,
   CUSTOM_FIELD_TYPES,
@@ -71,10 +78,16 @@ export default function ProfilePage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const liveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const [dragId, setDragId] = useState<string | null>(null);
   const [dropIdx, setDropIdx] = useState<number | null>(null);
   const rowRefs = useRef(new Map<string, HTMLDivElement>());
   const initialRects = useRef(new Map<string, DOMRect>());
+
+  useEffect(() => {
+    if (isSupabaseConfigured) void hydrateProfile(userId);
+  }, [userId]);
 
   const errors = validateStandard(profile);
   const pct = completeness(profile);
@@ -98,6 +111,10 @@ export default function ProfilePage() {
     setJustSaved(true);
     if (savedTimer.current) clearTimeout(savedTimer.current);
     savedTimer.current = setTimeout(() => setJustSaved(false), 1800);
+    if (isSupabaseConfigured) {
+      if (liveTimer.current) clearTimeout(liveTimer.current);
+      liveTimer.current = setTimeout(() => void persistProfile(userId, next), 2000);
+    }
   }
 
   function updateFields(customFields: CustomField[]) {
@@ -155,9 +172,21 @@ export default function ProfilePage() {
       return;
     }
     try {
-      update({ avatarDataUrl: await fileToAvatar(file) });
+      const dataUrl = await fileToAvatar(file);
+      update({ avatarDataUrl: dataUrl });
+      if (isSupabaseConfigured) {
+        const signedUrl = await uploadProfileAvatar(userId, dataUrl);
+        if (signedUrl) update({ avatarDataUrl: signedUrl });
+      }
     } catch {
       window.alert(t('profile.photoBadType'));
+    }
+  }
+
+  async function onRemovePhoto() {
+    update({ avatarDataUrl: null });
+    if (isSupabaseConfigured) {
+      void clearProfileAvatar(userId);
     }
   }
 
@@ -237,7 +266,7 @@ export default function ProfilePage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => update({ avatarDataUrl: null })}
+                    onClick={() => void onRemovePhoto()}
                   >
                     <Trash2 className="h-4 w-4" /> {t('profile.removePhoto')}
                   </Button>
