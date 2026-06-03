@@ -55,6 +55,12 @@ function NotifRow({ n, onRead }: { n: AppNotification; onRead: (id: string) => v
   } else if (n.kind === 'announcement.published') {
     title = n.title || t('notifications.announcementPublished');
     body = n.body;
+  } else if (n.kind === 'ticket.status_changed') {
+    title = t('notifications.ticketStatusChanged', { title: n.data.title || '' });
+    body = t('notifications.ticketStatusChangedBody', { title: n.data.title || '', status: n.data.status || '' });
+  } else if (n.kind === 'discussion.reply') {
+    title = t('notifications.discussionReply', { title: n.data.threadTitle || '' });
+    body = t('notifications.discussionReplyBody', { name: n.data.name || '' });
   } else {
     title = n.title;
     body = n.body;

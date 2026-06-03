@@ -30,6 +30,7 @@ import {
   postMessage,
   togglePin,
 } from './discussionApi';
+import { emitDiscussionReply } from '@/features/notifications/notificationFanout';
 
 export default function DiscussionsPage() {
   const { t } = useTranslation();
@@ -69,8 +70,10 @@ export default function DiscussionsPage() {
       toast.error(t('discussions.rateLimited', { limit: NEW_USER_HOURLY_LIMIT }));
       return;
     }
+    const thread = threads.find((t) => t.id === threadId);
     postMessage(asociatieId, threadId, reply, author);
     recordPost(asociatieId, author.id);
+    if (thread) emitDiscussionReply(thread, author.id, author.name);
     setReply('');
   };
 

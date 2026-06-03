@@ -1,4 +1,4 @@
-import type { Role } from '@/shared/types/domain';
+import type { Role, TicketStatus } from '@/shared/types/domain';
 
 /**
  * In-app notification model (T126).
@@ -11,7 +11,12 @@ import type { Role } from '@/shared/types/domain';
  * `title` + `body` strings.
  */
 
-export type NotificationKind = 'membership.joined' | 'announcement.published' | 'generic';
+export type NotificationKind =
+  | 'membership.joined'
+  | 'announcement.published'
+  | 'ticket.status_changed'
+  | 'discussion.reply'
+  | 'generic';
 
 export type NotificationPriority = 'low' | 'normal' | 'urgent';
 
@@ -74,6 +79,60 @@ export function buildMembershipJoinedNotification(opts: {
       data: {
         name: opts.memberName ?? '',
         role: opts.memberRole,
+      },
+    },
+    opts.now,
+  );
+}
+
+/** Build a `ticket.status_changed` notification for the ticket's reporter. */
+export function buildTicketStatusChangedNotification(opts: {
+  recipientUserId: string;
+  asociatieId: string;
+  ticketId: string;
+  ticketTitle: string;
+  newStatus: TicketStatus;
+  now?: number;
+}): AppNotification {
+  return createNotification(
+    {
+      userId: opts.recipientUserId,
+      asociatieId: opts.asociatieId,
+      kind: 'ticket.status_changed',
+      title: '',
+      body: '',
+      link: '/app/sesizari',
+      priority: 'normal',
+      data: {
+        title: opts.ticketTitle,
+        status: opts.newStatus,
+      },
+    },
+    opts.now,
+  );
+}
+
+/** Build a `discussion.reply` notification for a thread's first-message author. */
+export function buildDiscussionReplyNotification(opts: {
+  recipientUserId: string;
+  asociatieId: string;
+  threadId: string;
+  threadTitle: string;
+  replyAuthorName: string;
+  now?: number;
+}): AppNotification {
+  return createNotification(
+    {
+      userId: opts.recipientUserId,
+      asociatieId: opts.asociatieId,
+      kind: 'discussion.reply',
+      title: '',
+      body: '',
+      link: '/app/discutii',
+      priority: 'normal',
+      data: {
+        threadTitle: opts.threadTitle,
+        name: opts.replyAuthorName,
       },
     },
     opts.now,

@@ -25,6 +25,7 @@ import {
 } from './ticketLogic';
 import { recordAudit } from '@/shared/store/auditStore';
 import { hydrateTickets, submitTicket } from './ticketsApi';
+import { emitTicketStatusChanged } from '@/features/notifications/notificationFanout';
 
 const statusTone: Record<TicketStatus, 'neutral' | 'primary' | 'warning' | 'success' | 'danger'> = {
   primit: 'neutral',
@@ -83,9 +84,11 @@ export default function TicketsPage() {
 
   const handleAdvanceDirect = (ticketId: string, newStatus: TicketStatus) => {
     if (!asociatieId) return;
+    const ticket = items.find((t) => t.id === ticketId);
     updateTicket(asociatieId, ticketId, (tk) =>
       applyStatusTransition(tk, newStatus, reporterUserId),
     );
+    if (ticket) emitTicketStatusChanged(ticket, newStatus);
     recordAudit({ action: 'ticket.advanced', entity: 'ticket', entity_label: newStatus });
     toast.success(t('tickets.advanceDone'));
   };
@@ -97,9 +100,11 @@ export default function TicketsPage() {
 
   const confirmAdvance = () => {
     if (!advanceModal || !asociatieId) return;
+    const ticket = items.find((t) => t.id === advanceModal.ticketId);
     updateTicket(asociatieId, advanceModal.ticketId, (tk) =>
       applyStatusTransition(tk, advanceModal.newStatus, reporterUserId, advanceNotes.trim() || null),
     );
+    if (ticket) emitTicketStatusChanged(ticket, advanceModal.newStatus);
     recordAudit({
       action: 'ticket.advanced',
       entity: 'ticket',
