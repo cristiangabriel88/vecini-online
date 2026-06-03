@@ -6,6 +6,12 @@ Reference only — not read during a normal `make progress` task.
 
 ---
 
+### ✅ T224 — [P2] Scheduled-announcement server-side hold-back (RLS expression on published_at/scheduled_at)
+
+Done: Created migration `supabase/migrations/20260603000012_announcement_scheduled_rls.sql` which drops the generic `announcements` "members read" policy (placed by `apply_standard_rls`) and replaces it with a scoped policy: `is_member(asociatie_id) AND (has_role(...manager roles...) OR NOT (published_at IS NULL AND scheduled_at > now()))`. Managers see all rows; non-managers are blocked from future-scheduled unpublished rows. Extended `tests/unit/rlsTenantIsolation.test.ts` with a parse-based assertion verifying both the `published_at is null and scheduled_at > now()` expression and the manager-role bypass are present. 260 files / 2395 unit tests / lint + typecheck + build + build:pi + build:demo all green.
+
+---
+
 ### ✅ T223 — [P2] E2E for F06 Locator + F66 Profile + F67 Home customization
 
 Done: Updated existing F06 test to also select category 'ofer' via `getByLabel('Categorie').selectOption('ofer')` and verify the "Ofer" badge appears on the posted card. Added F66 test: reads initial `aria-valuenow` from the progressbar, fills "Nume afișat" (one of 10 completeness checks), asserts `aria-valuenow` increased, then opens the "Adaugă câmp" modal, fills "Eticheta câmpului", confirms with "Creează", and asserts the custom field label is visible. Added F67 test: enters edit mode via "Personalizează", clicks the first "Ascunde cardul" button, verifies toggle flips to "Afișează cardul", exits via "Gata", asserts `.home-shortcut` count decreased by one, then reloads and navigates back to verify the Zustand-persist layout survives the reload. 260 files / 2394 unit tests / lint + typecheck + build + build:pi + build:demo all green.

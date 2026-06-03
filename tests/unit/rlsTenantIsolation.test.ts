@@ -82,4 +82,14 @@ describe('RLS tenant-isolation invariants (T04)', () => {
     expect(sql).not.toMatch(/using \( true \)/);
     expect(sql).not.toMatch(/using \(true\)/);
   });
+
+  it('announcements "members read" policy hides future-scheduled rows from non-managers', () => {
+    // The scoped policy added by T224 must reference both the manager-role bypass
+    // and the scheduled_at hold-back expression so residents cannot read rows
+    // that are scheduled but not yet published.
+    expect(sql).toContain('published_at is null and scheduled_at > now()');
+    expect(sql).toContain(
+      "has_role(asociatie_id, array['admin','presedinte','comitet'])",
+    );
+  });
 });
