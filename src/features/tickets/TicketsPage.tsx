@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { AlertCircle, Plus, Clock, Star } from 'lucide-react';
+import { AlertCircle, Clock, Download, Paperclip, Plus, Star, Upload, X } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
@@ -12,7 +12,9 @@ import { Modal } from '@/shared/components/Modal';
 import { Input, Textarea } from '@/shared/components/Input';
 import { Select } from '@/shared/components/Select';
 import { formatDateTime } from '@/shared/lib/format';
-import type { TicketSeverity, TicketStatus } from '@/shared/types/domain';
+import { formatFileSize, readFileAsDataUrl } from '@/shared/lib/file';
+import { isSupabaseConfigured } from '@/shared/lib/supabase';
+import type { TicketAttachment, TicketSeverity, TicketStatus } from '@/shared/types/domain';
 import { useAuthStore } from '@/shared/store/authStore';
 import { DEMO_CURRENT_USER_ID } from '@/shared/demo/demoData';
 import { useAsociatieTickets, useTicketsStore } from './ticketsStore';
@@ -22,9 +24,16 @@ import {
   applyStatusTransition,
   canRateTicket,
   isSlaBreached,
+  TICKET_ATTACHMENT_ACCEPT,
+  TICKET_ATTACHMENT_MAX_FILES,
+  validateTicketFile,
 } from './ticketLogic';
 import { recordAudit } from '@/shared/store/auditStore';
-import { hydrateTickets, submitTicket } from './ticketsApi';
+import {
+  getTicketAttachmentUrl,
+  hydrateTickets,
+  submitTicket,
+} from './ticketsApi';
 import { emitTicketStatusChanged } from '@/features/notifications/notificationFanout';
 
 const statusTone: Record<TicketStatus, 'neutral' | 'primary' | 'warning' | 'success' | 'danger'> = {
@@ -40,6 +49,22 @@ const statusTone: Record<TicketStatus, 'neutral' | 'primary' | 'warning' | 'succ
 const CATEGORIES = ['electric', 'apa', 'lift', 'iluminat', 'curatenie', 'incalzire', 'altele'];
 
 const NOTES_REQUIRED: ReadonlySet<TicketStatus> = new Set(['rezolvat', 'respins']);
+
+interface PendingFile {
+  name: string;
+  size: number;
+  type: string;
+  file: File;
+}
+
+function triggerDownload(url: string, fileName: string): void {
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
 
 export default function TicketsPage() {
   const { t } = useTranslation();
@@ -62,9 +87,15 @@ export default function TicketsPage() {
   const [rateModal, setRateModal] = useState<string | null>(null);
   const [selectedRating, setSelectedRating] = useState(0);
 
+  const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (asociatieId) void hydrateTickets(asociatieId);
   }, [asociatieId]);
+
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -73,13 +104,74 @@ export default function TicketsPage() {
     location: '',
   });
 
-  const submit = () => {
-    if (!asociatieId || !form.title.trim() || !form.description.trim()) return;
-    submitTicket(asociatieId, reporterUserId, form);
-    recordAudit({ action: 'ticket.submitted', entity: 'ticket', entity_label: form.title.trim() });
-    toast.success(t('tickets.submitted'));
+  const clearModal = () => {
     setOpen(false);
     setForm({ title: '', description: '', category: 'electric', severity: 'medium', location: '' });
+    setPendingFiles([]);
+    setFileError(null);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFileError(null);
+    const incoming = Array.from(e.target.files ?? []);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    const valid: PendingFile[] = [];
+    for (const file of incoming) {
+      const err = validateTicketFile(file);
+      if (err) {
+        setFileError(t(err === 'too_large' ? 'tickets.fileTooLarge' : 'tickets.fileBadType'));
+        return;
+      }
+      valid.push({ name: file.name, size: file.size, type: file.type, file });
+    }
+    if (pendingFiles.length + valid.length > TICKET_ATTACHMENT_MAX_FILES) {
+      setFileError(t('tickets.tooManyFiles'));
+      return;
+    }
+    setPendingFiles((prev) => [...prev, ...valid]);
+  };
+
+  const submit = async () => {
+    if (!asociatieId || !form.title.trim() || !form.description.trim() || saving) return;
+    setSaving(true);
+    try {
+      const offlineAttachments: TicketAttachment[] = [];
+      if (!isSupabaseConfigured && pendingFiles.length) {
+        for (let i = 0; i < pendingFiles.length; i++) {
+          const f = pendingFiles[i];
+          const dataUrl = await readFileAsDataUrl(f.file);
+          offlineAttachments.push({
+            id: `att-${Date.now()}-${i}`,
+            ticket_id: '',
+            file_name: f.name,
+            file_size: f.size,
+            mime_type: f.type,
+            storage_path: null,
+            file_data_url: dataUrl,
+            created_at: new Date().toISOString(),
+          });
+        }
+      }
+      const liveFiles = isSupabaseConfigured ? pendingFiles.map((p) => p.file) : [];
+      submitTicket(asociatieId, reporterUserId, form, offlineAttachments, liveFiles);
+      recordAudit({ action: 'ticket.submitted', entity: 'ticket', entity_label: form.title.trim() });
+      toast.success(t('tickets.submitted'));
+      clearModal();
+    } catch {
+      toast.error(t('tickets.uploadFailed'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const downloadAttachment = async (att: TicketAttachment) => {
+    if (isSupabaseConfigured && att.storage_path) {
+      const url = await getTicketAttachmentUrl(att.storage_path);
+      if (url) triggerDownload(url, att.file_name);
+      else toast.error(t('tickets.downloadFailed'));
+    } else if (att.file_data_url) {
+      triggerDownload(att.file_data_url, att.file_name);
+    }
   };
 
   const handleAdvanceDirect = (ticketId: string, newStatus: TicketStatus) => {
@@ -151,6 +243,7 @@ export default function TicketsPage() {
             const breached = isSlaBreached(tk.sla_due_at, tk.resolved_at);
             const nextStatuses = allowedTransitions(tk.status, role);
             const canRate = canRateTicket(tk, reporterUserId);
+            const attachments = tk.attachments ?? [];
             return (
               <Card key={tk.id}>
                 <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
@@ -181,6 +274,22 @@ export default function TicketsPage() {
                         key={i}
                         className={`h-4 w-4 ${i < tk.rating! ? 'fill-warning text-warning' : 'text-muted'}`}
                       />
+                    ))}
+                  </div>
+                )}
+                {attachments.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {attachments.map((att) => (
+                      <Button
+                        key={att.id}
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => void downloadAttachment(att)}
+                        aria-label={`${t('tickets.download')}: ${att.file_name}`}
+                      >
+                        <Download className="h-4 w-4" /> {att.file_name}
+                        {att.file_size > 0 ? ` (${formatFileSize(att.file_size)})` : ''}
+                      </Button>
                     ))}
                   </div>
                 )}
@@ -225,16 +334,17 @@ export default function TicketsPage() {
 
       <Modal
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={clearModal}
         title={t('tickets.new')}
         footer={
           <>
-            <Button variant="ghost" onClick={() => setOpen(false)}>
+            <Button variant="ghost" onClick={clearModal} disabled={saving}>
               {t('common.cancel')}
             </Button>
             <Button
-              onClick={submit}
-              disabled={!asociatieId || !form.title.trim() || !form.description.trim()}
+              onClick={() => void submit()}
+              disabled={!asociatieId || !form.title.trim() || !form.description.trim() || saving}
+              loading={saving}
             >
               {t('common.create')}
             </Button>
@@ -278,6 +388,53 @@ export default function TicketsPage() {
             value={form.location}
             onChange={(e) => setForm({ ...form, location: e.target.value })}
           />
+          <div>
+            <p className="mb-1.5 text-sm font-medium">{t('tickets.attachPhoto')}</p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept={TICKET_ATTACHMENT_ACCEPT}
+              className="sr-only"
+              aria-label={t('tickets.attachPhoto')}
+              onChange={handleFileChange}
+            />
+            {pendingFiles.length > 0 && (
+              <ul className="mb-2 space-y-1.5">
+                {pendingFiles.map((p, i) => (
+                  <li
+                    key={`${p.name}-${i}`}
+                    className="flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-sm"
+                  >
+                    <Paperclip className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+                    <span className="min-w-0 flex-1 truncate">
+                      {p.name} ({formatFileSize(p.size)})
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setPendingFiles((prev) => prev.filter((_, j) => j !== i))}
+                      aria-label={`${t('tickets.removeFile')}: ${p.name}`}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={pendingFiles.length >= TICKET_ATTACHMENT_MAX_FILES}
+            >
+              <Upload className="h-4 w-4" /> {t('tickets.attachPhoto')}
+            </Button>
+            {fileError && <p className="mt-1 text-xs text-error">{fileError}</p>}
+            {!fileError && pendingFiles.length === 0 && (
+              <p className="mt-1 text-xs text-muted">{t('tickets.attachmentsHint')}</p>
+            )}
+          </div>
         </div>
       </Modal>
 

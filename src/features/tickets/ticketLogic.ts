@@ -1,5 +1,21 @@
 import type { Role, Ticket, TicketSeverity, TicketStatus } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_TICKETS } from '@/shared/demo/demoData';
+import { type FileValidationError, validateFile } from '@/shared/lib/file';
+
+export const TICKET_ATTACHMENT_MAX_BYTES = 5 * 1024 * 1024;
+export const TICKET_ATTACHMENT_MAX_FILES = 5;
+export const TICKET_ATTACHMENT_ACCEPT = '.jpg,.jpeg,.png,.webp,.pdf';
+export const TICKET_ATTACHMENT_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'application/pdf',
+] as const;
+
+/** Validate a candidate ticket attachment; returns null when acceptable. */
+export function validateTicketFile(file: { size: number; type: string }): FileValidationError | null {
+  return validateFile(file, TICKET_ATTACHMENT_MAX_BYTES, TICKET_ATTACHMENT_TYPES);
+}
 
 /** SLA response window per severity, in hours. */
 export const SLA_HOURS: Record<TicketSeverity, number> = {

@@ -552,7 +552,17 @@
     "rate": "Rate resolution",
     "rateTitle": "How was the issue resolved?",
     "rateDone": "Thank you for your feedback!",
-    "resolutionNotesLabel": "Resolution notes:"
+    "resolutionNotesLabel": "Resolution notes:",
+    "attachPhoto": "Attach photos or PDF",
+    "attachments": "Attachments",
+    "fileTooLarge": "File exceeds 5 MB limit",
+    "fileBadType": "Only JPEG, PNG, WebP or PDF files are allowed",
+    "tooManyFiles": "Maximum 5 files allowed",
+    "removeFile": "Remove",
+    "download": "Download",
+    "downloadFailed": "Download failed",
+    "uploadFailed": "Upload failed",
+    "attachmentsHint": "JPEG, PNG, WebP or PDF, max 5 MB each, max 5 files"
   },
   "events": {
     "title": "Events calendar",

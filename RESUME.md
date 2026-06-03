@@ -5,18 +5,28 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-03
-- last_task: T205 (P2) Petition comitet-response surface (public reply after auto-forward)
+- last_task: T206 (P2) F17 Sesizări: photo attachments live wiring
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 213 files / 2128 tests
+- counts: 214 files / 2128 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T206 F17 Sesizări: photo attachments live wiring [P2]
+- next: T207 Recovery codes view + regenerate in SecurityPage [P2]
 - features: 67/67 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F33 (18 features) + auth/invites/onboarding; rest offline-first, pending live-activation track. F28/F36/F66 cross-feature glue wired (T104). Platform console: shell + provisioning done (T93/T94); oversight tools T95-T99 on hold.
 - e2e: F01/F02/F03/F04/F05/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F18/F35/F36/F40 happy paths green on chromium + mobile (20 features with passing E2E). auth/consent/isolation/smoke/batch specs still predate the auto-demo-entry harness (T16)
 - blockers: full e2e harness rework (entry helpers + login-page specs) deferred to T16; Chromium installed locally
 - completion_estimate: 54% of original product vision delivered end-to-end (2026-06-03 replenish audit). Detail: all 67 features demo-complete and offline-functional (high-value deliverable); 18/67 live-wired to real Supabase backend; GDPR surface ~70% (server-side erasure + breach fan-out pending); security posture ~85% (rate-limit gaps on 4 functions, idle-timeout not enforced); Telegram bot 0% (fully deferred, passive in codebase); SaaS billing 0% (T19 on hold); platform console ~30% (shell + provisioning done, oversight tools T95-T99 pending); E2E coverage 25% (17/67 features with passing happy-path tests). Main blockers to 70%+: live-wire remaining 49 features (on-hold track), ship Telegram bot (T15), close security gaps (T197-T198), build E2E for core features (T199/T201/T203).
 
 ---
+
+### T206 P2 ✅ 2026-06-03 -- F17 Sesizări: photo attachments live wiring
+- new: src/shared/types/domain.ts (TicketAttachment type; Ticket.attachments optional field)
+- extended: src/features/tickets/ticketLogic.ts (TICKET_ATTACHMENT_MAX_BYTES/MAX_FILES/ACCEPT/TYPES + validateTicketFile)
+- rewritten: src/features/tickets/ticketsApi.ts (hydrateTickets joins ticket_attachments; uploadTicketAttachments; getTicketAttachmentUrl; submitTicket accepts offlineAttachments + liveFiles)
+- rewritten: src/features/tickets/TicketsPage.tsx (file input, pending list, async submit, attachment download buttons on cards)
+- new: supabase/migrations/20260603000003_ticket_attachments_insert.sql (file_name/file_size columns + reporter insert policy)
+- updated: en.json + ro.json (10 new tickets.* keys each)
+- new: tests/unit/ticketAttachments.test.ts (8 assertions)
+- updated: tests/e2e/features.spec.ts (new F17 photo upload happy path)
 
 ### T205 P2 ✅ 2026-06-03 -- Petition comitet-response surface (public reply after auto-forward)
 - extended: src/shared/types/domain.ts (Petition: response/responded_at/responded_by_name optional fields)

@@ -124,6 +124,21 @@ export type Audience =
   | { type: 'role'; role: Role }
   | { type: 'scara'; scari: string[] };
 
+/** A file attached to a ticket (F17). Stored as a base64 data URL offline
+ *  and as a Supabase Storage object path in the live path. */
+export interface TicketAttachment {
+  id: string;
+  ticket_id: string;
+  file_name: string;
+  file_size: number;
+  mime_type: string;
+  /** Storage object path in the live path; null offline. */
+  storage_path: string | null;
+  /** Base64 data URL offline; null in the live (Storage) path. */
+  file_data_url: string | null;
+  created_at: string;
+}
+
 /** A file attached to an announcement (F01). Stored as a base64 data URL offline
  *  and as a Supabase Storage object path in the live path. */
 export interface AnnouncementAttachment {
@@ -223,6 +238,8 @@ export interface Ticket {
   verified_at: string | null;
   resolution_notes: string | null;
   rating: number | null;
+  /** Optional photo/PDF attachments (F17). Absent on older persisted rows. */
+  attachments?: TicketAttachment[];
   created_at: string;
   updated_at: string;
 }

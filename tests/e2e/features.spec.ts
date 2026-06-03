@@ -433,6 +433,26 @@ test('F17 — manager resolves a ticket and reporter rates the resolution', asyn
   await expect(card.getByRole('button', { name: /Evaluează rezolvarea/i })).toHaveCount(0);
 });
 
+test('F17 — resident submits a ticket with a photo and the attachment appears on the card', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/sesizari');
+  await page.getByRole('button', { name: /Sesizare nouă/i }).click();
+  await page.getByLabel('Titlu').fill('Fisură perete beci');
+  await page.getByLabel('Descriere').fill('Fisură verticală vizibilă pe peretele exterior al beciului, lângă ușă.');
+  await page.locator('input[type="file"]').setInputFiles({
+    name: 'poza-fisura.jpg',
+    mimeType: 'image/jpeg',
+    buffer: Buffer.from('fake-image-bytes'),
+  });
+  await expect(page.getByText(/poza-fisura\.jpg/i)).toBeVisible();
+  await page.getByRole('button', { name: /Creează/i }).click();
+  const heading = page.getByRole('heading', { name: /Fisură perete beci/i });
+  await expect(heading).toBeVisible();
+  const card = heading.locator('../..');
+  await expect(card.getByText('Primit')).toBeVisible();
+  await expect(card.getByRole('button', { name: /poza-fisura\.jpg/i })).toBeVisible();
+});
+
 test('F01 — admin publishes announcement; category badge and unread indicator appear', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/anunturi');

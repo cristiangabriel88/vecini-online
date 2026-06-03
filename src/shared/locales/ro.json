@@ -552,7 +552,17 @@
     "rate": "Evaluează rezolvarea",
     "rateTitle": "Cum a fost rezolvată sesizarea?",
     "rateDone": "Mulțumim pentru evaluare!",
-    "resolutionNotesLabel": "Note rezolvare:"
+    "resolutionNotesLabel": "Note rezolvare:",
+    "attachPhoto": "Atașează fotografii sau PDF",
+    "attachments": "Atașamente",
+    "fileTooLarge": "Fișierul depășește limita de 5 MB",
+    "fileBadType": "Sunt permise doar fișiere JPEG, PNG, WebP sau PDF",
+    "tooManyFiles": "Maximum 5 fișiere permise",
+    "removeFile": "Elimină",
+    "download": "Descarcă",
+    "downloadFailed": "Descărcarea a eșuat",
+    "uploadFailed": "Încărcarea a eșuat",
+    "attachmentsHint": "JPEG, PNG, WebP sau PDF, max 5 MB fiecare, max 5 fișiere"
   },
   "events": {
     "title": "Calendar evenimente",
