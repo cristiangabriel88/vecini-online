@@ -17,6 +17,12 @@ import { useThemeStore } from '@/shared/store/themeStore';
 import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import { mfaErrorKey } from './mfaLogic';
 import { type AuthMode, canSubmit, isValidEmail, mapAuthError } from './authLogic';
+import {
+  COOLDOWN_MS,
+  isOnCooldown,
+  recordResetRequest,
+  remainingCooldownMs,
+} from './passwordResetCooldown';
 import { evaluatePassword } from './passwordPolicy';
 import { PasswordStrengthMeter } from './PasswordStrengthMeter';
 import { type MfaChannel, isValidOtpFormat } from './otpChannelLogic';
@@ -143,6 +149,9 @@ export default function LoginPage() {
   // Remaining resend cooldown in seconds.
   const [resendCountdown, setResendCountdown] = useState(0);
   const resendTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Remaining password-reset cooldown in seconds.
+  const [resetCooldownSecs, setResetCooldownSecs] = useState(0);
+  const resetTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Tick down the resend countdown every second.
   const startResendTimer = useCallback((remainingMs: number) => {
@@ -159,11 +168,34 @@ export default function LoginPage() {
     }, 1000);
   }, []);
 
+  const startResetTimer = useCallback((remainingMs: number) => {
+    setResetCooldownSecs(Math.ceil(remainingMs / 1000));
+    if (resetTimerRef.current) clearInterval(resetTimerRef.current);
+    resetTimerRef.current = setInterval(() => {
+      setResetCooldownSecs((prev) => {
+        if (prev <= 1) {
+          if (resetTimerRef.current) clearInterval(resetTimerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
   useEffect(() => {
     return () => {
       if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+      if (resetTimerRef.current) clearInterval(resetTimerRef.current);
     };
   }, []);
+
+  // Initialise reset countdown from sessionStorage when the user arrives at
+  // the forgot form with an email they already submitted this session.
+  useEffect(() => {
+    if (mode !== 'forgot' || !email) return;
+    const remaining = remainingCooldownMs(email, Date.now());
+    if (remaining > 0) startResetTimer(remaining);
+  }, [mode, email, startResetTimer]);
 
   // When the channel picker is shown, auto-select the channel if only one is available.
   useEffect(() => {
@@ -232,11 +264,17 @@ export default function LoginPage() {
           navigate('/app');
         }
       } else {
+        if (isOnCooldown(email, Date.now())) {
+          startResetTimer(remainingCooldownMs(email, Date.now()));
+          return;
+        }
         const { error } = await requestPasswordReset(email);
         if (error) {
           toast.error(t(`auth.err.${mapAuthError(error)}`));
           return;
         }
+        recordResetRequest(email, Date.now());
+        startResetTimer(COOLDOWN_MS);
         setSent('reset');
       }
     } finally {
@@ -248,6 +286,22 @@ export default function LoginPage() {
     const { error } = await resendVerification(email);
     if (error) toast.error(t(`auth.err.${mapAuthError(error)}`));
     else toast.success(t('auth.verifyResent'));
+  };
+
+  const resendReset = async () => {
+    if (resetCooldownSecs > 0) return;
+    setLoading(true);
+    try {
+      const { error } = await requestPasswordReset(email);
+      if (error) {
+        toast.error(t(`auth.err.${mapAuthError(error)}`));
+        return;
+      }
+      recordResetRequest(email, Date.now());
+      startResetTimer(COOLDOWN_MS);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const completeChallenge = (role: Role) => {
@@ -588,6 +642,18 @@ export default function LoginPage() {
                 {t('auth.verifyResend')}
               </Button>
             )}
+            {sent === 'reset' && (
+              <Button
+                variant="ghost"
+                className="w-full"
+                disabled={resetCooldownSecs > 0 || loading}
+                onClick={() => void resendReset()}
+              >
+                {resetCooldownSecs > 0
+                  ? t('auth.resetResendIn', { seconds: resetCooldownSecs })
+                  : t('auth.resetResend')}
+              </Button>
+            )}
             <Button variant="secondary" className="w-full" onClick={() => switchMode('signIn')}>
               {t('auth.backToSignIn')}
             </Button>
@@ -602,7 +668,11 @@ export default function LoginPage() {
                 </p>
               )}
               {mode === 'forgot' && (
-                <p className="text-sm text-muted">{t('auth.forgotHint')}</p>
+                <p className="text-sm text-muted">
+                  {resetCooldownSecs > 0
+                    ? t('auth.resetCooldownHint', { seconds: resetCooldownSecs })
+                    : t('auth.forgotHint')}
+                </p>
               )}
               <Input
                 label={t('auth.email')}
@@ -660,7 +730,11 @@ export default function LoginPage() {
                 type="submit"
                 className="w-full"
                 loading={loading}
-                disabled={!isValidEmail(email) || !canSubmit(mode, values)}
+                disabled={
+                  !isValidEmail(email) ||
+                  !canSubmit(mode, values) ||
+                  (mode === 'forgot' && resetCooldownSecs > 0)
+                }
               >
                 {mode === 'signIn'
                   ? t('auth.login')
