@@ -163,12 +163,15 @@ describe('the F64 SQL schema stays aggregate (lock on the migration)', () => {
   });
 });
 
+const DEMO_ASOC = 'demo-asoc';
+
 describe('the kids store never stores a child identity', () => {
   it('a registration written through the store carries only aggregate fields', () => {
-    const before = useKidsStore.getState().ranges.length;
+    const cat = useKidsStore.getState().byAsociatie[DEMO_ASOC] ?? { ranges: [], events: [] };
+    const before = cat.ranges.length;
     // '15-18' is not in the demo user's seeded registrations, so this takes the insert path.
-    useKidsStore.getState().registerKids('15-18', 2);
-    const ranges = useKidsStore.getState().ranges;
+    useKidsStore.getState().registerKids(DEMO_ASOC, 'u-res', '', '15-18', 2);
+    const ranges = useKidsStore.getState().byAsociatie[DEMO_ASOC]?.ranges ?? [];
     expect(ranges.length).toBe(before + 1);
     const added = ranges[ranges.length - 1];
     expect(added.count).toBe(2);
@@ -177,9 +180,15 @@ describe('the kids store never stores a child identity', () => {
   });
 
   it('an activity written through the store carries only aggregate fields', () => {
-    const before = useKidsStore.getState().events.length;
-    useKidsStore.getState().addEvent('Întâlnire în parc', '2026-07-01', '17:00', 'Parc', '4-6', '');
-    const events = useKidsStore.getState().events;
+    const cat = useKidsStore.getState().byAsociatie[DEMO_ASOC] ?? { ranges: [], events: [] };
+    const before = cat.events.length;
+    const event = {
+      id: `ke-test`, asociatie_id: DEMO_ASOC, title: 'Întâlnire în parc', date: '2026-07-01',
+      time: '17:00', location: 'Parc', bucket: '4-6' as const, note: '', interested: 0,
+      organizer_user_id: 'u-res', organizer_name: 'Popescu Andrei', created_at: '2026-06-01T00:00:00Z',
+    };
+    useKidsStore.getState().addEvent(DEMO_ASOC, event);
+    const events = useKidsStore.getState().byAsociatie[DEMO_ASOC]?.events ?? [];
     expect(events.length).toBe(before + 1);
     const added = events[events.length - 1];
     expect(unexpectedFields(added, KIDS_EVENT_FIELDS)).toEqual([]);

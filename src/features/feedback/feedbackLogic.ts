@@ -17,3 +17,38 @@ export function sortedFeedback(items: PlatformFeedback[]): PlatformFeedback[] {
     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
   );
 }
+
+// ── Per-asociatie feedback catalog ────────────────────────────────────────────
+
+import { DEMO_ASOCIATIE, DEMO_FEEDBACK } from '@/shared/demo/demoData';
+
+export type FeedbackByAsociatie = Record<string, PlatformFeedback[]>;
+
+const EMPTY_FEEDBACK: PlatformFeedback[] = [];
+
+export function feedbackForAsociatie(
+  map: FeedbackByAsociatie,
+  asociatieId: string | null,
+): PlatformFeedback[] {
+  if (!asociatieId) return EMPTY_FEEDBACK;
+  return map[asociatieId] ?? EMPTY_FEEDBACK;
+}
+
+export function seedFeedback(): FeedbackByAsociatie {
+  return { [DEMO_ASOCIATIE.id]: [...DEMO_FEEDBACK] };
+}
+
+export function addFeedbackIn(
+  map: FeedbackByAsociatie,
+  asociatieId: string,
+  item: PlatformFeedback,
+): FeedbackByAsociatie {
+  const current = map[asociatieId] ?? [];
+  return { ...map, [asociatieId]: [item, ...current] };
+}
+
+export function migrateFeedbackState(persisted: unknown): FeedbackByAsociatie {
+  const p = persisted as { byAsociatie?: FeedbackByAsociatie } | null;
+  const existing = p?.byAsociatie ?? {};
+  return { ...existing, [DEMO_ASOCIATIE.id]: [...DEMO_FEEDBACK] };
+}

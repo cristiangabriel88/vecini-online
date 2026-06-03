@@ -63,3 +63,51 @@ export function upcomingBirthdays(
     .filter((c) => daysUntilBirthday(c, now) > 0)
     .sort((a, b) => daysUntilBirthday(a, now) - daysUntilBirthday(b, now));
 }
+
+// ── Per-asociatie birthdays catalog ──────────────────────────────────────────
+
+import { DEMO_ASOCIATIE, DEMO_BIRTHDAYS } from '@/shared/demo/demoData';
+
+export type BirthdaysByAsociatie = Record<string, BirthdayConsent[]>;
+
+const EMPTY_BIRTHDAYS: BirthdayConsent[] = [];
+
+export function birthdaysForAsociatie(
+  map: BirthdaysByAsociatie,
+  asociatieId: string | null,
+): BirthdayConsent[] {
+  if (!asociatieId) return EMPTY_BIRTHDAYS;
+  return map[asociatieId] ?? EMPTY_BIRTHDAYS;
+}
+
+export function seedBirthdays(): BirthdaysByAsociatie {
+  return { [DEMO_ASOCIATIE.id]: [...DEMO_BIRTHDAYS] };
+}
+
+export function upsertBirthdayIn(
+  map: BirthdaysByAsociatie,
+  asociatieId: string,
+  consent: BirthdayConsent,
+): BirthdaysByAsociatie {
+  const current = map[asociatieId] ?? [];
+  const exists = current.some((c) => c.user_id === consent.user_id);
+  const updated = exists
+    ? current.map((c) => (c.user_id === consent.user_id ? consent : c))
+    : [consent, ...current];
+  return { ...map, [asociatieId]: updated };
+}
+
+export function removeBirthdayIn(
+  map: BirthdaysByAsociatie,
+  asociatieId: string,
+  userId: string,
+): BirthdaysByAsociatie {
+  const current = map[asociatieId] ?? [];
+  return { ...map, [asociatieId]: current.filter((c) => c.user_id !== userId) };
+}
+
+export function migrateBirthdaysState(persisted: unknown): BirthdaysByAsociatie {
+  const p = persisted as { byAsociatie?: BirthdaysByAsociatie } | null;
+  const existing = p?.byAsociatie ?? {};
+  return { ...existing, [DEMO_ASOCIATIE.id]: [...DEMO_BIRTHDAYS] };
+}

@@ -1,45 +1,52 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { BirthdayConsent } from '@/shared/types/domain';
-import { DEMO_BIRTHDAYS } from '@/shared/demo/demoData';
-
-const CURRENT_USER_ID = 'u-res';
-const CURRENT_USER_NAME = 'Popescu Andrei';
+import { useAuthStore } from '@/shared/store/authStore';
+import {
+  type BirthdaysByAsociatie,
+  seedBirthdays,
+  birthdaysForAsociatie,
+  upsertBirthdayIn,
+  removeBirthdayIn,
+  migrateBirthdaysState,
+} from './birthdaysLogic';
 
 interface BirthdaysState {
-  consents: BirthdayConsent[];
-  currentUserId: string;
-  /** Create or update the current user's birthday consent (opt-in). */
-  save: (day: number, month: number) => void;
-  /** Remove the current user's birthday consent (opt-out). */
-  leave: () => void;
+  byAsociatie: BirthdaysByAsociatie;
+  fetchError: string | null;
+  upsertConsent: (asociatieId: string, consent: BirthdayConsent) => void;
+  removeConsent: (asociatieId: string, userId: string) => void;
+  replaceForAsociatie: (asociatieId: string, items: BirthdayConsent[]) => void;
+  setFetchError: (msg: string | null) => void;
 }
 
-export const useBirthdaysStore = create<BirthdaysState>((set) => ({
-  consents: [...DEMO_BIRTHDAYS],
-  currentUserId: CURRENT_USER_ID,
-  save: (day, month) =>
-    set((s) => {
-      const existing = s.consents.find((c) => c.user_id === CURRENT_USER_ID);
-      if (existing) {
-        return {
-          consents: s.consents.map((c) =>
-            c.user_id === CURRENT_USER_ID ? { ...c, birth_day: day, birth_month: month } : c,
-          ),
-        };
-      }
-      return {
-        consents: [
-          {
-            id: `bd-${Date.now()}`,
-            asociatie_id: 'demo-asoc',
-            user_id: CURRENT_USER_ID,
-            user_name: CURRENT_USER_NAME,
-            birth_day: day,
-            birth_month: month,
-          },
-          ...s.consents,
-        ],
-      };
+export const useBirthdaysStore = create<BirthdaysState>()(
+  persist(
+    (set) => ({
+      byAsociatie: seedBirthdays(),
+      fetchError: null,
+
+      upsertConsent: (asociatieId, consent) =>
+        set((s) => ({ byAsociatie: upsertBirthdayIn(s.byAsociatie, asociatieId, consent) })),
+
+      removeConsent: (asociatieId, userId) =>
+        set((s) => ({ byAsociatie: removeBirthdayIn(s.byAsociatie, asociatieId, userId) })),
+
+      replaceForAsociatie: (asociatieId, items) =>
+        set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: items } })),
+
+      setFetchError: (msg) => set({ fetchError: msg }),
     }),
-  leave: () => set((s) => ({ consents: s.consents.filter((c) => c.user_id !== CURRENT_USER_ID) })),
-}));
+    {
+      name: 'vecini.birthdays',
+      version: 1,
+      partialize: (s) => ({ byAsociatie: s.byAsociatie }),
+      migrate: (persisted) => ({ byAsociatie: migrateBirthdaysState(persisted) }),
+    },
+  ),
+);
+
+export function useAsociatieBirthdays(): BirthdayConsent[] {
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  return useBirthdaysStore((s) => birthdaysForAsociatie(s.byAsociatie, asociatieId));
+}

@@ -73,3 +73,101 @@ export function splitEvents(
 export function goingCount(event: KidsEvent, joined: boolean): number {
   return event.interested + (joined ? 1 : 0);
 }
+
+// ── Per-asociatie kids catalog ────────────────────────────────────────────────
+
+import { DEMO_ASOCIATIE, DEMO_KIDS_RANGES, DEMO_KIDS_EVENTS } from '@/shared/demo/demoData';
+import { assertAggregateOnly, KIDS_AGE_RANGE_FIELDS } from '@/shared/lib/minorsGuard';
+
+export interface KidsCatalog {
+  ranges: KidsAgeRange[];
+  events: KidsEvent[];
+}
+
+export type KidsByAsociatie = Record<string, KidsCatalog>;
+
+const EMPTY_CATALOG: KidsCatalog = { ranges: [], events: [] };
+
+export function kidsForAsociatie(
+  map: KidsByAsociatie,
+  asociatieId: string | null,
+): KidsCatalog {
+  if (!asociatieId) return EMPTY_CATALOG;
+  return map[asociatieId] ?? EMPTY_CATALOG;
+}
+
+export function seedKids(): KidsByAsociatie {
+  return {
+    [DEMO_ASOCIATIE.id]: {
+      ranges: [...DEMO_KIDS_RANGES],
+      events: [...DEMO_KIDS_EVENTS],
+    },
+  };
+}
+
+export function upsertRangeIn(
+  map: KidsByAsociatie,
+  asociatieId: string,
+  range: KidsAgeRange,
+): KidsByAsociatie {
+  assertAggregateOnly(range, KIDS_AGE_RANGE_FIELDS, 'kids_age_ranges');
+  const cat = map[asociatieId] ?? EMPTY_CATALOG;
+  const exists = cat.ranges.some(
+    (r) => r.user_id === range.user_id && r.bucket === range.bucket,
+  );
+  const ranges = exists
+    ? cat.ranges.map((r) =>
+        r.user_id === range.user_id && r.bucket === range.bucket ? range : r,
+      )
+    : [...cat.ranges, range];
+  return { ...map, [asociatieId]: { ...cat, ranges } };
+}
+
+export function removeRangeIn(
+  map: KidsByAsociatie,
+  asociatieId: string,
+  userId: string,
+  bucket: KidsAgeBucket,
+): KidsByAsociatie {
+  const cat = map[asociatieId] ?? EMPTY_CATALOG;
+  return {
+    ...map,
+    [asociatieId]: {
+      ...cat,
+      ranges: cat.ranges.filter((r) => !(r.user_id === userId && r.bucket === bucket)),
+    },
+  };
+}
+
+export function addEventIn(
+  map: KidsByAsociatie,
+  asociatieId: string,
+  event: KidsEvent,
+): KidsByAsociatie {
+  const cat = map[asociatieId] ?? EMPTY_CATALOG;
+  return { ...map, [asociatieId]: { ...cat, events: [...cat.events, event] } };
+}
+
+export function removeEventIn(
+  map: KidsByAsociatie,
+  asociatieId: string,
+  eventId: string,
+): KidsByAsociatie {
+  const cat = map[asociatieId] ?? EMPTY_CATALOG;
+  return {
+    ...map,
+    [asociatieId]: { ...cat, events: cat.events.filter((e) => e.id !== eventId) },
+  };
+}
+
+export function migrateKidsState(persisted: unknown): KidsByAsociatie {
+  const p = persisted as { byAsociatie?: KidsByAsociatie } | null;
+  const existing = p?.byAsociatie ?? {};
+  return {
+    ...existing,
+    [DEMO_ASOCIATIE.id]: {
+      ranges: [...DEMO_KIDS_RANGES],
+      events: [...DEMO_KIDS_EVENTS],
+    },
+  };
+}

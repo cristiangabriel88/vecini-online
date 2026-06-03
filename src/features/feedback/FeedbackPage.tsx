@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { MessageSquarePlus } from 'lucide-react';
@@ -10,8 +10,12 @@ import { Textarea } from '@/shared/components/Input';
 import { Select } from '@/shared/components/Select';
 import { Switch } from '@/shared/components/Switch';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { formatDateTime } from '@/shared/lib/format';
-import { useFeedbackStore } from './feedbackStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useMyIdentity } from '@/features/profile/profileStore';
+import { useFeedbackStore, useAsociatieFeedback } from './feedbackStore';
+import { hydrateFeedback, addFeedbackLive } from './feedbackApi';
 import { FEEDBACK_SENTIMENTS, isValidFeedback, sortedFeedback } from './feedbackLogic';
 import type { FeedbackSentiment } from '@/shared/types/domain';
 
@@ -23,22 +27,51 @@ const SENTIMENT_TONE: Record<FeedbackSentiment, 'primary' | 'warning' | 'success
 
 export default function FeedbackPage() {
   const { t } = useTranslation();
-  const { items, add } = useFeedbackStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const fetchError = useFeedbackStore((s) => s.fetchError);
+  const items = useAsociatieFeedback();
+  const { userId } = useMyIdentity();
   const [body, setBody] = useState('');
   const [sentiment, setSentiment] = useState<FeedbackSentiment>('idee');
   const [anonymous, setAnonymous] = useState(false);
+
+  useEffect(() => {
+    if (asociatieId) void hydrateFeedback(asociatieId);
+  }, [asociatieId]);
 
   const valid = isValidFeedback(body);
   const ordered = sortedFeedback(items);
 
   const submit = () => {
     if (!valid) return;
-    add({ body, sentiment, anonymous });
+    const item = {
+      id: `fb-${Date.now()}`,
+      asociatie_id: anonymous ? null : (asociatieId ?? null),
+      user_id: anonymous ? null : (userId ?? null),
+      anonymous,
+      body: body.trim(),
+      sentiment,
+      created_at: new Date().toISOString(),
+    };
+    addFeedbackLive(asociatieId ?? 'demo-asoc', item);
     toast.success(t('feedback.sent'));
     setBody('');
     setSentiment('idee');
     setAnonymous(false);
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydrateFeedback(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>

@@ -1,42 +1,47 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { MarketplaceListing } from '@/shared/types/domain';
-import { DEMO_MARKETPLACE } from '@/shared/demo/demoData';
-import { expiryFrom } from './marketplaceLogic';
-
-interface NewListing {
-  title: string;
-  description: string;
-  category: string;
-  price: number | null;
-}
+import { useAuthStore } from '@/shared/store/authStore';
+import {
+  type MarketplacesByAsociatie,
+  seedMarketplace,
+  marketplaceForAsociatie,
+  addListingIn,
+  migrateMarketplaceState,
+} from './marketplaceLogic';
 
 interface MarketplaceState {
-  listings: MarketplaceListing[];
-  add: (input: NewListing) => void;
+  byAsociatie: MarketplacesByAsociatie;
+  fetchError: string | null;
+  addListing: (asociatieId: string, item: MarketplaceListing) => void;
+  replaceForAsociatie: (asociatieId: string, items: MarketplaceListing[]) => void;
+  setFetchError: (msg: string | null) => void;
 }
 
-export const useMarketplaceStore = create<MarketplaceState>((set) => ({
-  listings: [...DEMO_MARKETPLACE],
-  add: ({ title, description, category, price }) =>
-    set((s) => {
-      const now = new Date().toISOString();
-      return {
-        listings: [
-          {
-            id: `ml-${Date.now()}`,
-            asociatie_id: 'demo-asoc',
-            seller_user_id: 'u-res',
-            seller_name: 'Popescu Andrei',
-            category,
-            title: title.trim(),
-            description: description.trim(),
-            price,
-            photo_path: null,
-            expires_at: expiryFrom(now),
-            created_at: now,
-          },
-          ...s.listings,
-        ],
-      };
+export const useMarketplaceStore = create<MarketplaceState>()(
+  persist(
+    (set) => ({
+      byAsociatie: seedMarketplace(),
+      fetchError: null,
+
+      addListing: (asociatieId, item) =>
+        set((s) => ({ byAsociatie: addListingIn(s.byAsociatie, asociatieId, item) })),
+
+      replaceForAsociatie: (asociatieId, items) =>
+        set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: items } })),
+
+      setFetchError: (msg) => set({ fetchError: msg }),
     }),
-}));
+    {
+      name: 'vecini.marketplace',
+      version: 1,
+      partialize: (s) => ({ byAsociatie: s.byAsociatie }),
+      migrate: (persisted) => ({ byAsociatie: migrateMarketplaceState(persisted) }),
+    },
+  ),
+);
+
+export function useAsociatieMarketplace(): MarketplaceListing[] {
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  return useMarketplaceStore((s) => marketplaceForAsociatie(s.byAsociatie, asociatieId));
+}

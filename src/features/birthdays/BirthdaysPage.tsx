@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Cake, Plus } from 'lucide-react';
@@ -9,8 +9,12 @@ import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
 import { Select } from '@/shared/components/Select';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
-import { useBirthdaysStore } from './birthdaysStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useMyIdentity, useProfileStore } from '@/features/profile/profileStore';
+import { useBirthdaysStore, useAsociatieBirthdays } from './birthdaysStore';
+import { hydrateBirthdays, saveBirthdayConsent, leaveBirthdayConsent } from './birthdaysApi';
 import {
   MONTHS_RO,
   daysUntilBirthday,
@@ -22,12 +26,20 @@ import {
 
 export default function BirthdaysPage() {
   const { t } = useTranslation();
-  const { consents, currentUserId, save, leave } = useBirthdaysStore();
-  const mine = consents.find((c) => c.user_id === currentUserId);
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const fetchError = useBirthdaysStore((s) => s.fetchError);
+  const consents = useAsociatieBirthdays();
+  const { userId } = useMyIdentity();
+  const profileGet = useProfileStore((s) => s.get);
+  const mine = consents.find((c) => c.user_id === userId);
 
   const [open, setOpen] = useState(false);
-  const [day, setDay] = useState(String(mine?.birth_day ?? ''));
-  const [month, setMonth] = useState(String(mine?.birth_month ?? 1));
+  const [day, setDay] = useState('');
+  const [month, setMonth] = useState('1');
+
+  useEffect(() => {
+    if (asociatieId) void hydrateBirthdays(asociatieId);
+  }, [asociatieId]);
 
   const dayNum = Number(day);
   const monthNum = Number(month);
@@ -43,16 +55,40 @@ export default function BirthdaysPage() {
   };
 
   const submit = () => {
-    if (!valid) return;
-    save(dayNum, monthNum);
+    if (!valid || !asociatieId) return;
+    const prof = profileGet(userId ?? '', '');
+    const userName = prof.fullName || prof.displayName || 'Rezident';
+    const consent = {
+      id: mine?.id ?? `bd-${Date.now()}`,
+      asociatie_id: asociatieId,
+      user_id: userId ?? 'u-res',
+      user_name: userName,
+      birth_day: dayNum,
+      birth_month: monthNum,
+    };
+    saveBirthdayConsent(asociatieId, consent);
     toast.success(t('birthdays.saved'));
     setOpen(false);
   };
 
   const optOut = () => {
-    leave();
+    if (!asociatieId || !userId) return;
+    leaveBirthdayConsent(asociatieId, userId);
     toast.success(t('birthdays.left'));
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydrateBirthdays(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>

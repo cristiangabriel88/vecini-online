@@ -45,3 +45,38 @@ export function activeListings(
     .filter((l) => (q ? normalizeSearch(`${l.title} ${l.description} ${l.category}`).includes(q) : true))
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 }
+
+// ── Per-asociatie marketplace catalog ───────────────────────────────────────
+
+import { DEMO_ASOCIATIE, DEMO_MARKETPLACE } from '@/shared/demo/demoData';
+
+export type MarketplacesByAsociatie = Record<string, MarketplaceListing[]>;
+
+const EMPTY_LISTINGS: MarketplaceListing[] = [];
+
+export function marketplaceForAsociatie(
+  map: MarketplacesByAsociatie,
+  asociatieId: string | null,
+): MarketplaceListing[] {
+  if (!asociatieId) return EMPTY_LISTINGS;
+  return map[asociatieId] ?? EMPTY_LISTINGS;
+}
+
+export function seedMarketplace(): MarketplacesByAsociatie {
+  return { [DEMO_ASOCIATIE.id]: [...DEMO_MARKETPLACE] };
+}
+
+export function addListingIn(
+  map: MarketplacesByAsociatie,
+  asociatieId: string,
+  item: MarketplaceListing,
+): MarketplacesByAsociatie {
+  const current = map[asociatieId] ?? [];
+  return { ...map, [asociatieId]: [item, ...current] };
+}
+
+export function migrateMarketplaceState(persisted: unknown): MarketplacesByAsociatie {
+  const p = persisted as { byAsociatie?: MarketplacesByAsociatie } | null;
+  const existing = p?.byAsociatie ?? {};
+  return { ...existing, [DEMO_ASOCIATIE.id]: [...DEMO_MARKETPLACE] };
+}

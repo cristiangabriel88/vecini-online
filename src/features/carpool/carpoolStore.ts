@@ -1,48 +1,52 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { CarpoolProfile } from '@/shared/types/domain';
-import { DEMO_CARPOOL } from '@/shared/demo/demoData';
-
-const CURRENT_USER_ID = 'u-res';
-const CURRENT_USER_NAME = 'Popescu Andrei';
+import { useAuthStore } from '@/shared/store/authStore';
+import {
+  type CarpoolsByAsociatie,
+  seedCarpool,
+  carpoolForAsociatie,
+  upsertCarpoolIn,
+  removeCarpoolIn,
+  migrateCarpoolState,
+} from './carpoolLogic';
 
 interface CarpoolState {
-  profiles: CarpoolProfile[];
-  currentUserId: string;
-  /** Create or update the current user's profile (opt-in). */
-  save: (destination: string, schedule: string) => void;
-  /** Remove the current user's profile (opt-out). */
-  leave: () => void;
+  byAsociatie: CarpoolsByAsociatie;
+  fetchError: string | null;
+  upsertProfile: (asociatieId: string, profile: CarpoolProfile) => void;
+  removeProfile: (asociatieId: string, userId: string) => void;
+  replaceForAsociatie: (asociatieId: string, items: CarpoolProfile[]) => void;
+  setFetchError: (msg: string | null) => void;
 }
 
-export const useCarpoolStore = create<CarpoolState>((set) => ({
-  profiles: [...DEMO_CARPOOL],
-  currentUserId: CURRENT_USER_ID,
-  save: (destination, schedule) =>
-    set((s) => {
-      const existing = s.profiles.find((p) => p.user_id === CURRENT_USER_ID);
-      if (existing) {
-        return {
-          profiles: s.profiles.map((p) =>
-            p.user_id === CURRENT_USER_ID
-              ? { ...p, destination: destination.trim(), schedule: schedule.trim() }
-              : p,
-          ),
-        };
-      }
-      return {
-        profiles: [
-          {
-            id: `cp-${Date.now()}`,
-            asociatie_id: 'demo-asoc',
-            user_id: CURRENT_USER_ID,
-            user_name: CURRENT_USER_NAME,
-            destination: destination.trim(),
-            schedule: schedule.trim(),
-          },
-          ...s.profiles,
-        ],
-      };
+export const useCarpoolStore = create<CarpoolState>()(
+  persist(
+    (set) => ({
+      byAsociatie: seedCarpool(),
+      fetchError: null,
+
+      upsertProfile: (asociatieId, profile) =>
+        set((s) => ({ byAsociatie: upsertCarpoolIn(s.byAsociatie, asociatieId, profile) })),
+
+      removeProfile: (asociatieId, userId) =>
+        set((s) => ({ byAsociatie: removeCarpoolIn(s.byAsociatie, asociatieId, userId) })),
+
+      replaceForAsociatie: (asociatieId, items) =>
+        set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: items } })),
+
+      setFetchError: (msg) => set({ fetchError: msg }),
     }),
-  leave: () =>
-    set((s) => ({ profiles: s.profiles.filter((p) => p.user_id !== CURRENT_USER_ID) })),
-}));
+    {
+      name: 'vecini.carpool',
+      version: 1,
+      partialize: (s) => ({ byAsociatie: s.byAsociatie }),
+      migrate: (persisted) => ({ byAsociatie: migrateCarpoolState(persisted) }),
+    },
+  ),
+);
+
+export function useAsociatieCarpool(): CarpoolProfile[] {
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  return useCarpoolStore((s) => carpoolForAsociatie(s.byAsociatie, asociatieId));
+}

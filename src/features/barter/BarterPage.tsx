@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Repeat2, Plus } from 'lucide-react';
@@ -8,19 +8,31 @@ import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input, Textarea } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
-import { useBarterStore } from './barterStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useMyIdentity, useProfileStore } from '@/features/profile/profileStore';
+import { useBarterStore, useAsociatieBarter } from './barterStore';
+import { hydrateBarter, saveOffering, leaveOffering } from './barterApi';
 import { isValidOffering, searchOfferings } from './barterLogic';
 
 export default function BarterPage() {
   const { t } = useTranslation();
-  const { offerings, currentUserId, save, leave } = useBarterStore();
-  const mine = offerings.find((o) => o.user_id === currentUserId);
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const fetchError = useBarterStore((s) => s.fetchError);
+  const offerings = useAsociatieBarter();
+  const { userId } = useMyIdentity();
+  const profileGet = useProfileStore((s) => s.get);
+  const mine = offerings.find((o) => o.user_id === userId);
 
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
-  const [offers, setOffers] = useState(mine?.offers ?? '');
-  const [needs, setNeeds] = useState(mine?.needs ?? '');
+  const [offers, setOffers] = useState('');
+  const [needs, setNeeds] = useState('');
+
+  useEffect(() => {
+    if (asociatieId) void hydrateBarter(asociatieId);
+  }, [asociatieId]);
 
   const results = searchOfferings(offerings, query);
   const valid = isValidOffering(offers);
@@ -32,16 +44,40 @@ export default function BarterPage() {
   };
 
   const submit = () => {
-    if (!valid) return;
-    save(offers, needs);
+    if (!valid || !asociatieId) return;
+    const prof = profileGet(userId ?? '', '');
+    const userName = prof.fullName || prof.displayName || 'Rezident';
+    const offering = {
+      id: mine?.id ?? `sk-${Date.now()}`,
+      asociatie_id: asociatieId,
+      user_id: userId ?? 'u-res',
+      user_name: userName,
+      offers: offers.trim(),
+      needs: needs.trim(),
+    };
+    saveOffering(asociatieId, offering);
     toast.success(t('barter.saved'));
     setOpen(false);
   };
 
   const optOut = () => {
-    leave();
+    if (!asociatieId || !userId) return;
+    leaveOffering(asociatieId, userId);
     toast.success(t('barter.left'));
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydrateBarter(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>
@@ -71,7 +107,7 @@ export default function BarterPage() {
             <Card key={o.id} className="space-y-2 p-4">
               <div className="flex items-center justify-between gap-3">
                 <p className="font-medium">{o.user_name}</p>
-                {o.user_id === currentUserId && (
+                {o.user_id === userId && (
                   <Button variant="ghost" onClick={optOut}>
                     {t('barter.leave')}
                   </Button>

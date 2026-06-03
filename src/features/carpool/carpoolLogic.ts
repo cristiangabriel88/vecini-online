@@ -16,3 +16,51 @@ export function searchProfiles(profiles: CarpoolProfile[], query = ''): CarpoolP
     )
     .sort((a, b) => a.destination.localeCompare(b.destination, 'ro'));
 }
+
+// ── Per-asociatie carpool catalog ────────────────────────────────────────────
+
+import { DEMO_ASOCIATIE, DEMO_CARPOOL } from '@/shared/demo/demoData';
+
+export type CarpoolsByAsociatie = Record<string, CarpoolProfile[]>;
+
+const EMPTY_CARPOOL: CarpoolProfile[] = [];
+
+export function carpoolForAsociatie(
+  map: CarpoolsByAsociatie,
+  asociatieId: string | null,
+): CarpoolProfile[] {
+  if (!asociatieId) return EMPTY_CARPOOL;
+  return map[asociatieId] ?? EMPTY_CARPOOL;
+}
+
+export function seedCarpool(): CarpoolsByAsociatie {
+  return { [DEMO_ASOCIATIE.id]: [...DEMO_CARPOOL] };
+}
+
+export function upsertCarpoolIn(
+  map: CarpoolsByAsociatie,
+  asociatieId: string,
+  profile: CarpoolProfile,
+): CarpoolsByAsociatie {
+  const current = map[asociatieId] ?? [];
+  const exists = current.some((p) => p.user_id === profile.user_id);
+  const updated = exists
+    ? current.map((p) => (p.user_id === profile.user_id ? profile : p))
+    : [profile, ...current];
+  return { ...map, [asociatieId]: updated };
+}
+
+export function removeCarpoolIn(
+  map: CarpoolsByAsociatie,
+  asociatieId: string,
+  userId: string,
+): CarpoolsByAsociatie {
+  const current = map[asociatieId] ?? [];
+  return { ...map, [asociatieId]: current.filter((p) => p.user_id !== userId) };
+}
+
+export function migrateCarpoolState(persisted: unknown): CarpoolsByAsociatie {
+  const p = persisted as { byAsociatie?: CarpoolsByAsociatie } | null;
+  const existing = p?.byAsociatie ?? {};
+  return { ...existing, [DEMO_ASOCIATIE.id]: [...DEMO_CARPOOL] };
+}

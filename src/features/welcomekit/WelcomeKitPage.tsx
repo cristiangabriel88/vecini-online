@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Gift, Plus, Check, Trash2, PartyPopper } from 'lucide-react';
@@ -9,29 +9,67 @@ import { Badge } from '@/shared/components/Badge';
 import { Input, Textarea } from '@/shared/components/Input';
 import { Modal } from '@/shared/components/Modal';
 import { EmptyState } from '@/shared/components/EmptyState';
-import { useWelcomeKitStore } from './welcomeKitStore';
+import { ErrorState } from '@/shared/components/ErrorState';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useWelcomeKitStore, useAsociatieWelcomeKit } from './welcomeKitStore';
+import { hydrateWelcomeKit, addWelcomeKitItemLive, removeWelcomeKitItemLive } from './welcomeKitApi';
 import { completion, isComplete, isValidItem, sortItems } from './welcomeKitLogic';
 
 export default function WelcomeKitPage() {
   const { t } = useTranslation();
-  const { items, doneIds, addItem, removeItem, toggleDone } = useWelcomeKitStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const fetchError = useWelcomeKitStore((s) => s.fetchError);
+  const doneIds = useWelcomeKitStore((s) => s.doneIds);
+  const { removeItem, toggleDone } = useWelcomeKitStore();
+  const items = useAsociatieWelcomeKit();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
 
+  useEffect(() => {
+    if (asociatieId) void hydrateWelcomeKit(asociatieId);
+  }, [asociatieId]);
+
   const ordered = sortItems(items);
-  const { done, total, percent } = completion(items, doneIds);
-  const allDone = isComplete(items, doneIds);
+  const doneSet = new Set(doneIds);
+  const { done, total, percent } = completion(items, doneSet);
+  const allDone = isComplete(items, doneSet);
   const valid = isValidItem(title, body);
 
   const submit = () => {
-    if (!valid) return;
-    addItem(title.trim(), body.trim());
+    if (!valid || !asociatieId) return;
+    const item = {
+      id: `wk-${Date.now()}`,
+      asociatie_id: asociatieId,
+      order: items.length + 1,
+      title: title.trim(),
+      body: body.trim(),
+    };
+    addWelcomeKitItemLive(asociatieId, item);
     toast.success(t('welcomeKit.added'));
     setTitle('');
     setBody('');
     setOpen(false);
   };
+
+  const onRemove = (itemId: string) => {
+    if (!asociatieId) return;
+    removeItem(asociatieId, itemId);
+    removeWelcomeKitItemLive(itemId);
+  };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydrateWelcomeKit(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>
@@ -72,7 +110,7 @@ export default function WelcomeKitPage() {
 
           <div className="space-y-3">
             {ordered.map((item, i) => {
-              const checked = doneIds.has(item.id);
+              const checked = doneSet.has(item.id);
               return (
                 <Card key={item.id} className="flex items-start gap-3 p-4">
                   <button
@@ -101,7 +139,7 @@ export default function WelcomeKitPage() {
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => removeItem(item.id)}
+                    onClick={() => onRemove(item.id)}
                     aria-label={t('welcomeKit.removeStep')}
                   >
                     <Trash2 className="h-4 w-4" />

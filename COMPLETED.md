@@ -4,6 +4,26 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+---
+
+### T219 P2 ✅ 2026-06-03 -- Live-activate F57 Marketplace + F58 Carpool + F59 Babysitting + F60 Barter + F61 Cumpărături comune + F62 Welcome kit + F63 Aniversări + F64 Copii + F65 Feedback
+- new: src/features/marketplace/marketplaceApi.ts (hydrateListings, addListingLive)
+- new: src/features/carpool/carpoolApi.ts (hydrateCarpool, saveCarpoolProfile, leaveCarpoolProfile)
+- new: src/features/sitters/sitterApi.ts (hydrateSitters, saveSitterProfile, leaveSitterProfile)
+- new: src/features/barter/barterApi.ts (hydrateBarter, saveOffering, leaveOffering)
+- new: src/features/groupbuys/groupBuyApi.ts (hydrateGroupBuys, addGroupBuyLive, joinGroupBuyLive)
+- new: src/features/welcomekit/welcomeKitApi.ts (hydrateWelcomeKit, addWelcomeKitItemLive, removeWelcomeKitItemLive)
+- new: src/features/birthdays/birthdaysApi.ts (hydrateBirthdays, saveBirthdayConsent, leaveBirthdayConsent)
+- new: src/features/kids/kidsApi.ts (hydrateKids, registerKidsLive, addKidsEventLive)
+- new: src/features/feedback/feedbackApi.ts (hydrateFeedback, addFeedbackLive)
+- rebuilt: marketplaceStore/carpoolStore/sitterStore/barterStore/groupBuyStore/welcomeKitStore/birthdaysStore/kidsStore/feedbackStore (all per-asociație persisted with byAsociatie + fetchError + useAsociatieXxx hooks)
+- extended logic: marketplaceLogic/carpoolLogic/sitterLogic/barterLogic/groupBuyLogic/welcomeKitLogic/birthdaysLogic/kidsLogic/feedbackLogic (MarketplacesByAsociatie, CarpoolsByAsociatie, SittersByAsociatie, BarterByAsociatie, GroupBuysByAsociatie, WelcomeKitsByAsociatie, BirthdaysByAsociatie, KidsByAsociatie, FeedbackByAsociatie + seed/for/add/migrate helpers)
+- updated pages: MarketplacePage/CarpoolPage/SittersPage/BarterPage/GroupBuysPage/WelcomeKitPage/BirthdaysPage/KidsPage/FeedbackPage (useEffect hydration + ErrorState retry + authStore userId/profileGet for seller/organizer names)
+- migration: supabase/migrations/20260603000011_f57_f65_columns.sql (seller_name/category on marketplace_listings; user_name on carpool/sitter/skill/birthday; organizer_name on group_buys; order_num/title/body on welcome_kit_templates; bucket/count_num on kids_age_ranges; date/time/location/bucket/note/interested/organizer cols on kids_events; member-insert policies; unique constraints)
+- fixed: MyDataPage migrated from flat store shapes to per-asociație byAsociatie selectors for marketplace/birthdays/carpool/sitters/barter/feedback/kidsRanges/kidsEvents
+- fixed: minorsGuard.test.ts updated to new kidsStore API (registerKids/addEvent signatures + byAsociatie access)
+- new: tests/unit/marketplaceApi.test.ts (3), carpoolApi.test.ts (4), sitterApi.test.ts (4), barterApi.test.ts (4), groupBuyApi.test.ts (5), welcomeKitApi.test.ts (3), birthdaysApi.test.ts (4), kidsApi.test.ts (3), feedbackApi.test.ts (4) = 34 assertions
+
 ### ✅ T218 — [P2] Live-activate F49 Cod portari + F50 Evacuare + F51 PSI + F52 Asigurare + F53 Chei + F54 Vizitatori + F55 Alarmă
 Done: Seven Category-7 safety/compliance stores rebuilt as per-asociatie persisted stores (per-user for F49) and seven API files created. F49 -- `safetyStore` (byUser keyed), `safetyApi.ts` (AES-GCM PBKDF2 encryption: ciphertext-only in DB, never plaintext server-side); F50 -- `evacuationStore` (byAsociatie with {plans,markers}), `evacuationApi.ts` (hydrateEvacuation + persistPetMarker + removePetMarker), migration adds route/equipment jsonb + apartment_label/user_id + owner-manage policy; F51 -- `psiStore`, `psiApi.ts` (hydratePsiAssets + addPsiAssetLive + markPsiCheckedLive); F52 -- `insuranceStore`, `insuranceApi.ts` (hydrateInsurance + addInsurancePolicyLive); F53 -- `keysStore`, `keysApi.ts` (hydrateKeys + addKeyLive + handoverKeyLive), migration adds holder_name column; F54 -- `visitorsStore`, `visitorsApi.ts` (hydrateVisitors + addVisitorReportLive + cycleVisitorStatusLive), migration adds reporter_name + member-insert policy; F55 -- `alarmStore`, `alarmApi.ts` (hydrateAlarm + addAlarmSystemLive + logAlarmTestLive + reportAlarmFaultLive). All 7 pages updated with useEffect hydration + ErrorState retry. MyDataPage migrated to useAsociatieVisitors() hook. Migration `20260603000010_f49_f55_columns.sql`. 7 new API test files (27 assertions). 251 files / 2337 tests / lint + typecheck + build + build:pi + build:demo all green.
 

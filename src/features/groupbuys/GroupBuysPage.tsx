@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { ShoppingCart, Plus, Users } from 'lucide-react';
@@ -8,9 +8,13 @@ import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input, Textarea } from '@/shared/components/Input';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
 import { formatDate } from '@/shared/lib/format';
-import { useGroupBuyStore } from './groupBuyStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useMyIdentity, useProfileStore } from '@/features/profile/profileStore';
+import { useGroupBuyStore, useAsociatieGroupBuys } from './groupBuyStore';
+import { hydrateGroupBuys, addGroupBuyLive, joinGroupBuyLive } from './groupBuyApi';
 import { activeGroupBuys, closedGroupBuys, isValidGroupBuy } from './groupBuyLogic';
 
 function defaultDeadline(): string {
@@ -21,20 +25,42 @@ function defaultDeadline(): string {
 
 export default function GroupBuysPage() {
   const { t } = useTranslation();
-  const { buys, joined, create, join } = useGroupBuyStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const fetchError = useGroupBuyStore((s) => s.fetchError);
+  const joinedIds = useGroupBuyStore((s) => s.joinedIds);
+  const buys = useAsociatieGroupBuys();
+  const { userId } = useMyIdentity();
+  const profileGet = useProfileStore((s) => s.get);
 
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [deadline, setDeadline] = useState(defaultDeadline());
 
+  useEffect(() => {
+    if (asociatieId) void hydrateGroupBuys(asociatieId);
+  }, [asociatieId]);
+
   const active = activeGroupBuys(buys);
   const closed = closedGroupBuys(buys);
   const valid = isValidGroupBuy(title, deadline);
 
   const submit = () => {
-    if (!valid) return;
-    create({ title, description, deadline: `${deadline}T23:59:59` });
+    if (!valid || !asociatieId) return;
+    const prof = profileGet(userId ?? '', '');
+    const organizerName = prof.fullName || prof.displayName || 'Rezident';
+    const buy = {
+      id: `gb-${Date.now()}`,
+      asociatie_id: asociatieId,
+      organizer_user_id: userId ?? 'u-res',
+      organizer_name: organizerName,
+      title: title.trim(),
+      description: description.trim(),
+      deadline: `${deadline}T23:59:59`,
+      created_at: new Date().toISOString(),
+      signups: 0,
+    };
+    addGroupBuyLive(asociatieId, buy);
     toast.success(t('groupbuys.created'));
     setOpen(false);
     setTitle('');
@@ -43,9 +69,23 @@ export default function GroupBuysPage() {
   };
 
   const onJoin = (id: string) => {
-    join(id);
+    if (!asociatieId || !userId) return;
+    joinGroupBuyLive(asociatieId, id, userId);
     toast.success(t('groupbuys.joined'));
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydrateGroupBuys(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>
@@ -64,7 +104,7 @@ export default function GroupBuysPage() {
       ) : (
         <div className="space-y-3">
           {active.map((b) => {
-            const isJoined = joined.includes(b.id);
+            const isJoined = joinedIds.includes(b.id);
             return (
               <Card key={b.id} className="space-y-2 p-4">
                 <div className="flex items-start justify-between gap-3">

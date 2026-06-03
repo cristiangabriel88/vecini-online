@@ -86,7 +86,9 @@ export default function MyDataPage() {
   const sessionEmail = useAuthStore((s) => s.session?.user?.email ?? null);
   const sessionUserId = useAuthStore((s) => s.session?.user?.id ?? null);
 
-  const listings = useMarketplaceStore((s) => s.listings);
+  const listings = useMarketplaceStore((s) =>
+    Object.values(s.byAsociatie).flatMap((items) => items),
+  );
   const ideas = useIdeasStore((s) =>
     Object.values(s.byAsociatie).flatMap((cat) => cat.items),
   );
@@ -100,18 +102,32 @@ export default function MyDataPage() {
   const directory = useDirectoryStore((s) =>
     Object.values(s.byAsociatie).flatMap((entries) => entries),
   );
-  const birthdays = useBirthdaysStore((s) => s.consents);
-  const carpool = useCarpoolStore((s) => s.profiles);
-  const sitters = useSitterStore((s) => s.profiles);
-  const barter = useBarterStore((s) => s.offerings);
+  const birthdays = useBirthdaysStore((s) =>
+    Object.values(s.byAsociatie).flatMap((items) => items),
+  );
+  const carpool = useCarpoolStore((s) =>
+    Object.values(s.byAsociatie).flatMap((items) => items),
+  );
+  const sitters = useSitterStore((s) =>
+    Object.values(s.byAsociatie).flatMap((items) => items),
+  );
+  const barter = useBarterStore((s) =>
+    Object.values(s.byAsociatie).flatMap((items) => items),
+  );
   const pets = usePetsStore((s) =>
     Object.values(s.byAsociatie).flatMap((items) => items),
   );
   const bikes = useAsociatieBikes();
   const lending = useAsociatieLending();
-  const feedback = useFeedbackStore((s) => s.items);
-  const kidsRanges = useKidsStore((s) => s.ranges);
-  const kidsEvents = useKidsStore((s) => s.events);
+  const feedback = useFeedbackStore((s) =>
+    Object.values(s.byAsociatie).flatMap((items) => items),
+  );
+  const kidsRanges = useKidsStore((s) =>
+    Object.values(s.byAsociatie).flatMap((cat) => cat.ranges),
+  );
+  const kidsEvents = useKidsStore((s) =>
+    Object.values(s.byAsociatie).flatMap((cat) => cat.events),
+  );
   const laundryBookings = useLaundryStore((s) => s.bookings);
   const movingBookings = useMovingStore((s) => s.bookings);
   const venueBookings = useVenueStore((s) => s.bookings);

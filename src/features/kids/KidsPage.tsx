@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { ToyBrick, Plus, Users, Trash2, MapPin, Clock, Check } from 'lucide-react';
@@ -10,8 +10,12 @@ import { Input, Textarea } from '@/shared/components/Input';
 import { Select } from '@/shared/components/Select';
 import { Modal } from '@/shared/components/Modal';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { formatDate } from '@/shared/lib/format';
-import { useKidsStore, DEMO_USER } from './kidsStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useMyIdentity, useProfileStore } from '@/features/profile/profileStore';
+import { useKidsStore, useAsociatieKids } from './kidsStore';
+import { hydrateKids, addKidsEventLive } from './kidsApi';
 import {
   AGE_BUCKETS,
   EVENT_BUCKETS,
@@ -24,13 +28,19 @@ import {
   totalKids,
 } from './kidsLogic';
 import type { KidsAgeBucket, KidsEvent } from '@/shared/types/domain';
+import { assertAggregateOnly, KIDS_EVENT_FIELDS } from '@/shared/lib/minorsGuard';
 
 const today = () => new Date().toISOString().slice(0, 10);
 
 export default function KidsPage() {
   const { t } = useTranslation();
-  const { ranges, events, joinedIds, registerKids, removeRange, addEvent, removeEvent, toggleJoin } =
-    useKidsStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const fetchError = useKidsStore((s) => s.fetchError);
+  const joinedIds = useKidsStore((s) => s.joinedIds);
+  const { registerKids, removeRange, toggleJoin, removeEvent } = useKidsStore();
+  const { ranges, events } = useAsociatieKids();
+  const { userId } = useMyIdentity();
+  const profileGet = useProfileStore((s) => s.get);
 
   const [regOpen, setRegOpen] = useState(false);
   const [bucket, setBucket] = useState<KidsAgeBucket>(AGE_BUCKETS[0]);
@@ -44,12 +54,16 @@ export default function KidsPage() {
   const [evtBucket, setEvtBucket] = useState<KidsAgeBucket | 'all'>('all');
   const [note, setNote] = useState('');
 
+  useEffect(() => {
+    if (asociatieId) void hydrateKids(asociatieId);
+  }, [asociatieId]);
+
   const bucketLabel = (b: KidsAgeBucket | 'all') =>
     b === 'all' ? t('kids.allAges') : t('kids.bucketLabel', { range: b });
 
   const aggregate = aggregateByBucket(ranges);
   const total = totalKids(ranges);
-  const mine = myRanges(ranges, DEMO_USER.id);
+  const mine = myRanges(ranges, userId ?? 'u-res');
   const { upcoming, past } = splitEvents(events, today());
 
   const regCount = Number(count);
@@ -57,15 +71,32 @@ export default function KidsPage() {
   const evtValid = isValidEvent(title, date);
 
   const submitRegistration = () => {
-    if (!regValid) return;
-    registerKids(bucket, regCount);
+    if (!regValid || !asociatieId) return;
+    registerKids(asociatieId, userId ?? 'u-res', '', bucket, regCount);
     toast.success(t('kids.registered'));
     setRegOpen(false);
   };
 
   const submitEvent = () => {
-    if (!evtValid) return;
-    addEvent(title.trim(), date, time.trim(), location.trim(), evtBucket, note.trim());
+    if (!evtValid || !asociatieId) return;
+    const prof = profileGet(userId ?? '', '');
+    const organizerName = prof.fullName || prof.displayName || 'Rezident';
+    const event: KidsEvent = {
+      id: `ke-${Date.now()}`,
+      asociatie_id: asociatieId,
+      title: title.trim(),
+      date,
+      time: time.trim(),
+      location: location.trim(),
+      bucket: evtBucket,
+      note: note.trim(),
+      interested: 0,
+      organizer_user_id: userId ?? 'u-res',
+      organizer_name: organizerName,
+      created_at: new Date().toISOString(),
+    };
+    assertAggregateOnly(event, KIDS_EVENT_FIELDS, 'kids_events');
+    addKidsEventLive(asociatieId, event);
     toast.success(t('kids.eventAdded'));
     setTitle('');
     setLocation('');
@@ -74,8 +105,8 @@ export default function KidsPage() {
   };
 
   const renderEvent = (e: KidsEvent, faded: boolean) => {
-    const joined = joinedIds.has(e.id);
-    const isOrganizer = e.organizer_user_id === DEMO_USER.id;
+    const joined = joinedIds.includes(e.id);
+    const isOrganizer = e.organizer_user_id === (userId ?? 'u-res');
     return (
       <Card key={e.id} className={`p-4 ${faded ? 'opacity-60' : ''}`}>
         <div className="flex items-start justify-between gap-3">
@@ -105,7 +136,7 @@ export default function KidsPage() {
             <Button
               size="sm"
               variant="ghost"
-              onClick={() => removeEvent(e.id)}
+              onClick={() => asociatieId && removeEvent(asociatieId, e.id)}
               aria-label={t('kids.removeEvent')}
             >
               <Trash2 className="h-4 w-4" />
@@ -132,6 +163,19 @@ export default function KidsPage() {
       </Card>
     );
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydrateKids(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>
@@ -163,10 +207,7 @@ export default function KidsPage() {
           <>
             <div className="mt-3 flex flex-wrap gap-2">
               {aggregate.map((b) => (
-                <span
-                  key={b.bucket}
-                  className="rounded-full bg-surface-2 px-3 py-1 text-sm"
-                >
+                <span key={b.bucket} className="rounded-full bg-surface-2 px-3 py-1 text-sm">
                   <strong>{b.count}</strong> {t('kids.bucketLabel', { range: b.bucket })}
                 </span>
               ))}
@@ -189,7 +230,7 @@ export default function KidsPage() {
                   {r.count}× {t('kids.bucketLabel', { range: r.bucket })}
                   <button
                     type="button"
-                    onClick={() => removeRange(r.bucket)}
+                    onClick={() => asociatieId && removeRange(asociatieId, userId ?? 'u-res', r.bucket)}
                     aria-label={t('kids.removeRange')}
                     className="text-muted hover:text-danger"
                   >

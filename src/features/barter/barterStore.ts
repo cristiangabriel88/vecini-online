@@ -1,45 +1,52 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { SkillOffering } from '@/shared/types/domain';
-import { DEMO_SKILLS } from '@/shared/demo/demoData';
-
-const CURRENT_USER_ID = 'u-res';
-const CURRENT_USER_NAME = 'Popescu Andrei';
+import { useAuthStore } from '@/shared/store/authStore';
+import {
+  type BarterByAsociatie,
+  seedBarter,
+  barterForAsociatie,
+  upsertOfferingIn,
+  removeOfferingIn,
+  migrateBarterState,
+} from './barterLogic';
 
 interface BarterState {
-  offerings: SkillOffering[];
-  currentUserId: string;
-  /** Create or update the current user's offering (opt-in). */
-  save: (offers: string, needs: string) => void;
-  /** Remove the current user's offering (opt-out). */
-  leave: () => void;
+  byAsociatie: BarterByAsociatie;
+  fetchError: string | null;
+  upsertOffering: (asociatieId: string, offering: SkillOffering) => void;
+  removeOffering: (asociatieId: string, userId: string) => void;
+  replaceForAsociatie: (asociatieId: string, items: SkillOffering[]) => void;
+  setFetchError: (msg: string | null) => void;
 }
 
-export const useBarterStore = create<BarterState>((set) => ({
-  offerings: [...DEMO_SKILLS],
-  currentUserId: CURRENT_USER_ID,
-  save: (offers, needs) =>
-    set((s) => {
-      const existing = s.offerings.find((o) => o.user_id === CURRENT_USER_ID);
-      if (existing) {
-        return {
-          offerings: s.offerings.map((o) =>
-            o.user_id === CURRENT_USER_ID ? { ...o, offers: offers.trim(), needs: needs.trim() } : o,
-          ),
-        };
-      }
-      return {
-        offerings: [
-          {
-            id: `sk-${Date.now()}`,
-            asociatie_id: 'demo-asoc',
-            user_id: CURRENT_USER_ID,
-            user_name: CURRENT_USER_NAME,
-            offers: offers.trim(),
-            needs: needs.trim(),
-          },
-          ...s.offerings,
-        ],
-      };
+export const useBarterStore = create<BarterState>()(
+  persist(
+    (set) => ({
+      byAsociatie: seedBarter(),
+      fetchError: null,
+
+      upsertOffering: (asociatieId, offering) =>
+        set((s) => ({ byAsociatie: upsertOfferingIn(s.byAsociatie, asociatieId, offering) })),
+
+      removeOffering: (asociatieId, userId) =>
+        set((s) => ({ byAsociatie: removeOfferingIn(s.byAsociatie, asociatieId, userId) })),
+
+      replaceForAsociatie: (asociatieId, items) =>
+        set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: items } })),
+
+      setFetchError: (msg) => set({ fetchError: msg }),
     }),
-  leave: () => set((s) => ({ offerings: s.offerings.filter((o) => o.user_id !== CURRENT_USER_ID) })),
-}));
+    {
+      name: 'vecini.barter',
+      version: 1,
+      partialize: (s) => ({ byAsociatie: s.byAsociatie }),
+      migrate: (persisted) => ({ byAsociatie: migrateBarterState(persisted) }),
+    },
+  ),
+);
+
+export function useAsociatieBarter(): SkillOffering[] {
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  return useBarterStore((s) => barterForAsociatie(s.byAsociatie, asociatieId));
+}

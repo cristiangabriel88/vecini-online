@@ -1,44 +1,86 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { WelcomeKitItem } from '@/shared/types/domain';
-import { DEMO_WELCOME_KIT } from '@/shared/demo/demoData';
-import { nextOrder } from './welcomeKitLogic';
+import { useAuthStore } from '@/shared/store/authStore';
+import {
+  type WelcomeKitsByAsociatie,
+  seedWelcomeKit,
+  welcomeKitForAsociatie,
+  addWelcomeKitItemIn,
+  removeWelcomeKitItemIn,
+  migrateWelcomeKitState,
+  nextOrder,
+} from './welcomeKitLogic';
 
 interface WelcomeKitState {
-  items: WelcomeKitItem[];
-  /** Step ids the current resident has marked as done. */
-  doneIds: Set<string>;
-  addItem: (title: string, body: string) => void;
-  removeItem: (id: string) => void;
-  toggleDone: (id: string) => void;
+  byAsociatie: WelcomeKitsByAsociatie;
+  doneIds: string[];
+  fetchError: string | null;
+  addItem: (asociatieId: string, title: string, body: string) => void;
+  removeItem: (asociatieId: string, itemId: string) => void;
+  toggleDone: (itemId: string) => void;
+  replaceForAsociatie: (asociatieId: string, items: WelcomeKitItem[]) => void;
+  addLiveItem: (asociatieId: string, item: WelcomeKitItem) => void;
+  setFetchError: (msg: string | null) => void;
 }
 
-export const useWelcomeKitStore = create<WelcomeKitState>((set) => ({
-  items: [...DEMO_WELCOME_KIT],
-  doneIds: new Set<string>(),
-  addItem: (title, body) =>
-    set((s) => ({
-      items: [
-        ...s.items,
-        {
-          id: `wk-${Date.now()}`,
-          asociatie_id: 'demo-asoc',
-          order: nextOrder(s.items),
-          title,
-          body,
-        },
-      ],
-    })),
-  removeItem: (id) =>
-    set((s) => {
-      const doneIds = new Set(s.doneIds);
-      doneIds.delete(id);
-      return { items: s.items.filter((i) => i.id !== id), doneIds };
+export const useWelcomeKitStore = create<WelcomeKitState>()(
+  persist(
+    (set) => ({
+      byAsociatie: seedWelcomeKit(),
+      doneIds: [],
+      fetchError: null,
+
+      addItem: (asociatieId, title, body) =>
+        set((s) => {
+          const current = s.byAsociatie[asociatieId] ?? [];
+          const item: WelcomeKitItem = {
+            id: `wk-${Date.now()}`,
+            asociatie_id: asociatieId,
+            order: nextOrder(current),
+            title,
+            body,
+          };
+          return { byAsociatie: addWelcomeKitItemIn(s.byAsociatie, asociatieId, item) };
+        }),
+
+      removeItem: (asociatieId, itemId) =>
+        set((s) => ({
+          byAsociatie: removeWelcomeKitItemIn(s.byAsociatie, asociatieId, itemId),
+          doneIds: s.doneIds.filter((id) => id !== itemId),
+        })),
+
+      toggleDone: (itemId) =>
+        set((s) => ({
+          doneIds: s.doneIds.includes(itemId)
+            ? s.doneIds.filter((id) => id !== itemId)
+            : [...s.doneIds, itemId],
+        })),
+
+      replaceForAsociatie: (asociatieId, items) =>
+        set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: items } })),
+
+      addLiveItem: (asociatieId, item) =>
+        set((s) => ({ byAsociatie: addWelcomeKitItemIn(s.byAsociatie, asociatieId, item) })),
+
+      setFetchError: (msg) => set({ fetchError: msg }),
     }),
-  toggleDone: (id) =>
-    set((s) => {
-      const doneIds = new Set(s.doneIds);
-      if (doneIds.has(id)) doneIds.delete(id);
-      else doneIds.add(id);
-      return { doneIds };
-    }),
-}));
+    {
+      name: 'vecini.welcomekit',
+      version: 1,
+      partialize: (s) => ({ byAsociatie: s.byAsociatie, doneIds: s.doneIds }),
+      migrate: (persisted) => {
+        const p = persisted as { byAsociatie?: WelcomeKitsByAsociatie; doneIds?: string[] } | null;
+        return {
+          byAsociatie: migrateWelcomeKitState(persisted),
+          doneIds: p?.doneIds ?? [],
+        };
+      },
+    },
+  ),
+);
+
+export function useAsociatieWelcomeKit(): WelcomeKitItem[] {
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  return useWelcomeKitStore((s) => welcomeKitForAsociatie(s.byAsociatie, asociatieId));
+}

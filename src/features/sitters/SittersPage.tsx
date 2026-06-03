@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Baby, Plus } from 'lucide-react';
@@ -9,21 +9,33 @@ import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
 import { Select } from '@/shared/components/Select';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
-import { useSitterStore } from './sitterStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useMyIdentity, useProfileStore } from '@/features/profile/profileStore';
+import { useSitterStore, useAsociatieSitters } from './sitterStore';
+import { hydrateSitters, saveSitterProfile, leaveSitterProfile } from './sitterApi';
 import { SITTER_KINDS, isValidSitter, searchSitters } from './sitterLogic';
 
 export default function SittersPage() {
   const { t } = useTranslation();
-  const { profiles, currentUserId, save, leave } = useSitterStore();
-  const mine = profiles.find((p) => p.user_id === currentUserId);
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const fetchError = useSitterStore((s) => s.fetchError);
+  const profiles = useAsociatieSitters();
+  const { userId } = useMyIdentity();
+  const profileGet = useProfileStore((s) => s.get);
+  const mine = profiles.find((p) => p.user_id === userId);
 
   const [kindFilter, setKindFilter] = useState('all');
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
-  const [kind, setKind] = useState<string>(mine?.kind ?? SITTER_KINDS[0]);
-  const [availability, setAvailability] = useState(mine?.availability ?? '');
-  const [rate, setRate] = useState(mine?.rate ?? '');
+  const [kind, setKind] = useState<string>(SITTER_KINDS[0]);
+  const [availability, setAvailability] = useState('');
+  const [rate, setRate] = useState('');
+
+  useEffect(() => {
+    if (asociatieId) void hydrateSitters(asociatieId);
+  }, [asociatieId]);
 
   const results = searchSitters(profiles, kindFilter, query);
   const valid = isValidSitter(availability);
@@ -36,16 +48,41 @@ export default function SittersPage() {
   };
 
   const submit = () => {
-    if (!valid) return;
-    save(kind, availability, rate);
+    if (!valid || !asociatieId) return;
+    const prof = profileGet(userId ?? '', '');
+    const userName = prof.fullName || prof.displayName || 'Rezident';
+    const profile = {
+      id: mine?.id ?? `st-${Date.now()}`,
+      asociatie_id: asociatieId,
+      user_id: userId ?? 'u-res',
+      user_name: userName,
+      kind,
+      availability: availability.trim(),
+      rate: rate.trim(),
+    };
+    saveSitterProfile(asociatieId, profile);
     toast.success(t('sitters.saved'));
     setOpen(false);
   };
 
   const optOut = () => {
-    leave();
+    if (!asociatieId || !userId) return;
+    leaveSitterProfile(asociatieId, userId);
     toast.success(t('sitters.left'));
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydrateSitters(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>

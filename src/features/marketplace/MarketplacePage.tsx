@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { ShoppingBag, Plus } from 'lucide-react';
@@ -9,14 +9,22 @@ import { Badge } from '@/shared/components/Badge';
 import { Input, Textarea } from '@/shared/components/Input';
 import { Select } from '@/shared/components/Select';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
 import { formatLei, formatDate } from '@/shared/lib/format';
-import { useMarketplaceStore } from './marketplaceStore';
-import { activeListings, isValidListing, MARKETPLACE_CATEGORIES } from './marketplaceLogic';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useMyIdentity, useProfileStore } from '@/features/profile/profileStore';
+import { useMarketplaceStore, useAsociatieMarketplace } from './marketplaceStore';
+import { hydrateListings, addListingLive } from './marketplaceApi';
+import { activeListings, isValidListing, MARKETPLACE_CATEGORIES, expiryFrom } from './marketplaceLogic';
 
 export default function MarketplacePage() {
   const { t } = useTranslation();
-  const { listings, add } = useMarketplaceStore();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const fetchError = useMarketplaceStore((s) => s.fetchError);
+  const listings = useAsociatieMarketplace();
+  const { userId } = useMyIdentity();
+  const profileGet = useProfileStore((s) => s.get);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('all');
   const [open, setOpen] = useState(false);
@@ -25,13 +33,33 @@ export default function MarketplacePage() {
   const [newCategory, setNewCategory] = useState<string>(MARKETPLACE_CATEGORIES[0]);
   const [price, setPrice] = useState('');
 
+  useEffect(() => {
+    if (asociatieId) void hydrateListings(asociatieId);
+  }, [asociatieId]);
+
   const results = activeListings(listings, query, category);
   const valid = isValidListing(title);
 
   const submit = () => {
-    if (!valid) return;
+    if (!valid || !asociatieId) return;
+    const profile = profileGet(userId ?? '', '');
+    const sellerName = profile.fullName || profile.displayName || 'Rezident';
     const parsed = price.trim() === '' ? null : Math.max(0, Number(price.replace(',', '.')) || 0);
-    add({ title, description, category: newCategory, price: parsed });
+    const now = new Date().toISOString();
+    const item = {
+      id: `ml-${Date.now()}`,
+      asociatie_id: asociatieId,
+      seller_user_id: userId ?? 'u-res',
+      seller_name: sellerName,
+      category: newCategory,
+      title: title.trim(),
+      description: description.trim(),
+      price: parsed,
+      photo_path: null,
+      expires_at: expiryFrom(now),
+      created_at: now,
+    };
+    addListingLive(asociatieId, item);
     toast.success(t('marketplace.added'));
     setOpen(false);
     setTitle('');
@@ -39,6 +67,19 @@ export default function MarketplacePage() {
     setPrice('');
     setNewCategory(MARKETPLACE_CATEGORIES[0]);
   };
+
+  if (fetchError) {
+    return (
+      <ErrorState
+        body={t('common.loadError')}
+        action={
+          <Button onClick={() => asociatieId && void hydrateListings(asociatieId)}>
+            {t('common.retry')}
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div>
