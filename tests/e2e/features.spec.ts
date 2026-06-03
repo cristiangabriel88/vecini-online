@@ -513,3 +513,67 @@ test('F01 — admin attaches a file; download button appears on the published ca
   // Download button aria-label is "Descarcă: evacuare.png".
   await expect(cardHeading.locator('../..').getByRole('button', { name: /Descarcă.*evacuare/i })).toBeVisible();
 });
+
+test('F33 — admin uploads document with file; download button appears; delete removes it', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/documente');
+  // "Adaugă document" button is present for the admin role.
+  await page.getByRole('button', { name: /Adaugă document/i }).click();
+  await page.getByLabel('Titlu').fill('Contract ascensor 2026');
+  // Attach a synthetic PDF blob (well under the 10 MB limit).
+  await page.locator('input[type="file"]').setInputFiles({
+    name: 'ascensor.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.alloc(64, 0xaa),
+  });
+  await expect(page.getByText('ascensor.pdf')).toBeVisible();
+  await page.getByRole('button', { name: /^Salvează$/i }).click();
+  await expect(page.getByText('Document adăugat.')).toBeVisible();
+  // The new card is visible and carries a download button (file was attached).
+  const card = page.getByText('Contract ascensor 2026', { exact: true }).locator('../..');
+  await expect(card.getByRole('button', { name: /Descarcă/i })).toBeVisible();
+  // Delete the document: click the card's delete button, then confirm in the modal.
+  await card.getByRole('button', { name: /Șterge/i }).click();
+  await page.getByRole('dialog').getByRole('button', { name: /Șterge/i }).click();
+  await expect(page.getByText('Document șters.')).toBeVisible();
+  // Document is no longer listed.
+  await expect(page.getByText('Contract ascensor 2026', { exact: true })).not.toBeVisible();
+});
+
+test('F33 — resident sees document list with download button but no upload or delete controls', async ({ page }) => {
+  // Upload a file-backed document as admin first so the resident has something with a download button.
+  await enterDemo(page);
+  await page.goto('/app/documente');
+  await page.getByRole('button', { name: /Adaugă document/i }).click();
+  await page.getByLabel('Titlu').fill('Regulament parcare 2026');
+  await page.locator('input[type="file"]').setInputFiles({
+    name: 'parcare.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.alloc(64, 0xbb),
+  });
+  await page.getByRole('button', { name: /^Salvează$/i }).click();
+  await expect(page.getByText('Document adăugat.')).toBeVisible();
+  // Switch to resident role (proprietar) and mark the welcome flow as seen so
+  // RequireWelcome does not redirect to /bun-venit.
+  await page.evaluate(() => {
+    try {
+      localStorage.setItem('iv.demo.role', 'proprietar');
+      localStorage.setItem('vecini.welcome', JSON.stringify({
+        state: { seenByUser: { 'u-res': '2026-01-01T00:00:00.000Z' } },
+        version: 0,
+      }));
+    } catch { /* storage unavailable */ }
+  });
+  await page.reload();
+  await page.goto('/app/documente');
+  // Seeded and newly uploaded documents are visible.
+  await expect(page.getByText('Regulament parcare 2026', { exact: true })).toBeVisible();
+  await expect(page.getByText('Statutul asociației de proprietari')).toBeVisible();
+  // Resident can see the download button on the uploaded card.
+  const resCard = page.getByText('Regulament parcare 2026', { exact: true }).locator('../..');
+  await expect(resCard.getByRole('button', { name: /Descarcă/i })).toBeVisible();
+  // But "Adaugă document" is absent for a resident.
+  await expect(page.getByRole('button', { name: /Adaugă document/i })).not.toBeVisible();
+  // And delete controls are absent on the uploaded card.
+  await expect(resCard.getByRole('button', { name: /Șterge/i })).not.toBeVisible();
+});

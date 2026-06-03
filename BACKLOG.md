@@ -241,7 +241,7 @@ Done: new `tests/e2e/bookings.spec.ts` with three happy paths -- F25 (book Mași
 ### ✅ T209 — [P3] Assistant widget live data sources (F56 contacts + F36 directory from real stores)
 The help assistant (`AssistantWidget`) draws data from demo fixtures for factual answers (emergency contacts, resident directory). In live mode, these should come from the real per-asociație stores. Wire: `emergencyContactsDataSource` reads `useAsociatieEmergencyContacts()` (already in the feature store); `directoryDataSource` reads `useAsociatieDirectory()` with the same `visibleEntry` consent masking as `DirectoryPage`. Gate the live data sources on `isSupabaseConfigured`; demo path unchanged. No new tables needed. Tests: extend `assistantEngine.test.ts` to assert live-path data is used when stores are hydrated. This is the "Phase 2" noted in `FEATURES.md` under Help assistant. Prereq: F36/F56 stores (done).
 
-### ⬜ T210 — [P3] E2E coverage for F33 Document archive (admin upload + download + delete)
+### ✅ T210 — [P3] E2E coverage for F33 Document archive (admin upload + download + delete)
 F33 is a frequently used feature (building statutes, supplier contracts) with no E2E. Add a happy path in `tests/e2e/features.spec.ts`: switch to admin role → navigate to `/app/documente` → upload a file (demo: a small synthetic blob) → file appears with a download button → click download → file downloads (or a signed URL is triggered) → delete the document → confirm dialog → document disappears from list. Also assert that a resident role sees the download button but not the upload/delete controls. Chromium + mobile. Prereq: T88/T89 (F33 real upload shipped).
 
 ---

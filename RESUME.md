@@ -5,18 +5,22 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-03
-- last_task: T209 (P3) Assistant widget live data sources (F56 contacts + F36 directory from real stores)
+- last_task: T210 (P3) E2E coverage for F33 Document archive
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
 - counts: 215 files / 2138 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T210 E2E coverage for F33 Document archive [P3]
+- next: on-hold tasks (T63, T61, GDPR/profile/platform tracks) -- main queue now empty
 - features: 67/67 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F33 (18 features) + auth/invites/onboarding; rest offline-first, pending live-activation track. F28/F36/F66 cross-feature glue wired (T104). Platform console: shell + provisioning done (T93/T94); oversight tools T95-T99 on hold.
-- e2e: F01/F02/F03/F04/F05/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F18/F25/F26/F27/F35/F36/F40 happy paths green on chromium + mobile (23 features with passing E2E). auth/consent/isolation/smoke/batch specs still predate the auto-demo-entry harness (T16)
+- e2e: F01/F02/F03/F04/F05/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F18/F25/F26/F27/F33/F35/F36/F40 happy paths green on chromium + mobile (24 features with passing E2E). auth/consent/isolation/smoke/batch specs still predate the auto-demo-entry harness (T16)
 - blockers: full e2e harness rework (entry helpers + login-page specs) deferred to T16; Chromium installed locally
-- completion_estimate: 54% of original product vision delivered end-to-end (2026-06-03 replenish audit). Detail: all 67 features demo-complete and offline-functional (high-value deliverable); 18/67 live-wired to real Supabase backend; GDPR surface ~70% (server-side erasure + breach fan-out pending); security posture ~85% (rate-limit gaps on 4 functions, idle-timeout not enforced); Telegram bot 0% (fully deferred, passive in codebase); SaaS billing 0% (T19 on hold); platform console ~30% (shell + provisioning done, oversight tools T95-T99 pending); E2E coverage 25% (23/67 features with passing happy-path tests). Main blockers to 70%+: live-wire remaining 49 features (on-hold track), ship Telegram bot (T15), close security gaps (T197-T198).
+- completion_estimate: 54% of original product vision delivered end-to-end (2026-06-03 replenish audit). Detail: all 67 features demo-complete and offline-functional (high-value deliverable); 18/67 live-wired to real Supabase backend; GDPR surface ~70% (server-side erasure + breach fan-out pending); security posture ~85% (rate-limit gaps on 4 functions, idle-timeout not enforced); Telegram bot 0% (fully deferred, passive in codebase); SaaS billing 0% (T19 on hold); platform console ~30% (shell + provisioning done, oversight tools T95-T99 pending); E2E coverage 26% (24/67 features with passing happy-path tests). Main blockers to 70%+: live-wire remaining 49 features (on-hold track), ship Telegram bot (T15), close security gaps (T197-T198).
 
 ---
+
+### T210 P3 ✅ 2026-06-03 -- E2E coverage for F33 Document archive (admin upload + download + delete)
+- new: tests/e2e/features.spec.ts (+2 happy paths: admin upload+download+delete; resident read-only access with download visible but no manage controls)
+- result: 215 files / 2138 tests / lint+typecheck+build+pi+demo green; 4/4 E2E green (chromium + mobile)
 
 ### T209 P3 ✅ 2026-06-03 -- Assistant widget live data sources (F56 contacts + F36 directory from real stores)
 - refactored: src/features/assistant/dataSources.ts (buildEmergencyEntries/buildDirectoryEntries parameterized; useAsociatieEmergencyContacts hook queries emergency_contacts under RLS; useDataEntries hook reads live emergency contacts + reactive directoryStore)
