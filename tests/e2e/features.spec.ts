@@ -13,14 +13,19 @@ async function enterDemo(page: Page) {
   await expect(page).toHaveURL(/\/app$/);
 }
 
-test('F06 — resident publishes a neighbour post', async ({ page }) => {
+test('F06 — resident publishes a neighbour post with category; category badge appears in feed', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/locator');
   await page.getByRole('button', { name: /Anunț nou/i }).click();
-  await page.getByLabel('Titlu').fill('Vând masă de bucătărie');
-  await page.getByLabel('Detalii').fill('Masă din lemn, stare bună. 150 lei.');
+  await page.getByLabel('Titlu').fill('Ofer ajutor la transport mobila');
+  await page.getByLabel('Categorie').selectOption('ofer');
+  await page.getByLabel('Detalii').fill('Pot ajuta vecinii cu transportul mobilei în weekend.');
   await page.getByRole('button', { name: /Publică/i }).click();
-  await expect(page.getByRole('heading', { name: 'Vând masă de bucătărie' })).toBeVisible();
+  await expect(page.getByText(/Anunț publicat/i)).toBeVisible();
+  const heading = page.getByRole('heading', { name: 'Ofer ajutor la transport mobila' });
+  await expect(heading).toBeVisible();
+  // The category badge rendered next to the heading confirms category was saved.
+  await expect(heading.locator('../..').getByText('Ofer')).toBeVisible();
 });
 
 test('F07 — resident searches the FAQ and marks an answer helpful', async ({ page }) => {
@@ -576,4 +581,58 @@ test('F33 — resident sees document list with download button but no upload or 
   await expect(page.getByRole('button', { name: /Adaugă document/i })).not.toBeVisible();
   // And delete controls are absent on the uploaded card.
   await expect(resCard.getByRole('button', { name: /Șterge/i })).not.toBeVisible();
+});
+
+test('F66 — resident sets display name; completeness indicator increases; custom field added', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/profil');
+
+  const progressBar = page.getByRole('progressbar');
+  await expect(progressBar).toBeVisible();
+  const before = Number(await progressBar.getAttribute('aria-valuenow'));
+
+  // Fill the display name (was empty in fresh demo context — completeness increases).
+  await page.getByLabel('Nume afișat').fill('Ionescu Alex');
+
+  // Completeness should rise above the initial value (each check = 10%).
+  await expect(progressBar).not.toHaveAttribute('aria-valuenow', String(before));
+  const after = Number(await progressBar.getAttribute('aria-valuenow'));
+  expect(after).toBeGreaterThan(before);
+
+  // Add a custom field via the modal.
+  await page.getByRole('button', { name: /Adaugă câmp/i }).click();
+  await page.getByLabel('Eticheta câmpului').fill('Telefon birou');
+  await page.getByRole('button', { name: /Creează/i }).click();
+
+  // The new custom field row appears under the "Câmpuri personalizate" card.
+  await expect(page.getByText('Telefon birou')).toBeVisible();
+});
+
+test('F67 — resident hides a home card in edit mode; card leaves grid and survives reload', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app');
+
+  // Wait for the default shortcut grid to render (6 visible cards).
+  const shortcuts = page.locator('.home-shortcut');
+  await expect(shortcuts.first()).toBeVisible();
+  const countBefore = await shortcuts.count();
+
+  // Enter edit mode via the "Personalizează" button.
+  await page.getByRole('button', { name: /Personalizează/i }).click();
+  await expect(page.getByRole('button', { name: /Gata/i })).toBeVisible();
+
+  // Hide the first card; its eye-toggle flips to "Afișează cardul".
+  await page.getByRole('button', { name: /Ascunde cardul/i }).first().click();
+  await expect(page.getByRole('button', { name: /Afișează cardul/i }).first()).toBeVisible();
+
+  // Exit edit mode.
+  await page.getByRole('button', { name: /Gata/i }).click();
+
+  // One fewer shortcut is shown in the view grid.
+  await expect(shortcuts).toHaveCount(countBefore - 1);
+
+  // Reload and navigate back; the layout persists via Zustand localStorage persist.
+  await page.reload();
+  await page.goto('/app');
+  await expect(page.locator('.home-shortcut')).toHaveCount(countBefore - 1);
 });

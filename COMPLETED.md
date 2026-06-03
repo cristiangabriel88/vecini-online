@@ -6,6 +6,12 @@ Reference only — not read during a normal `make progress` task.
 
 ---
 
+### ✅ T223 — [P2] E2E for F06 Locator + F66 Profile + F67 Home customization
+
+Done: Updated existing F06 test to also select category 'ofer' via `getByLabel('Categorie').selectOption('ofer')` and verify the "Ofer" badge appears on the posted card. Added F66 test: reads initial `aria-valuenow` from the progressbar, fills "Nume afișat" (one of 10 completeness checks), asserts `aria-valuenow` increased, then opens the "Adaugă câmp" modal, fills "Eticheta câmpului", confirms with "Creează", and asserts the custom field label is visible. Added F67 test: enters edit mode via "Personalizează", clicks the first "Ascunde cardul" button, verifies toggle flips to "Afișează cardul", exits via "Gata", asserts `.home-shortcut` count decreased by one, then reloads and navigates back to verify the Zustand-persist layout survives the reload. 260 files / 2394 unit tests / lint + typecheck + build + build:pi + build:demo all green.
+
+---
+
 ### T222 P2 ✅ 2026-06-04 -- E2E batch for projects + safety + community-life (F41-F48, F50-F53, F57, F62-F63, F65)
 - new: tests/e2e/community.spec.ts (12 happy-path tests)
 - F41: advance "Termoizolație fațadă" phase (in_curs -> finalizat), button disappears
