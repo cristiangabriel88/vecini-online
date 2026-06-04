@@ -196,9 +196,11 @@ Done: Added `preContractualRows(plan, lang)` pure function to `billingLogic.ts` 
 
 ---
 
-### ⬜ T229 — [P3] Health-check Netlify function + uptime-monitoring documentation
+### ✅ T229 — [P3] Health-check Netlify function + uptime-monitoring documentation
 
 Add `netlify/functions/health.ts`: GET-only, no auth required, returns `{"status":"ok","stage":"<VITE_APP_STAGE>"}` with `Content-Type: application/json`. Add rate-limit: 120 req/60 s per IP (reuse `checkSlidingWindow`). Document the `/api/health` endpoint in `RUNBOOK-MVP.md` as the watch URL for an uptime service (UptimeRobot / BetterUptime). New `tests/unit/healthFunction.test.ts` (3 assertions: returns 200 OK, correct JSON shape, rejects non-GET with 405). Prereq: none.
+
+Done: Created `netlify/functions/health.ts` (GET-only, per-IP 120 req/60 s rate limit via `checkSlidingWindow`, returns `{"status":"ok","stage":"<VITE_APP_STAGE>"}` with `Content-Type: application/json`; rejects non-GET with 405). Created `tests/unit/healthFunction.test.ts` with 3 assertions. Added section 6 "Uptime monitoring" to `RUNBOOK-MVP.md` documenting the endpoint as the UptimeRobot/BetterUptime watch URL with recommended monitor settings. 263 files / 2611 tests / lint + typecheck + build + build:pi + build:demo all green.
 
 ### ⬜ T108 — [P3] Rich per-card home widgets (beyond feature-shortcut links)
 

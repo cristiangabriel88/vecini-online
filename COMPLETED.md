@@ -4,6 +4,11 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T229 P3 ✅ 2026-06-04 -- Health-check Netlify function + uptime-monitoring docs
+- new: netlify/functions/health.ts (GET-only, no auth, returns {"status":"ok","stage":"<stage>"}, rate-limited 120 req/60 s per IP)
+- new: tests/unit/healthFunction.test.ts (3 assertions: 200 OK, correct JSON shape, 405 non-GET)
+- modified: RUNBOOK-MVP.md (section 6 "Uptime monitoring" documenting /api/health as UptimeRobot/BetterUptime watch URL)
+
 ### T110 P2 ✅ 2026-06-04 -- Consumer pre-contractual info + withdrawal at checkout
 - new: src/features/billing/CheckoutModal.tsx (pre-contractual summary table, withdrawal notice, express-consent checkbox, links to /protectia-consumatorului)
 - modified: src/features/billing/billingLogic.ts (preContractualRows pure function + PreContractualRow interface)

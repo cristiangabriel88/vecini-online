@@ -145,6 +145,27 @@ These gates already exist and are confirmed:
 5. Open the resident link, set a password, finish onboarding; confirm the resident
    auth user + membership exist.
 
+## 6. Uptime monitoring
+
+The `/api/health` endpoint is the canonical watch URL for an uptime service
+(UptimeRobot, BetterUptime, or any monitor that expects HTTP 200).
+
+- **URL:** `https://<your-netlify-site>/.netlify/functions/health`
+- **Method:** GET — no authentication required.
+- **Response:** HTTP 200, `Content-Type: application/json`,
+  body `{"status":"ok","stage":"prod"}` (stage matches `VITE_APP_STAGE`).
+- **Rate limit:** 120 requests per 60 s per IP (burst protection only).
+- **Expected status codes:** `200` = healthy, `405` = wrong method (monitor
+  misconfiguration), `429` = rate-limited (reduce check frequency).
+
+Recommended monitor settings:
+- Check interval: 60 s (default on free plans) -- well within the rate limit.
+- Alert on: any non-200 response or timeout > 10 s.
+- Do **not** POST to this endpoint -- monitors must use GET.
+
+The platform site (`hub.vecini.online`) runs the same Netlify function, so
+point a second monitor there with the same URL pattern.
+
 ## Status of the spine (run with `make mvp`)
 
 - **T168** — this env + Resend + runbook setup. (config/docs)
