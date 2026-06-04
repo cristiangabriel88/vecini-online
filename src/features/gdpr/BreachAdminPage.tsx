@@ -22,6 +22,9 @@ import { EmptyState } from '@/shared/components/EmptyState';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useBreachStore } from '@/shared/store/breachStore';
 import { recordAudit } from '@/shared/store/auditStore';
+import { useApartmentsStore } from '@/features/admin/apartmentsStore';
+import { isSupabaseConfigured } from '@/shared/lib/supabase';
+import { emitBreachResidentNotice } from '@/features/notifications/notificationFanout';
 import { formatDateTime } from '@/shared/lib/format';
 import { DEMO_ASOCIATIE, DEMO_CURRENT_USER_NAME } from '@/shared/demo/demoData';
 import type { Lang } from '@/features/legal/legalContent';
@@ -206,6 +209,43 @@ export default function BreachAdminPage() {
       before: b.status,
       after: next,
     });
+    if (next === 'inchis') {
+      recordAudit({
+        action: 'breach.closed',
+        entity: 'breach',
+        entity_label: b.title,
+        before: b.status,
+        after: 'inchis',
+      });
+    }
+  };
+
+  const onNotifyAuthority = (b: BreachRecord) => {
+    notifyAuthority(b.id);
+    recordAudit({
+      action: 'breach.authority_notified',
+      entity: 'breach',
+      entity_label: b.title,
+      before: null,
+      after: new Date().toISOString(),
+    });
+  };
+
+  const onNotifySubjects = (b: BreachRecord) => {
+    if (isSupabaseConfigured) {
+      const apartments = useApartmentsStore.getState().forAsociatie(asociatieId);
+      const selfId = profile?.id ?? '';
+      emitBreachResidentNotice(b, apartments, selfId);
+    }
+    notifySubjects(b.id);
+    recordAudit({
+      action: 'breach.residents_notified',
+      entity: 'breach',
+      entity_label: b.title,
+      before: null,
+      after: new Date().toISOString(),
+    });
+    toast.success(t('breach.subjectsNotified'));
   };
 
   const downloadAuthority = (b: BreachRecord) => {
@@ -415,12 +455,12 @@ export default function BreachAdminPage() {
                       </Button>
                     )}
                     {requiresAuthorityNotification(b.risk) && !b.authority_notified_at && (
-                      <Button onClick={() => notifyAuthority(b.id)}>
+                      <Button onClick={() => onNotifyAuthority(b)}>
                         <Check size={15} /> {t('breach.markAuthority')}
                       </Button>
                     )}
                     {requiresSubjectNotification(b.risk) && !b.subjects_notified_at && (
-                      <Button onClick={() => notifySubjects(b.id)}>
+                      <Button onClick={() => onNotifySubjects(b)}>
                         <Check size={15} /> {t('breach.markSubjects')}
                       </Button>
                     )}

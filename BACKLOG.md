@@ -142,9 +142,11 @@ Done: Added `aga.convoked` + `aga.voting_open` to `NotificationKind`, two builde
 
 Done: Created migration `supabase/migrations/20260604000001_photos_bucket.sql` adding the `photos` Storage bucket (private, `<asociatie_id>/<user_id>/<feature>/...` key convention) with member-read, member-write-own, and member-delete-own RLS policies. Added `extractPhotoPaths(rows)` pure helper to `gdprLogic.ts`. Extended `gdpr-erasure.ts` with Phase 0 (collect photo_paths from pets/bikes/lending_items/marketplace_listings/visitor_reports before any mutation), a `visitor_reports.photo_path = null` update in Phase 1 (image is personal data even on retained rows), and Phase 2.5 (best-effort `db.storage.from('photos').remove(photoPaths)` after row deletions; errors suppressed so a missing object never blocks erasure). New `tests/unit/gdprStorageErasure.test.ts` with 6 assertions. 262 files / 2461 tests / lint + typecheck + build + build:pi + build:demo all green.
 
-### ⬜ T76 — [P2] Live activation: deliver the breach resident notice + record breach events in the audit stream
+### ✅ T76 — [P2] Live activation: deliver the breach resident notice + record breach events in the audit stream
 
 T22 generates the art. 34 resident notice as a downloadable text and logs the breach append-only, but on a high-risk breach the notice should actually reach the affected residents. When the notification fan-out lands (email T14), dispatch the art. 34 notice through it as an **essential** security communication (bypassing consent like F03), targeted to the affected residents, and record each breach lifecycle event (recorded / authority-notified / residents-notified / closed) into the unified audit stream (T09) so the breach trail is part of one tamper-evident log. Behind `isSupabaseConfigured`, demo keeps the offline download. Prereq: T22, T14; coordinates with T09.
+
+Done: Added `breach.authority_notified`, `breach.residents_notified`, `breach.closed` to `AUDIT_ACTIONS`. Added `'breach.resident_notice'` notification kind with builder + `emitBreachResidentNotice` fanout. Updated `deriveConsentKind` to mark breach notices as essential. Wired `onNotifyAuthority` + `onNotifySubjects` + `onAdvance` handlers in `BreachAdminPage` with audit entries and live fan-out. 263 files / 2475 tests / all green.
 
 ### ⬜ T58 — [P2] Live activation: Telegram webhook deploy + env (`/start CODE`)
 

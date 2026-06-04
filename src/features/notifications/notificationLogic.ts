@@ -18,6 +18,7 @@ export type NotificationKind =
   | 'discussion.reply'
   | 'aga.convoked'
   | 'aga.voting_open'
+  | 'breach.resident_notice'
   | 'generic';
 
 export type NotificationPriority = 'low' | 'normal' | 'urgent';
@@ -189,6 +190,32 @@ export function buildDiscussionReplyNotification(opts: {
       data: {
         threadTitle: opts.threadTitle,
         name: opts.replyAuthorName,
+      },
+    },
+    opts.now,
+  );
+}
+
+/** Build a `breach.resident_notice` urgent notification for an affected resident. */
+export function buildBreachResidentNoticeNotification(opts: {
+  recipientUserId: string;
+  asociatieId: string;
+  breachId: string;
+  breachTitle: string;
+  now?: number;
+}): AppNotification {
+  return createNotification(
+    {
+      userId: opts.recipientUserId,
+      asociatieId: opts.asociatieId,
+      kind: 'breach.resident_notice',
+      title: '',
+      body: '',
+      link: '/app/datele-mele',
+      priority: 'urgent',
+      data: {
+        breachId: opts.breachId,
+        title: opts.breachTitle,
       },
     },
     opts.now,

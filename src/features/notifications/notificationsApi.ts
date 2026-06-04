@@ -65,7 +65,7 @@ export function notifToRow(n: AppNotification): NotifRow {
 }
 
 function deriveConsentKind(kind: NotificationKind): 'essential' | 'community' {
-  return kind === 'membership.joined' ? 'essential' : 'community';
+  return kind === 'membership.joined' || kind === 'breach.resident_notice' ? 'essential' : 'community';
 }
 
 // ── Public API ───────────────────────────────────────────────────────────────

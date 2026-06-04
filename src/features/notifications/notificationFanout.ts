@@ -1,9 +1,11 @@
 import type { Ticket, TicketStatus, DiscussionThread, AgaMeeting, Apartment } from '@/shared/types/domain';
+import type { BreachRecord } from '@/features/gdpr/breachLogic';
 import {
   buildTicketStatusChangedNotification,
   buildDiscussionReplyNotification,
   buildAgaConvokedNotification,
   buildAgaVotingOpenNotification,
+  buildBreachResidentNoticeNotification,
 } from './notificationLogic';
 import { persistAndFanOut } from './notificationsApi';
 import { useNotificationStore } from '@/shared/store/notificationStore';
@@ -89,6 +91,33 @@ export function emitAgaVotingOpen(
       asociatieId: meeting.asociatie_id,
       meetingId: meeting.id,
       meetingTitle: meeting.title,
+      now,
+    });
+    useNotificationStore.getState().emit(n);
+    persistAndFanOut(n);
+  }
+}
+
+/**
+ * Emit a `breach.resident_notice` to all claimed apartment holders (art. 34 GDPR).
+ * Essential security communication: bypasses email consent in the fan-out layer.
+ * Store-first; best-effort email fan-out via persistAndFanOut in live mode.
+ * Skips when no claimed holders are found (demo or unclaimed apartments).
+ */
+export function emitBreachResidentNotice(
+  breach: BreachRecord,
+  apartments: Apartment[],
+  selfUserId: string,
+  now = Date.now(),
+): void {
+  const recipients = claimedHolders(apartments, selfUserId);
+  if (recipients.length === 0) return;
+  for (const recipientUserId of recipients) {
+    const n = buildBreachResidentNoticeNotification({
+      recipientUserId,
+      asociatieId: breach.asociatie_id,
+      breachId: breach.id,
+      breachTitle: breach.title,
       now,
     });
     useNotificationStore.getState().emit(n);

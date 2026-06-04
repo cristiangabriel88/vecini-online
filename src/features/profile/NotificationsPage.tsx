@@ -61,6 +61,15 @@ function NotifRow({ n, onRead }: { n: AppNotification; onRead: (id: string) => v
   } else if (n.kind === 'discussion.reply') {
     title = t('notifications.discussionReply', { title: n.data.threadTitle || '' });
     body = t('notifications.discussionReplyBody', { name: n.data.name || '' });
+  } else if (n.kind === 'aga.convoked') {
+    title = t('notifications.agaConvoked', { title: n.data.title || '' });
+    body = t('notifications.agaConvokedBody', { date: n.data.date || '', location: n.data.location || '' });
+  } else if (n.kind === 'aga.voting_open') {
+    title = t('notifications.agaVotingOpen', { title: n.data.title || '' });
+    body = t('notifications.agaVotingOpenBody');
+  } else if (n.kind === 'breach.resident_notice') {
+    title = t('notifications.breachResidentNotice', { title: n.data.title || '' });
+    body = t('notifications.breachResidentNoticeBody');
   } else {
     title = n.title;
     body = n.body;
