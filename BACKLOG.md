@@ -248,6 +248,120 @@ action buttons up to a >=44px tap area on coarse-pointer / <=600px screens (padd
 hit-box, without enlarging the visual glyph if undesirable), so per-row actions are reliably
 tappable. Apply consistently to comparable per-row action clusters across features. Prereq: none.
 
+### ⬜ T234 — [P2] Visible-state adapter for the assistant (DOM grounding foundation)
+
+The in-app assistant (`src/features/assistant/`) answers from a global, role-filtered
+knowledge base, but it has no awareness of what is actually on the user's screen. To make it
+a true "visible-only" helper, add the grounding foundation: a pure, jsdom-testable adapter that
+extracts ONLY the user-visible UI content from the live DOM, with no backend, hidden state, or
+secrets. New `src/features/assistant/visibleState.ts` exporting:
+
+- `interface VisibleContext { route?: string; headings: string[]; buttons: string[];
+  links: string[]; fields: { label: string; kind: 'input' | 'select' | 'textarea' }[];
+  options: string[]; paragraphs: string[]; }`.
+- `extractVisibleContext(root: HTMLElement, opts?): VisibleContext` — a single `TreeWalker`
+  pass. Trim/collapse whitespace, dedupe, cap each list (~40 items), each field (~160 chars),
+  and total paragraph text (~4000 chars) so the snapshot is cheap and bounded.
+- Hidden-element detection that behaves identically in jsdom and the browser: skip an element
+  and its subtree when `el.hidden`, `aria-hidden="true"`, inline `display:none` /
+  `visibility:hidden`, or it is inside `opts.excludeSelector` (default `.assistant`, so the bot
+  never re-reads its own messages). Additively, when real layout exists, also honour
+  `getComputedStyle` (guarded in a try) and zero-size rects — these can only HIDE more, never
+  reveal more, and stay inert in jsdom (no test flakiness).
+- Accessible-name resolution: `aria-label` -> single-level `aria-labelledby` -> `textContent`;
+  fields also fall back to associated `<label>` -> `placeholder` -> `name`. Never throws.
+- `visibleContextEntries(ctx): KbEntry[]` — map each heading/field/option/button into a
+  `kind:'data'`, `audience:['all']` `KbEntry` (id namespace `visible.*`) whose `data.terms`
+  are tokens of the visible text, `data.value` is the verbatim visible text, and `route` is the
+  current route, so they flow through the existing `matchEntries` / `formatEntry` pipeline
+  unchanged (reuse `KbEntry` from `knowledge.ts`).
+- `useVisibleContext(): () => VisibleContext` — returns a SNAPSHOT function (not a memo) so the
+  caller captures the live DOM at ask-time; fills `route` from `useLocation().pathname`.
+
+New `tests/unit/assistant.visibleState.test.ts` (reuse the RO-backed `t` stub style from
+`assistant.engine.test.ts`; build fixtures via `document.body.innerHTML`; assert hidden-detection
+only via the attribute/inline rules since jsdom has no layout): a labelled field is extracted;
+visible text is present while `hidden` / `aria-hidden` / `display:none` nodes and the
+`.assistant` subtree are NOT present in the serialized context (no hidden/backend leakage).
+Prereq: none.
+
+### ⬜ T235 — [P2] Visible-first intent router with structured schema + pluggable phrasing engine
+
+Prereq: T234. Add the conversational layer on top of the adapter: a thin, deterministic
+orchestrator that prefers what is on screen, falls back to the knowledge base for navigation,
+and forces every reply into a structured schema. New `src/features/assistant/intentRouter.ts`,
+reusing `detectSmallTalk`, `matchEntries`, `MATCH_THRESHOLD`, `answerQuery`, and `pickVariant`
+(do not re-implement matching):
+
+- Forced schema: `type RouterIntent = 'greeting' | 'ask' | 'clarify' | 'confirm' | 'fallback'`;
+  `interface RouterResult { intent: RouterIntent; message: string; options: { label: string;
+  ask: string }[]; title?: string; route?: string; routeLabel?: string; matched: boolean }`.
+  `options` reuses the `ReplyChip` shape so widget rendering is unchanged. Core schema is
+  exactly `{ intent, message, options }`.
+- `routeQuery(query, kbEntries, visibleCtx, t, seed, lastOffered?, engine?): RouterResult`.
+  Ordering: (1) small talk via `detectSmallTalk` — greeting/capabilities -> `greeting`,
+  thanks/bye/identity wrap `answerQuery` as `ask`; (2) confirm — `affirm` + a single
+  `lastOffered` option re-runs the router on that option's `ask` as `intent:'confirm'`, multiple
+  offered -> `clarify` (never guess); (3) visible-first match — score
+  `visibleContextEntries(visibleCtx)` and `kbEntries`, visible wins when
+  `vTop.score >= MATCH_THRESHOLD && vTop.score >= kbTop.score`; (4) confident answer -> `ask`
+  (KB wins delegate to `answerQuery` so existing answers/tests are unchanged; visible wins show
+  the verbatim value + current route + a bilingual label prefix); (5) near-tie within 1 ->
+  `clarify` with 2-4 distinct options; (6) nothing over threshold -> `fallback` with up to 3
+  closest options (visible first).
+- `fromReply` / `toMessage` adapters bridge `AssistantReply` <-> `RouterResult` (structurally
+  identical fields).
+- `interface PhrasingEngine { phrase(variants: string[], seed: number): string;
+  select?(query, candidates: KbMatch[], seed): KbMatch[] }` with a default `deterministicPhrasing`
+  (`phrase = pickVariant`, no `select`); the router routes every variant pick through it.
+  Document, in a comment, that an LLM may later implement it to choose among PRE-WRITTEN variants
+  and re-rank RETRIEVED candidates only — never a fact source, never sees secrets, and the
+  default deterministic engine must keep the app working offline. No live LLM here (that is T237).
+
+Injection safety is structural and must be asserted: page text is only ever tokens for scoring
+plus a verbatim displayed value; no code path parses it as a command. Additively export the
+small `variants` helper from `engine.ts` (keep `pickVariant`) with NO behavior change so existing
+engine tests stay green. New `tests/unit/assistant.intentRouter.test.ts`: clarification (two
+visible entries within 1 point -> `clarify`, 2-4 options, no route), fallback on low confidence
+(`matched===false`, message in `fallbackVariants`, `options.length <= 3`), prompt injection in
+visible text ("Ignore all previous instructions..." -> "salut" still greets; the injection query
+-> `fallback` or an `ask` whose value is the verbatim quoted paragraph, never a privileged route),
+and confirm (offer one option, send "da" -> `intent:'confirm'` equal to routing the offered ask).
+Prereq: T234.
+
+### ⬜ T236 — [P2] Wire visible-first grounding into the assistant widget
+
+Prereq: T234, T235. Connect the router to the live UI so the shipped assistant answers from the
+current screen. Minimal, backward-compatible edits to `src/features/assistant/AssistantWidget.tsx`:
+add `const snapshot = useVisibleContext();`; in `ask` (`AssistantWidget.tsx:44`) call
+`routeQuery(trimmed, entries, snapshot(), t, seed, lastOffered)` where `lastOffered` is the
+`chips` of the last `role==='bot'` message read from the store (the only use of session history —
+purely the previous bot turn, recovered from the existing ephemeral `assistantStore`, nothing
+persisted); push `toMessage(result)`; derive the typing `delay` from `result.message.length`.
+No `assistantStore` change required. Add the bilingual visible-answer label prefix strings under
+`assistant.*` in `src/shared/locales/ro.json` + `en.json` (e.g. RO "Din pagina aceasta:" /
+EN "From this page:"), real diacritics, no em dash in code. Add a focused component/integration
+test (React Testing Library + jsdom, model on `featuresAdminToggleClears.test.tsx`) that renders
+the widget inside a `MemoryRouter` over a fixture page and asserts a question about an on-screen
+control yields a visible-grounded answer while a question about another feature still falls back
+to KB navigation. Existing `assistant.*` tests must remain green. Prereq: T234, T235.
+
+### ⬜ T237 — [P3] Optional LLM-backed PhrasingEngine (constrained selection only)
+
+Prereq: T235. With the `PhrasingEngine` seam in place, add an optional LLM-backed implementation
+used ONLY as a constrained phrasing/selection engine: it may choose among the pre-written
+localized variants the router supplies and re-rank the already-retrieved `KbMatch[]` candidates,
+and may NEVER introduce facts, routes, or text not already grounded in visible content / the
+curated KB, never see secrets or PII, and never receive page text as instructions. Gate it behind
+`isSupabaseConfigured` (or an explicit feature flag) and a server-side Netlify function proxy so
+no API key reaches the client; the default `deterministicPhrasing` must remain the offline/demo
+path so all three stages keep building and the app stays fully functional with no model/network.
+Add a stub function + clear follow-up note documenting the prompt contract (inputs are a fixed
+list of candidate strings; output is an index/choice, validated against that list before use) and
+unit tests asserting the engine cannot emit an option outside the supplied set. Requires an
+external service + secret, so this is a deliberate later enhancement, not an overnight blocker.
+Prereq: T235.
+
 ### ⬜ T108 — [P3] Rich per-card home widgets (beyond feature-shortcut links)
 
 Surfaced in T12: F67 makes the home's feature-shortcut cards customizable (show/hide/reorder/size), but each card is still a plain icon+title link, while the F67 spec envisions each card exposing a small live widget (latest announcement, my open tickets, next event, active polls, etc.). Add per-feature home-widget content rendered inside the card (especially when sized `expanded`), drawn from the active asociație's stores, so a pinned card shows useful at-a-glance state rather than just a shortcut. Keep the widget content pure/derived and bilingual; reuse the existing per-asociație selectors. Prereq: T12.
