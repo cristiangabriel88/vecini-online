@@ -182,9 +182,11 @@ Done: Added `impersonation.started` + `impersonation.ended` to `AUDIT_ACTIONS` a
 
 A back-and-forth messenger between an asociație's admins and the platform superadmins, modeled on F04 (`adminchat`: `private_threads`/`private_messages`, thread + embedded messages, per-message read receipts, open/resolved status): a per-asociație support thread where admins raise issues to the superadmin and the superadmin replies. The admin side lives in the main app (a "Contact platformă" surface), the superadmin side is an inbox across all asociații in the platform app. Bilingual on the admin side, demo + live, scoped so only that asociație's admins and the superadmins see a thread. Prereq: platform shell.
 
-### ⬜ T19 — [P2] SaaS billing & plans
+### ✅ T19 — [P2] SaaS billing & plans
 
 Subscription tiers per asociație with per-tier feature/usage limits enforced server-side, a billing abstraction (Stripe-ready, mocked in demo mode), invoices/receipts, billing admin surface. Dunning + grace handling. Note: this is platform-subscription billing (vecini.online charging the asociație), NOT asociatie-internal resident accounting, which is out of scope (see `DECISIONS.md`).
+
+Done: Added `BillingPlan`, `Subscription`, `Invoice`, `SubscriptionStatus`, `BillingInterval` to `domain.ts`. Created `billingLogic.ts` (3 canonical plans, 12 pure helpers), `billingStore.ts` (Zustand persist, demo seed: Standard/active + 2 paid invoices, upgradePlan/setStatus actions), `billingApi.ts` (hydrateBilling parallel query), `BillingPage.tsx` at `/app/admin/abonament` (dunning banners, plan grid with upgrade CTAs, usage meters, invoice table), `platformSubscriptionsStore.ts` (3-demo-asociatie seed, markPaid action), `PlatformSubscriptionsPage.tsx` at `/consola/abonamente` (summary bar, search+status filter, table with markPaid). Added `subscriptions` section to PlatformLayout. Created `netlify/functions/billing-checkout.ts` (Stripe stub POST handler). Created migration `20260604000006_billing.sql` (billing_plans + subscriptions + invoices, RLS). 32 unit tests. 276 files / 2599 tests / lint + typecheck + build + build:pi + build:demo all green.
 
 ### ⬜ T110 — [P2] Present consumer pre-contractual info + withdrawal at the point of sale (billing)
 

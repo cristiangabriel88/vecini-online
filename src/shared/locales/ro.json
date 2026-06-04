@@ -2855,6 +2855,10 @@
       "messenger": {
         "title": "Mesaje cu administratorii",
         "desc": "Fir de asistență bidirecțional între administratorii asociațiilor și operatorii platformei."
+      },
+      "subscriptions": {
+        "title": "Abonamente",
+        "desc": "Starea abonamentului fiecărei asociații, planul activ și facturile emise."
       }
     },
     "asociatii": {
@@ -3066,6 +3070,24 @@
         "failed": "Pornirea sesiunii a eșuat. Încearcă din nou."
       }
     },
+    "subscriptions": {
+      "title": "Abonamente",
+      "subtitle": "Starea abonamentului fiecărei asociații: planul activ, statutul și facturile.",
+      "activeCount": "{{count}} active",
+      "trialingCount": "{{count}} probă",
+      "pastDueCount": "{{count}} restante",
+      "unpaidCount": "{{count}} blocate",
+      "canceledCount": "{{count}} anulate",
+      "searchPlaceholder": "Caută după asociație sau oraș...",
+      "filterStatus": "Filtrează după statut",
+      "allStatuses": "Toate statutele",
+      "empty": "Niciun abonament găsit.",
+      "colAsociatie": "Asociație",
+      "colPlan": "Plan",
+      "colStatus": "Statut",
+      "colPeriod": "Perioadă",
+      "markPaid": "Marchează plătit"
+    },
     "messenger": {
       "title": "Mesaje cu administratorii",
       "subtitle": "Firele de asistență deschise de administratorii asociațiilor. Răspunde direct din această pagină.",
@@ -3104,5 +3126,43 @@
     "messageCount": "{{count}} mesaje",
     "awaitingReply": "răspuns primit",
     "empty": "Nicio cerere de asistență. Apasă butonul de mai sus pentru a contacta platforma."
+  },
+  "billing": {
+    "title": "Abonament",
+    "subtitle": "Planul activ, utilizarea resurselor și istoricul facturilor.",
+    "currentPlan": "Plan curent",
+    "plansTitle": "Planuri disponibile",
+    "invoicesTitle": "Facturi",
+    "noInvoices": "Nicio factură",
+    "noInvoicesBody": "Facturile vor apărea aici după prima perioadă de facturare.",
+    "unlimited": "nelimitat",
+    "limitApartments": "{{n}} apartamente",
+    "unlimitedApartments": "Apartamente nelimitate",
+    "limitMembers": "{{n}} membri",
+    "unlimitedMembers": "Membri nelimitați",
+    "limitAdmins": "{{n}} administratori",
+    "unlimitedAdmins": "Administratori nelimitați",
+    "upgradeTo": "Treci la {{plan}}",
+    "usageApartments": "Apartamente",
+    "usageMembers": "Membri",
+    "retry": "Reîncearcă",
+    "pastDueTitle": "Plată întârziată",
+    "pastDueBody": "Ultima factură nu a fost achitată. Accesul poate fi restricționat în curând. Te rugăm să achitezi factura.",
+    "unpaidTitle": "Cont blocat",
+    "unpaidBody": "Perioada de grație a expirat. Unele funcționalități sunt limitate. Achită factura pentru a reactiva contul.",
+    "paid": "Achitată",
+    "unpaidInv": "Neachitată",
+    "periodLabel": "{{from}} - {{to}}",
+    "invPeriod": "Perioadă",
+    "invIssued": "Emisă",
+    "invAmount": "Sumă",
+    "invStatus": "Statut",
+    "status": {
+      "trialing": "Perioadă de probă",
+      "active": "Activ",
+      "past_due": "Plată restantă",
+      "unpaid": "Blocat",
+      "canceled": "Anulat"
+    }
   }
 }

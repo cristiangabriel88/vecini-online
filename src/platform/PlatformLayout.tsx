@@ -2,6 +2,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Building2,
+  CreditCard,
   Globe,
   LayoutDashboard,
   LogOut,
@@ -32,6 +33,7 @@ const SECTIONS = [
   { key: 'usage', path: '/consola/utilizare', icon: Activity, ready: true },
   { key: 'impersonation', path: '/consola/impersonare', icon: UserCog, ready: true },
   { key: 'messenger', path: '/consola/mesaje', icon: MessagesSquare, ready: true },
+  { key: 'subscriptions', path: '/consola/abonamente', icon: CreditCard, ready: true },
 ] as const;
 
 function Header() {

@@ -99,6 +99,7 @@ const MovingPage = lazy(() => import('@/features/moving/MovingPage'));
 const VenuePage = lazy(() => import('@/features/venue/VenuePage'));
 const AdminChatPage = lazy(() => import('@/features/adminchat/AdminChatPage'));
 const SupportPage = lazy(() => import('@/features/support/SupportPage'));
+const BillingPage = lazy(() => import('@/features/billing/BillingPage'));
 const WelcomeKitPage = lazy(() => import('@/features/welcomekit/WelcomeKitPage'));
 const KidsPage = lazy(() => import('@/features/kids/KidsPage'));
 const ProjectsPage = lazy(() => import('@/features/projects/ProjectsPage'));
@@ -276,6 +277,7 @@ export const router = createBrowserRouter([
           { path: 'admin/incidente-date', element: <S><BreachAdminPage /></S> },
           { path: 'admin/jurnal', element: <S><AuditLogPage /></S> },
           { path: 'admin/contact-platforma', element: <S><SupportPage /></S> },
+          { path: 'admin/abonament', element: <S><BillingPage /></S> },
         ],
       },
       {

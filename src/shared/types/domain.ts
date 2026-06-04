@@ -1260,3 +1260,54 @@ export interface PetMarker {
   species: string;
   user_id: string;
 }
+
+// ---------------------------------------------------------------------------
+// T19 -- SaaS billing & plans
+// ---------------------------------------------------------------------------
+
+export type SubscriptionStatus = 'trialing' | 'active' | 'past_due' | 'unpaid' | 'canceled';
+export type BillingInterval = 'month' | 'year';
+
+export interface BillingPlan {
+  id: string;
+  name_ro: string;
+  name_en: string;
+  price_ron: number;
+  billing_interval: BillingInterval;
+  /** null = unlimited */
+  max_apartments: number | null;
+  /** null = unlimited */
+  max_members: number | null;
+  /** null = unlimited */
+  max_admins: number | null;
+  sort_order: number;
+}
+
+export interface Subscription {
+  id: string;
+  asociatie_id: string;
+  plan_id: string;
+  status: SubscriptionStatus;
+  current_period_start: string;
+  current_period_end: string;
+  trial_end_at: string | null;
+  grace_period_end_at: string | null;
+  canceled_at: string | null;
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  created_at: string;
+}
+
+export interface Invoice {
+  id: string;
+  asociatie_id: string;
+  subscription_id: string;
+  plan_id: string;
+  amount_ron: number;
+  issued_at: string;
+  due_at: string;
+  paid_at: string | null;
+  period_start: string;
+  period_end: string;
+  stripe_invoice_id: string | null;
+}

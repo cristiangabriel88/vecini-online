@@ -5,18 +5,34 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-04
-- last_task: T99 [P2] Admin <-> superadmin support messenger
+- last_task: T19 [P2] SaaS billing & plans
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 275 files / 2567 tests
+- counts: 276 files / 2599 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T19 [P2] SaaS billing & plans
+- next: T110 [P2] Consumer pre-contractual info at checkout (prereq T19 now met)
 - features: 67/67 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01-F24 + F28-F32 + F33-F55 + F57-F65 (60 features) + auth/invites/onboarding; remaining 7 features offline-first, live-activation queued (F25-F27 bookings already live-wired T208, F56 emergency contacts live-wired earlier). F28/F36/F66 cross-feature glue wired (T104). Platform console: T20 umbrella complete (T93/T94/T95/T96/T97/T98/T99/T119/T120/T121 all done).
 - e2e: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F18/F19/F20/F21/F22/F23/F24/F25/F26/F27/F28/F29/F30/F31/F32/F33/F34/F35/F36/F37/F38/F39/F40/F41/F44/F47/F48/F50/F51/F52/F53/F57/F62/F63/F65/F66/F67 happy paths green on chromium + mobile (55 features / 82%). Platform shell + provisioning E2E (T119/T121) done. Full smoke harness reworked (T211 done). E2E closure continues T224+.
 - blockers: none.
-- completion_estimate: 82% of original product vision delivered end-to-end (updated 2026-06-04). Detail: all 67 features demo-complete and offline-functional; 60/67 live-wired (90%); security posture ~93% (T212 done, remaining: T141 JWT hook); GDPR surface ~91% (T72/T75/T76/T78 done, T95 cross-tenant audit viewer done); Telegram bot handlers + live /start resolver complete (T15 + T58 done); SaaS billing 0% (T19 on hold); platform console 100% of planned features done (T20 umbrella complete: shell + provisioning + E2E + audit viewer + error feed + usage/health + impersonation + messenger); E2E coverage 82% (55/67 features).
+- completion_estimate: 85% of original product vision delivered end-to-end (updated 2026-06-04). Detail: all 67 features demo-complete and offline-functional; 60/67 live-wired (90%); security posture ~93% (T212 done, remaining: T141 JWT hook); GDPR surface ~91% (T72/T75/T76/T78 done, T95 cross-tenant audit viewer done); Telegram bot handlers + live /start resolver complete (T15 + T58 done); SaaS billing foundation complete (T19 done: 3-tier plans, subscription + invoice DB, admin billing page, platform subscriptions page, Stripe-stub checkout function); platform console 100% of planned features done (T20 umbrella + subscriptions page); E2E coverage 82% (55/67 features).
 
 ---
+
+### T19 P2 ✅ 2026-06-04 -- SaaS billing & plans
+- modified: src/shared/types/domain.ts (BillingPlan, Subscription, Invoice, SubscriptionStatus, BillingInterval)
+- new: src/features/billing/billingLogic.ts (BILLING_PLANS, 12 pure helpers)
+- new: src/features/billing/billingStore.ts (Zustand persist, demo seed, upgradePlan/setStatus)
+- new: src/features/billing/billingApi.ts (hydrateBilling parallel query)
+- new: src/features/billing/BillingPage.tsx (/app/admin/abonament: dunning banners, plan cards, usage meters, invoice table)
+- new: src/platform/platformSubscriptionsStore.ts (3-asociatie demo, markPaid, useSubscriptionSummary)
+- new: src/platform/PlatformSubscriptionsPage.tsx (/consola/abonamente: summary bar, filter, table with markPaid)
+- modified: src/platform/PlatformLayout.tsx (subscriptions section, CreditCard icon, ready: true)
+- modified: src/platform/platformRouter.tsx (abonamente route + PlatformSubscriptionsPage lazy import)
+- modified: src/app/router.tsx (BillingPage lazy import + admin/abonament route under RequireAdmin)
+- new: netlify/functions/billing-checkout.ts (POST: verify admin role, upsert subscription, insert invoice via service-role)
+- new: supabase/migrations/20260604000006_billing.sql (billing_plans + subscriptions + invoices, RLS)
+- modified: src/shared/locales/ro.json + en.json (billing.* + platform.sections.subscriptions.* + platform.subscriptions.*)
+- new: tests/unit/billingLogic.test.ts (32 assertions)
 
 ### T99 P2 ✅ 2026-06-04 -- Admin <-> superadmin support messenger
 - new: src/shared/types/domain.ts (SupportSender + SupportMessage + SupportThread types)

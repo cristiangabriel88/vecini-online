@@ -2855,6 +2855,10 @@
       "messenger": {
         "title": "Admin messenger",
         "desc": "A two-way support thread between association admins and platform operators."
+      },
+      "subscriptions": {
+        "title": "Subscriptions",
+        "desc": "Each association's subscription status, active plan, and issued invoices."
       }
     },
     "asociatii": {
@@ -3066,6 +3070,24 @@
         "failed": "Failed to start session. Try again."
       }
     },
+    "subscriptions": {
+      "title": "Subscriptions",
+      "subtitle": "Each association's subscription: active plan, status, and invoices.",
+      "activeCount": "{{count}} active",
+      "trialingCount": "{{count}} trialing",
+      "pastDueCount": "{{count}} past due",
+      "unpaidCount": "{{count}} blocked",
+      "canceledCount": "{{count}} canceled",
+      "searchPlaceholder": "Search by association or city...",
+      "filterStatus": "Filter by status",
+      "allStatuses": "All statuses",
+      "empty": "No subscriptions found.",
+      "colAsociatie": "Association",
+      "colPlan": "Plan",
+      "colStatus": "Status",
+      "colPeriod": "Period",
+      "markPaid": "Mark paid"
+    },
     "messenger": {
       "title": "Admin messenger",
       "subtitle": "Support threads opened by association managers. Reply directly from this page.",
@@ -3104,5 +3126,43 @@
     "messageCount": "{{count}} messages",
     "awaitingReply": "reply received",
     "empty": "No support requests yet. Click the button above to contact the platform."
+  },
+  "billing": {
+    "title": "Subscription",
+    "subtitle": "Active plan, resource usage, and invoice history.",
+    "currentPlan": "Current plan",
+    "plansTitle": "Available plans",
+    "invoicesTitle": "Invoices",
+    "noInvoices": "No invoices",
+    "noInvoicesBody": "Invoices will appear here after the first billing period.",
+    "unlimited": "unlimited",
+    "limitApartments": "{{n}} apartments",
+    "unlimitedApartments": "Unlimited apartments",
+    "limitMembers": "{{n}} members",
+    "unlimitedMembers": "Unlimited members",
+    "limitAdmins": "{{n}} admins",
+    "unlimitedAdmins": "Unlimited admins",
+    "upgradeTo": "Upgrade to {{plan}}",
+    "usageApartments": "Apartments",
+    "usageMembers": "Members",
+    "retry": "Retry",
+    "pastDueTitle": "Payment overdue",
+    "pastDueBody": "The latest invoice has not been paid. Access may be restricted soon. Please settle the outstanding invoice.",
+    "unpaidTitle": "Account blocked",
+    "unpaidBody": "The grace period has expired. Some features are limited. Pay the outstanding invoice to reactivate your account.",
+    "paid": "Paid",
+    "unpaidInv": "Unpaid",
+    "periodLabel": "{{from}} - {{to}}",
+    "invPeriod": "Period",
+    "invIssued": "Issued",
+    "invAmount": "Amount",
+    "invStatus": "Status",
+    "status": {
+      "trialing": "Trial",
+      "active": "Active",
+      "past_due": "Past due",
+      "unpaid": "Blocked",
+      "canceled": "Canceled"
+    }
   }
 }

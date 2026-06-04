@@ -14,6 +14,7 @@ const PlatformErrorsPage = lazy(() => import('./PlatformErrorsPage'));
 const PlatformUsagePage = lazy(() => import('./PlatformUsagePage'));
 const PlatformImpersonatePage = lazy(() => import('./PlatformImpersonatePage'));
 const PlatformMessengerPage = lazy(() => import('./PlatformMessengerPage'));
+const PlatformSubscriptionsPage = lazy(() => import('./PlatformSubscriptionsPage'));
 
 function S({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<RouteFallback />}>{children}</Suspense>;
@@ -37,6 +38,7 @@ export const platformRouter = createBrowserRouter([
       { path: 'utilizare', element: <S><PlatformUsagePage /></S> },
       { path: 'impersonare', element: <S><PlatformImpersonatePage /></S> },
       { path: 'mesaje', element: <S><PlatformMessengerPage /></S> },
+      { path: 'abonamente', element: <S><PlatformSubscriptionsPage /></S> },
     ],
   },
   // Any unknown path returns to the overview rather than a dead end.
