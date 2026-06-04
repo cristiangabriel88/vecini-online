@@ -1,10 +1,51 @@
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import { reportError } from '@/shared/lib/errorReporting';
+import {
+  type AuditEntry,
+  type AuditAction,
+  type AuditEntity,
+  GENESIS_HASH,
+} from '@/features/audit/auditLogic';
 import { type PlatformAsociatieSummary } from './demoPlatform';
 import { usePlatformAsociatiiStore } from './platformAsociatiiStore';
+import { usePlatformAuditStore } from './platformAuditStore';
 
 type RowWithAsoc = { asociatie_id: string };
 type SignInRow = { asociatie_id: string | null; created_at: string };
+
+interface DbAuditRow {
+  id: string;
+  seq: number | null;
+  asociatie_id: string;
+  actor_user_id: string;
+  actor_name: string | null;
+  action: string | null;
+  entity: string | null;
+  entity_label: string | null;
+  before_value: string | null;
+  after_value: string | null;
+  created_at: string;
+  prev_hash: string | null;
+  hash: string | null;
+}
+
+function rowToAuditEntry(row: DbAuditRow): AuditEntry {
+  return {
+    id: row.id,
+    seq: row.seq ?? 0,
+    asociatie_id: row.asociatie_id,
+    actor_user_id: row.actor_user_id,
+    actor_name: row.actor_name ?? '',
+    action: (row.action ?? 'feature.enabled') as AuditAction,
+    entity: (row.entity ?? 'feature') as AuditEntity,
+    entity_label: row.entity_label ?? '',
+    before: row.before_value,
+    after: row.after_value,
+    at: row.created_at,
+    prev_hash: row.prev_hash ?? GENESIS_HASH,
+    hash: row.hash ?? GENESIS_HASH,
+  };
+}
 
 function groupCount(rows: RowWithAsoc[]): Record<string, number> {
   return rows.reduce<Record<string, number>>((acc, r) => {
@@ -92,6 +133,45 @@ export async function hydrateAsociatiiList(): Promise<void> {
     usePlatformAsociatiiStore.getState().setFetchError('load');
     reportError(err instanceof Error ? err : new Error(String(err)), {
       source: 'platformApi.hydrateAsociatiiList',
+    });
+  }
+}
+
+/**
+ * Load the full cross-tenant audit log (T95) using the super_admin RLS policy
+ * that grants reads on audit_log without an asociatie_id restriction. Rows are
+ * grouped by asociatie_id and stored in the platform audit store for the viewer.
+ * No-op when Supabase is not configured (demo/offline mode).
+ */
+export async function hydrateAllAuditLogs(): Promise<void> {
+  if (!isSupabaseConfigured) return;
+
+  usePlatformAuditStore.getState().setFetchError(null);
+
+  try {
+    const { data, error } = await supabase
+      .from('audit_log')
+      .select('*')
+      .order('seq', { ascending: true });
+
+    if (error) {
+      usePlatformAuditStore.getState().setFetchError('load');
+      reportError(new Error(error.message), { source: 'platformApi.hydrateAllAuditLogs' });
+      return;
+    }
+
+    const chains: Record<string, AuditEntry[]> = {};
+    for (const row of (data as DbAuditRow[])) {
+      const entry = rowToAuditEntry(row);
+      if (!chains[entry.asociatie_id]) chains[entry.asociatie_id] = [];
+      chains[entry.asociatie_id].push(entry);
+    }
+
+    usePlatformAuditStore.getState().setChains(chains);
+  } catch (err) {
+    usePlatformAuditStore.getState().setFetchError('load');
+    reportError(err instanceof Error ? err : new Error(String(err)), {
+      source: 'platformApi.hydrateAllAuditLogs',
     });
   }
 }

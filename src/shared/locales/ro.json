@@ -2963,6 +2963,17 @@
       "enrollTitle": "Autentificare în doi pași obligatorie",
       "enrollBody": "Conturile operatorilor platformei trebuie să aibă autentificarea în doi pași (2FA) activată înainte de a accesa consola. Aceasta protejează platforma chiar dacă parola este compromisă.",
       "enrolledNotice": "2FA este obligatorie pentru operatorii platformei și nu poate fi dezactivată cât timp rolul este deținut."
+    },
+    "audit": {
+      "title": "Jurnal de audit",
+      "subtitle": "Lanțul inviolabil al tuturor asociațiilor, agregat la nivel de platformă. Numai citire.",
+      "filterAsociatie": "Asociație",
+      "allAsociatii": "Toate asociațiile",
+      "chainSummaryOk": "Toate lanțurile sunt integre",
+      "chainSummaryBroken": "Lanț compromis detectat",
+      "loading": "Se încarcă jurnalele...",
+      "fetchError": "Eroare la încărcarea jurnalelor de audit.",
+      "retry": "Reîncearcă"
     }
   }
 }

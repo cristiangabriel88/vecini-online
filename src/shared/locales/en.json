@@ -2963,6 +2963,17 @@
       "enrollTitle": "Two-factor authentication required",
       "enrollBody": "Platform operator accounts must have two-factor authentication (2FA) enabled before accessing the console. This protects the platform even if your password is compromised.",
       "enrolledNotice": "2FA is mandatory for platform operators and cannot be disabled while the role is held."
+    },
+    "audit": {
+      "title": "Audit log",
+      "subtitle": "The tamper-evident chain for all associations, aggregated platform-wide. Read only.",
+      "filterAsociatie": "Association",
+      "allAsociatii": "All associations",
+      "chainSummaryOk": "All chains are intact",
+      "chainSummaryBroken": "Broken chain detected",
+      "loading": "Loading audit logs...",
+      "fetchError": "Error loading audit logs.",
+      "retry": "Retry"
     }
   }
 }

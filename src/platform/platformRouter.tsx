@@ -9,6 +9,7 @@ const PlatformLoginPage = lazy(() => import('./PlatformLoginPage'));
 const PlatformHomePage = lazy(() => import('./PlatformHomePage'));
 const PlatformAsociatiiPage = lazy(() => import('./PlatformAsociatiiPage'));
 const PlatformAddAsociatiePage = lazy(() => import('./PlatformAddAsociatiePage'));
+const PlatformAuditPage = lazy(() => import('./PlatformAuditPage'));
 
 function S({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<RouteFallback />}>{children}</Suspense>;
@@ -27,6 +28,7 @@ export const platformRouter = createBrowserRouter([
       { index: true, element: <S><PlatformHomePage /></S> },
       { path: 'asociatii', element: <S><PlatformAsociatiiPage /></S> },
       { path: 'asociatii/adauga', element: <S><PlatformAddAsociatiePage /></S> },
+      { path: 'audit', element: <S><PlatformAuditPage /></S> },
     ],
   },
   // The remaining console pages (audit, errors, usage, impersonation, messenger)
