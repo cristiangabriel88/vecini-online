@@ -370,7 +370,8 @@ while true; do
     # every WAIT_ON_LIMIT seconds (default 1800 = 30 min) until tokens return. This
     # is a deliberate infinite retry: the loop must survive a depleted budget
     # unattended and resume the instant the quota refills.
-    if printf '%s' "$PASS_OUTPUT" | grep -qiE 'rate limit|usage limit|usage limit reached|reached your (usage )?limit|quota exceeded|too many requests|\b429\b|out of (tokens|credit)|run out of|credit balance|insufficient (credit|quota|tokens|funds)|limit reached|limit will reset|reset(s)? at|5-?hour limit'; then
+    # Layer 1: known rate/quota/limit phrases in Claude's output.
+    if printf '%s' "$PASS_OUTPUT" | grep -qiE 'rate limit|usage limit|usage limit reached|reached your (usage )?limit|quota exceeded|too many requests|\b429\b|out of (tokens|credit)|run out of|credit balance|insufficient (credit|quota|tokens|funds)|limit reached|limit will reset|reset(s)? at|5-?hour limit|claude\.ai/upgrade|temporarily unavailable|service unavailable|overloaded|capacity'; then
         write_both ""
         set_stage "Waiting: token/usage limit hit, sleeping ${WAIT_ON_LIMIT}s then retrying this pass (infinite retry until quota returns)"
         pass=$(( pass - 1 ))
@@ -382,6 +383,18 @@ while true; do
         write_both ""
         write_both "Auth error detected. Run 'claude' to re-authenticate, then re-run this script. Stopping."
         break
+    fi
+    # Layer 2 catch-all: Claude exited non-zero with no commit and no auth error.
+    # This covers token exhaustion that produces no output (e.g. the account has
+    # zero tokens when the script starts), hard API errors, or any other transient
+    # failure. Never count these as stalls -- park and retry every WAIT_ON_LIMIT
+    # seconds so the loop survives an empty-token account from the very first pass.
+    if (( PASS_RC != 0 )) && (( PASS_COMMITTED == 0 )); then
+        write_both ""
+        set_stage "Waiting: Claude exited non-zero (rc=$PASS_RC) with no commit -- possible token or API error. Sleeping ${WAIT_ON_LIMIT}s then retrying this pass."
+        pass=$(( pass - 1 ))
+        sleep "$WAIT_ON_LIMIT"
+        continue
     fi
 
     committed=$PASS_COMMITTED
