@@ -10,6 +10,9 @@ import type {
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import { reportError } from '@/shared/lib/errorReporting';
 import { useAgaStore } from './agaStore';
+import { useApartmentsStore } from '@/features/admin/apartmentsStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { emitAgaConvoked, emitAgaVotingOpen } from '@/features/notifications/notificationFanout';
 
 /* Dual-mode AGA repository (F10, T190). The zustand store is the synchronous
    source of truth the page reads; these functions apply each change there and,
@@ -189,6 +192,16 @@ export function convokeMeeting(
 ): void {
   const store = useAgaStore.getState();
   store.addMeeting(asociatieId, title, scheduledAt, location, online, totalApartments);
+  const newMeeting = store
+    .forAsociatie(asociatieId)
+    .slice()
+    .reverse()
+    .find((m) => m.status === 'convocata' && m.title === title.trim() && m.scheduled_at === scheduledAt);
+  if (newMeeting) {
+    const apts = useApartmentsStore.getState().forAsociatie(asociatieId);
+    const selfId = useAuthStore.getState().profile?.id ?? '';
+    emitAgaConvoked(newMeeting, apts, selfId);
+  }
   if (isSupabaseConfigured) {
     void (async () => {
       try {
@@ -327,6 +340,11 @@ export function advanceStatus(asociatieId: string, meetingId: string): void {
   const store = useAgaStore.getState();
   store.advanceStatus(asociatieId, meetingId);
   const updated = store.forAsociatie(asociatieId).find((m) => m.id === meetingId);
+  if (updated?.status === 'in_desfasurare') {
+    const apts = useApartmentsStore.getState().forAsociatie(asociatieId);
+    const selfId = useAuthStore.getState().profile?.id ?? '';
+    emitAgaVotingOpen(updated, apts, selfId);
+  }
   if (isSupabaseConfigured && updated) {
     void (async () => {
       try {

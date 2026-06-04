@@ -1,7 +1,9 @@
-import type { Ticket, TicketStatus, DiscussionThread } from '@/shared/types/domain';
+import type { Ticket, TicketStatus, DiscussionThread, AgaMeeting, Apartment } from '@/shared/types/domain';
 import {
   buildTicketStatusChangedNotification,
   buildDiscussionReplyNotification,
+  buildAgaConvokedNotification,
+  buildAgaVotingOpenNotification,
 } from './notificationLogic';
 import { persistAndFanOut } from './notificationsApi';
 import { useNotificationStore } from '@/shared/store/notificationStore';
@@ -27,6 +29,71 @@ export function emitTicketStatusChanged(
   });
   useNotificationStore.getState().emit(n);
   persistAndFanOut(n);
+}
+
+/** Collect unique claimed user IDs from apartments, excluding selfUserId and empty strings. */
+function claimedHolders(apartments: Apartment[], selfUserId: string): string[] {
+  return [
+    ...new Set(
+      apartments
+        .flatMap((a) => a.persons.map((p) => p.claimed_user_id ?? ''))
+        .filter((id) => id.length > 0 && id !== selfUserId),
+    ),
+  ];
+}
+
+/**
+ * Emit an `aga.convoked` in-app notification to all claimed apartment holders when
+ * a meeting is convoked. Skips when there are no claimed holders. Store-first;
+ * best-effort email fan-out via persistAndFanOut in live mode.
+ */
+export function emitAgaConvoked(
+  meeting: AgaMeeting,
+  apartments: Apartment[],
+  selfUserId: string,
+  now = Date.now(),
+): void {
+  const recipients = claimedHolders(apartments, selfUserId);
+  if (recipients.length === 0) return;
+  for (const recipientUserId of recipients) {
+    const n = buildAgaConvokedNotification({
+      recipientUserId,
+      asociatieId: meeting.asociatie_id,
+      meetingId: meeting.id,
+      meetingTitle: meeting.title,
+      scheduledAt: meeting.scheduled_at,
+      location: meeting.location,
+      now,
+    });
+    useNotificationStore.getState().emit(n);
+    persistAndFanOut(n);
+  }
+}
+
+/**
+ * Emit an `aga.voting_open` in-app notification to all claimed apartment holders when
+ * a meeting transitions to `in_desfasurare`. Skips when there are no claimed holders.
+ * Store-first; best-effort email fan-out via persistAndFanOut in live mode.
+ */
+export function emitAgaVotingOpen(
+  meeting: AgaMeeting,
+  apartments: Apartment[],
+  selfUserId: string,
+  now = Date.now(),
+): void {
+  const recipients = claimedHolders(apartments, selfUserId);
+  if (recipients.length === 0) return;
+  for (const recipientUserId of recipients) {
+    const n = buildAgaVotingOpenNotification({
+      recipientUserId,
+      asociatieId: meeting.asociatie_id,
+      meetingId: meeting.id,
+      meetingTitle: meeting.title,
+      now,
+    });
+    useNotificationStore.getState().emit(n);
+    persistAndFanOut(n);
+  }
 }
 
 /**

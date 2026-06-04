@@ -1,6 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import type { Ticket, DiscussionThread } from '@/shared/types/domain';
-import { emitTicketStatusChanged, emitDiscussionReply } from '@/features/notifications/notificationFanout';
+import type { Ticket, DiscussionThread, AgaMeeting, Apartment } from '@/shared/types/domain';
+import {
+  emitTicketStatusChanged,
+  emitDiscussionReply,
+  emitAgaConvoked,
+  emitAgaVotingOpen,
+} from '@/features/notifications/notificationFanout';
 import { useNotificationStore } from '@/shared/store/notificationStore';
 
 const BASE_NOW = 1_700_000_000_000;
@@ -128,6 +133,167 @@ describe('emitDiscussionReply', () => {
 
   it('is offline-safe (no Supabase call needed for store emit)', () => {
     expect(() => emitDiscussionReply(makeThread(), 'user-replier', 'Maria', BASE_NOW)).not.toThrow();
+    expect(useNotificationStore.getState().notifications).toHaveLength(1);
+  });
+});
+
+function makeMeeting(overrides: Partial<AgaMeeting> = {}): AgaMeeting {
+  return {
+    id: 'aga-1',
+    asociatie_id: 'asoc-1',
+    title: 'AGA ordinară 2026',
+    scheduled_at: '2026-07-15T18:00',
+    location: 'Sala A',
+    scheduled_online: false,
+    required_quorum_percent: 50,
+    status: 'convocata',
+    total_apartments: 3,
+    represented_apartments: 0,
+    my_rsvp: null,
+    agenda: [],
+    proxies: [],
+    ...overrides,
+  };
+}
+
+function makeApartment(id: string, claimedUserIds: (string | null)[]): Apartment {
+  return {
+    id,
+    asociatie_id: 'asoc-1',
+    scara: 'A',
+    etaj: 1,
+    numar_apartament: id,
+    suprafata_utila: 60,
+    cota_parte_indiviza: 0.04,
+    numar_persoane: claimedUserIds.length,
+    persons: claimedUserIds.map((uid, i) => ({
+      id: `pe-${id}-${i}`,
+      name: `Persoana ${i}`,
+      role: 'proprietar',
+      is_primary: i === 0,
+      claimed_user_id: uid,
+    })),
+    proprietar_principal_name: 'Test',
+    is_active: true,
+    notes: null,
+    created_at: '',
+    updated_at: '',
+  };
+}
+
+describe('emitAgaConvoked', () => {
+  beforeEach(() => {
+    useNotificationStore.setState({ notifications: [] });
+  });
+
+  it('skips when no apartments are provided', () => {
+    emitAgaConvoked(makeMeeting(), [], 'u-admin', BASE_NOW);
+    expect(useNotificationStore.getState().notifications).toHaveLength(0);
+  });
+
+  it('skips when no apartment has a claimed_user_id', () => {
+    const apts = [makeApartment('ap-1', [null]), makeApartment('ap-2', [null])];
+    emitAgaConvoked(makeMeeting(), apts, 'u-admin', BASE_NOW);
+    expect(useNotificationStore.getState().notifications).toHaveLength(0);
+  });
+
+  it('skips self-notify (selfUserId excluded from recipients)', () => {
+    const apts = [makeApartment('ap-1', ['u-admin'])];
+    emitAgaConvoked(makeMeeting(), apts, 'u-admin', BASE_NOW);
+    expect(useNotificationStore.getState().notifications).toHaveLength(0);
+  });
+
+  it('emits one notification per unique claimed holder', () => {
+    const apts = [
+      makeApartment('ap-1', ['u-res1']),
+      makeApartment('ap-2', ['u-res2']),
+      makeApartment('ap-3', ['u-res1']),
+    ];
+    emitAgaConvoked(makeMeeting(), apts, 'u-admin', BASE_NOW);
+    const ns = useNotificationStore.getState().notifications;
+    expect(ns).toHaveLength(2);
+    expect(ns.map((n) => n.userId).sort()).toEqual(['u-res1', 'u-res2']);
+  });
+
+  it('emits aga.convoked kind with correct data', () => {
+    const apts = [makeApartment('ap-1', ['u-res1'])];
+    const meeting = makeMeeting({ title: 'AGA ordinară 2026', scheduled_at: '2026-07-15T18:00', location: 'Sala A' });
+    emitAgaConvoked(meeting, apts, 'u-admin', BASE_NOW);
+    const n = useNotificationStore.getState().notifications[0];
+    expect(n.kind).toBe('aga.convoked');
+    expect(n.data.title).toBe('AGA ordinară 2026');
+    expect(n.data.date).toBe('2026-07-15T18:00');
+    expect(n.data.location).toBe('Sala A');
+    expect(n.link).toBe('/app/aga');
+    expect(n.priority).toBe('normal');
+  });
+
+  it('sets the correct asociatieId and userId on each notification', () => {
+    const apts = [makeApartment('ap-1', ['u-res1'])];
+    emitAgaConvoked(makeMeeting(), apts, 'u-admin', BASE_NOW);
+    const n = useNotificationStore.getState().notifications[0];
+    expect(n.userId).toBe('u-res1');
+    expect(n.asociatieId).toBe('asoc-1');
+  });
+
+  it('is offline-safe', () => {
+    const apts = [makeApartment('ap-1', ['u-res1'])];
+    expect(() => emitAgaConvoked(makeMeeting(), apts, 'u-admin', BASE_NOW)).not.toThrow();
+    expect(useNotificationStore.getState().notifications).toHaveLength(1);
+  });
+});
+
+describe('emitAgaVotingOpen', () => {
+  beforeEach(() => {
+    useNotificationStore.setState({ notifications: [] });
+  });
+
+  it('skips when no apartments are provided', () => {
+    emitAgaVotingOpen(makeMeeting({ status: 'in_desfasurare' }), [], 'u-admin', BASE_NOW);
+    expect(useNotificationStore.getState().notifications).toHaveLength(0);
+  });
+
+  it('skips when no apartment has a claimed_user_id', () => {
+    const apts = [makeApartment('ap-1', [null])];
+    emitAgaVotingOpen(makeMeeting({ status: 'in_desfasurare' }), apts, 'u-admin', BASE_NOW);
+    expect(useNotificationStore.getState().notifications).toHaveLength(0);
+  });
+
+  it('skips self-notify', () => {
+    const apts = [makeApartment('ap-1', ['u-admin'])];
+    emitAgaVotingOpen(makeMeeting({ status: 'in_desfasurare' }), apts, 'u-admin', BASE_NOW);
+    expect(useNotificationStore.getState().notifications).toHaveLength(0);
+  });
+
+  it('emits one notification per unique claimed holder', () => {
+    const apts = [makeApartment('ap-1', ['u-res1']), makeApartment('ap-2', ['u-res2'])];
+    emitAgaVotingOpen(makeMeeting({ status: 'in_desfasurare' }), apts, 'u-admin', BASE_NOW);
+    const ns = useNotificationStore.getState().notifications;
+    expect(ns).toHaveLength(2);
+  });
+
+  it('emits aga.voting_open kind with urgent priority and correct data', () => {
+    const apts = [makeApartment('ap-1', ['u-res1'])];
+    const meeting = makeMeeting({ title: 'AGA ordinară 2026', status: 'in_desfasurare' });
+    emitAgaVotingOpen(meeting, apts, 'u-admin', BASE_NOW);
+    const n = useNotificationStore.getState().notifications[0];
+    expect(n.kind).toBe('aga.voting_open');
+    expect(n.data.title).toBe('AGA ordinară 2026');
+    expect(n.link).toBe('/app/aga');
+    expect(n.priority).toBe('urgent');
+  });
+
+  it('sets the correct asociatieId and userId on each notification', () => {
+    const apts = [makeApartment('ap-1', ['u-res1'])];
+    emitAgaVotingOpen(makeMeeting({ status: 'in_desfasurare' }), apts, 'u-admin', BASE_NOW);
+    const n = useNotificationStore.getState().notifications[0];
+    expect(n.userId).toBe('u-res1');
+    expect(n.asociatieId).toBe('asoc-1');
+  });
+
+  it('is offline-safe', () => {
+    const apts = [makeApartment('ap-1', ['u-res1'])];
+    expect(() => emitAgaVotingOpen(makeMeeting({ status: 'in_desfasurare' }), apts, 'u-admin', BASE_NOW)).not.toThrow();
     expect(useNotificationStore.getState().notifications).toHaveLength(1);
   });
 });

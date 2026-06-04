@@ -16,6 +16,8 @@ export type NotificationKind =
   | 'announcement.published'
   | 'ticket.status_changed'
   | 'discussion.reply'
+  | 'aga.convoked'
+  | 'aga.voting_open'
   | 'generic';
 
 export type NotificationPriority = 'low' | 'normal' | 'urgent';
@@ -106,6 +108,60 @@ export function buildTicketStatusChangedNotification(opts: {
       data: {
         title: opts.ticketTitle,
         status: opts.newStatus,
+      },
+    },
+    opts.now,
+  );
+}
+
+/** Build an `aga.convoked` notification for an apartment holder when a meeting is called. */
+export function buildAgaConvokedNotification(opts: {
+  recipientUserId: string;
+  asociatieId: string;
+  meetingId: string;
+  meetingTitle: string;
+  scheduledAt: string;
+  location: string;
+  now?: number;
+}): AppNotification {
+  return createNotification(
+    {
+      userId: opts.recipientUserId,
+      asociatieId: opts.asociatieId,
+      kind: 'aga.convoked',
+      title: '',
+      body: '',
+      link: '/app/aga',
+      priority: 'normal',
+      data: {
+        title: opts.meetingTitle,
+        date: opts.scheduledAt,
+        location: opts.location,
+      },
+    },
+    opts.now,
+  );
+}
+
+/** Build an `aga.voting_open` notification for an apartment holder when a meeting begins. */
+export function buildAgaVotingOpenNotification(opts: {
+  recipientUserId: string;
+  asociatieId: string;
+  meetingId: string;
+  meetingTitle: string;
+  now?: number;
+}): AppNotification {
+  return createNotification(
+    {
+      userId: opts.recipientUserId,
+      asociatieId: opts.asociatieId,
+      kind: 'aga.voting_open',
+      title: '',
+      body: '',
+      link: '/app/aga',
+      priority: 'urgent',
+      data: {
+        title: opts.meetingTitle,
       },
     },
     opts.now,

@@ -134,9 +134,9 @@ Add `public/manifest.webmanifest` with `name: "vecini.online"`, `short_name: "Ve
 
 Done: Created `public/manifest.webmanifest` with all required fields (`name`, `short_name`, `start_url: "/app"`, `display: "standalone"`, `theme_color: "#3d6b4f"`, `background_color: "#1d2b25"`, `lang`, `scope`, `categories`) and three icon entries referencing the existing `favicon.svg` at 192x192, 512x512, and `any` size (SVG is resolution-independent). Added `<link rel="manifest" href="/manifest.webmanifest">` to `index.html` (`theme-color` meta was already present). Created `tests/unit/pwaManifest.test.ts` with 4 assertions: file exists, required fields present (name/short_name/display/theme_color/background_color), icons array non-empty, and start_url equals `/app`. 261 files / 2441 tests / lint + typecheck + build + build:pi + build:demo all green.
 
-### ⬜ T228 — [P2] Notification fan-out for AGA lifecycle (meeting convoked + voting opened)
+### ✅ T228 — [P2] Notification fan-out for AGA lifecycle (meeting convoked + voting opened)
 
-When `convokeMeeting` succeeds, all active-apartment holders should receive an in-app notification. When `advanceStatus` reaches `in_desfasurare`, same. Add `emitAgaConvoked(meeting, notifStore)` and `emitAgaVotingOpen(meeting, notifStore)` to `notificationFanout.ts` (store-first + `persistAndFanOut` behind `isSupabaseConfigured`). Add `NotificationKind` variants `aga.convoked` + `aga.voting_open`, bilingual locale keys, and `notificationFanout.test.ts` assertions for both helpers (skip when no apartments, skip self-notify, offline-safe). Wire into `agaApi.ts` `convokeMeeting` and `advanceStatus`. Prereq: T127 (notification store), T190 (agaApi).
+Done: Added `aga.convoked` + `aga.voting_open` to `NotificationKind`, two builder functions in `notificationLogic.ts`, bilingual locale keys (RO + EN), `emitAgaConvoked` + `emitAgaVotingOpen` in `notificationFanout.ts` (dedup claimed holders, skip-empty, skip-self, offline-safe, persistAndFanOut in live mode). Wired into `agaApi.ts` convokeMeeting + advanceStatus via useApartmentsStore + useAuthStore. 12 new unit tests in `notificationFanout.test.ts`. 261 files / 2455 tests / lint + typecheck + build + build:pi + build:demo all green.
 
 ### ⬜ T78 — [P2] Erasure/export must cover Storage photo objects (pets/bikes/lending/visitors)
 

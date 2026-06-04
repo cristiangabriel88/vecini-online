@@ -6,6 +6,12 @@ Reference only — not read during a normal `make progress` task.
 
 ---
 
+### ✅ T228 — [P2] Notification fan-out for AGA lifecycle (meeting convoked + voting opened)
+
+Done: Added `'aga.convoked'` and `'aga.voting_open'` variants to `NotificationKind` in `notificationLogic.ts`. Added `buildAgaConvokedNotification` (normal priority, data: title/date/location, link: /app/aga) and `buildAgaVotingOpenNotification` (urgent priority, data: title, link: /app/aga) builder functions. Added bilingual locale keys `agaConvoked`, `agaConvokedBody`, `agaVotingOpen`, `agaVotingOpenBody` to both `ro.json` and `en.json`. Added `emitAgaConvoked(meeting, apartments, selfUserId, now?)` and `emitAgaVotingOpen(meeting, apartments, selfUserId, now?)` to `notificationFanout.ts` — both collect unique `claimed_user_id` values from apartment persons, skip empty strings and `selfUserId` (self-notify guard), and are no-ops when there are no recipients; store-first with `persistAndFanOut` behind `isSupabaseConfigured`. Wired into `agaApi.ts`: `convokeMeeting` reads apartments and current user from `useApartmentsStore`/`useAuthStore`, finds the newly-added meeting, and calls `emitAgaConvoked`; `advanceStatus` calls `emitAgaVotingOpen` when the meeting transitions to `in_desfasurare`. Added 12 new unit tests to `notificationFanout.test.ts` (6 per helper: skip-no-apartments, skip-no-claimed-ids, skip-self-notify, emits-to-all-holders, correct-kind-and-data, offline-safe). 261 files / 2455 tests / lint + typecheck + build + build:pi + build:demo all green.
+
+---
+
 ### ✅ T227 — [P2] PWA manifest + mobile installability
 
 Done: Created `public/manifest.webmanifest` with all required fields (`name`, `short_name`, `start_url: "/app"`, `display: "standalone"`, `theme_color: "#3d6b4f"`, `background_color: "#1d2b25"`, `lang`, `scope`, `categories`) and three icon entries referencing the existing `favicon.svg` at 192x192, 512x512, and `any` size (SVG is resolution-independent). Added `<link rel="manifest" href="/manifest.webmanifest">` to `index.html` (`theme-color` meta was already present). Created `tests/unit/pwaManifest.test.ts` with 4 assertions: file exists, required fields present (name/short_name/display/theme_color/background_color), icons array non-empty, and start_url equals `/app`. 261 files / 2441 tests / lint + typecheck + build + build:pi + build:demo all green.
