@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { AlertCircle, ArrowLeft, Check, Info, Link2, Mail, Plus, ShieldCheck, Trash2 } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Check, Link2, Mail, Plus, ShieldCheck, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
@@ -11,6 +11,7 @@ import { Select } from '@/shared/components/Select';
 import { Switch } from '@/shared/components/Switch';
 import { Modal } from '@/shared/components/Modal';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { InfoTip } from '@/shared/components/InfoTip';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useInviteStore } from '@/shared/store/inviteStore';
 import { recordAudit } from '@/shared/store/auditStore';
@@ -282,13 +283,7 @@ export default function ApartmentFormPage() {
             label={
               <span className="inline-flex items-center gap-1">
                 {t('apartments.etaj')}
-                <span
-                  className="inline-flex cursor-help text-muted"
-                  title={t('apartments.etajHint')}
-                  aria-label={t('apartments.etajHint')}
-                >
-                  <Info size={13} />
-                </span>
+                <InfoTip hint={t('apartments.etajHint')} />
               </span>
             }
             value={input.etaj}
@@ -320,13 +315,7 @@ export default function ApartmentFormPage() {
             label={
               <span className="inline-flex items-center gap-1">
                 {t('apartments.sharePercent')}
-                <span
-                  className="inline-flex cursor-help text-muted"
-                  title={t('apartments.shareFieldHint')}
-                  aria-label={t('apartments.shareFieldHint')}
-                >
-                  <Info size={13} />
-                </span>
+                <InfoTip hint={t('apartments.shareFieldHint')} />
               </span>
             }
             value={input.cota_parte_indiviza}

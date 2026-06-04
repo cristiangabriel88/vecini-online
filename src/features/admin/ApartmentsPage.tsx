@@ -53,6 +53,8 @@ function ApartmentStatusCell({
   onInviteClick?: () => void;
 }) {
   const { t, i18n } = useTranslation();
+  const [tipOpen, setTipOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const joinDate = getJoinDate(apartmentId, invites);
   const locale = i18n.language === 'ro' ? 'ro-RO' : 'en-GB';
   const label = joinDate
@@ -60,6 +62,29 @@ function ApartmentStatusCell({
         date: joinDate.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' }),
       })
     : t('apartments.statusNotRegistered');
+
+  // When an invite button is present, the inner <button> handles interaction.
+  // For static icons (joined/no-button), the wrapper must be keyboard-focusable
+  // and tappable so touch/coarse-pointer users can read the status (WCAG 1.4.13).
+  const hasButton = Boolean(onInviteClick && !joinDate);
+
+  function handleWrapperClick() {
+    if (!hasButton) setTipOpen((o) => !o);
+  }
+
+  function handleWrapperKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Escape') { setTipOpen(false); }
+    else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setTipOpen((o) => !o);
+    }
+  }
+
+  function handleBlur(e: React.FocusEvent) {
+    if (!wrapperRef.current?.contains(e.relatedTarget as Node)) {
+      setTipOpen(false);
+    }
+  }
 
   const notJoinedSvg = (
     <svg
@@ -84,8 +109,16 @@ function ApartmentStatusCell({
 
   return (
     <div
-      className="relative inline-flex group/status"
-      aria-label={!onInviteClick || joinDate ? label : undefined}
+      ref={wrapperRef}
+      className={[
+        'relative inline-flex group/status',
+        !hasButton ? 'cursor-help' : '',
+      ].join(' ')}
+      aria-label={!hasButton ? label : undefined}
+      tabIndex={hasButton ? undefined : 0}
+      onClick={!hasButton ? handleWrapperClick : undefined}
+      onKeyDown={!hasButton ? handleWrapperKeyDown : undefined}
+      onBlur={handleBlur}
     >
       {joinDate ? (
         <svg
@@ -124,20 +157,23 @@ function ApartmentStatusCell({
         <span className="text-muted">{notJoinedSvg}</span>
       )}
 
-      {/* Hover tooltip */}
+      {/* Tooltip: visible on hover, keyboard focus-within, or tap-toggle (WCAG 1.4.13) */}
       <span
         role="tooltip"
+        aria-hidden="true"
         className={[
           'pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2',
           'whitespace-nowrap rounded-lg border border-border bg-surface-2 px-2.5 py-1',
           'text-xs font-medium shadow-sm',
           joinDate ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted',
-          'opacity-0 group-hover/status:opacity-100 transition-opacity duration-150',
+          tipOpen
+            ? 'opacity-100'
+            : 'opacity-0 group-hover/status:opacity-100 group-focus-within/status:opacity-100',
+          'transition-opacity duration-150',
           'z-20',
         ].join(' ')}
       >
         {label}
-        {/* Arrow */}
         <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-border" />
       </span>
     </div>

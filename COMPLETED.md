@@ -4,6 +4,13 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T230 P1 ✅ 2026-06-04 -- Tap-accessible status tooltips (hover-only info unreachable on touch)
+- modified: src/features/admin/ApartmentsPage.tsx (`ApartmentStatusCell`: added `useState<boolean>` tipOpen + `useRef` wrapperRef; computed `hasButton`; wrapper div gets `tabIndex={0}` + click/keydown/blur handlers when no inner button; tooltip gains `group-focus-within/status:opacity-100` + tipOpen override; `aria-hidden="true"` on tooltip span; `cursor-help` on wrapper)
+- new: src/shared/components/InfoTip.tsx (shared component: `<button aria-label aria-expanded>` wrapping `<Info>` icon; click/Esc/blur toggle a positioned tooltip span; `aria-hidden="true"` on tooltip; covers hover + keyboard focus + tap)
+- modified: src/features/admin/ApartmentFormPage.tsx (replaced two hover-only `<span title aria-label><Info/></span>` info icons with `<InfoTip hint={...} />`; removed `Info` from lucide imports)
+- new: tests/unit/statusTooltip.test.tsx (14 assertions: tabIndex present, tooltip hidden initially, click reveals, double-click hides, Esc closes, Enter/Space toggle, aria-label on wrapper; InfoTip button aria-label, no tooltip initially, click shows, double-click hides, Esc closes, aria-expanded syncs)
+- note: WCAG 1.4.13 compliant -- tooltip content reachable on hover, keyboard focus-within, and tap. 275 test files / 2656 tests / lint + typecheck + build + build:pi + build:demo all green.
+
 ### T239 P1 ✅ 2026-06-04 -- Cut modal-open jank: optimize full-viewport backdrop blur
 - modified: src/styles/primitives.css (`.modal-overlay`: reduced `backdrop-filter` from `blur(8px) saturate(1.1)` to `blur(5px)`; added `will-change: opacity` + `contain: layout paint`; added `prefers-reduced-motion` block that drops overlay to flat dim and suppresses all modal animations)
 - note: blur-only animation was already `opacity`-only via `iv-fade-in`; the blur is now static and rasterized once per compositor layer. No behavior change. 274 test files / 2642 tests / lint + typecheck + build + build:pi + build:demo all green.

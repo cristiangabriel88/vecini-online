@@ -216,16 +216,9 @@ Done: Extracted `AnnouncementComposeModal` child component that owns all draft s
 
 Surfaced from a performance report: modals open slowly/janky because `.modal-overlay` runs `backdrop-filter: blur(8px) saturate(1.1)` over the entire viewport (`src/styles/primitives.css:538`), composited on top of the already-active topbar blur(20px), sidebar blur(14px), and bottom-nav blur(16px), while the `iv-modal-in` transform animation plays — so on open the browser allocates a new compositor layer and rasterizes an expensive whole-viewport blur mid-animation (worst on mobile / low-end devices). CSS-only, app-wide fix that keeps a glassy feel (decision: reduce, do not flatten): lower the overlay blur to ~4-6px and drop `saturate`, add `will-change: opacity` and `contain: layout paint` so the blur layer is promoted/rasterized once rather than re-rasterized, and fade in only `opacity` while keeping the blur static (do not animate the blur radius). Verify the `prefers-reduced-motion` path drops to a flat dim. Confirm the look stays premium and the open holds 60fps. Prereq: none.
 
-### ⬜ T230 — [P1] Tap-accessible status tooltips (hover-only info unreachable on touch)
+### ✅ T230 — [P1] Tap-accessible status tooltips (hover-only info unreachable on touch)
 
-Surfaced while reviewing mobile UX: status/info tooltips that reveal only on `:hover`
-(e.g. the apartment-status tooltip in `src/features/admin/ApartmentsPage.tsx` using
-`group-hover/status:opacity-100`) are unreachable on touch devices, where there is no hover
-state — the content never appears and there is no way to dismiss it (WCAG 1.4.13 Content on
-Hover or Focus). Make these tooltips tap-to-toggle (and keyboard-focusable) on touch/coarse
-pointers, or move the information inline so it is always visible on small screens. Audit other
-`:hover`-gated informational reveals for the same pattern. Bilingual RO/EN, premium-feel
-(no layout jump). Prereq: none.
+Done: `ApartmentStatusCell` now holds `tipOpen` state; the wrapper div gets `tabIndex={0}`, click/keydown/blur handlers when no inner button (static icon), and the tooltip gains `group-focus-within/status:opacity-100` + tipOpen override (WCAG 1.4.13: hover + keyboard focus + tap all work). Created `src/shared/components/InfoTip.tsx`: a `<button aria-label aria-expanded>` wrapping an Info icon with click/Esc/blur-toggle tooltip. Replaced the two hover-only `<span title aria-label>` info icons in `ApartmentFormPage.tsx` with `<InfoTip>`. 14 new unit tests. 275 files / 2656 tests / lint + typecheck + build + build:pi + build:demo all green.
 
 ### ⬜ T231 — [P2] Responsive data tables — stack to cards on phones
 
