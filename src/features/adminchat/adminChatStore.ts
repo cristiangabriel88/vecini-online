@@ -40,6 +40,8 @@ interface AdminChatState {
   byAsociatie: ThreadsByAsociatie;
   /** Replace the whole list for an asociație (used to hydrate from the backend). */
   replaceAll: (asociatieId: string, threads: PrivateThread[]) => void;
+  /** Remove threads by id from one asociație's list. */
+  removeThreads: (asociatieId: string, ids: string[]) => void;
   /** Open a new thread, authored by `sender`. Returns the created thread. */
   startThread: (asociatieId: string, sender: PrivateSender, input: NewThreadInput) => PrivateThread;
   /** Append a reply to a thread, authored by `sender`, and reopen it. */
@@ -83,6 +85,16 @@ export const useAdminChatStore = create<AdminChatState>()(
       byAsociatie: seedThreads(),
       replaceAll: (asociatieId, threads) =>
         set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: threads } })),
+      removeThreads: (asociatieId, ids) =>
+        set((s) => {
+          const idsSet = new Set(ids);
+          return {
+            byAsociatie: {
+              ...s.byAsociatie,
+              [asociatieId]: (s.byAsociatie[asociatieId] ?? []).filter((th) => !idsSet.has(th.id)),
+            },
+          };
+        }),
       startThread: (asociatieId, sender, input) => {
         const id = `pt-${Date.now()}`;
         const now = new Date().toISOString();

@@ -16,6 +16,7 @@ import { DEMO_CURRENT_USER_ID, DEMO_CURRENT_USER_NAME } from '@/shared/demo/demo
 import { useAsociatieThreads, useDiscussionStore } from './discussionStore';
 import {
   NEW_USER_HOURLY_LIMIT,
+  canModerateDiscussion,
   canPost,
   isValidMessage,
   isValidThread,
@@ -26,6 +27,7 @@ import {
 import {
   addThread,
   deleteMessage,
+  deleteThread,
   hydrateThreads,
   postMessage,
   togglePin,
@@ -51,11 +53,27 @@ export default function DiscussionsPage() {
   const [title, setTitle] = useState('');
   const [topic, setTopic] = useState('');
 
+  const canModerate = canModerateDiscussion(role);
+
+  // Bulk selection state (moderator only)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     if (asociatieId) void hydrateThreads(asociatieId);
   }, [asociatieId]);
 
   const ordered = sortThreads(threads);
+
+  const allSelected = ordered.length > 0 && selectedIds.size === ordered.length;
+  const toggleThreadSelect = (id: string) =>
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const toggleAll = () =>
+    setSelectedIds(allSelected ? new Set() : new Set(ordered.map((t) => t.id)));
 
   const vetted = isVettedRole(role);
 
@@ -92,6 +110,27 @@ export default function DiscussionsPage() {
     setTopic('');
   };
 
+  const deleteOneThread = (threadId: string) => {
+    if (!asociatieId) return;
+    deleteThread(asociatieId, threadId);
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.delete(threadId);
+      return next;
+    });
+    if (openId === threadId) setOpenId(null);
+    toast.success(t('discussions.threadDeleted'));
+  };
+
+  const deleteSelectedThreads = () => {
+    if (!asociatieId) return;
+    const ids = [...selectedIds];
+    ids.forEach((id) => deleteThread(asociatieId, id));
+    if (openId && ids.includes(openId)) setOpenId(null);
+    setSelectedIds(new Set());
+    toast.success(t('discussions.threadDeleted'));
+  };
+
   return (
     <div>
       <PageHeader
@@ -118,70 +157,122 @@ export default function DiscussionsPage() {
         <EmptyState body={t('discussions.empty')} icon={<MessagesSquare className="h-10 w-10" />} />
       ) : (
         <div className="space-y-3">
+          {canModerate && (
+            <div className="flex items-center gap-3 py-1">
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-muted">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 cursor-pointer rounded border-border"
+                  checked={allSelected}
+                  onChange={toggleAll}
+                  aria-label={allSelected ? t('discussions.deselectAll') : t('discussions.selectAll')}
+                />
+                <span>{allSelected ? t('discussions.deselectAll') : t('discussions.selectAll')}</span>
+              </label>
+              {selectedIds.size > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="ml-auto text-danger"
+                  onClick={deleteSelectedThreads}
+                  aria-label={t('discussions.deleteSelected', { count: selectedIds.size })}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {t('discussions.deleteSelected', { count: selectedIds.size })}
+                </Button>
+              )}
+            </div>
+          )}
           {ordered.map((th) => {
             const expanded = openId === th.id;
             return (
-              <Card key={th.id} className="space-y-3 p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <button
-                    className="text-left"
-                    onClick={() => setOpenId(expanded ? null : th.id)}
-                  >
-                    <p className="font-medium">{th.title}</p>
-                    <p className="text-sm text-muted">
-                      {th.topic} · {t('discussions.messageCount', { count: th.messages.length })}
-                    </p>
-                  </button>
-                  <div className="flex items-center gap-2">
-                    {th.pinned && <Badge tone="primary">{t('discussions.pinned')}</Badge>}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => asociatieId && togglePin(asociatieId, th.id)}
-                      aria-label={th.pinned ? t('discussions.unpin') : t('discussions.pin')}
+              <div key={th.id} className="flex items-start gap-3">
+                {canModerate && (
+                  <input
+                    type="checkbox"
+                    className="mt-4 h-4 w-4 shrink-0 cursor-pointer rounded border-border"
+                    checked={selectedIds.has(th.id)}
+                    onChange={() => toggleThreadSelect(th.id)}
+                    aria-label={th.title}
+                  />
+                )}
+                <Card className="min-w-0 flex-1 space-y-3 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <button
+                      className="text-left"
+                      onClick={() => setOpenId(expanded ? null : th.id)}
                     >
-                      <Pin className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                {expanded && (
-                  <div className="space-y-2 border-t border-border pt-3">
-                    {th.messages.map((m) => (
-                      <div key={m.id} className="flex items-start justify-between gap-2 text-sm">
-                        <div>
-                          <span className="font-medium">{m.author_name}</span>{' '}
-                          <span className="text-muted">{formatDateTime(m.created_at)}</span>
-                          <p>{m.body}</p>
-                        </div>
+                      <p className="font-medium">{th.title}</p>
+                      <p className="text-sm text-muted">
+                        {th.topic} · {t('discussions.messageCount', { count: th.messages.length })}
+                      </p>
+                    </button>
+                    <div className="flex items-center gap-1">
+                      {th.pinned && <Badge tone="primary">{t('discussions.pinned')}</Badge>}
+                      {canModerate && (
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => asociatieId && deleteMessage(asociatieId, th.id, m.id)}
-                          aria-label={t('discussions.deleteMessage')}
+                          onClick={() => deleteOneThread(th.id)}
+                          aria-label={t('discussions.deleteThread')}
                         >
                           <Trash2 className="h-4 w-4 text-danger" />
                         </Button>
-                      </div>
-                    ))}
-                    <div className="flex gap-2">
-                      <Input
-                        value={reply}
-                        onChange={(e) => setReply(e.target.value)}
-                        placeholder={t('discussions.replyPlaceholder')}
-                        aria-label={t('discussions.replyPlaceholder')}
-                      />
+                      )}
                       <Button
-                        onClick={() => send(th.id)}
-                        disabled={!asociatieId || !isValidMessage(reply)}
-                        aria-label={t('discussions.send')}
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => asociatieId && togglePin(asociatieId, th.id)}
+                        aria-label={th.pinned ? t('discussions.unpin') : t('discussions.pin')}
                       >
-                        <Send className="h-4 w-4" />
+                        <Pin className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
-                )}
-              </Card>
+
+                  {expanded && (
+                    <div className="space-y-2 border-t border-border pt-3">
+                      {th.messages.map((m) => {
+                        const canDeleteMsg = canModerate || m.author_user_id === author.id;
+                        return (
+                          <div key={m.id} className="flex items-start justify-between gap-2 text-sm">
+                            <div>
+                              <span className="font-medium">{m.author_name}</span>{' '}
+                              <span className="text-muted">{formatDateTime(m.created_at)}</span>
+                              <p>{m.body}</p>
+                            </div>
+                            {canDeleteMsg && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => asociatieId && deleteMessage(asociatieId, th.id, m.id)}
+                                aria-label={t('discussions.deleteMessage')}
+                              >
+                                <Trash2 className="h-4 w-4 text-danger" />
+                              </Button>
+                            )}
+                          </div>
+                        );
+                      })}
+                      <div className="flex gap-2">
+                        <Input
+                          value={reply}
+                          onChange={(e) => setReply(e.target.value)}
+                          placeholder={t('discussions.replyPlaceholder')}
+                          aria-label={t('discussions.replyPlaceholder')}
+                        />
+                        <Button
+                          onClick={() => send(th.id)}
+                          disabled={!asociatieId || !isValidMessage(reply)}
+                          aria-label={t('discussions.send')}
+                        >
+                          <Send className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </Card>
+              </div>
             );
           })}
         </div>

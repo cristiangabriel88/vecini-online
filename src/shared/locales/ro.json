@@ -478,7 +478,13 @@
     "readFailed": "Nu s-a putut citi fișierul.",
     "too_large": "Fișierul depășește limita de 10 MB.",
     "bad_type": "Tip de fișier neacceptat (PDF sau imagine).",
-    "preview": "Previzualizare"
+    "preview": "Previzualizare",
+    "deleted": "Anunț șters.",
+    "deletedBulk": "{{count}} anunțuri șterse.",
+    "deleteOne": "Șterge anunțul",
+    "deleteSelected": "Șterge {{count}} selectate",
+    "selectAll": "Selectează toate",
+    "deselectAll": "Deselectează toate"
   },
   "polls": {
     "title": "Voturi",
@@ -1699,7 +1705,12 @@
     "send": "Trimite mesajul",
     "threadAdded": "Subiect creat.",
     "rateLimited": "Postezi prea rapid. Poți trimite cel mult {{limit}} mesaje pe oră.",
-    "empty": "Niciun subiect de discuție. Pornește primul cu butonul de mai sus."
+    "empty": "Niciun subiect de discuție. Pornește primul cu butonul de mai sus.",
+    "deleteThread": "Șterge subiectul",
+    "threadDeleted": "Subiect șters.",
+    "deleteSelected": "Șterge {{count}} selectate",
+    "selectAll": "Selectează toate",
+    "deselectAll": "Deselectează toate"
   },
   "budget": {
     "title": "Buget participativ",
@@ -1872,7 +1883,12 @@
     "noLinkedResident": "Acest apartament nu are încă un cont de locatar asociat. Așteaptă ca locatarul să își creeze contul înainte de a începe o conversație.",
     "apartmentUnlinked": "fără cont încă",
     "empty": "Nicio conversație încă. Începe una cu butonul de mai sus.",
-    "emptyAdmin": "Niciun mesaj de la locatari încă. Poți porni tu o conversație cu butonul de mai sus."
+    "emptyAdmin": "Niciun mesaj de la locatari încă. Poți porni tu o conversație cu butonul de mai sus.",
+    "deleteThread": "Șterge conversația",
+    "threadDeleted": "Conversație ștearsă.",
+    "deleteSelected": "Șterge {{count}} selectate",
+    "selectAll": "Selectează toate",
+    "deselectAll": "Deselectează toate"
   },
   "welcomeKit": {
     "title": "Kit de bun-venit",

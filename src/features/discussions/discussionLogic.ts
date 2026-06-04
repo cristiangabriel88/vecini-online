@@ -257,3 +257,19 @@ export function deleteMessageIn(
     ),
   );
 }
+
+/** Remove a thread from one asociație's list, purely. */
+export function deleteThreadIn(
+  byAsociatie: ThreadsByAsociatie,
+  asociatieId: string,
+  threadId: string,
+): ThreadsByAsociatie {
+  return mapThreads(byAsociatie, asociatieId, (threads) =>
+    threads.filter((th) => th.id !== threadId),
+  );
+}
+
+/** True when the active role may moderate discussions (pin, delete). */
+export function canModerateDiscussion(role: string | null): boolean {
+  return role === 'admin' || role === 'presedinte' || role === 'comitet';
+}

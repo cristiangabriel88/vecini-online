@@ -9,6 +9,7 @@ import {
   addMessageIn,
   addThreadIn,
   deleteMessageIn,
+  deleteThreadIn,
   migrateThreadsState,
   newMessage,
   newThread,
@@ -37,6 +38,7 @@ interface DiscussionState {
   postMessage: (asociatieId: string, threadId: string, body: string, author: MessageAuthor) => void;
   togglePin: (asociatieId: string, threadId: string) => void;
   deleteMessage: (asociatieId: string, threadId: string, messageId: string) => void;
+  deleteThread: (asociatieId: string, threadId: string) => void;
   /** Replace the full thread list for one asociație (used by live hydration). */
   replaceForAsociatie: (asociatieId: string, threads: DiscussionThread[]) => void;
   /** Set or clear the live-fetch error (called by the API layer). */
@@ -77,6 +79,10 @@ export const useDiscussionStore = create<DiscussionState>()(
       deleteMessage: (asociatieId, threadId, messageId) =>
         set((s) => ({
           byAsociatie: deleteMessageIn(s.byAsociatie, asociatieId, threadId, messageId),
+        })),
+      deleteThread: (asociatieId, threadId) =>
+        set((s) => ({
+          byAsociatie: deleteThreadIn(s.byAsociatie, asociatieId, threadId),
         })),
       replaceForAsociatie: (asociatieId, threads) =>
         set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: threads } })),

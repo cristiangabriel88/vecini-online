@@ -178,3 +178,16 @@ export function addAnnouncementIn(
     [asociatieId]: [announcement, ...(byAsociatie[asociatieId] ?? [])],
   };
 }
+
+/** Remove announcements by id from one asociație's list. */
+export function removeAnnouncementsIn(
+  byAsociatie: AnnouncementsByAsociatie,
+  asociatieId: string,
+  ids: string[],
+): AnnouncementsByAsociatie {
+  const idsSet = new Set(ids);
+  return {
+    ...byAsociatie,
+    [asociatieId]: (byAsociatie[asociatieId] ?? []).filter((a) => !idsSet.has(a.id)),
+  };
+}

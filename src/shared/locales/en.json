@@ -478,7 +478,13 @@
     "readFailed": "Could not read the file.",
     "too_large": "File exceeds the 10 MB limit.",
     "bad_type": "File type not accepted (PDF or image).",
-    "preview": "Preview"
+    "preview": "Preview",
+    "deleted": "Announcement deleted.",
+    "deletedBulk": "{{count}} announcements deleted.",
+    "deleteOne": "Delete announcement",
+    "deleteSelected": "Delete {{count}} selected",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all"
   },
   "polls": {
     "title": "Polls",
@@ -1699,7 +1705,12 @@
     "send": "Send message",
     "threadAdded": "Thread created.",
     "rateLimited": "You are posting too fast. You can send up to {{limit}} messages per hour.",
-    "empty": "No discussion threads yet. Start the first with the button above."
+    "empty": "No discussion threads yet. Start the first with the button above.",
+    "deleteThread": "Delete thread",
+    "threadDeleted": "Thread deleted.",
+    "deleteSelected": "Delete {{count}} selected",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all"
   },
   "budget": {
     "title": "Participatory budget",
@@ -1872,7 +1883,12 @@
     "noLinkedResident": "This apartment has no linked resident account yet. Wait for the resident to sign up before starting a conversation.",
     "apartmentUnlinked": "no account yet",
     "empty": "No conversations yet. Start one with the button above.",
-    "emptyAdmin": "No messages from residents yet. You can start a conversation with the button above."
+    "emptyAdmin": "No messages from residents yet. You can start a conversation with the button above.",
+    "deleteThread": "Delete conversation",
+    "threadDeleted": "Conversation deleted.",
+    "deleteSelected": "Delete {{count}} selected",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all"
   },
   "welcomeKit": {
     "title": "Welcome kit",

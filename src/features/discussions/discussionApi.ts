@@ -69,7 +69,9 @@ function fromThreadRow(row: ThreadRow): DiscussionThread {
 }
 
 /** Hydrate discussion threads (with messages) for one asociație from the backend.
- *  The demo store remains the source of truth if the read fails or backend is absent. */
+ *  The demo store remains the source of truth if the read fails or backend is absent.
+ *  Falls back to a schema-compatible query when the schema is behind (e.g. Pi DEV
+ *  missing the author_name / title columns from migration 20260528000001). */
 export async function hydrateThreads(asociatieId: string): Promise<void> {
   if (!isSupabaseConfigured || !asociatieId) return;
   const store = useDiscussionStore.getState();
@@ -81,6 +83,31 @@ export async function hydrateThreads(asociatieId: string): Promise<void> {
       )
       .eq('asociatie_id', asociatieId)
       .order('created_at', { ascending: false });
+
+    // Schema is behind (missing author_name / title columns) -- retry without them.
+    if (error && (error.code === '42703' || error.message?.includes('does not exist'))) {
+      const fb = await supabase
+        .from('discussion_threads')
+        .select(
+          'id, asociatie_id, topic, pinned, created_at, messages:discussion_messages(id, thread_id, author_user_id, body, deleted_at, created_at)',
+        )
+        .eq('asociatie_id', asociatieId)
+        .order('created_at', { ascending: false });
+      if (fb.error || !fb.data) {
+        reportError(fb.error ?? new Error('no data'), { source: 'discussionApi.hydrate.fallback' });
+        store.setFetchError('load');
+        return;
+      }
+      store.setFetchError(null);
+      store.replaceForAsociatie(
+        asociatieId,
+        (fb.data as Array<Record<string, unknown>>).map((row) =>
+          fromThreadRow({ ...row, title: null, messages: ((row.messages as MessageRow[] | null) ?? []).map((m) => ({ ...m, author_name: null })) } as ThreadRow),
+        ),
+      );
+      return;
+    }
+
     if (error || !data) {
       reportError(error ?? new Error('no data'), { source: 'discussionApi.hydrate' });
       store.setFetchError('load');
@@ -168,6 +195,19 @@ export function togglePin(asociatieId: string, threadId: string): void {
         .eq('id', threadId);
     } catch (err) {
       reportError(err, { source: 'discussionApi.togglePin' });
+    }
+  })();
+}
+
+/** Delete a thread and all its messages; updates the store and mirrors to the backend. */
+export function deleteThread(asociatieId: string, threadId: string): void {
+  useDiscussionStore.getState().deleteThread(asociatieId, threadId);
+  if (!isSupabaseConfigured) return;
+  void (async () => {
+    try {
+      await supabase.from('discussion_threads').delete().eq('id', threadId);
+    } catch (err) {
+      reportError(err, { source: 'discussionApi.deleteThread' });
     }
   })();
 }

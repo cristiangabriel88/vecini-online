@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Inbox, Plus, Send } from 'lucide-react';
+import { ArrowLeft, Inbox, Plus, Send, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
@@ -19,7 +19,7 @@ import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import { DEMO_CURRENT_USER_ID, DEMO_CURRENT_USER_NAME } from '@/shared/demo/demoData';
 import type { PrivateMessage, PrivateSender } from '@/shared/types/domain';
 import { useAsociatieThreads } from './adminChatStore';
-import { markRead, reply, startThread, toggleStatus, hydrateThreads } from './adminChatApi';
+import { deleteThreads, markRead, reply, startThread, toggleStatus, hydrateThreads } from './adminChatApi';
 import {
   awaitingReply,
   isValidMessage,
@@ -31,8 +31,8 @@ import {
 } from './adminChatLogic';
 
 /**
- * F04 — private messaging, as a role-aware inbox. The administrator (and
- * președinte) gets an inbox of every resident's private thread and can open any
+ * F04 - private messaging, as a role-aware inbox. The administrator (and
+ * presedinte) gets an inbox of every resident's private thread and can open any
  * one to reply or start a new conversation toward a chosen apartment. A resident
  * sees only their own conversations with the administrator. Either party opens a
  * thread to read and continue it; opening marks the other side's messages read.
@@ -65,6 +65,9 @@ export default function AdminChatPage() {
   const [firstBody, setFirstBody] = useState('');
   const [apartmentId, setApartmentId] = useState('');
 
+  // Bulk selection state (admin only)
+  const [selectedThreadIds, setSelectedThreadIds] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     if (currentAsociatieId) void hydrateThreads(currentAsociatieId);
   }, [currentAsociatieId]);
@@ -75,6 +78,17 @@ export default function AdminChatPage() {
       : allThreads.filter((th) => th.resident_user_id === userId);
     return sortThreads(visible);
   }, [allThreads, isAdminView, userId]);
+
+  const allSelected = ordered.length > 0 && selectedThreadIds.size === ordered.length;
+  const toggleThreadSelect = (id: string) =>
+    setSelectedThreadIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const toggleAll = () =>
+    setSelectedThreadIds(allSelected ? new Set() : new Set(ordered.map((t) => t.id)));
 
   const selected = selectedId ? ordered.find((th) => th.id === selectedId) ?? null : null;
 
@@ -107,10 +121,6 @@ export default function AdminChatPage() {
 
   const pickedApartment = apartments.find((a) => a.id === apartmentId);
   const pickedResident = pickedApartment ? pickAdminThreadResident(pickedApartment) : null;
-  // Live RLS keys threads off auth.uid(), so we refuse to start one against an
-  // apartment whose persons are not yet account-linked (T130). Offline the local
-  // store has no such constraint, so the conversation still appears in the
-  // admin's outbox for demo/local use.
   const pickedRequiresLink = isSupabaseConfigured && pickedResident?.pending === true;
   const newValid =
     isValidSubject(subject) &&
@@ -147,6 +157,27 @@ export default function AdminChatPage() {
     closeNew();
   };
 
+  const deleteSelected = () => {
+    if (!currentAsociatieId) return;
+    const ids = [...selectedThreadIds];
+    deleteThreads(currentAsociatieId, ids);
+    if (selectedId && ids.includes(selectedId)) setSelectedId(null);
+    setSelectedThreadIds(new Set());
+    toast.success(t('adminChat.threadDeleted'));
+  };
+
+  const deleteOne = (id: string) => {
+    if (!currentAsociatieId) return;
+    deleteThreads(currentAsociatieId, [id]);
+    if (selectedId === id) setSelectedId(null);
+    setSelectedThreadIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+    toast.success(t('adminChat.threadDeleted'));
+  };
+
   return (
     <div>
       <PageHeader
@@ -175,6 +206,7 @@ export default function AdminChatPage() {
           onSend={() => send(selected.id)}
           onToggleStatus={() => currentAsociatieId && toggleStatus(currentAsociatieId, selected.id, onWriteError)}
           onBack={back}
+          onDelete={isAdminView ? () => deleteOne(selected.id) : undefined}
         />
       ) : ordered.length === 0 ? (
         <EmptyState
@@ -183,34 +215,85 @@ export default function AdminChatPage() {
         />
       ) : (
         <div className="space-y-3">
+          {isAdminView && (
+            <div className="flex items-center gap-3 py-1">
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-muted">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 cursor-pointer rounded border-border"
+                  checked={allSelected}
+                  onChange={toggleAll}
+                  aria-label={allSelected ? t('adminChat.deselectAll') : t('adminChat.selectAll')}
+                />
+                <span>{allSelected ? t('adminChat.deselectAll') : t('adminChat.selectAll')}</span>
+              </label>
+              {selectedThreadIds.size > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="ml-auto text-danger"
+                  onClick={deleteSelected}
+                  aria-label={t('adminChat.deleteSelected', { count: selectedThreadIds.size })}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {t('adminChat.deleteSelected', { count: selectedThreadIds.size })}
+                </Button>
+              )}
+            </div>
+          )}
           {ordered.map((th) => {
             const waiting = awaitingReply(th);
             const hours = waitingHours(th);
             const unread = unreadFor(th, viewer);
             return (
-              <Card key={th.id} className="p-0">
-                <button
-                  className="flex w-full items-start justify-between gap-3 p-4 text-left"
-                  onClick={() => open(th.id)}
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-xs text-muted">
-                      {threadParticipantLabel(th, viewer, adminLabel)}
-                    </p>
-                    <p className="truncate font-medium">{th.subject}</p>
-                    <p className="text-sm text-muted">
-                      {t('adminChat.messageCount', { count: th.messages.length })}
-                      {isAdminView && waiting && ` · ${t('adminChat.waiting', { count: hours })}`}
-                    </p>
+              <div key={th.id} className="flex items-center gap-3">
+                {isAdminView && (
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 shrink-0 cursor-pointer rounded border-border"
+                    checked={selectedThreadIds.has(th.id)}
+                    onChange={() => toggleThreadSelect(th.id)}
+                    aria-label={th.subject}
+                  />
+                )}
+                <Card className="min-w-0 flex-1 p-0">
+                  <div className="flex items-center gap-0">
+                    <button
+                      className="flex min-w-0 flex-1 items-start justify-between gap-3 p-4 text-left"
+                      onClick={() => open(th.id)}
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-xs text-muted">
+                          {threadParticipantLabel(th, viewer, adminLabel)}
+                        </p>
+                        <p className="truncate font-medium">{th.subject}</p>
+                        <p className="text-sm text-muted">
+                          {t('adminChat.messageCount', { count: th.messages.length })}
+                          {isAdminView && waiting && ` · ${t('adminChat.waiting', { count: hours })}`}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        {unread > 0 && <Badge tone="primary">{unread}</Badge>}
+                        <Badge tone={th.status === 'open' ? 'warning' : 'success'}>
+                          {t(`adminChat.status_${th.status}`)}
+                        </Badge>
+                      </div>
+                    </button>
+                    {isAdminView && (
+                      <div className="pr-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => deleteOne(th.id)}
+                          aria-label={t('adminChat.deleteThread')}
+                        >
+                          <Trash2 className="h-4 w-4 text-danger" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    {unread > 0 && <Badge tone="primary">{unread}</Badge>}
-                    <Badge tone={th.status === 'open' ? 'warning' : 'success'}>
-                      {t(`adminChat.status_${th.status}`)}
-                    </Badge>
-                  </div>
-                </button>
-              </Card>
+                </Card>
+              </div>
             );
           })}
         </div>
@@ -290,6 +373,7 @@ interface ConversationViewProps {
   onSend: () => void;
   onToggleStatus: () => void;
   onBack: () => void;
+  onDelete?: () => void;
 }
 
 function ConversationView({
@@ -304,6 +388,7 @@ function ConversationView({
   onSend,
   onToggleStatus,
   onBack,
+  onDelete,
 }: ConversationViewProps) {
   const { t } = useTranslation();
   return (
@@ -312,7 +397,14 @@ function ConversationView({
         <button className="flex items-center gap-2 text-sm text-muted" onClick={onBack}>
           <ArrowLeft className="h-4 w-4" /> {t('adminChat.backToInbox')}
         </button>
-        <Badge tone={status === 'open' ? 'warning' : 'success'}>{t(`adminChat.status_${status}`)}</Badge>
+        <div className="flex items-center gap-2">
+          {onDelete && (
+            <Button size="sm" variant="ghost" onClick={onDelete} aria-label={t('adminChat.deleteThread')}>
+              <Trash2 className="h-4 w-4 text-danger" />
+            </Button>
+          )}
+          <Badge tone={status === 'open' ? 'warning' : 'success'}>{t(`adminChat.status_${status}`)}</Badge>
+        </div>
       </div>
 
       <div>

@@ -145,6 +145,21 @@ export function markRead(asociatieId: string, threadId: string, viewer: PrivateS
   }
 }
 
+/** Delete one or more threads; updates the store and mirrors to the backend. */
+export function deleteThreads(asociatieId: string, ids: string[]): void {
+  if (!ids.length) return;
+  useAdminChatStore.getState().removeThreads(asociatieId, ids);
+  if (isSupabaseConfigured) {
+    void (async () => {
+      try {
+        await supabase.from('private_threads').delete().in('id', ids);
+      } catch (err) {
+        reportError(err, { source: 'adminChatApi.deleteThreads' });
+      }
+    })();
+  }
+}
+
 /** Toggle a thread between open and resolved.
  *  `onError` is called when the backend write fails. */
 export function toggleStatus(asociatieId: string, threadId: string, onError?: () => void): void {

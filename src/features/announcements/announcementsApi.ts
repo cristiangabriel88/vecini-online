@@ -194,6 +194,21 @@ export function publishAnnouncement(
   }
 }
 
+/** Delete announcements by id; updates the store synchronously and mirrors to the backend. */
+export function deleteAnnouncements(asociatieId: string, ids: string[]): void {
+  if (!ids.length) return;
+  useAnnouncementsStore.getState().remove(asociatieId, ids);
+  if (isSupabaseConfigured) {
+    void (async () => {
+      try {
+        await supabase.from('announcements').delete().in('id', ids);
+      } catch (err) {
+        reportError(err, { source: 'announcementsApi.delete' });
+      }
+    })();
+  }
+}
+
 /** Return a short-lived signed URL for an announcement attachment, or null. */
 export async function getAttachmentSignedUrl(storagePath: string): Promise<string | null> {
   try {

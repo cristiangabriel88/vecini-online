@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { Calendar, Check, Download, Paperclip, Plus, Upload, X } from 'lucide-react';
+import { Calendar, Check, Download, Paperclip, Plus, Trash2, Upload, X } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Button } from '@/shared/components/Button';
 import { Card } from '@/shared/components/Card';
@@ -25,6 +25,7 @@ import {
   publishAnnouncement,
   uploadAnnouncementAttachments,
   getAttachmentSignedUrl,
+  deleteAnnouncements,
 } from './announcementsApi';
 import {
   ATTACHMENT_ACCEPT,
@@ -70,6 +71,19 @@ export default function AnnouncementsPage() {
   const items = canManage ? all : visibleAnnouncements(all);
   const { reads, markRead, fetchError } = useAnnouncementsStore();
   const [open, setOpen] = useState(false);
+
+  // Bulk selection state (admin only)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const toggleItem = (id: string) =>
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const allSelected = items.length > 0 && selectedIds.size === items.length;
+  const toggleAll = () =>
+    setSelectedIds(allSelected ? new Set() : new Set(items.map((a) => a.id)));
 
   useEffect(() => {
     if (asociatieId) void hydrateAnnouncements(asociatieId);
@@ -173,6 +187,25 @@ export default function AnnouncementsPage() {
     }
   };
 
+  const deleteOne = (id: string) => {
+    if (!asociatieId) return;
+    deleteAnnouncements(asociatieId, [id]);
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+    toast.success(t('announcements.deleted'));
+  };
+
+  const deleteSelected = () => {
+    if (!asociatieId) return;
+    const ids = [...selectedIds];
+    deleteAnnouncements(asociatieId, ids);
+    setSelectedIds(new Set());
+    toast.success(t('announcements.deletedBulk', { count: ids.length }));
+  };
+
   return (
     <div>
       <PageHeader
@@ -200,66 +233,116 @@ export default function AnnouncementsPage() {
         <EmptyState body={t('announcements.empty')} />
       ) : (
         <div className="space-y-3">
+          {canManage && (
+            <div className="flex items-center gap-3 py-1">
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-muted">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 cursor-pointer rounded border-border"
+                  checked={allSelected}
+                  onChange={toggleAll}
+                  aria-label={allSelected ? t('announcements.deselectAll') : t('announcements.selectAll')}
+                />
+                <span>{allSelected ? t('announcements.deselectAll') : t('announcements.selectAll')}</span>
+              </label>
+              {selectedIds.size > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="ml-auto text-danger"
+                  onClick={deleteSelected}
+                  aria-label={t('announcements.deleteSelected', { count: selectedIds.size })}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {t('announcements.deleteSelected', { count: selectedIds.size })}
+                </Button>
+              )}
+            </div>
+          )}
           {items.map((a) => {
             const pending = isScheduledPending(a);
             const attachments = a.attachments ?? [];
+            const canDelete = canManage || a.author_user_id === authorUserId;
             return (
-              <Card key={a.id}>
-                <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
-                  <h2 className="text-lg font-semibold">{a.title}</h2>
-                  <div className="flex items-center gap-2">
-                    {pending && (
-                      <Badge tone="warning">
-                        <Calendar className="h-3 w-3" /> {t('announcements.scheduledBadge')}
-                      </Badge>
-                    )}
-                    <Badge tone={categoryTone[a.category]}>{t(`announcements.category_${a.category}`)}</Badge>
-                  </div>
-                </div>
-                <p className="mb-2 text-sm text-muted">
-                  {pending
-                    ? t('announcements.scheduledFor', { date: formatDateTime(a.scheduled_at!) })
-                    : a.published_at
-                      ? formatDateTime(a.published_at)
-                      : a.scheduled_at
-                        ? formatDateTime(a.scheduled_at)
-                        : ''}
-                </p>
-                <div
-                  className="prose prose-sm max-w-none text-text"
-                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(a.body_html) }}
-                />
-                {attachments.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {attachments.map((att) => (
-                      <Button
-                        key={att.id}
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => void downloadAttachment(att)}
-                        aria-label={`${t('announcements.download')}: ${att.file_name}`}
-                      >
-                        <Download className="h-4 w-4" /> {att.file_name}
-                        {att.file_size > 0 ? ` (${formatFileSize(att.file_size)})` : ''}
-                      </Button>
-                    ))}
-                  </div>
+              <div key={a.id} className="flex items-start gap-3">
+                {canManage && (
+                  <input
+                    type="checkbox"
+                    className="mt-4 h-4 w-4 shrink-0 cursor-pointer rounded border-border"
+                    checked={selectedIds.has(a.id)}
+                    onChange={() => toggleItem(a.id)}
+                    aria-label={a.title}
+                  />
                 )}
-                <div className="mt-3 flex items-center justify-between">
-                  <span className="text-sm text-muted">
-                    {t('announcements.readBy', { read: reads[a.id] ? 1 : 0, total: 24 })}
-                  </span>
-                  <Button
-                    variant={reads[a.id] ? 'ghost' : 'secondary'}
-                    size="sm"
-                    disabled={!!reads[a.id]}
-                    onClick={() => markRead(a.id)}
-                  >
-                    <Check className="h-4 w-4" />
-                    {reads[a.id] ? t('announcements.markedRead') : t('announcements.markRead')}
-                  </Button>
-                </div>
-              </Card>
+                <Card className="min-w-0 flex-1">
+                  <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+                    <h2 className="text-lg font-semibold">{a.title}</h2>
+                    <div className="flex items-center gap-2">
+                      {pending && (
+                        <Badge tone="warning">
+                          <Calendar className="h-3 w-3" /> {t('announcements.scheduledBadge')}
+                        </Badge>
+                      )}
+                      <Badge tone={categoryTone[a.category]}>{t(`announcements.category_${a.category}`)}</Badge>
+                    </div>
+                  </div>
+                  <p className="mb-2 text-sm text-muted">
+                    {pending
+                      ? t('announcements.scheduledFor', { date: formatDateTime(a.scheduled_at!) })
+                      : a.published_at
+                        ? formatDateTime(a.published_at)
+                        : a.scheduled_at
+                          ? formatDateTime(a.scheduled_at)
+                          : ''}
+                  </p>
+                  <div
+                    className="prose prose-sm max-w-none text-text"
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(a.body_html) }}
+                  />
+                  {attachments.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {attachments.map((att) => (
+                        <Button
+                          key={att.id}
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => void downloadAttachment(att)}
+                          aria-label={`${t('announcements.download')}: ${att.file_name}`}
+                        >
+                          <Download className="h-4 w-4" /> {att.file_name}
+                          {att.file_size > 0 ? ` (${formatFileSize(att.file_size)})` : ''}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                  <div className="mt-3 flex items-center justify-between">
+                    <span className="text-sm text-muted">
+                      {t('announcements.readBy', { read: reads[a.id] ? 1 : 0, total: 24 })}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      {canDelete && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteOne(a.id)}
+                          aria-label={t('announcements.deleteOne')}
+                        >
+                          <Trash2 className="h-4 w-4 text-danger" />
+                        </Button>
+                      )}
+                      <Button
+                        variant={reads[a.id] ? 'ghost' : 'secondary'}
+                        size="sm"
+                        disabled={!!reads[a.id]}
+                        onClick={() => markRead(a.id)}
+                      >
+                        <Check className="h-4 w-4" />
+                        {reads[a.id] ? t('announcements.markedRead') : t('announcements.markRead')}
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              </div>
             );
           })}
         </div>
