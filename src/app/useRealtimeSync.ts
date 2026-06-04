@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
+import { env } from '@/shared/lib/env';
 import type { Announcement, Ticket, PrivateThread, PrivateMessage, Vote } from '@/shared/types/domain';
 import type { AppNotification, NotificationKind, NotificationPriority } from '@/features/notifications/notificationLogic';
 import { useAnnouncementsStore } from '@/features/announcements/announcementsStore';
@@ -63,6 +64,11 @@ type ThreadRow = Omit<PrivateThread, 'messages'>;
 export function useRealtimeSync(asociatieId: string | null): void {
   useEffect(() => {
     if (!isSupabaseConfigured || !asociatieId) return;
+    // The Pi DEV stack intentionally runs a minimal local Supabase setup without
+    // the Realtime service. Subscribing there makes the browser retry a failing
+    // websocket every few seconds, while normal REST reads/writes still work.
+    if (env.appStage === 'dev') return;
+
     const aid = asociatieId;
 
     const channel = supabase
