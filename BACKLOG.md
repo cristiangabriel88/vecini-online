@@ -234,7 +234,7 @@ existing card/label tokens; no new design primitives. Bilingual RO/EN, premium-f
 
 Done: The admin apartments table already had a full mobile-card fallback (`hidden sm:block` / `sm:hidden`). Added `@media (max-width: 600px)` to the remaining two tables: `.gdpr-table` gets `overflow-x: auto; -webkit-overflow-scrolling: touch` and `.gdpr-table__row` gets `min-width: 400px` so the 3-column grid does not squish before scrolling kicks in (pure CSS, no HTML changes). `.billing-invoices-table` gets `display: block; overflow-x: auto; -webkit-overflow-scrolling: touch` so the HTML `<table>` element scrolls horizontally on narrow screens (also pure CSS, applies to both BillingPage and PlatformSubscriptionsPage which share the same class). Created `tests/unit/responsiveTables.test.ts` with 5 parse-based assertions verifying both media blocks and their key properties. 276 files / 2661 tests / lint + typecheck + build + build:pi + build:demo all green.
 
-### ⬜ T232 — [P2] DatePicker bottom-sheet variant on phones
+### ✅ T232 — [P2] DatePicker bottom-sheet variant on phones
 
 Surfaced while reviewing mobile UX: `DatePicker` opens as a fixed 280px popover
 (`.dp-popover` in `src/styles/primitives.css:1083`), positioned with
@@ -246,6 +246,8 @@ variant that renders the calendar as a bottom sheet (rounded top corners
 sheet-rise entrance, optional drag handle), mirroring the Modal sheet styling so the close
 animation/`prefers-reduced-motion` handling stays consistent with the commit-8e6f654 fixes.
 Bilingual RO/EN, premium-feel. Prereq: none.
+
+Done: Added `isMobile` state to `DatePicker.tsx`; `openPicker` checks `window.innerWidth <= 600` at open-time and skips position computation on mobile. Portal conditionally renders a `.dp-sheet-overlay` wrapper (fixed full-screen, backdrop `oklch(0% 0 0 / 0.4)`, `onMouseDown` closes on tap-outside) with a `.dp-popover .dp-popover--sheet` inner calendar (`stopPropagation` on the inner div prevents the overlay handler from firing). Added to `primitives.css`: `.dp-sheet-overlay` (fixed, flex column, bottom-aligned, fade-in/out), `.dp-popover--sheet` (relative, full-width, rounded top corners, `env(safe-area-inset-bottom)` padding, drag-handle `::before` pill), `iv-dp-sheet-in`/`iv-dp-sheet-out` keyframes mirroring the modal sheet animations, and `prefers-reduced-motion` overrides for both. Updated `handleAnimationEnd` to recognise `iv-dp-sheet-out` for teardown. 277 files / 2668 tests / lint + typecheck + build + build:pi + build:demo all green.
 
 ### ⬜ T233 — [P2] Touch-target sizing for in-table action buttons
 

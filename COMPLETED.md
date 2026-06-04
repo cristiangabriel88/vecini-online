@@ -4,6 +4,10 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### ✅ T232 — [P2] DatePicker bottom-sheet variant on phones
+
+Done: Added `isMobile` state to `DatePicker.tsx`; `openPicker` checks `window.innerWidth <= 600` at open-time and skips position computation on mobile. Portal conditionally renders a `.dp-sheet-overlay` wrapper (fixed full-screen, backdrop `oklch(0% 0 0 / 0.4)`, `onMouseDown` closes on tap-outside) with a `.dp-popover .dp-popover--sheet` inner calendar (`stopPropagation` on the inner div prevents the overlay handler from firing). Added to `primitives.css`: `.dp-sheet-overlay` (fixed, flex column, bottom-aligned, fade-in/out), `.dp-popover--sheet` (relative, full-width, rounded top corners, `env(safe-area-inset-bottom)` padding, drag-handle `::before` pill), `iv-dp-sheet-in`/`iv-dp-sheet-out` keyframes mirroring the modal sheet animations, and `prefers-reduced-motion` overrides for both. Updated `handleAnimationEnd` to recognise `iv-dp-sheet-out` for teardown. 277 files / 2668 tests / lint + typecheck + build + build:pi + build:demo all green.
+
 ### T231 P2 ✅ 2026-06-04 -- Responsive data tables: stack to cards / horizontal scroll on phones
 - modified: src/styles/legal.css (added `@media (max-width: 600px)`: `.gdpr-table { overflow-x: auto; -webkit-overflow-scrolling: touch }` + `.gdpr-table__row { min-width: 400px }`)
 - modified: src/styles/primitives.css (added `@media (max-width: 600px)`: `.billing-invoices-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch }`)

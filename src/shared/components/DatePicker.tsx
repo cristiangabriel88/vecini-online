@@ -110,6 +110,7 @@ export function DatePicker({
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [pos, setPos] = useState({ top: 0, left: 0, openUp: false });
 
   const parsed = parseDate(value);
@@ -123,14 +124,18 @@ export function DatePicker({
     if (disabled) return;
     const rect = triggerRef.current?.getBoundingClientRect();
     if (!rect) return;
-    const PICKER_HEIGHT = 320;
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const openUp = spaceBelow < PICKER_HEIGHT && rect.top > PICKER_HEIGHT;
-    setPos({
-      top: openUp ? rect.top - PICKER_HEIGHT - 6 : rect.bottom + 6,
-      left: Math.min(rect.left, window.innerWidth - 292),
-      openUp,
-    });
+    const mobile = window.innerWidth <= 600;
+    setIsMobile(mobile);
+    if (!mobile) {
+      const PICKER_HEIGHT = 320;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const openUp = spaceBelow < PICKER_HEIGHT && rect.top > PICKER_HEIGHT;
+      setPos({
+        top: openUp ? rect.top - PICKER_HEIGHT - 6 : rect.bottom + 6,
+        left: Math.min(rect.left, window.innerWidth - 292),
+        openUp,
+      });
+    }
     // Sync view to current value
     const d = parseDate(value);
     setViewYear(d?.getFullYear() ?? new Date().getFullYear());
@@ -153,11 +158,13 @@ export function DatePicker({
   const handleAnimationEnd = (e: AnimationEvent<HTMLDivElement>) => {
     if (!closing) return;
     // Match every close-animation variant: `iv-dp-out` (down), `iv-dp-out-up`
-    // (open-up), and `iv-fade-out` (prefers-reduced-motion fallback).
+    // (open-up), `iv-fade-out` (prefers-reduced-motion fallback), and
+    // `iv-dp-sheet-out` (bottom-sheet on mobile).
     if (
       e.animationName === 'iv-dp-out' ||
       e.animationName === 'iv-dp-out-up' ||
-      e.animationName === 'iv-fade-out'
+      e.animationName === 'iv-fade-out' ||
+      e.animationName === 'iv-dp-sheet-out'
     ) {
       teardown();
     }
@@ -225,6 +232,68 @@ export function DatePicker({
 
   const displayValue = formatDisplay(value, lang);
 
+  const calendarContent = (
+    <>
+      <div className="dp-header">
+        <button
+          type="button"
+          className="btn btn--ghost btn--icon btn--sm"
+          onClick={prevMonth}
+          aria-label="previous month"
+        >
+          <ChevronLeft size={15} />
+        </button>
+        <span className="dp-header__label">
+          {formatMonthYear(viewYear, viewMonth, lang)}
+        </span>
+        <button
+          type="button"
+          className="btn btn--ghost btn--icon btn--sm"
+          onClick={nextMonth}
+          aria-label="next month"
+        >
+          <ChevronRight size={15} />
+        </button>
+      </div>
+
+      <div className="dp-weekdays" aria-hidden="true">
+        {weekdays.map((wd) => (
+          <span key={wd} className="dp-weekday">{wd}</span>
+        ))}
+      </div>
+
+      <div className="dp-grid">
+        {days.map((d, i) => {
+          const iso = toIso(d);
+          const isSelected = iso === value;
+          const isToday = iso === TODAY;
+          const outside = isOutside(d);
+          const disab = isDayDisabled(d);
+          return (
+            <button
+              key={i}
+              type="button"
+              disabled={disab}
+              aria-label={formatAriaDay(d, lang)}
+              aria-pressed={isSelected}
+              className={cn(
+                'dp-day',
+                isSelected && 'dp-day--selected',
+                isToday && !isSelected && 'dp-day--today',
+                outside && 'dp-day--outside',
+                disab && 'dp-day--disabled',
+              )}
+              onClick={() => !disab && selectDay(d)}
+              tabIndex={isSelected ? 0 : -1}
+            >
+              {d.getDate()}
+            </button>
+          );
+        })}
+      </div>
+    </>
+  );
+
   return (
     <div className="field">
       {label && (
@@ -260,75 +329,40 @@ export function DatePicker({
       )}
 
       {mounted && createPortal(
-        <div
-          ref={popoverRef}
-          role="dialog"
-          aria-modal="true"
-          aria-label="calendar"
-          className="dp-popover"
-          data-open-up={pos.openUp}
-          style={{ top: pos.top, left: pos.left }}
-          data-state={closing ? 'closing' : 'open'}
-          onAnimationEnd={handleAnimationEnd}
-        >
-          <div className="dp-header">
-            <button
-              type="button"
-              className="btn btn--ghost btn--icon btn--sm"
-              onClick={prevMonth}
-              aria-label="previous month"
+        isMobile ? (
+          <div
+            className="dp-sheet-overlay"
+            data-state={closing ? 'closing' : 'open'}
+            onMouseDown={closePicker}
+          >
+            <div
+              ref={popoverRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label="calendar"
+              className="dp-popover dp-popover--sheet"
+              data-state={closing ? 'closing' : 'open'}
+              onAnimationEnd={handleAnimationEnd}
+              onMouseDown={(e) => e.stopPropagation()}
             >
-              <ChevronLeft size={15} />
-            </button>
-            <span className="dp-header__label">
-              {formatMonthYear(viewYear, viewMonth, lang)}
-            </span>
-            <button
-              type="button"
-              className="btn btn--ghost btn--icon btn--sm"
-              onClick={nextMonth}
-              aria-label="next month"
-            >
-              <ChevronRight size={15} />
-            </button>
+              {calendarContent}
+            </div>
           </div>
-
-          <div className="dp-weekdays" aria-hidden="true">
-            {weekdays.map((wd) => (
-              <span key={wd} className="dp-weekday">{wd}</span>
-            ))}
+        ) : (
+          <div
+            ref={popoverRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="calendar"
+            className="dp-popover"
+            data-open-up={pos.openUp}
+            style={{ top: pos.top, left: pos.left }}
+            data-state={closing ? 'closing' : 'open'}
+            onAnimationEnd={handleAnimationEnd}
+          >
+            {calendarContent}
           </div>
-
-          <div className="dp-grid">
-            {days.map((d, i) => {
-              const iso = toIso(d);
-              const isSelected = iso === value;
-              const isToday = iso === TODAY;
-              const outside = isOutside(d);
-              const disab = isDayDisabled(d);
-              return (
-                <button
-                  key={i}
-                  type="button"
-                  disabled={disab}
-                  aria-label={formatAriaDay(d, lang)}
-                  aria-pressed={isSelected}
-                  className={cn(
-                    'dp-day',
-                    isSelected && 'dp-day--selected',
-                    isToday && !isSelected && 'dp-day--today',
-                    outside && 'dp-day--outside',
-                    disab && 'dp-day--disabled',
-                  )}
-                  onClick={() => !disab && selectDay(d)}
-                  tabIndex={isSelected ? 0 : -1}
-                >
-                  {d.getDate()}
-                </button>
-              );
-            })}
-          </div>
-        </div>,
+        ),
         document.body,
       )}
     </div>

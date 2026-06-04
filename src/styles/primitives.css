@@ -1216,9 +1216,61 @@ select.input {
 @media (prefers-reduced-motion: reduce) {
   .dp-popover { animation: iv-fade-in var(--dur-fast) var(--ease) both; }
   .dp-popover[data-state="closing"] { animation: iv-fade-out var(--dur-fast) var(--ease) both; }
+  .dp-popover--sheet { animation: iv-fade-in var(--dur-fast) var(--ease) both; }
+  .dp-popover--sheet[data-state="closing"] { animation: iv-fade-out var(--dur-fast) var(--ease) both; }
+  .dp-sheet-overlay,
+  .dp-sheet-overlay[data-state="closing"] { animation: none; }
   .dp-day { transition: background 80ms var(--ease), color 80ms var(--ease); }
   .dp-day:hover:not(.dp-day--selected) { transform: none; }
 }
+
+/* ── DatePicker: bottom-sheet variant on small screens ─────────
+   On phones the fixed-position popover can clip and does not
+   match the bottom-sheet mental model; the overlay mirrors the
+   Modal sheet pattern (iv-modal-sheet-in/out) so the motion
+   language stays consistent across all temporary surfaces. */
+.dp-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: oklch(0% 0 0 / 0.4);
+  display: flex;
+  align-items: flex-end;
+  animation: iv-fade-in 200ms var(--ease) both;
+}
+.dp-sheet-overlay[data-state="closing"] {
+  animation: iv-fade-out 200ms var(--ease) both;
+}
+
+.dp-popover--sheet {
+  position: relative;
+  top: auto;
+  left: auto;
+  width: 100%;
+  max-width: 100%;
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+  animation: iv-dp-sheet-in 320ms cubic-bezier(.16,1,.3,1) both;
+}
+.dp-popover--sheet::before {
+  content: "";
+  display: block;
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-strong);
+  margin: var(--space-2) auto var(--space-1);
+  pointer-events: none;
+}
+.dp-popover--sheet[data-state="closing"] {
+  animation: iv-dp-sheet-out 240ms cubic-bezier(.4,0,1,1) both;
+}
+
+@keyframes iv-dp-sheet-in  { from { opacity: 0; transform: translateY(60px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes iv-dp-sheet-out { from { opacity: 1; transform: translateY(0);    } to { opacity: 0; transform: translateY(40px); } }
 
 /* ============================================================
    Mobile UX improvements
