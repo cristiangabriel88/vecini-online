@@ -277,7 +277,7 @@ Surfaced from a performance report: the shared primitives in `src/shared/compone
 
 Done: Wrapped all five primitives in `React.memo`. For `forwardRef` components (`Button`, `Input`, `Textarea`, `Select`), an intermediate `*Base` const holds the `forwardRef(...)` call and the named export is `memo(Base)` — this preserves the ref type, display name (from the inner function name), and all accessibility wiring (`aria-busy`, `aria-invalid`, `aria-describedby`, `htmlFor`). For plain function components (`Card`, `Badge`), the export is rewritten as `memo(function ComponentName(...) {...})` inline. 8 new assertions in `tests/unit/primitiveMemo.test.ts` verify both the memo wrap and the preserved a11y attributes. 282 files / 2698 tests / lint + typecheck + build + build:pi + build:demo all green.
 
-### ⬜ T234 — [P2] Visible-state adapter for the assistant (DOM grounding foundation)
+### ✅ T234 — [P2] Visible-state adapter for the assistant (DOM grounding foundation)
 
 The in-app assistant (`src/features/assistant/`) answers from a global, role-filtered
 knowledge base, but it has no awareness of what is actually on the user's screen. To make it
