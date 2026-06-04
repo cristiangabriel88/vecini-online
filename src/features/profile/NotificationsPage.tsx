@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Bell, BellOff, CheckCheck, Copy, ExternalLink, Link2Off, Mail, MailX, Moon, Send } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -44,7 +44,7 @@ function useRelativeAge(createdAt: number): string {
   return t('notifications.daysAgo', { count: Math.floor(hours / 24) });
 }
 
-function NotifRow({ n, onRead }: { n: AppNotification; onRead: (id: string) => void }) {
+const NotifRow = memo(function NotifRow({ n, onRead }: { n: AppNotification; onRead: (id: string) => void }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const rl = roleLabel(n.data.role ?? '', t);
@@ -112,7 +112,7 @@ function NotifRow({ n, onRead }: { n: AppNotification; onRead: (id: string) => v
       </div>
     </div>
   );
-}
+});
 
 /** Panel for the resident to link / unlink their Telegram account (T68). */
 function TelegramLinkPanel({
@@ -388,6 +388,7 @@ export default function NotificationsPage() {
   const prefsStore = useNotifPrefsStore();
   const notifications = store.forUser(userId, currentAsociatieId);
   const unread = notifications.filter((n) => n.readAt === null).length;
+  const storeMarkRead = store.markRead;
 
   // Hydrate notifications + prefs from the backend on mount (live mode only).
   useEffect(() => {
@@ -409,11 +410,11 @@ export default function NotificationsPage() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleRead = (id: string) => {
+  const handleRead = useCallback((id: string) => {
     const now = Date.now();
-    store.markRead(id);
+    storeMarkRead(id);
     syncMarkRead(id, now);
-  };
+  }, [storeMarkRead]);
   const handleMarkAllRead = () => {
     const now = Date.now();
     store.markAllRead(userId, currentAsociatieId, now);

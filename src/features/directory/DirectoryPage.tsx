@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Contact, Phone, Mail, DoorOpen, Car, User, ChevronRight } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
@@ -40,16 +40,17 @@ export default function DirectoryPage() {
   const me = entries.find((e) => e.user_id === effectiveMyUserId);
   const otherEntries = entries.filter((e) => e.user_id !== effectiveMyUserId);
 
-  const neighbourFieldsMap: Record<string, DirectoryCustomField[]> = {};
-  for (const e of otherEntries) {
-    const profile = profileGet(e.user_id, e.email);
-    neighbourFieldsMap[e.id] = neighbourVisibleFields(profile.customFields).map((f) => ({
-      label: f.label,
-      value: f.value,
-    }));
-  }
-
-  const others = searchDirectory(otherEntries, query, neighbourFieldsMap);
+  const others = useMemo(() => {
+    const map: Record<string, DirectoryCustomField[]> = {};
+    for (const e of otherEntries) {
+      const profile = profileGet(e.user_id, e.email);
+      map[e.id] = neighbourVisibleFields(profile.customFields).map((f) => ({
+        label: f.label,
+        value: f.value,
+      }));
+    }
+    return searchDirectory(otherEntries, query, map);
+  }, [otherEntries, query, profileGet]);
 
   const adminEntry = adminViewEntry
     ? entries.find((e) => e.id === adminViewEntry) ?? null

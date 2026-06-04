@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Download, History, ScrollText, ShieldAlert, ShieldCheck, ShieldX } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
@@ -15,6 +15,7 @@ import { formatDateTime } from '@/shared/lib/format';
 import { DEMO_ASOCIATIE } from '@/shared/demo/demoData';
 import {
   type AuditAction,
+  type AuditEntry,
   type AuditEntity,
   AUDIT_ACTIONS,
   AUDIT_ENTITIES,
@@ -27,6 +28,31 @@ import {
 
 /** Roles allowed to read the audit trail (mirrors the table RLS). */
 const AUDIT_ADMIN_ROLES = ['admin', 'presedinte'] as const;
+
+const AuditRow = memo(function AuditRow({ e }: { e: AuditEntry }) {
+  const { t } = useTranslation();
+  return (
+    <li className="audit-row">
+      <div className="audit-row__head">
+        <Badge tone={ACTION_TONE[e.action]}>{t(`audit.action.${e.action}`)}</Badge>
+        <span className="audit-row__entity">
+          <ScrollText size={14} /> {t(`audit.entity.${e.entity}`)}: {e.entity_label}
+        </span>
+        <span className="text-sm text-muted audit-row__when">{formatDateTime(e.at)}</span>
+      </div>
+      <p className="text-sm text-muted audit-row__meta">
+        <span className="audit-row__actor">{e.actor_name}</span>
+        {(e.before !== null || e.after !== null) && (
+          <span className="audit-row__change">
+            {' · '}
+            {e.before !== null ? e.before : '∅'} {'→'} {e.after !== null ? e.after : '∅'}
+          </span>
+        )}
+        <span className="audit-row__seq iv-mono"> · #{e.seq}</span>
+      </p>
+    </li>
+  );
+});
 
 const ACTION_TONE: Record<AuditAction, 'success' | 'danger' | 'warning' | 'neutral'> = {
   'feature.enabled': 'success',
@@ -217,25 +243,7 @@ export default function AuditLogPage() {
       ) : (
         <ul className="audit-list">
           {filtered.map((e) => (
-            <li key={e.id} className="audit-row">
-              <div className="audit-row__head">
-                <Badge tone={ACTION_TONE[e.action]}>{t(`audit.action.${e.action}`)}</Badge>
-                <span className="audit-row__entity">
-                  <ScrollText size={14} /> {t(`audit.entity.${e.entity}`)}: {e.entity_label}
-                </span>
-                <span className="text-sm text-muted audit-row__when">{formatDateTime(e.at)}</span>
-              </div>
-              <p className="text-sm text-muted audit-row__meta">
-                <span className="audit-row__actor">{e.actor_name}</span>
-                {(e.before !== null || e.after !== null) && (
-                  <span className="audit-row__change">
-                    {' · '}
-                    {e.before !== null ? e.before : '∅'} → {e.after !== null ? e.after : '∅'}
-                  </span>
-                )}
-                <span className="audit-row__seq iv-mono"> · #{e.seq}</span>
-              </p>
-            </li>
+            <AuditRow key={e.id} e={e} />
           ))}
         </ul>
       )}

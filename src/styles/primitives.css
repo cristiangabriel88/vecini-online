@@ -90,6 +90,7 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xs);
   overflow: hidden;
+  contain: layout style;
   transition: border-color 260ms var(--ease-out), box-shadow 320ms var(--ease-out), transform 320ms var(--ease-out);
 }
 .card--hoverable { cursor: pointer; }
@@ -763,6 +764,7 @@ select.input {
   background: var(--bg-elevated);
   border-bottom: 1px solid var(--border-subtle);
   cursor: pointer;
+  contain: content;
   transition: background 160ms var(--ease-out);
   animation: iv-fade-in var(--dur-fast) var(--ease-out);
 }
