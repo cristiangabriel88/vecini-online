@@ -148,9 +148,11 @@ T22 generates the art. 34 resident notice as a downloadable text and logs the br
 
 Done: Added `breach.authority_notified`, `breach.residents_notified`, `breach.closed` to `AUDIT_ACTIONS`. Added `'breach.resident_notice'` notification kind with builder + `emitBreachResidentNotice` fanout. Updated `deriveConsentKind` to mark breach notices as essential. Wired `onNotifyAuthority` + `onNotifySubjects` + `onAdvance` handlers in `BreachAdminPage` with audit entries and live fan-out. 263 files / 2475 tests / all green.
 
-### ⬜ T58 — [P2] Live activation: Telegram webhook deploy + env (`/start CODE`)
+### ✅ T58 — [P2] Live activation: Telegram webhook deploy + env (`/start CODE`)
 
 Deploy the Netlify webhook function, set `TELEGRAM_BOT_TOKEN`/secret, register the bot + Mini App, and exercise the T50 linking path live. Requires a bot token + deployment. Coordinate with / folds into T15. Prereq: T50.
+
+Done: Created `supabase/migrations/20260604000002_telegram_link_codes.sql` (per-user link codes table with RLS scoped by `user_id = auth.uid() AND is_member(asociatie_id)`). Created `netlify/functions/_shared/telegramStartLive.ts` with `resolveAndPersistStartCode`: checks already-linked (telegram_user_id with non-null user_id), looks up `telegram_link_codes` by normalised code (atomic consume via `consumed_at IS NULL` guard + upsert `telegram_users`), falls through to `invite_codes` path (stores pending link with `session_state` so the user_id is filled when the resident completes onboarding in-app). Added `StartCodeResolver` type + optional `resolveStartCode` to `TelegramWebhookRequest`; `handleMessage` uses the resolver when both the resolver and `msg.from` are present, falling back to `replyChecking` offline. Injected the live resolver in the Netlify adapter when `isSupabaseAdminConfigured`. 8 new unit tests covering all resolver outcomes. 265 files / 2483 tests / lint + typecheck + build + build:pi + build:demo all green.
 
 ### ⬜ T68 — [P2] In-app "Link Telegram" resident surface (mock path, live-ready)
 

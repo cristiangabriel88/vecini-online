@@ -13,6 +13,7 @@
 import { telegram } from './telegramApi';
 import { verifyWebhookSecret } from '../lib/telegramAuth';
 import {
+  type TelegramStartStatus,
   parseStartCommand,
   payloadLooksLikeCode,
   normalizeStartPayload,
@@ -144,7 +145,10 @@ export const FEATURE_COMMANDS: Record<string, string> = {
   '/jurnal': '📜 Jurnal de audit — administratorul vede istoricul modificărilor din asociație (cine, ce și când a schimbat), filtrabil și exportabil, cu un lanț inviolabil verificat la fiecare vizită, în secțiunea „Jurnal de audit”.',
 };
 
-export async function handleMessage(msg: TelegramMessage): Promise<void> {
+export async function handleMessage(
+  msg: TelegramMessage,
+  resolveStartCode?: StartCodeResolver,
+): Promise<void> {
   const text = (msg.text ?? '').trim();
   const start = parseStartCommand(text);
   if (start) {
@@ -152,14 +156,20 @@ export async function handleMessage(msg: TelegramMessage): Promise<void> {
       await telegram.sendMessage(msg.chat.id, replyForStart('no-code'));
       return;
     }
-    // Reject obvious junk by format here; full resolution against the
-    // invite-code lifecycle / per-user link codes (telegramLinkLogic) is wired
-    // into the live webhook in T58, where the database is reachable.
     if (!payloadLooksLikeCode(start.payload)) {
       await telegram.sendMessage(msg.chat.id, replyForStart('unknown'));
       return;
     }
-    await telegram.sendMessage(msg.chat.id, replyChecking(normalizeStartPayload(start.payload)));
+    const normalized = normalizeStartPayload(start.payload);
+    if (resolveStartCode && msg.from) {
+      const status = await resolveStartCode(normalized, msg.from);
+      await telegram.sendMessage(
+        msg.chat.id,
+        replyForStart(status, { name: msg.from.first_name }),
+      );
+    } else {
+      await telegram.sendMessage(msg.chat.id, replyChecking(normalized));
+    }
     return;
   }
   // Strip optional @botname suffix (e.g. /menu@vecini_bot) before routing.
@@ -204,10 +214,24 @@ export async function handleCallback(cq: CallbackQuery): Promise<void> {
 }
 
 /** Dispatch a single Telegram update to the right handler. */
-export async function handleTelegramUpdate(update: Update): Promise<void> {
-  if (update.message) await handleMessage(update.message);
+export async function handleTelegramUpdate(
+  update: Update,
+  resolveStartCode?: StartCodeResolver,
+): Promise<void> {
+  if (update.message) await handleMessage(update.message, resolveStartCode);
   else if (update.callback_query) await handleCallback(update.callback_query);
 }
+
+/**
+ * Optional live resolver for the /start CODE linking path. The Netlify adapter
+ * injects this when Supabase is configured (T58); absent in tests and offline.
+ * Receives the already-normalised code and the Telegram sender, returns the
+ * outcome status after persisting the result to the database.
+ */
+export type StartCodeResolver = (
+  normalizedPayload: string,
+  from: TelegramUser,
+) => Promise<TelegramStartStatus>;
 
 /** A runtime-neutral webhook request: method, the secret header, and a lazy
  *  JSON-body reader that throws on malformed input. */
@@ -215,6 +239,7 @@ export interface TelegramWebhookRequest {
   method: string;
   secretToken: string | null | undefined;
   readJson: () => Promise<unknown>;
+  resolveStartCode?: StartCodeResolver;
 }
 
 /** A runtime-neutral response the adapter maps onto its own reply type. */
@@ -247,7 +272,7 @@ export async function processTelegramWebhook(
   }
 
   try {
-    await handleTelegramUpdate(update);
+    await handleTelegramUpdate(update, req.resolveStartCode);
   } catch (err) {
     console.error('telegram-webhook error', err);
   }

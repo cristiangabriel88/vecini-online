@@ -190,7 +190,7 @@ describe('/start command', () => {
     expect(text.length).toBeGreaterThan(20);
   });
 
-  it('/start with a well-formed code acknowledges it', async () => {
+  it('/start with a well-formed code acknowledges it (no resolver)', async () => {
     await post(msg('/start AB23CD45'));
     expect(sendMessage).toHaveBeenCalledTimes(1);
     const [, text] = sendMessage.mock.calls[0] as [number, string];
@@ -202,6 +202,88 @@ describe('/start command', () => {
     expect(sendMessage).toHaveBeenCalledTimes(1);
     const [, text] = sendMessage.mock.calls[0] as [number, string];
     expect(text).toContain('recunoscut');
+  });
+});
+
+describe('/start command with live resolver', () => {
+  function postWithResolver(
+    body: unknown,
+    resolveStartCode: (code: string, from: { id: number; first_name?: string; username?: string }) => Promise<import('@/shared/lib/telegramStart').TelegramStartStatus>,
+  ) {
+    return processTelegramWebhook({
+      method: 'POST',
+      secretToken: SECRET,
+      readJson: async () => body,
+      resolveStartCode,
+    });
+  }
+
+  function startMsg(code: string) {
+    return { message: { message_id: 1, chat: { id: 42 }, from: { id: 999, first_name: 'Ana' }, text: `/start ${code}` } };
+  }
+
+  it('linked: sends the success reply (not the checking placeholder)', async () => {
+    const resolver = vi.fn().mockResolvedValue('linked');
+    await postWithResolver(startMsg('AB23CD45'), resolver);
+    expect(resolver).toHaveBeenCalledWith('AB23CD45', expect.objectContaining({ id: 999 }));
+    const [, text] = sendMessage.mock.calls[0] as [number, string];
+    expect(text).not.toContain('Verific');
+    expect(text).toContain('Gata');
+  });
+
+  it('already-linked: sends the already-linked reply', async () => {
+    const resolver = vi.fn().mockResolvedValue('already-linked');
+    await postWithResolver(startMsg('AB23CD45'), resolver);
+    const [, text] = sendMessage.mock.calls[0] as [number, string];
+    expect(text).toContain('deja legat');
+  });
+
+  it('expired: sends the expired reply', async () => {
+    const resolver = vi.fn().mockResolvedValue('expired');
+    await postWithResolver(startMsg('AB23CD45'), resolver);
+    const [, text] = sendMessage.mock.calls[0] as [number, string];
+    expect(text).toContain('expirat');
+  });
+
+  it('used: sends the used reply', async () => {
+    const resolver = vi.fn().mockResolvedValue('used');
+    await postWithResolver(startMsg('AB23CD45'), resolver);
+    const [, text] = sendMessage.mock.calls[0] as [number, string];
+    expect(text).toContain('folosit');
+  });
+
+  it('revoked: sends the revoked reply', async () => {
+    const resolver = vi.fn().mockResolvedValue('revoked');
+    await postWithResolver(startMsg('AB23CD45'), resolver);
+    const [, text] = sendMessage.mock.calls[0] as [number, string];
+    expect(text).toContain('dezactivat');
+  });
+
+  it('unknown: sends the unrecognised reply', async () => {
+    const resolver = vi.fn().mockResolvedValue('unknown');
+    await postWithResolver(startMsg('AB23CD45'), resolver);
+    const [, text] = sendMessage.mock.calls[0] as [number, string];
+    expect(text).toContain('recunoscut');
+  });
+
+  it('resolver not called when code format is invalid', async () => {
+    const resolver = vi.fn().mockResolvedValue('linked');
+    await postWithResolver(
+      { message: { message_id: 1, chat: { id: 42 }, from: { id: 999 }, text: '/start BAD' } },
+      resolver,
+    );
+    expect(resolver).not.toHaveBeenCalled();
+  });
+
+  it('falls back to checking placeholder when from is absent', async () => {
+    const resolver = vi.fn().mockResolvedValue('linked');
+    await postWithResolver(
+      { message: { message_id: 1, chat: { id: 42 }, text: '/start AB23CD45' } },
+      resolver,
+    );
+    expect(resolver).not.toHaveBeenCalled();
+    const [, text] = sendMessage.mock.calls[0] as [number, string];
+    expect(text).toContain('Verific');
   });
 });
 
