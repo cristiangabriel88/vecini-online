@@ -335,6 +335,9 @@
     "announcements": "Announcements",
     "actions": "Actions",
     "more": "More",
+    "comunicare": "Communication",
+    "administrare": "Administration",
+    "create": "Create",
     "profile": "Profile",
     "settings": "Settings",
     "features": "Features",
@@ -343,6 +346,15 @@
     "audit": "Audit log",
     "notifications": "Notifications",
     "security": "Security"
+  },
+  "quickCreate": {
+    "title": "Quick create",
+    "report": "New report",
+    "discussion": "New discussion",
+    "event": "New event",
+    "announcement": "New announcement",
+    "vote": "New vote",
+    "empty": "No quick actions available."
   },
   "home": {
     "customize": "Customize",
@@ -2717,6 +2729,7 @@
     "processing": "Data processing (DPA)",
     "breaches": "Data breaches",
     "auditLog": "Audit log",
+    "allFeatures": "All features",
     "primaryNav": "Primary navigation",
     "bottomNav": "Navigation",
     "helpTitle": "Help & support",

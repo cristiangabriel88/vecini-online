@@ -47,33 +47,34 @@
 .atmos__blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(90px);
+  filter: blur(140px);
   animation: atmos-drift 26s var(--ease) infinite alternate;
+  will-change: transform;
 }
 .atmos__blob--1 {
-  width: 58vw;
-  height: 58vw;
-  top: -22vw;
-  left: -16vw;
-  background: radial-gradient(circle, var(--atmos-1), transparent 70%);
+  width: 80vw;
+  height: 70vw;
+  top: -38vw;
+  left: -22vw;
+  background: radial-gradient(ellipse at center, var(--atmos-1) 0%, transparent 88%);
   opacity: var(--atmos-op-1);
 }
 .atmos__blob--2 {
-  width: 48vw;
-  height: 48vw;
-  bottom: -18vw;
-  right: -12vw;
-  background: radial-gradient(circle, var(--atmos-2), transparent 70%);
+  width: 70vw;
+  height: 60vw;
+  bottom: -32vw;
+  right: -18vw;
+  background: radial-gradient(ellipse at center, var(--atmos-2) 0%, transparent 88%);
   opacity: var(--atmos-op-2);
   animation-duration: 34s;
   animation-delay: -9s;
 }
 .atmos__blob--3 {
-  width: 30vw;
-  height: 30vw;
-  top: 42%;
-  left: 58%;
-  background: radial-gradient(circle, var(--atmos-3), transparent 70%);
+  width: 60vw;
+  height: 50vw;
+  top: 28%;
+  left: 28%;
+  background: radial-gradient(ellipse at center, var(--atmos-3) 0%, transparent 88%);
   opacity: var(--atmos-op-3);
   animation-duration: 30s;
   animation-delay: -15s;
@@ -114,6 +115,12 @@
   align-items: center;
   gap: 10px;
   min-width: 0;
+  align-self: stretch;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  /* Suppress the grey flash on tap so the home shortcut feels native on mobile. */
+  -webkit-tap-highlight-color: transparent;
 }
 .topbar__logo {
   width: 28px;
@@ -626,6 +633,7 @@
   grid-column: 2;
   grid-row: 2;
   overflow-y: auto;
+  overflow-x: hidden;
   background: transparent;
   scroll-behavior: smooth;
 }
@@ -683,7 +691,176 @@
   border-radius: 0 0 4px 4px;
   background: var(--primary);
 }
-.bottomnav__icon { width: 22px; height: 22px; }
+.bottomnav__item:active { transform: scale(0.94); }
+.bottomnav__icon {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  transition: transform 220ms var(--ease-spring);
+}
+.bottomnav__item[data-active="true"] .bottomnav__icon { transform: translateY(-1px) scale(1.08); }
+
+/* Unread badge on a tab (Comunicare). */
+.bottomnav__badge {
+  position: absolute;
+  top: -5px;
+  left: 12px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: var(--danger-500);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 15px;
+  text-align: center;
+  border: 1.5px solid oklch(from var(--bg-canvas) l c h);
+}
+
+/* Raised center quick-create FAB. */
+.bottomnav__fab {
+  justify-self: center;
+  align-self: center;
+  width: 52px;
+  height: 52px;
+  margin-top: -18px;
+  border: none;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--primary-contrast, #fff);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 18px -4px oklch(from var(--primary) l c h / 0.55), 0 2px 6px oklch(0 0 0 / 0.18);
+  cursor: pointer;
+  transition: transform 200ms var(--ease-spring), box-shadow 200ms var(--ease-out);
+}
+.bottomnav__fab:hover { transform: translateY(-1px); }
+.bottomnav__fab:active { transform: scale(0.92); }
+
+@media (prefers-reduced-motion: reduce) {
+  .bottomnav,
+  .bottomnav__icon,
+  .bottomnav__fab,
+  .bottomnav__item { transition: none; }
+  .bottomnav__item[data-active="true"] .bottomnav__icon { transform: none; }
+}
+
+/* ── Quick-create bottom sheet ─────────────────────────── */
+.sheet {
+  position: fixed;
+  inset: 0;
+  /* Above the assistant widget (z-index 70) so the FAB menu and its backdrop
+     sit over everything floating in the mobile shell. */
+  z-index: 80;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: oklch(0 0 0 / 0.42);
+  overscroll-behavior: contain;
+  touch-action: none;
+  animation: sheet-fade 180ms var(--ease-out);
+}
+.sheet__panel {
+  width: 100%;
+  max-width: 520px;
+  background: var(--bg-canvas);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  border-bottom: none;
+  padding: var(--space-2) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom));
+  box-shadow: 0 -12px 40px -12px oklch(0 0 0 / 0.4);
+  touch-action: auto;
+  overscroll-behavior: contain;
+  animation: sheet-rise 240ms var(--ease-out);
+}
+.sheet__handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border-strong, var(--border-subtle));
+  margin: var(--space-2) auto var(--space-3);
+}
+.sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+.sheet__title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.sheet__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius);
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 140ms var(--ease-out), color 140ms var(--ease-out);
+}
+.sheet__close:hover { background: var(--bg-sunken); color: var(--text-primary); }
+.sheet__empty {
+  padding: var(--space-6) var(--space-2);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.sheet__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-bottom: var(--space-1);
+}
+.sheet__action {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  border: none;
+  background: none;
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background 140ms var(--ease-out);
+}
+.sheet__action:hover { background: var(--bg-sunken); }
+.sheet__action:active { background: var(--bg-surface); }
+.sheet__action-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+  background: var(--primary-soft);
+  color: var(--primary-soft-text);
+}
+@keyframes sheet-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes sheet-rise {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sheet,
+  .sheet__panel { animation: none; }
+}
 
 /* ── Mobile overrides ──────────────────────────────────── */
 .shell--mobile {
@@ -704,14 +881,22 @@
 @media (max-width: 860px) {
   .shell:not(.shell--desktop):not(.shell--mobile) {
     grid-template-columns: 1fr;
-    grid-template-rows: 56px 1fr 64px;
+    grid-template-rows: 56px 1fr;
   }
   .shell:not(.shell--desktop):not(.shell--mobile) .sidebar { display: none; }
-  .shell:not(.shell--desktop):not(.shell--mobile) .main { grid-column: 1; padding-bottom: var(--space-12); }
+  .shell:not(.shell--desktop):not(.shell--mobile) .main { grid-column: 1; }
   .shell:not(.shell--desktop):not(.shell--mobile) .bottomnav { display: block; }
   .shell:not(.shell--desktop):not(.shell--mobile) .topbar__search,
   .shell:not(.shell--desktop):not(.shell--mobile) .topbar__workspace,
   .shell:not(.shell--desktop):not(.shell--mobile) .topbar__sep { display: none; }
+  /* Compact topbar on mobile */
+  .shell:not(.shell--desktop):not(.shell--mobile) .topbar {
+    padding: 0 var(--space-3);
+    gap: var(--space-2);
+  }
+  .shell:not(.shell--desktop):not(.shell--mobile) .topbar__actions {
+    gap: 2px;
+  }
 }
 
 /* ── App footer ────────────────────────────────────────── */
@@ -864,10 +1049,39 @@
   .appfooter__credit { margin-left: 0; flex-basis: 100%; }
 }
 
-/* clear the fixed bottom nav when the real viewport is narrow */
+/* ── Mobile: compact layout for real viewport width ─────────── */
 @media (max-width: 860px) {
+  /* Tighten horizontal padding so content doesn't squeeze at 375px */
+  .shell:not(.shell--desktop):not(.shell--mobile) .main__inner {
+    padding: var(--space-4) var(--space-3) calc(var(--space-16) + var(--space-6));
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Hide the emergency/brand footer block on mobile — the bottomnav is
+     the mobile footer. Keep only the slim legal bar. */
+  .shell:not(.shell--desktop):not(.shell--mobile) .appfooter__inner {
+    display: none;
+  }
+  .shell:not(.shell--desktop):not(.shell--mobile) .appfooter {
+    margin-top: 0;
+  }
   .shell:not(.shell--desktop):not(.shell--mobile) .appfooter__bar {
-    padding-bottom: calc(64px + var(--space-6));
+    padding: var(--space-4) var(--space-4) calc(64px + var(--space-5));
+    gap: var(--space-2);
+    font-size: var(--text-2xs);
+  }
+  .shell:not(.shell--desktop):not(.shell--mobile) .appfooter__dot {
+    display: none;
+  }
+  .shell:not(.shell--desktop):not(.shell--mobile) .appfooter__legal,
+  .shell:not(.shell--desktop):not(.shell--mobile) .appfooter__credit {
+    display: none;
+  }
+
+  /* Lift the stage-banner above the fixed bottom nav */
+  .stage-banner {
+    bottom: calc(64px + var(--space-3));
   }
 }
 
@@ -1493,4 +1707,85 @@
   .aboutcard__hero::before { animation: none; }
   .aboutcard__feat { animation: none; opacity: 1; transform: none; }
   .stage-banner { animation: none; }
+}
+
+/* ============================================================
+   Mobile UX improvements
+   ============================================================ */
+
+/* ── Bottom nav: pill indicator ────────────────────────────
+   Replace the thin top-line with a warm, rounded pill sitting
+   behind the icon. The ::before override morphs the existing
+   indicator shape without adding a new layer. */
+.bottomnav__item[data-active="true"]::before {
+  top: 3px;
+  left: 50%;
+  width: 48px;
+  height: 28px;
+  transform: translateX(-50%);
+  border-radius: var(--radius-full);
+  background: var(--primary-soft);
+}
+/* Slightly larger icon with a gentle lift on active */
+.bottomnav__icon {
+  width: 23px;
+  height: 23px;
+  transition: transform 220ms var(--ease-spring);
+}
+.bottomnav__item[data-active="true"] .bottomnav__icon {
+  transform: translateY(-1px) scale(1.06);
+}
+/* Taller hit areas, more readable labels */
+.bottomnav__item { min-height: 50px; font-size: 11.5px; }
+
+/* ── Command palette: bottom-sheet on narrow viewports ─────
+   Sliding up from the bottom is thumb-friendly and avoids
+   the virtual keyboard pushing the palette off screen. */
+@media (max-width: 600px) {
+  .cmdpalette-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .cmdpalette {
+    max-width: 100%;
+    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+  }
+  /* Drag-handle pill above the input row */
+  .cmdpalette::before {
+    content: "";
+    display: block;
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    margin: var(--space-2) auto 0;
+  }
+  .cmdpalette__results { max-height: 40vh; }
+  .cmdpalette[data-state="open"]   { animation: iv-palette-sheet-in  280ms cubic-bezier(.16,1,.3,1); }
+  .cmdpalette[data-state="closing"]{ animation: iv-palette-sheet-out 220ms cubic-bezier(.4,0,1,1) forwards; }
+}
+@keyframes iv-palette-sheet-in  { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes iv-palette-sheet-out { from { opacity: 1; transform: translateY(0);    } to { opacity: 0; transform: translateY(30px); } }
+
+/* ── User menu: expand panel on small phones ───────────────
+   312 px is tight on a 375 px screen once the right offset is
+   applied; widen it to fill the available space. */
+@media (max-width: 480px) {
+  .usermenu__panel {
+    width: calc(100vw - var(--space-8));
+    right: calc(var(--space-4) * -1);
+  }
+}
+
+/* ── Topbar: hide wordmark on very narrow viewports ──────── */
+@media (max-width: 360px) {
+  .topbar__wordmark { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bottomnav__icon,
+  .bottomnav__item[data-active="true"] .bottomnav__icon { transition: none; transform: none; }
 }

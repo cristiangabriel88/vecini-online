@@ -187,13 +187,13 @@
   --primary-soft:   var(--accent-100);
   --primary-soft-text: var(--accent-600);
 
-  /* Atmosphere — deeper, warmer brown haze with more presence on dark */
-  --atmos-1: oklch(49% 0.082 var(--atmos-hue));
-  --atmos-2: oklch(41% 0.07 calc(var(--atmos-hue) - 9));
-  --atmos-3: oklch(56% 0.06 calc(var(--atmos-hue) + 16));
-  --atmos-op-1: 0.34;
-  --atmos-op-2: 0.26;
-  --atmos-op-3: 0.2;
+  /* Atmosphere — subtler unified warm haze; tighter hue range so blobs merge */
+  --atmos-1: oklch(48% 0.056 var(--atmos-hue));
+  --atmos-2: oklch(40% 0.048 calc(var(--atmos-hue) - 4));
+  --atmos-3: oklch(52% 0.044 calc(var(--atmos-hue) + 8));
+  --atmos-op-1: 0.28;
+  --atmos-op-2: 0.20;
+  --atmos-op-3: 0.15;
   --atmos-grain: 0.5;
 
   --success-500: oklch(72% 0.13 150);
@@ -241,9 +241,23 @@
   --space-8: 28px;
 }
 
+/* ── Mobile typography ─────────────────────────────────── */
+/* Bump the small text sizes 1px on mobile for comfortable
+   reading on high-density small screens. Large display sizes
+   (xl and up) are already appropriate and left untouched. */
+@media (max-width: 600px) {
+  :root {
+    --text-2xs: 12px;
+    --text-xs:  13px;
+    --text-sm:  14px;
+    --text-base: 15px;
+  }
+}
+
 /* ── Base ──────────────────────────────────────────────── */
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
+html { overflow-x: hidden; }
 body {
   background: var(--bg-canvas);
   color: var(--text-primary);

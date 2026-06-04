@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate, NavLink, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Home, Megaphone, Zap, Menu, User, Bell, Moon, Sun, Settings, Search, ChevronDown, Info, Phone, Siren, ArrowUpRight, Globe, KeyRound, ShieldCheck, ClipboardList, ScrollText, Building2, LayoutDashboard, Activity, TriangleAlert, UserCog, MessagesSquare } from 'lucide-react';
+import { Home, Menu, User, Bell, Moon, Sun, Settings, Search, ChevronDown, Info, Phone, Siren, ArrowUpRight, Globe, ScrollText, Building2, LayoutDashboard, Activity, TriangleAlert, UserCog, MessagesSquare, Plus, type LucideIcon } from 'lucide-react';
 import { CommandPalette } from '@/shared/search/CommandPalette';
 import { FEATURES, FEATURE_CATEGORIES, categoryLabel, featureTitle, type FeatureCategory } from '@/shared/features/registry';
 import { useAsociatieFlags } from '@/shared/features/featureStore';
@@ -14,6 +14,8 @@ import { useCurrentAsociatie } from '@/features/admin/asociatieStore';
 import { scariList } from '@/features/admin/buildingLogic';
 import { useProfileStore, useMyIdentity } from '@/features/profile/profileStore';
 import { useNotificationStore } from '@/shared/store/notificationStore';
+import { ADMIN_NAV_ITEMS } from '@/shared/nav/adminNav';
+import { QuickCreateSheet } from './QuickCreateSheet';
 import { Icon } from '@/shared/components/Icon';
 import { Atmosphere } from '@/shared/components/Atmosphere';
 import { UserMenu } from '@/shared/components/UserMenu';
@@ -239,54 +241,15 @@ function Sidebar() {
         <GroupHeader id="admin" label={t('chrome.admin')} />
         <div className="sidebar__collapse" data-collapsed={collapsed['admin'] ? 'true' : 'false'}>
           <div className="sidebar__collapse-inner">
-            <NavItem
-              label={t('chrome.features')}
-              active={isActive('admin/functionalitati')}
-              onClick={() => navigate('/app/admin/functionalitati')}
-              icon={<Settings size={16} />}
-            />
-            <NavItem
-              label={t('chrome.building')}
-              active={isActive('admin/cladire')}
-              onClick={() => navigate('/app/admin/cladire')}
-              icon={<Building2 size={16} />}
-            />
-            <NavItem
-              label={t('chrome.apartments')}
-              active={isActive('admin/apartamente')}
-              onClick={() => navigate('/app/admin/apartamente')}
-              icon={<Home size={16} />}
-            />
-            <NavItem
-              label={t('chrome.invites')}
-              active={isActive('admin/invitatii')}
-              onClick={() => navigate('/app/admin/invitatii')}
-              icon={<KeyRound size={16} />}
-            />
-            <NavItem
-              label={t('chrome.dataRequests')}
-              active={isActive('admin/cereri-date')}
-              onClick={() => navigate('/app/admin/cereri-date')}
-              icon={<ShieldCheck size={16} />}
-            />
-            <NavItem
-              label={t('chrome.processing')}
-              active={isActive('admin/prelucrare-date')}
-              onClick={() => navigate('/app/admin/prelucrare-date')}
-              icon={<ClipboardList size={16} />}
-            />
-            <NavItem
-              label={t('chrome.breaches')}
-              active={isActive('admin/incidente-date')}
-              onClick={() => navigate('/app/admin/incidente-date')}
-              icon={<Siren size={16} />}
-            />
-            <NavItem
-              label={t('chrome.auditLog')}
-              active={isActive('admin/jurnal')}
-              onClick={() => navigate('/app/admin/jurnal')}
-              icon={<ScrollText size={16} />}
-            />
+            {ADMIN_NAV_ITEMS.map((item) => (
+              <NavItem
+                key={item.path}
+                label={t(item.labelKey)}
+                active={isActive(item.path)}
+                onClick={() => navigate(`/app/${item.path}`)}
+                icon={<item.icon size={16} />}
+              />
+            ))}
           </div>
         </div>
       </div>
@@ -330,43 +293,112 @@ function Sidebar() {
   );
 }
 
+interface BottomNavLink {
+  to: string;
+  label: string;
+  icon: LucideIcon;
+  active: boolean;
+  /** Unread count to surface as a badge (0/undefined hides it). */
+  badge?: number;
+}
+
+/** Light haptic tap where the platform supports it (Android); a no-op on iOS. */
+function buzz() {
+  try {
+    navigator.vibrate?.(8);
+  } catch {
+    /* haptics unsupported — non-fatal */
+  }
+}
+
+function BottomNavItem({ link }: { link: BottomNavLink }) {
+  return (
+    <NavLink to={link.to} className="bottomnav__item" data-active={link.active} onClick={buzz}>
+      <span className="bottomnav__icon">
+        <link.icon size={22} strokeWidth={link.active ? 1.9 : 1.6} />
+        {link.badge ? (
+          <span className="bottomnav__badge" aria-hidden="true">
+            {link.badge > 9 ? '9+' : link.badge}
+          </span>
+        ) : null}
+      </span>
+      <span>{link.label}</span>
+    </NavLink>
+  );
+}
+
 function BottomNav() {
   const { t } = useTranslation();
-  const flags = useAsociatieFlags();
   const isActive = useActive();
   const { pathname } = useLocation();
   const isPlatformSuperAdmin = useAuthStore((s) => s.isPlatformSuperAdmin);
+  const role = useAuthStore((s) => s.activeRole)();
+  const isAdmin = isAdminRole(role);
+  const { userId } = useMyIdentity();
+  const currentAsociatieId = useAuthStore((s) => s.currentAsociatieId) ?? '';
+  const unread = useNotificationStore((s) => s.unreadCount(userId, currentAsociatieId));
+  const [createOpen, setCreateOpen] = useState(false);
+
   // The superadmin's mobile nav mirrors its console (overview, asociații,
-  // profile) rather than the resident shortcuts.
-  const items =
-    isPlatformSuperAdmin
-      ? [
-          { to: '/app/platforma', label: t('platform.sections.overview.title'), icon: LayoutDashboard, active: pathname === '/app/platforma' },
-          { to: '/app/platforma/asociatii', label: t('platform.sections.asociatii.title'), icon: Building2, active: isActive('platforma/asociatii') },
-          { to: '/app/profil', label: t('nav.profile'), icon: User, active: isActive('profil') },
-        ]
-      : [
+  // profile) and gets no quick-create FAB.
+  if (isPlatformSuperAdmin) {
+    const items: BottomNavLink[] = [
+      { to: '/app/platforma', label: t('platform.sections.overview.title'), icon: LayoutDashboard, active: pathname === '/app/platforma' },
+      { to: '/app/platforma/asociatii', label: t('platform.sections.asociatii.title'), icon: Building2, active: isActive('platforma/asociatii') },
+      { to: '/app/profil', label: t('nav.profile'), icon: User, active: isActive('profil') },
+    ];
+    return (
+      <nav className="bottomnav" aria-label={t('chrome.bottomNav')}>
+        <div className="bottomnav__inner" style={{ gridTemplateColumns: `repeat(${items.length}, 1fr)` }}>
+          {items.map((it) => (
+            <BottomNavItem key={it.to} link={it} />
+          ))}
+        </div>
+      </nav>
+    );
+  }
+
+  // Resident/admin bar: Home, Comunicare (unread badge), center quick-create
+  // FAB, a role slot (Mai mult for residents, Administrare for admins), Profil.
+  // Anunțuri and Acțiuni are dropped: Acțiuni duplicated a subset of Mai mult,
+  // and Anunțuri is reachable from Home and the Comunicare hub.
+  const roleSlot: BottomNavLink = isAdmin
+    ? { to: '/app/admin', label: t('nav.administrare'), icon: Settings, active: isActive('admin') }
+    : { to: '/app/mai-mult', label: t('nav.more'), icon: Menu, active: isActive('mai-mult') };
+  const left: BottomNavLink[] = [
     { to: '/app', label: t('nav.home'), icon: Home, active: isActive() },
-    ...(flags['F01']
-      ? [{ to: '/app/anunturi', label: t('nav.announcements'), icon: Megaphone, active: isActive('anunturi') }]
-      : []),
-    { to: '/app/actiuni', label: t('nav.actions'), icon: Zap, active: isActive('actiuni') },
-    { to: '/app/mai-mult', label: t('nav.more'), icon: Menu, active: isActive('mai-mult') },
+    { to: '/app/comunicare', label: t('nav.comunicare'), icon: MessagesSquare, active: isActive('comunicare'), badge: unread },
+  ];
+  const right: BottomNavLink[] = [
+    roleSlot,
     { to: '/app/profil', label: t('nav.profile'), icon: User, active: isActive('profil') },
   ];
+
   return (
-    <nav className="bottomnav" aria-label={t('chrome.bottomNav')}>
-      <div className="bottomnav__inner">
-        {items.map((it) => (
-          <NavLink key={it.to} to={it.to} className="bottomnav__item" data-active={it.active}>
-            <span className="bottomnav__icon">
-              <it.icon size={22} strokeWidth={it.active ? 1.9 : 1.6} />
-            </span>
-            <span>{it.label}</span>
-          </NavLink>
-        ))}
-      </div>
-    </nav>
+    <>
+      <nav className="bottomnav" aria-label={t('chrome.bottomNav')}>
+        <div className="bottomnav__inner" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
+          {left.map((it) => (
+            <BottomNavItem key={it.to} link={it} />
+          ))}
+          <button
+            type="button"
+            className="bottomnav__fab"
+            aria-label={t('nav.create')}
+            onClick={() => {
+              buzz();
+              setCreateOpen(true);
+            }}
+          >
+            <Plus size={24} strokeWidth={2.2} />
+          </button>
+          {right.map((it) => (
+            <BottomNavItem key={it.to} link={it} />
+          ))}
+        </div>
+      </nav>
+      {createOpen && <QuickCreateSheet onClose={() => setCreateOpen(false)} />}
+    </>
   );
 }
 
@@ -374,7 +406,6 @@ function Topbar() {
   const { t, i18n } = useTranslation();
   const theme = useThemeStore((s) => s.theme);
   const toggleTheme = useThemeStore((s) => s.toggle);
-  const demo = useAuthStore((s) => s.demo);
   const navigate = useNavigate();
   const lang = i18n.language.startsWith('en') ? 'en' : 'ro';
   const toggleLang = () => void i18n.changeLanguage(lang === 'en' ? 'ro' : 'en');
@@ -415,7 +446,7 @@ function Topbar() {
   return (
     <>
     <header className="topbar">
-      <Link to="/app" className="topbar__brand">
+      <Link to="/app" className="topbar__brand" aria-label={t('chrome.home')}>
         <div className="topbar__logo" aria-hidden="true">
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
             <path
@@ -468,11 +499,6 @@ function Topbar() {
       </div>
 
       <div className="topbar__actions">
-        {demo && (
-          <span className="topbar__demobanner" title={t('chrome.demoData')}>
-            <span>{t('auth.demoMode')}</span>
-          </span>
-        )}
         <button
           className="iconbtn"
           onClick={toggleLang}

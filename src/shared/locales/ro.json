@@ -335,6 +335,9 @@
     "announcements": "Anunțuri",
     "actions": "Acțiuni",
     "more": "Mai mult",
+    "comunicare": "Comunicare",
+    "administrare": "Administrare",
+    "create": "Creează",
     "profile": "Profil",
     "settings": "Setări",
     "features": "Funcționalități",
@@ -343,6 +346,15 @@
     "audit": "Jurnal audit",
     "notifications": "Notificări",
     "security": "Securitate"
+  },
+  "quickCreate": {
+    "title": "Creează rapid",
+    "report": "Sesizare nouă",
+    "discussion": "Discuție nouă",
+    "event": "Eveniment nou",
+    "announcement": "Anunț nou",
+    "vote": "Vot nou",
+    "empty": "Nicio acțiune rapidă disponibilă."
   },
   "home": {
     "customize": "Personalizează",
@@ -2717,6 +2729,7 @@
     "processing": "Prelucrarea datelor (DPA)",
     "breaches": "Incidente de securitate",
     "auditLog": "Jurnal de audit",
+    "allFeatures": "Toate funcționalitățile",
     "primaryNav": "Navigație principală",
     "bottomNav": "Navigație",
     "helpTitle": "Ajutor și suport",

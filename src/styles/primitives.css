@@ -1194,3 +1194,227 @@ select.input {
   .dp-day:hover:not(.dp-day--selected) { transform: none; }
 }
 
+/* ============================================================
+   Mobile UX improvements
+   ============================================================ */
+
+/* ── PageHeader: stack title and actions on narrow screens ──
+   Prevents the actions row from overflowing or getting clipped
+   when both title and buttons compete for a 375px viewport. */
+@media (max-width: 600px) {
+  .pageheader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding-bottom: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+  .pageheader__title { font-size: var(--text-xl); }
+  .pageheader__actions { width: 100%; flex-wrap: wrap; }
+}
+
+/* ── Tabs: horizontally scrollable on mobile ────────────────
+   Wrapping squashes tabs to unreadable widths; a scroll row
+   keeps each tab at its natural size and lets the user swipe. */
+@media (max-width: 600px) {
+  .tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+    max-width: 100%;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { flex-shrink: 0; white-space: nowrap; }
+}
+
+/* ── Modal: bottom-sheet entrance on small screens ──────────
+   Sliding up from the bottom is the native mobile mental model
+   for temporary surfaces; overscroll-behavior: contain stops
+   the page behind from scrolling while the modal is open. */
+@media (max-width: 600px) {
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .modal {
+    max-width: 100%;
+    max-height: 85dvh;
+    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    overscroll-behavior: contain;
+  }
+  /* Drag-handle pill — renders before header content */
+  .modal::before {
+    content: "";
+    display: block;
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border-strong);
+    margin: var(--space-2) auto 0;
+    pointer-events: none;
+  }
+  .modal[data-state="open"]   { animation: iv-modal-sheet-in  320ms cubic-bezier(.16,1,.3,1); }
+  .modal[data-state="closing"]{ animation: iv-modal-sheet-out 240ms cubic-bezier(.4,0,1,1) forwards; }
+}
+@keyframes iv-modal-sheet-in  { from { opacity: 0; transform: translateY(60px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes iv-modal-sheet-out { from { opacity: 1; transform: translateY(0);    } to { opacity: 0; transform: translateY(40px); } }
+
+/* ── Touch targets: 44 px minimum on mobile ─────────────────
+   Apple HIG and WCAG 2.5.8 both recommend 44x44 CSS px
+   as the smallest comfortable tap area on touch devices. */
+@media (max-width: 600px) {
+  .input          { height: 44px; }
+  .select-trigger { height: 44px; }
+  .dp-trigger     { height: 44px; }
+  .btn            { height: 44px; }
+  .btn--sm        { height: 38px; }
+  .btn--icon      { width: 44px;  height: 44px; }
+  .btn--icon.btn--sm { width: 38px; height: 38px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal[data-state="open"],
+  .modal[data-state="closing"] { animation: none; }
+}
+
+/* ── FeatureHub: collapsible category sections + icon tiles ─── */
+.hub-sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.hub-section {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-xs);
+}
+
+.hub-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font-family: inherit;
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-align: left;
+  cursor: pointer;
+  background: none;
+  border: none;
+  transition: background 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+
+.hub-section__header:hover {
+  background: var(--bg-sunken);
+  color: var(--text-secondary);
+}
+
+.hub-section__label { flex: 1; }
+
+.hub-section__chevron {
+  flex-shrink: 0;
+  color: var(--text-faint);
+  transition: transform 360ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hub-section__chevron[data-collapsed="true"] { transform: rotate(-90deg); }
+
+.hub-section__collapse {
+  display: grid;
+  grid-template-rows: 1fr;
+  overflow: hidden;
+  transition: grid-template-rows 360ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hub-section__collapse[data-collapsed="true"] { grid-template-rows: 0fr; }
+
+.hub-section__collapse-inner {
+  min-height: 0;
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hub-section__collapse[data-collapsed="true"] .hub-section__collapse-inner { opacity: 0; }
+
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.hub-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-2);
+  text-align: center;
+  color: var(--text-secondary);
+  border-right: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background 160ms var(--ease-out), color 160ms var(--ease-out);
+  min-height: 80px;
+  min-width: 0;
+}
+
+.hub-card:nth-child(3n) { border-right: none; }
+
+.hub-card:hover {
+  background: var(--bg-sunken);
+  color: var(--text-primary);
+}
+
+.hub-card:hover .hub-card__icon {
+  color: var(--primary);
+  transform: scale(1.1) translateY(-1px);
+}
+
+.hub-card__icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: color 160ms var(--ease-out), transform 220ms var(--ease-spring);
+  display: flex;
+}
+
+.hub-card__title {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  line-height: var(--leading-snug);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  max-width: 100%;
+  word-break: break-word;
+}
+
+@media (max-width: 600px) {
+  .hub-section__header { padding: var(--space-2) var(--space-3); }
+  .hub-card {
+    padding: var(--space-3) var(--space-1);
+    min-height: 68px;
+    gap: var(--space-1);
+  }
+  .hub-card__title { font-size: var(--text-2xs); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hub-section__collapse { transition: none; }
+  .hub-section__collapse-inner { transition: none; }
+  .hub-section__chevron { transition: none; }
+  .hub-card__icon { transition: none; }
+}
+

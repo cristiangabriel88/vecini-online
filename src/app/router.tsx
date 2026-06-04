@@ -74,6 +74,9 @@ const AlertsPage = lazy(() => import('@/features/alerts/AlertsPage'));
 const ProfilePage = lazy(() => import('@/features/profile/ProfilePage'));
 const NotificationsPage = lazy(() => import('@/features/profile/NotificationsPage'));
 const FeaturesAdminPage = lazy(() => import('@/features/admin/FeaturesAdminPage'));
+const AdminHubPage = lazy(() =>
+  import('@/features/admin/AdminHubPage').then((m) => ({ default: m.AdminHubPage })),
+);
 const ApartmentsPage = lazy(() => import('@/features/admin/ApartmentsPage'));
 const ApartmentFormPage = lazy(() => import('@/features/admin/ApartmentFormPage'));
 const BuildingSettingsPage = lazy(() => import('@/features/admin/BuildingSettingsPage'));
@@ -256,6 +259,7 @@ export const router = createBrowserRouter([
       { path: 'cod-siguranta', element: <S><SafetyCodePage /></S> },
       { path: 'evacuare', element: <S><EvacuationPage /></S> },
       { path: 'apartament-info', element: <S><ApartmentInfoPage /></S> },
+      { path: 'comunicare', element: <S><FeatureHubPage categories={['communication']} /></S> },
       { path: 'actiuni', element: <S><FeatureHubPage actions /></S> },
       { path: 'mai-mult', element: <S><FeatureHubPage /></S> },
       { path: 'profil', element: <S><ProfilePage /></S> },
@@ -266,6 +270,7 @@ export const router = createBrowserRouter([
       {
         element: <RequireAdmin />,
         children: [
+          { path: 'admin', element: <S><AdminHubPage /></S> },
           { path: 'admin/functionalitati', element: <S><FeaturesAdminPage /></S> },
           { path: 'admin/apartamente', element: <S><ApartmentsPage /></S> },
           { path: 'admin/apartamente/adauga', element: <S><ApartmentFormPage /></S> },
