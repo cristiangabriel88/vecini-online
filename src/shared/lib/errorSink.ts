@@ -35,5 +35,6 @@ export function buildFetchSink(endpoint: string): (report: ErrorReport) => void 
  */
 export function initErrorSink(): void {
   if (import.meta.env.DEV) return;
+  if (import.meta.env.VITE_APP_STAGE === 'dev') return; // Pi preview has no Netlify functions
   setErrorSink(buildFetchSink(ERROR_REPORT_URL));
 }

@@ -1,15 +1,7 @@
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import { useInviteStore } from '@/shared/store/inviteStore';
+import { sha256Hex } from '@/shared/lib/sha256';
 import type { InviteCode } from './inviteLogic';
-
-/**
- * Compute SHA-256 of a string and return it as lower-case hex.
- * Used to hash the plaintext invite token before storing it in the DB (T128).
- */
-async function sha256Hex(text: string): Promise<string> {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-  return Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, '0')).join('');
-}
 
 /**
  * Live-mode invite persistence (T55): write an invite_codes row to Supabase

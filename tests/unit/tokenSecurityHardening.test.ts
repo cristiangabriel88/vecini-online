@@ -8,6 +8,7 @@ import { resolve } from 'node:path';
 // spinning up a Supabase instance.
 
 const INVITE_WRITE_SRC = resolve(process.cwd(), 'src', 'features', 'invites', 'inviteWriteApi.ts');
+const SHA256_SRC = resolve(process.cwd(), 'src', 'shared', 'lib', 'sha256.ts');
 const ONBOARDING_API_SRC = resolve(process.cwd(), 'src', 'features', 'onboarding', 'onboardingApi.ts');
 const AUDIT_LOGIC_SRC = resolve(process.cwd(), 'src', 'features', 'audit', 'auditLogic.ts');
 const MIGRATION_SRC = resolve(
@@ -20,9 +21,11 @@ const MIGRATION_SRC = resolve(
 describe('inviteWriteApi: token hashing before live storage (T128)', () => {
   const src = readFileSync(INVITE_WRITE_SRC, 'utf8');
 
-  it('defines a sha256Hex helper using crypto.subtle.digest', () => {
+  it('imports and calls sha256Hex (implementation lives in shared/lib/sha256.ts)', () => {
     expect(src).toContain('sha256Hex');
-    expect(src).toContain("crypto.subtle.digest('SHA-256'");
+    // The crypto.subtle.digest call is in the shared utility; verify it is there.
+    const sha256Src = readFileSync(SHA256_SRC, 'utf8');
+    expect(sha256Src).toContain("crypto.subtle.digest('SHA-256'");
   });
 
   it('passes tokenHash (not invite.token) to the DB insert', () => {

@@ -28,4 +28,10 @@ export const supabase: SupabaseClient = createClient(
   },
 );
 
+// Pi DEV runs without the Realtime service. Disconnect immediately so the SDK
+// does not retry the WebSocket every few seconds and flood the console.
+if (import.meta.env.VITE_APP_STAGE === 'dev') {
+  supabase.realtime.disconnect();
+}
+
 export { isSupabaseConfigured };

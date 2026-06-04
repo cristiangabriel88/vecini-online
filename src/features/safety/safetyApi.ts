@@ -13,6 +13,7 @@ const DEC = new TextDecoder();
 const SALT = ENC.encode('vecini-safety-v1');
 
 async function deriveKey(userId: string): Promise<CryptoKey> {
+  if (!crypto.subtle) throw new Error('crypto.subtle unavailable (non-secure context)');
   const raw = await crypto.subtle.importKey('raw', ENC.encode(userId), 'PBKDF2', false, ['deriveKey']);
   return crypto.subtle.deriveKey(
     { name: 'PBKDF2', salt: SALT, iterations: 100_000, hash: 'SHA-256' },
