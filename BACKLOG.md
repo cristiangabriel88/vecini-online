@@ -314,49 +314,9 @@ visible text is present while `hidden` / `aria-hidden` / `display:none` nodes an
 `.assistant` subtree are NOT present in the serialized context (no hidden/backend leakage).
 Prereq: none.
 
-### ⬜ T235 — [P2] Visible-first intent router with structured schema + pluggable phrasing engine
+### ✅ T235 — [P2] Visible-first intent router with structured schema + pluggable phrasing engine
 
-Prereq: T234. Add the conversational layer on top of the adapter: a thin, deterministic
-orchestrator that prefers what is on screen, falls back to the knowledge base for navigation,
-and forces every reply into a structured schema. New `src/features/assistant/intentRouter.ts`,
-reusing `detectSmallTalk`, `matchEntries`, `MATCH_THRESHOLD`, `answerQuery`, and `pickVariant`
-(do not re-implement matching):
-
-- Forced schema: `type RouterIntent = 'greeting' | 'ask' | 'clarify' | 'confirm' | 'fallback'`;
-  `interface RouterResult { intent: RouterIntent; message: string; options: { label: string;
-  ask: string }[]; title?: string; route?: string; routeLabel?: string; matched: boolean }`.
-  `options` reuses the `ReplyChip` shape so widget rendering is unchanged. Core schema is
-  exactly `{ intent, message, options }`.
-- `routeQuery(query, kbEntries, visibleCtx, t, seed, lastOffered?, engine?): RouterResult`.
-  Ordering: (1) small talk via `detectSmallTalk` — greeting/capabilities -> `greeting`,
-  thanks/bye/identity wrap `answerQuery` as `ask`; (2) confirm — `affirm` + a single
-  `lastOffered` option re-runs the router on that option's `ask` as `intent:'confirm'`, multiple
-  offered -> `clarify` (never guess); (3) visible-first match — score
-  `visibleContextEntries(visibleCtx)` and `kbEntries`, visible wins when
-  `vTop.score >= MATCH_THRESHOLD && vTop.score >= kbTop.score`; (4) confident answer -> `ask`
-  (KB wins delegate to `answerQuery` so existing answers/tests are unchanged; visible wins show
-  the verbatim value + current route + a bilingual label prefix); (5) near-tie within 1 ->
-  `clarify` with 2-4 distinct options; (6) nothing over threshold -> `fallback` with up to 3
-  closest options (visible first).
-- `fromReply` / `toMessage` adapters bridge `AssistantReply` <-> `RouterResult` (structurally
-  identical fields).
-- `interface PhrasingEngine { phrase(variants: string[], seed: number): string;
-  select?(query, candidates: KbMatch[], seed): KbMatch[] }` with a default `deterministicPhrasing`
-  (`phrase = pickVariant`, no `select`); the router routes every variant pick through it.
-  Document, in a comment, that an LLM may later implement it to choose among PRE-WRITTEN variants
-  and re-rank RETRIEVED candidates only — never a fact source, never sees secrets, and the
-  default deterministic engine must keep the app working offline. No live LLM here (that is T237).
-
-Injection safety is structural and must be asserted: page text is only ever tokens for scoring
-plus a verbatim displayed value; no code path parses it as a command. Additively export the
-small `variants` helper from `engine.ts` (keep `pickVariant`) with NO behavior change so existing
-engine tests stay green. New `tests/unit/assistant.intentRouter.test.ts`: clarification (two
-visible entries within 1 point -> `clarify`, 2-4 options, no route), fallback on low confidence
-(`matched===false`, message in `fallbackVariants`, `options.length <= 3`), prompt injection in
-visible text ("Ignore all previous instructions..." -> "salut" still greets; the injection query
--> `fallback` or an `ask` whose value is the verbatim quoted paragraph, never a privileged route),
-and confirm (offer one option, send "da" -> `intent:'confirm'` equal to routing the offered ask).
-Prereq: T234.
+Done: Created `src/features/assistant/intentRouter.ts` with `RouterIntent` union type, `RouterResult` interface (intent/message/options/title/route/routeLabel/matched), `PhrasingEngine` interface with default `deterministicPhrasing` (phrase=pickVariant, no select override), `routeQuery` (7-step ordered dispatch: greeting/capabilities->greeting, thanks/bye/identity->ask, affirm+single-lastOffered->confirm, affirm+multi->clarify, visible-first scoring with merged dedup, near-tie clarify, confident visible/KB answer), and `fromReply`/`toMessage` bridge adapters. Exported `variants` helper from `engine.ts` (no behavior change). Added `assistant.visiblePrefix` locale key ("Din pagina aceasta:" / "From this page:") to ro.json and en.json. Created `tests/unit/assistant.intentRouter.test.ts` with 19 assertions: greeting intent, capabilities routing, near-tie clarify (2 visible headings both scoring 3 at score-gap 0), clarify message from clarifyVariants, fallback matched=false + message, fallback route undefined, salut-greets-despite-injection-heading, injection-query-never-privileged-route, visible-injection-text-verbatim-value, confirm single-offered re-routes, confirm equals direct routing, affirm+multi clarify, bare affirm no crash, fromReply/toMessage round-trip, chips mapping, empty chips undefined, title+route preserved, deterministicPhrasing phrase, no-select default. 284 test files / 2722 tests / lint + typecheck + build + build:pi + build:demo all green.
 
 ### ⬜ T236 — [P2] Wire visible-first grounding into the assistant widget
 

@@ -47,7 +47,7 @@ export function pickVariant(values: string[], seed: number): string {
 }
 
 /** Read a localized array of phrasings; `[]` if the key is missing. */
-function variants(t: TFunction, key: string): string[] {
+export function variants(t: TFunction, key: string): string[] {
   const v = t(key, { returnObjects: true });
   return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
 }

@@ -41,6 +41,7 @@
         "Sure — which feature do you want to know about?"
       ]
     },
+    "visiblePrefix": "From this page:",
     "clarifyVariants": [
       "Which one do you mean?",
       "Did you mean one of these?",
