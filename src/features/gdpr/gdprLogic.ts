@@ -636,6 +636,17 @@ export function anonymizeName(locale: Locale): string {
   return ANONYMIZED_NAME[locale] ?? ANONYMIZED_NAME.ro;
 }
 
+/**
+ * Extract non-null photo_path values from a list of rows.
+ * Used by the server-side erasure routine to collect Storage objects that must
+ * be deleted when a resident's photos are erased.
+ */
+export function extractPhotoPaths(
+  rows: Array<{ photo_path?: string | null }>,
+): string[] {
+  return rows.flatMap((r) => (r.photo_path ? [r.photo_path] : []));
+}
+
 /* ------------------------------ retention --------------------------------- */
 
 /** Documented retention period + lawful basis for a data category. */

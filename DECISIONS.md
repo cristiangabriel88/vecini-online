@@ -3,6 +3,14 @@
 Compact, machine-readable log of non-trivial choices. Newest first. Format:
 - choice / why / alternatives rejected (when non-obvious) / blast radius.
 
+## 2026-06-04
+
+### T78 photos bucket: single shared bucket with key-prefix isolation
+- choice: one `photos` Storage bucket for all resident-uploaded feature images (pets, bikes, lending items, marketplace listings, visitor reports, etc.), with object key `<asociatie_id>/<user_id>/<feature>/<filename>`.
+- why: one bucket with path-prefix policies is simpler to manage and RLS-check (the first two path segments carry all the isolation needed) than six per-feature buckets. All policy logic is in one place. The `member-read` policy scopes to `split_part(name,'/',1)::uuid` (asociatie), `member-write/delete` additionally scopes to `split_part(name,'/',2)::uuid = auth.uid()` (own user) so residents can't overwrite each other's photos.
+- alternatives rejected: per-feature buckets -- more migration files, duplicated policy logic, no isolation benefit. Embedding photos in `attachments` bucket -- that bucket is admin-write-only; resident write would require policy changes that weaken the announcements/PV attachment model.
+- blast radius: `supabase/migrations/20260604000001_photos_bucket.sql` (new), `gdpr-erasure.ts` (Phase 0 + 2.5 + visitor_report photo_path null), `gdprLogic.ts` (extractPhotoPaths helper), `tests/unit/gdprStorageErasure.test.ts` (new).
+
 ## 2026-06-03
 
 ### T37 PDF generation: unembedded Type0/Identity-H fonts, no external library

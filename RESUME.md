@@ -5,18 +5,24 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-04
-- last_task: T228 [P2] Notification fan-out for AGA lifecycle
+- last_task: T78 [P2] Erasure/export Storage photo objects
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 261 files / 2455 tests
+- counts: 262 files / 2461 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T78 [P2] Erasure/export must cover Storage photo objects
+- next: T76 [P2] Live activation: deliver breach resident notice + audit stream
 - features: 67/67 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01-F24 + F28-F32 + F33-F55 + F57-F65 (60 features) + auth/invites/onboarding; remaining 7 features offline-first, live-activation queued (F25-F27 bookings already live-wired T208, F56 emergency contacts live-wired earlier). F28/F36/F66 cross-feature glue wired (T104). Platform console: shell + provisioning + live list read + E2E done (T93/T94/T119/T120/T121); oversight tools T95-T99 on hold.
 - e2e: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F18/F19/F20/F21/F22/F23/F24/F25/F26/F27/F28/F29/F30/F31/F32/F33/F34/F35/F36/F37/F38/F39/F40/F41/F44/F47/F48/F50/F51/F52/F53/F57/F62/F63/F65/F66/F67 happy paths green on chromium + mobile (55 features / 82%). Platform shell + provisioning E2E (T119/T121) done. Full smoke harness reworked (T211 done). E2E closure continues T224+.
 - blockers: none.
 - completion_estimate: 76% of original product vision delivered end-to-end (updated 2026-06-04). Detail: all 67 features demo-complete and offline-functional; 60/67 live-wired (90%); security posture ~93% (T212 done, remaining: T141 JWT hook); GDPR surface ~85% (T72 erasure done, T75 ROPA/DPA persistence done, remaining: T76 breach fan-out); Telegram bot handlers complete (T15 done, live deploy T58 remaining); SaaS billing 0% (T19 on hold); platform console ~42% (shell + provisioning + T119/T121 E2E + T120 live list done, oversight T95-T99 on hold); E2E coverage 82% (55/67 features). Blockers to 85%+: T224 scheduled-announcement RLS, Telegram live deploy (T58).
 
 ---
+
+### T78 P2 ✅ 2026-06-04 -- Erasure/export Storage photo objects
+- new: supabase/migrations/20260604000001_photos_bucket.sql (photos bucket + member-read/write-own/delete-own RLS)
+- modified: netlify/functions/gdpr-erasure.ts (Phase 0 collect photo_paths; Phase 1 null visitor_reports.photo_path; Phase 2.5 best-effort Storage remove)
+- modified: src/features/gdpr/gdprLogic.ts (extractPhotoPaths pure helper)
+- new: tests/unit/gdprStorageErasure.test.ts (6 assertions)
 
 ### T218 P2 ✅ 2026-06-03 -- Live-activate F49 Cod portari + F50 Evacuare + F51 PSI + F52 Asigurare + F53 Chei + F54 Vizitatori + F55 Alarmă
 - new: src/features/safety/safetyApi.ts (hydrateSafetyProfile, persistSafetyProfile + AES-GCM encryption)

@@ -6,6 +6,12 @@ Reference only — not read during a normal `make progress` task.
 
 ---
 
+### ✅ T78 — [P2] Erasure/export must cover Storage photo objects (pets/bikes/lending/visitors)
+
+Done: Created migration `supabase/migrations/20260604000001_photos_bucket.sql` adding the `photos` Storage bucket (private, `<asociatie_id>/<user_id>/<feature>/...` key convention) with member-read, member-write-own, and member-delete-own RLS policies. Added `extractPhotoPaths(rows)` pure helper to `gdprLogic.ts`. Extended `gdpr-erasure.ts` with Phase 0 (collect photo_paths from pets/bikes/lending_items/marketplace_listings/visitor_reports before any mutation), a `visitor_reports.photo_path = null` update in Phase 1 (image is personal data even on retained rows), and Phase 2.5 (best-effort `db.storage.from('photos').remove(photoPaths)` after row deletions; errors suppressed so a missing object never blocks erasure). New `tests/unit/gdprStorageErasure.test.ts` with 6 assertions. 262 files / 2461 tests / lint + typecheck + build + build:pi + build:demo all green.
+
+---
+
 ### ✅ T228 — [P2] Notification fan-out for AGA lifecycle (meeting convoked + voting opened)
 
 Done: Added `'aga.convoked'` and `'aga.voting_open'` variants to `NotificationKind` in `notificationLogic.ts`. Added `buildAgaConvokedNotification` (normal priority, data: title/date/location, link: /app/aga) and `buildAgaVotingOpenNotification` (urgent priority, data: title, link: /app/aga) builder functions. Added bilingual locale keys `agaConvoked`, `agaConvokedBody`, `agaVotingOpen`, `agaVotingOpenBody` to both `ro.json` and `en.json`. Added `emitAgaConvoked(meeting, apartments, selfUserId, now?)` and `emitAgaVotingOpen(meeting, apartments, selfUserId, now?)` to `notificationFanout.ts` — both collect unique `claimed_user_id` values from apartment persons, skip empty strings and `selfUserId` (self-notify guard), and are no-ops when there are no recipients; store-first with `persistAndFanOut` behind `isSupabaseConfigured`. Wired into `agaApi.ts`: `convokeMeeting` reads apartments and current user from `useApartmentsStore`/`useAuthStore`, finds the newly-added meeting, and calls `emitAgaConvoked`; `advanceStatus` calls `emitAgaVotingOpen` when the meeting transitions to `in_desfasurare`. Added 12 new unit tests to `notificationFanout.test.ts` (6 per helper: skip-no-apartments, skip-no-claimed-ids, skip-self-notify, emits-to-all-holders, correct-kind-and-data, offline-safe). 261 files / 2455 tests / lint + typecheck + build + build:pi + build:demo all green.

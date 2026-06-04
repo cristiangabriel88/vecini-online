@@ -113,6 +113,33 @@ export default async (req: Request): Promise<Response> => {
   if (!isAdmin) return json(403, { error: 'forbidden' });
 
   // -----------------------------------------------------------------------
+  // Phase 0: Collect Storage photo paths before rows are modified or deleted.
+  // Visitor-report photos are collected here and later erased even though the
+  // row itself is retained (the image is personal data regardless).
+  // -----------------------------------------------------------------------
+
+  const [petRows, bikeRows, lendingRows, marketRows, visitorRows] = await Promise.all([
+    db.from('pets').select('photo_path').eq('owner_user_id', subjectId).eq('asociatie_id', asociatieId),
+    db.from('bikes').select('photo_path').eq('owner_user_id', subjectId).eq('asociatie_id', asociatieId),
+    db.from('lending_items').select('photo_path').eq('owner_user_id', subjectId).eq('asociatie_id', asociatieId),
+    db.from('marketplace_listings').select('photo_path').eq('seller_user_id', subjectId).eq('asociatie_id', asociatieId),
+    db.from('visitor_reports').select('photo_path').eq('reporter_user_id', subjectId).eq('asociatie_id', asociatieId),
+  ]);
+
+  function collectPaths(rows: Array<{ photo_path?: string | null }> | null): string[] {
+    if (!rows) return [];
+    return rows.flatMap((r) => (r.photo_path ? [r.photo_path] : []));
+  }
+
+  const photoPaths: string[] = [
+    ...collectPaths(petRows.data),
+    ...collectPaths(bikeRows.data),
+    ...collectPaths(lendingRows.data),
+    ...collectPaths(marketRows.data),
+    ...collectPaths(visitorRows.data),
+  ];
+
+  // -----------------------------------------------------------------------
   // Phase 1: Null FKs on records that must be RETAINED (anonymize).
   // The rows stay; the identity link is severed. Scoped to this asociatie.
   // -----------------------------------------------------------------------
@@ -127,6 +154,8 @@ export default async (req: Request): Promise<Response> => {
     db.from('anonymous_messages').update({ sender_user_id: null }).eq('sender_user_id', subjectId).eq('asociatie_id', asociatieId),
     db.from('petitions').update({ author_user_id: null }).eq('author_user_id', subjectId).eq('asociatie_id', asociatieId),
     db.from('visitor_reports').update({ reporter_user_id: null }).eq('reporter_user_id', subjectId).eq('asociatie_id', asociatieId),
+    // Visitor-report photos are personal data even on retained rows; null the path.
+    db.from('visitor_reports').update({ photo_path: null }).eq('reporter_user_id', subjectId).eq('asociatie_id', asociatieId),
     // Retained governance records: sever identity but keep the row.
     db.from('votes').update({ voter_user_id: null }).eq('voter_user_id', subjectId).eq('asociatie_id', asociatieId),
     db.from('budget_proposals').update({ author_user_id: null }).eq('author_user_id', subjectId).eq('asociatie_id', asociatieId),
@@ -159,6 +188,16 @@ export default async (req: Request): Promise<Response> => {
     db.from('kids_events').delete().eq('created_by', subjectId).eq('asociatie_id', asociatieId),
     db.from('bookings').delete().eq('booked_by_user_id', subjectId).eq('asociatie_id', asociatieId),
   ]);
+
+  // -----------------------------------------------------------------------
+  // Phase 2.5: Delete Storage photo objects for erased rows (best-effort).
+  // Failures are suppressed so a missing or already-deleted object never blocks
+  // the erasure from completing.
+  // -----------------------------------------------------------------------
+
+  if (photoPaths.length > 0) {
+    await db.storage.from('photos').remove(photoPaths).catch(() => undefined);
+  }
 
   // -----------------------------------------------------------------------
   // Phase 3: Remove the subject's membership for this asociatie.

@@ -138,9 +138,9 @@ Done: Created `public/manifest.webmanifest` with all required fields (`name`, `s
 
 Done: Added `aga.convoked` + `aga.voting_open` to `NotificationKind`, two builder functions in `notificationLogic.ts`, bilingual locale keys (RO + EN), `emitAgaConvoked` + `emitAgaVotingOpen` in `notificationFanout.ts` (dedup claimed holders, skip-empty, skip-self, offline-safe, persistAndFanOut in live mode). Wired into `agaApi.ts` convokeMeeting + advanceStatus via useApartmentsStore + useAuthStore. 12 new unit tests in `notificationFanout.test.ts`. 261 files / 2455 tests / lint + typecheck + build + build:pi + build:demo all green.
 
-### ⬜ T78 — [P2] Erasure/export must cover Storage photo objects (pets/bikes/lending/visitors)
+### ✅ T78 — [P2] Erasure/export must cover Storage photo objects (pets/bikes/lending/visitors)
 
-T73's export carries photo `photo_path` references as metadata, and `ERASURE_PLAN` deletes the pets/bikes/lending listings, but the actual uploaded photo objects live in Supabase Storage. The server-side erasure execution (T72) must also delete those Storage objects for the subject (pets, bikes, lending items, visitor-report photos) so an erased resident's images do not remain, and the export could optionally include signed links to them. Behind `isSupabaseConfigured`; folds into T72's server-side erasure routine. Prereq: T73, T72.
+Done: Created migration `supabase/migrations/20260604000001_photos_bucket.sql` adding the `photos` Storage bucket (private, `<asociatie_id>/<user_id>/<feature>/...` key convention) with member-read, member-write-own, and member-delete-own RLS policies. Added `extractPhotoPaths(rows)` pure helper to `gdprLogic.ts`. Extended `gdpr-erasure.ts` with Phase 0 (collect photo_paths from pets/bikes/lending_items/marketplace_listings/visitor_reports before any mutation), a `visitor_reports.photo_path = null` update in Phase 1 (image is personal data even on retained rows), and Phase 2.5 (best-effort `db.storage.from('photos').remove(photoPaths)` after row deletions; errors suppressed so a missing object never blocks erasure). New `tests/unit/gdprStorageErasure.test.ts` with 6 assertions. 262 files / 2461 tests / lint + typecheck + build + build:pi + build:demo all green.
 
 ### ⬜ T76 — [P2] Live activation: deliver the breach resident notice + record breach events in the audit stream
 
