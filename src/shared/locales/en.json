@@ -2829,7 +2829,9 @@
     },
     "sections": {
       "planned": "Coming soon",
-      "overview": { "title": "Overview" },
+      "overview": {
+        "title": "Overview"
+      },
       "asociatii": {
         "title": "Associations",
         "desc": "List associations and create a new one, provisioning its first administrator."
@@ -3063,6 +3065,44 @@
         "backend-not-configured": "Backend not configured.",
         "failed": "Failed to start session. Try again."
       }
+    },
+    "messenger": {
+      "title": "Admin messenger",
+      "subtitle": "Support threads opened by association managers. Reply directly from this page.",
+      "platform": "Platform",
+      "filterPlaceholder": "Search by association or subject...",
+      "replyPlaceholder": "Write a reply...",
+      "backToInbox": "Back to messages",
+      "status_open": "Open",
+      "status_resolved": "Resolved",
+      "markResolved": "Mark resolved",
+      "reopen": "Reopen",
+      "messageCount": "{{count}} messages",
+      "awaitingReply": "awaiting reply",
+      "empty": "No support threads yet."
     }
+  },
+  "support": {
+    "title": "Contact platform",
+    "subtitle": "Direct channel with the vecini.online team for technical support and platform questions.",
+    "newThread": "New support request",
+    "subject": "Subject",
+    "subjectHint": "e.g. problem activating a module",
+    "message": "Message",
+    "messageHint": "Describe the issue or question in as much detail as possible.",
+    "replyPlaceholder": "Write a reply...",
+    "backToInbox": "Back to messages",
+    "privacyNote": "This conversation is visible only to this association’s managers and platform operators.",
+    "you": "You",
+    "platform": "Platform",
+    "status_open": "Open",
+    "status_resolved": "Resolved",
+    "markResolved": "Mark resolved",
+    "reopen": "Reopen",
+    "threadStarted": "Support request sent.",
+    "writeFailed": "Message could not be saved. Please try again.",
+    "messageCount": "{{count}} messages",
+    "awaitingReply": "reply received",
+    "empty": "No support requests yet. Click the button above to contact the platform."
   }
 }

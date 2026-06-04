@@ -2829,7 +2829,9 @@
     },
     "sections": {
       "planned": "În curând",
-      "overview": { "title": "Prezentare generală" },
+      "overview": {
+        "title": "Prezentare generală"
+      },
       "asociatii": {
         "title": "Asociații",
         "desc": "Listează asociațiile și creează una nouă, provizionând primul administrator."
@@ -3063,6 +3065,44 @@
         "backend-not-configured": "Backend-ul nu este configurat.",
         "failed": "Pornirea sesiunii a eșuat. Încearcă din nou."
       }
+    },
+    "messenger": {
+      "title": "Mesaje cu administratorii",
+      "subtitle": "Firele de asistență deschise de administratorii asociațiilor. Răspunde direct din această pagină.",
+      "platform": "Platformă",
+      "filterPlaceholder": "Caută după asociație sau subiect...",
+      "replyPlaceholder": "Scrie un răspuns...",
+      "backToInbox": "Înapoi la mesaje",
+      "status_open": "Deschis",
+      "status_resolved": "Rezolvat",
+      "markResolved": "Marchează rezolvat",
+      "reopen": "Redeschide",
+      "messageCount": "{{count}} mesaje",
+      "awaitingReply": "așteaptă răspuns",
+      "empty": "Nicio conversație de asistență."
     }
+  },
+  "support": {
+    "title": "Contact platformă",
+    "subtitle": "Canal direct cu echipa vecini.online pentru asistență tehnică și întrebări despre platformă.",
+    "newThread": "Cerere nouă de asistență",
+    "subject": "Subiect",
+    "subjectHint": "ex: problemă la activarea unui modul",
+    "message": "Mesaj",
+    "messageHint": "Descrie problema sau întrebarea cât mai detaliat.",
+    "replyPlaceholder": "Scrie un răspuns...",
+    "backToInbox": "Înapoi la mesaje",
+    "privacyNote": "Conversația este vizibilă doar pentru administratorii acestei asociații și operatorii platformei.",
+    "you": "Tu",
+    "platform": "Platformă",
+    "status_open": "Deschis",
+    "status_resolved": "Rezolvat",
+    "markResolved": "Marchează rezolvat",
+    "reopen": "Redeschide",
+    "threadStarted": "Cerere de asistență trimisă.",
+    "writeFailed": "Mesajul nu a putut fi salvat. Încearcă din nou.",
+    "messageCount": "{{count}} mesaje",
+    "awaitingReply": "răspuns primit",
+    "empty": "Nicio cerere de asistență. Apasă butonul de mai sus pentru a contacta platforma."
   }
 }

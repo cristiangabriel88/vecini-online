@@ -31,7 +31,7 @@ const SECTIONS = [
   { key: 'errors', path: '/consola/erori', icon: TriangleAlert, ready: true },
   { key: 'usage', path: '/consola/utilizare', icon: Activity, ready: true },
   { key: 'impersonation', path: '/consola/impersonare', icon: UserCog, ready: true },
-  { key: 'messenger', path: '/consola/mesaje', icon: MessagesSquare, ready: false },
+  { key: 'messenger', path: '/consola/mesaje', icon: MessagesSquare, ready: true },
 ] as const;
 
 function Header() {

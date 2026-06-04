@@ -788,6 +788,31 @@ export interface PrivateThread {
   messages: PrivateMessage[];
 }
 
+/** T99 -- Support messenger: the asociatie admin or the platform superadmin. */
+export type SupportSender = 'admin' | 'superadmin';
+
+export interface SupportMessage {
+  id: string;
+  thread_id: string;
+  sender: SupportSender;
+  sender_name: string;
+  body: string;
+  created_at: string;
+  read: boolean;
+}
+
+export interface SupportThread {
+  id: string;
+  asociatie_id: string;
+  asociatie_name: string;
+  admin_user_id: string;
+  admin_name: string;
+  subject: string;
+  status: PrivateThreadStatus;
+  created_at: string;
+  messages: SupportMessage[];
+}
+
 /** F11 — archived signed minutes / decisions (`pv_documents`). */
 export interface PvDocument {
   id: string;

@@ -6,11 +6,13 @@ import {
   type AuditEntity,
   GENESIS_HASH,
 } from '@/features/audit/auditLogic';
+import type { SupportMessage, SupportThread } from '@/shared/types/domain';
 import { type PlatformAsociatieSummary } from './demoPlatform';
 import { usePlatformAsociatiiStore } from './platformAsociatiiStore';
 import { usePlatformAuditStore } from './platformAuditStore';
 import { type PlatformErrorReport, usePlatformErrorStore } from './platformErrorStore';
 import { type AssocUsageMetric, deriveHealthStatus, usePlatformUsageStore } from './platformUsageStore';
+import { usePlatformMessengerStore } from './platformMessengerStore';
 
 type RowWithAsoc = { asociatie_id: string };
 type SignInRow = { asociatie_id: string | null; created_at: string };
@@ -323,6 +325,104 @@ export async function hydrateErrorReports(): Promise<void> {
     usePlatformErrorStore.getState().setFetchError('load');
     reportError(err instanceof Error ? err : new Error(String(err)), {
       source: 'platformApi.hydrateErrorReports',
+    });
+  }
+}
+
+interface DbSupportThreadRow {
+  id: string;
+  asociatie_id: string;
+  asociatie_name: string;
+  admin_user_id: string | null;
+  admin_name: string;
+  subject: string;
+  status: string;
+  created_at: string;
+}
+
+interface DbSupportMessageRow {
+  id: string;
+  thread_id: string;
+  sender: string;
+  sender_name: string;
+  body: string;
+  created_at: string;
+  read: boolean;
+}
+
+function rowToSupportThread(row: DbSupportThreadRow, messages: SupportMessage[]): SupportThread {
+  return {
+    id: row.id,
+    asociatie_id: row.asociatie_id,
+    asociatie_name: row.asociatie_name,
+    admin_user_id: row.admin_user_id ?? '',
+    admin_name: row.admin_name,
+    subject: row.subject,
+    status: (row.status as 'open' | 'resolved') ?? 'open',
+    created_at: row.created_at,
+    messages,
+  };
+}
+
+function rowToSupportMessage(row: DbSupportMessageRow): SupportMessage {
+  return {
+    id: row.id,
+    thread_id: row.thread_id,
+    sender: row.sender as 'admin' | 'superadmin',
+    sender_name: row.sender_name,
+    body: row.body,
+    created_at: row.created_at,
+    read: row.read,
+  };
+}
+
+/**
+ * Load all support threads (T99) cross-tenant for the platform messenger inbox.
+ * Uses the superadmin SELECT policy. No-op in demo/offline mode.
+ */
+export async function hydrateAllSupportThreads(): Promise<void> {
+  if (!isSupabaseConfigured) return;
+
+  usePlatformMessengerStore.getState().setFetchError(null);
+
+  try {
+    const [{ data: threadRows, error: threadErr }, { data: msgRows, error: msgErr }] =
+      await Promise.all([
+        supabase
+          .from('support_threads')
+          .select('id, asociatie_id, asociatie_name, admin_user_id, admin_name, subject, status, created_at')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('support_messages')
+          .select('id, thread_id, sender, sender_name, body, created_at, read')
+          .order('created_at', { ascending: true }),
+      ]);
+
+    if (threadErr || msgErr) {
+      usePlatformMessengerStore.getState().setFetchError('load');
+      const err = threadErr ?? msgErr;
+      if (err) reportError(new Error(err.message), { source: 'platformApi.hydrateAllSupportThreads' });
+      return;
+    }
+
+    const msgsByThread: Record<string, SupportMessage[]> = {};
+    for (const row of (msgRows as DbSupportMessageRow[]) ?? []) {
+      (msgsByThread[row.thread_id] ??= []).push(rowToSupportMessage(row));
+    }
+
+    const byAsociatie: Record<string, SupportThread[]> = {};
+    for (const row of (threadRows as DbSupportThreadRow[]) ?? []) {
+      const thread = rowToSupportThread(row, msgsByThread[row.id] ?? []);
+      (byAsociatie[row.asociatie_id] ??= []).push(thread);
+    }
+
+    for (const [asociatieId, threads] of Object.entries(byAsociatie)) {
+      usePlatformMessengerStore.getState().replaceAll(asociatieId, threads);
+    }
+  } catch (err) {
+    usePlatformMessengerStore.getState().setFetchError('load');
+    reportError(err instanceof Error ? err : new Error(String(err)), {
+      source: 'platformApi.hydrateAllSupportThreads',
     });
   }
 }

@@ -5,18 +5,34 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-04
-- last_task: T98 [P2] Audited superadmin impersonation (read-only)
+- last_task: T99 [P2] Admin <-> superadmin support messenger
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 268 files / 2547 tests
+- counts: 275 files / 2567 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T99 [P2] Admin <-> superadmin support messenger
-- features: 67/67 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01-F24 + F28-F32 + F33-F55 + F57-F65 (60 features) + auth/invites/onboarding; remaining 7 features offline-first, live-activation queued (F25-F27 bookings already live-wired T208, F56 emergency contacts live-wired earlier). F28/F36/F66 cross-feature glue wired (T104). Platform console: shell + provisioning + live list read + E2E + cross-tenant audit viewer + error feed + usage/health metrics + audited impersonation done (T93/T94/T119/T120/T121/T95/T96/T97/T98); remaining T99 (messenger).
+- next: T19 [P2] SaaS billing & plans
+- features: 67/67 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01-F24 + F28-F32 + F33-F55 + F57-F65 (60 features) + auth/invites/onboarding; remaining 7 features offline-first, live-activation queued (F25-F27 bookings already live-wired T208, F56 emergency contacts live-wired earlier). F28/F36/F66 cross-feature glue wired (T104). Platform console: T20 umbrella complete (T93/T94/T95/T96/T97/T98/T99/T119/T120/T121 all done).
 - e2e: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F18/F19/F20/F21/F22/F23/F24/F25/F26/F27/F28/F29/F30/F31/F32/F33/F34/F35/F36/F37/F38/F39/F40/F41/F44/F47/F48/F50/F51/F52/F53/F57/F62/F63/F65/F66/F67 happy paths green on chromium + mobile (55 features / 82%). Platform shell + provisioning E2E (T119/T121) done. Full smoke harness reworked (T211 done). E2E closure continues T224+.
 - blockers: none.
-- completion_estimate: 80% of original product vision delivered end-to-end (updated 2026-06-04). Detail: all 67 features demo-complete and offline-functional; 60/67 live-wired (90%); security posture ~93% (T212 done, remaining: T141 JWT hook); GDPR surface ~91% (T72 erasure done, T75 ROPA/DPA persistence done, T76 breach fan-out done, T95 cross-tenant audit viewer done); Telegram bot handlers + live /start resolver complete (T15 + T58 done); SaaS billing 0% (T19 on hold); platform console ~72% (shell + provisioning + T119/T121 E2E + T120 live list + T95 audit viewer + T96 error feed + T97 usage/health + T98 impersonation done, T99 remaining); E2E coverage 82% (55/67 features).
+- completion_estimate: 82% of original product vision delivered end-to-end (updated 2026-06-04). Detail: all 67 features demo-complete and offline-functional; 60/67 live-wired (90%); security posture ~93% (T212 done, remaining: T141 JWT hook); GDPR surface ~91% (T72/T75/T76/T78 done, T95 cross-tenant audit viewer done); Telegram bot handlers + live /start resolver complete (T15 + T58 done); SaaS billing 0% (T19 on hold); platform console 100% of planned features done (T20 umbrella complete: shell + provisioning + E2E + audit viewer + error feed + usage/health + impersonation + messenger); E2E coverage 82% (55/67 features).
 
 ---
+
+### T99 P2 ✅ 2026-06-04 -- Admin <-> superadmin support messenger
+- new: src/shared/types/domain.ts (SupportSender + SupportMessage + SupportThread types)
+- new: supabase/migrations/20260604000005_support_threads.sql (support_threads + support_messages, RLS, admin policies + superadmin SELECT-only policies)
+- new: netlify/functions/support-admin.ts (POST: reply + toggle-status via service-role, verifyBearerToken + re-check platform_admins)
+- new: src/features/support/supportLogic.ts (pure helpers: isValidSubject/Message, lastActivityAt, awaitingReply, unreadFor, sortThreads)
+- new: src/features/support/supportStore.ts (Zustand admin-side store, seeded, persisted)
+- new: src/features/support/SupportPage.tsx (/app/admin/contact-platforma, admin/presedinte/comitet, full thread UI + new-thread modal)
+- new: src/platform/platformMessengerStore.ts (Zustand platform-side store, 3 demo threads, reply/toggleStatus with live Netlify call)
+- new: src/platform/PlatformMessengerPage.tsx (/consola/mesaje, cross-asociatie inbox, search filter, thread view + superadmin reply)
+- modified: src/platform/PlatformLayout.tsx (messenger ready: true)
+- modified: src/platform/platformRouter.tsx (mesaje route + PlatformMessengerPage lazy import)
+- modified: src/platform/platformApi.ts (hydrateAllSupportThreads: SELECT support_threads + support_messages, group by asociatie_id)
+- modified: src/app/router.tsx (admin/contact-platforma route under RequireAdmin)
+- modified: src/shared/locales/ro.json + en.json (support.* + platform.messenger.* keys)
+- new: tests/unit/platformMessenger.test.ts (20 assertions: logic helpers + store seed + actions)
 
 ### T98 P2 ✅ 2026-06-04 -- Audited superadmin impersonation (read-only)
 - modified: src/features/audit/auditLogic.ts (impersonation.started/ended actions + impersonation entity)
