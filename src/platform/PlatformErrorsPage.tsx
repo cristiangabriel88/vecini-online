@@ -6,6 +6,7 @@ import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
+import { DatePicker } from '@/shared/components/DatePicker';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { ErrorState } from '@/shared/components/ErrorState';
 import { formatDateTime } from '@/shared/lib/format';
@@ -109,17 +110,15 @@ export default function PlatformErrorsPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <Input
+          <DatePicker
             label={t('audit.from')}
-            type="date"
             value={from}
-            onChange={(e) => setFrom(e.target.value)}
+            onChange={(v) => setFrom(v)}
           />
-          <Input
+          <DatePicker
             label={t('audit.to')}
-            type="date"
             value={to}
-            onChange={(e) => setTo(e.target.value)}
+            onChange={(v) => setTo(v)}
           />
         </div>
         <div className="mt-3">

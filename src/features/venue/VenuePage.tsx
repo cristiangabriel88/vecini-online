@@ -7,6 +7,7 @@ import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
+import { DatePicker } from '@/shared/components/DatePicker';
 import { Select } from '@/shared/components/Select';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Modal } from '@/shared/components/Modal';
@@ -104,7 +105,7 @@ export default function VenuePage() {
               </option>
             ))}
           </Select>
-          <Input label={t('venue.date')} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          <DatePicker label={t('venue.date')} value={date} onChange={(v) => setDate(v)} />
           <Select label={t('venue.slot')} value={slot} onChange={(e) => setSlot(e.target.value)}>
             {VENUE_SLOTS.map((sl) => (
               <option key={sl} value={sl}>

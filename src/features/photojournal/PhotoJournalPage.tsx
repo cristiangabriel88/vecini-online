@@ -6,6 +6,7 @@ import { PageHeader } from '@/shared/components/PageHeader';
 import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
+import { DatePicker } from '@/shared/components/DatePicker';
 import { Select } from '@/shared/components/Select';
 import { Modal } from '@/shared/components/Modal';
 import { EmptyState } from '@/shared/components/EmptyState';
@@ -168,7 +169,7 @@ export default function PhotoJournalPage() {
               </option>
             ))}
           </Select>
-          <Input label={t('photoJournal.date')} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          <DatePicker label={t('photoJournal.date')} value={date} onChange={(v) => setDate(v)} />
           <Input
             label={t('photoJournal.caption')}
             value={caption}

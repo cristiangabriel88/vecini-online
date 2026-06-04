@@ -7,6 +7,7 @@ import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input, Textarea } from '@/shared/components/Input';
+import { DatePicker } from '@/shared/components/DatePicker';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
@@ -172,11 +173,10 @@ export default function PvDocumentsPage() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
-          <Input
+          <DatePicker
             label={t('pv.date')}
-            type="date"
             value={docDate}
-            onChange={(e) => setDocDate(e.target.value)}
+            onChange={(v) => setDocDate(v)}
           />
           <Input
             label={t('pv.category')}

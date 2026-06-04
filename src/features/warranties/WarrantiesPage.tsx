@@ -7,6 +7,7 @@ import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
+import { DatePicker } from '@/shared/components/DatePicker';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
@@ -131,11 +132,10 @@ export default function WarrantiesPage() {
       >
         <div className="space-y-4">
           <Input label={t('warranties.asset')} value={asset} onChange={(e) => setAsset(e.target.value)} />
-          <Input
+          <DatePicker
             label={t('warranties.purchasedAt')}
-            type="date"
             value={purchasedAt}
-            onChange={(e) => setPurchasedAt(e.target.value)}
+            onChange={(v) => setPurchasedAt(v)}
           />
           <Input
             label={t('warranties.warrantyMonths')}

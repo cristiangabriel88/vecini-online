@@ -13,6 +13,7 @@ import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
+import { DatePicker } from '@/shared/components/DatePicker';
 import { Select } from '@/shared/components/Select';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { ErrorState } from '@/shared/components/ErrorState';
@@ -259,8 +260,8 @@ export default function PlatformAuditPage() {
             value={text}
             onChange={(e) => setText(e.target.value)}
           />
-          <Input label={t('audit.from')} type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
-          <Input label={t('audit.to')} type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+          <DatePicker label={t('audit.from')} value={from} onChange={(v) => setFrom(v)} />
+          <DatePicker label={t('audit.to')} value={to} onChange={(v) => setTo(v)} />
         </div>
         <div className="mt-3">
           <Button variant="ghost" size="sm" onClick={clearFilters}>

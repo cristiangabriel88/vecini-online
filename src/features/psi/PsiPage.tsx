@@ -7,6 +7,7 @@ import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
+import { DatePicker } from '@/shared/components/DatePicker';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
@@ -152,7 +153,7 @@ export default function PsiPage() {
           <Input label={t('psi.asset')} value={asset} onChange={(e) => setAsset(e.target.value)} />
           <Input label={t('psi.kind')} value={kind} onChange={(e) => setKind(e.target.value)} />
           <Input label={t('psi.location')} value={location} onChange={(e) => setLocation(e.target.value)} />
-          <Input label={t('psi.nextCheck2')} type="date" value={nextCheck} onChange={(e) => setNextCheck(e.target.value)} />
+          <DatePicker label={t('psi.nextCheck2')} value={nextCheck} onChange={(v) => setNextCheck(v)} />
         </div>
       </Modal>
     </div>

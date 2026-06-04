@@ -7,6 +7,7 @@ import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input, Textarea } from '@/shared/components/Input';
+import { DatePicker } from '@/shared/components/DatePicker';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
@@ -158,11 +159,10 @@ export default function GroupBuysPage() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
-          <Input
+          <DatePicker
             label={t('groupbuys.deadline')}
-            type="date"
             value={deadline}
-            onChange={(e) => setDeadline(e.target.value)}
+            onChange={(v) => setDeadline(v)}
           />
         </div>
       </Modal>

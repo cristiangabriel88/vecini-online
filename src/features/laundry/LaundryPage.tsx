@@ -6,7 +6,7 @@ import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
-import { Input } from '@/shared/components/Input';
+import { DatePicker } from '@/shared/components/DatePicker';
 import { Select } from '@/shared/components/Select';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Modal } from '@/shared/components/Modal';
@@ -102,7 +102,7 @@ export default function LaundryPage() {
               </option>
             ))}
           </Select>
-          <Input label={t('laundry.date')} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          <DatePicker label={t('laundry.date')} value={date} onChange={(v) => setDate(v)} />
           <Select label={t('laundry.slot')} value={slot} onChange={(e) => setSlot(e.target.value)}>
             {LAUNDRY_SLOTS.map((sl) => (
               <option key={sl} value={sl}>

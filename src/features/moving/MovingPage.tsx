@@ -7,6 +7,7 @@ import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
+import { DatePicker } from '@/shared/components/DatePicker';
 import { Select } from '@/shared/components/Select';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Modal } from '@/shared/components/Modal';
@@ -96,7 +97,7 @@ export default function MovingPage() {
         }
       >
         <div className="space-y-3">
-          <Input label={t('moving.date')} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          <DatePicker label={t('moving.date')} value={date} onChange={(v) => setDate(v)} />
           <Select label={t('moving.slot')} value={slot} onChange={(e) => setSlot(e.target.value)}>
             {MOVING_SLOTS.map((sl) => (
               <option key={sl} value={sl}>

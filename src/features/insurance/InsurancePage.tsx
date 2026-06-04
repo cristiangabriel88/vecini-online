@@ -7,6 +7,7 @@ import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
+import { DatePicker } from '@/shared/components/DatePicker';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
@@ -133,7 +134,7 @@ export default function InsurancePage() {
         <div className="space-y-4">
           <Input label={t('insurance.insurer')} value={insurer} onChange={(e) => setInsurer(e.target.value)} />
           <Input label={t('insurance.policyNumber')} value={policyNumber} onChange={(e) => setPolicyNumber(e.target.value)} />
-          <Input label={t('insurance.expiresAt')} type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} />
+          <DatePicker label={t('insurance.expiresAt')} value={expiresAt} onChange={(v) => setExpiresAt(v)} />
         </div>
       </Modal>
     </div>

@@ -7,6 +7,7 @@ import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input, Textarea } from '@/shared/components/Input';
+import { DatePicker } from '@/shared/components/DatePicker';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
@@ -169,7 +170,7 @@ export default function CrowdfundPage() {
           <Input label={t('crowdfund.titleLabel')} value={title} onChange={(e) => setTitle(e.target.value)} />
           <Textarea label={t('crowdfund.description')} value={description} onChange={(e) => setDescription(e.target.value)} />
           <Input label={t('crowdfund.target')} type="number" min={0} value={target} onChange={(e) => setTarget(e.target.value)} />
-          <Input label={t('crowdfund.deadline')} type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
+          <DatePicker label={t('crowdfund.deadline')} value={deadline} onChange={(v) => setDeadline(v)} />
         </div>
       </Modal>
 

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Camera, Check } from 'lucide-react';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
+import { DatePicker } from '@/shared/components/DatePicker';
 import { Select } from '@/shared/components/Select';
 import i18n from '@/shared/lib/i18n';
 import { DEMO_APARTMENTS } from '@/shared/demo/demoData';
@@ -181,12 +182,11 @@ export function WelcomeProfile({ onComplete }: { onComplete: () => void }) {
           error={errors.carPlate ? t(`profile.err.${errors.carPlate}`) : undefined}
           onChange={(e) => update({ carPlate: e.target.value })}
         />
-        <Input
+        <DatePicker
           label={t('profile.dateOfBirth')}
-          type="date"
           value={profile.dateOfBirth}
           error={errors.dateOfBirth ? t(`profile.err.${errors.dateOfBirth}`) : undefined}
-          onChange={(e) => update({ dateOfBirth: e.target.value })}
+          onChange={(v) => update({ dateOfBirth: v })}
         />
         <div className="welcome-profile__full">
           <Select

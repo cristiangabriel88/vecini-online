@@ -7,6 +7,7 @@ import { Card } from '@/shared/components/Card';
 import { Badge } from '@/shared/components/Badge';
 import { Button } from '@/shared/components/Button';
 import { Input, Textarea } from '@/shared/components/Input';
+import { DatePicker } from '@/shared/components/DatePicker';
 import { Select } from '@/shared/components/Select';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { ErrorState } from '@/shared/components/ErrorState';
@@ -210,8 +211,8 @@ export default function RepairsPage() {
           <Textarea label={t('repairs.descriptionLabel')} value={desc} onChange={(e) => setDesc(e.target.value)} />
           <Input label={t('repairs.contractorLabel')} value={contractor} onChange={(e) => setContractor(e.target.value)} />
           <Input label={t('repairs.costLabel')} inputMode="decimal" value={cost} onChange={(e) => setCost(e.target.value)} />
-          <Input label={t('repairs.performedAtLabel')} type="date" value={performedAt} onChange={(e) => setPerformedAt(e.target.value)} />
-          <Input label={t('repairs.warrantyUntilLabel')} type="date" value={warrantyUntil} onChange={(e) => setWarrantyUntil(e.target.value)} />
+          <DatePicker label={t('repairs.performedAtLabel')} value={performedAt} onChange={(v) => setPerformedAt(v)} />
+          <DatePicker label={t('repairs.warrantyUntilLabel')} value={warrantyUntil} onChange={(v) => setWarrantyUntil(v)} />
         </div>
       </Modal>
     </div>

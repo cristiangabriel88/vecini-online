@@ -7,6 +7,7 @@ import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
+import { DatePicker } from '@/shared/components/DatePicker';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
@@ -154,11 +155,10 @@ export default function SuppliersPage() {
             onChange={(e) => setKind(e.target.value)}
           />
           <Input label={t('suppliers.contact')} value={contact} onChange={(e) => setContact(e.target.value)} />
-          <Input
+          <DatePicker
             label={t('suppliers.contractEnd')}
-            type="date"
             value={contractEnd}
-            onChange={(e) => setContractEnd(e.target.value)}
+            onChange={(v) => setContractEnd(v)}
           />
         </div>
       </Modal>

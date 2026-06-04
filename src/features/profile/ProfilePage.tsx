@@ -21,6 +21,7 @@ import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Input, Textarea } from '@/shared/components/Input';
+import { DatePicker } from '@/shared/components/DatePicker';
 import { Select } from '@/shared/components/Select';
 import { Switch } from '@/shared/components/Switch';
 import { Modal } from '@/shared/components/Modal';
@@ -352,13 +353,12 @@ export default function ProfilePage() {
               onChange={(e) => update({ address: e.target.value })}
             />
             {!isSuperAdmin && (
-              <Input
+              <DatePicker
                 label={t('profile.dateOfBirth')}
-                type="date"
                 hint={t('profile.dobHint')}
                 value={profile.dateOfBirth}
                 error={errors.dateOfBirth ? t(`profile.err.${errors.dateOfBirth}`) : undefined}
-                onChange={(e) => update({ dateOfBirth: e.target.value })}
+                onChange={(v) => update({ dateOfBirth: v })}
               />
             )}
             <Select
@@ -640,7 +640,7 @@ function FieldControl({
     case 'email':
       return <Input type="email" value={field.value} error={error} onChange={(e) => set(e.target.value)} />;
     case 'date':
-      return <Input type="date" value={field.value} error={error} onChange={(e) => set(e.target.value)} />;
+      return <DatePicker value={field.value} error={error} onChange={(v) => set(v)} />;
     case 'link':
       return <Input type="url" value={field.value} error={error} placeholder="https://" onChange={(e) => set(e.target.value)} />;
     case 'text':

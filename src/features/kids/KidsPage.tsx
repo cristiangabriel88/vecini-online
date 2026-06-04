@@ -7,6 +7,7 @@ import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input, Textarea } from '@/shared/components/Input';
+import { DatePicker } from '@/shared/components/DatePicker';
 import { Select } from '@/shared/components/Select';
 import { Modal } from '@/shared/components/Modal';
 import { EmptyState } from '@/shared/components/EmptyState';
@@ -325,7 +326,7 @@ export default function KidsPage() {
             placeholder={t('kids.eventTitleHint')}
           />
           <div className="grid grid-cols-2 gap-3">
-            <Input label={t('kids.date')} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            <DatePicker label={t('kids.date')} value={date} onChange={(v) => setDate(v)} />
             <Input label={t('kids.time')} value={time} onChange={(e) => setTime(e.target.value)} placeholder="17:00" />
           </div>
           <Input

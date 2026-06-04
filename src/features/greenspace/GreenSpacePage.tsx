@@ -7,6 +7,7 @@ import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input } from '@/shared/components/Input';
+import { DatePicker } from '@/shared/components/DatePicker';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
@@ -144,7 +145,7 @@ export default function GreenSpacePage() {
       >
         <div className="space-y-3">
           <Input label={t('green.taskLabel')} value={title} onChange={(e) => setTitle(e.target.value)} />
-          <Input label={t('green.week')} type="date" value={week} onChange={(e) => setWeek(e.target.value)} />
+          <DatePicker label={t('green.week')} value={week} onChange={(v) => setWeek(v)} />
         </div>
       </Modal>
     </div>

@@ -7,6 +7,7 @@ import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Badge } from '@/shared/components/Badge';
 import { Input, Textarea } from '@/shared/components/Input';
+import { DatePicker } from '@/shared/components/DatePicker';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
@@ -149,7 +150,7 @@ export default function MaintenancePage() {
           <Input label={t('maintenance.titleLabel')} value={title} onChange={(e) => setTitle(e.target.value)} />
           <Input label={t('maintenance.vendor')} value={vendor} onChange={(e) => setVendor(e.target.value)} />
           <Input label={t('maintenance.recurrence')} value={recurrence} onChange={(e) => setRecurrence(e.target.value)} />
-          <Input label={t('maintenance.nextDue2')} type="date" value={nextDue} onChange={(e) => setNextDue(e.target.value)} />
+          <DatePicker label={t('maintenance.nextDue2')} value={nextDue} onChange={(v) => setNextDue(v)} />
           <Textarea label={t('maintenance.notes')} value={notes} onChange={(e) => setNotes(e.target.value)} />
         </div>
       </Modal>
