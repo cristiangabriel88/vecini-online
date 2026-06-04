@@ -1,5 +1,6 @@
 import type { Alert, Apartment } from '@/shared/types/domain';
 import { DEMO_ALERTS, DEMO_ASOCIATIE } from '@/shared/demo/demoData';
+import { genId } from '@/shared/lib/id';
 import {
   type NotifEmailPrefs,
   type NotifPriority,
@@ -102,7 +103,7 @@ export function newAlert(
   now: Date = new Date(),
 ): Alert {
   return {
-    id: `al-${now.getTime()}`,
+    id: genId(),
     asociatie_id: asociatieId,
     sender_user_id: senderUserId,
     title: input.title.trim(),

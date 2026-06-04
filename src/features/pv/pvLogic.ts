@@ -1,6 +1,7 @@
 import type { PvDocument } from '@/shared/types/domain';
 import { normalizeSearch } from '@/features/faq/faqLogic';
 import { DEMO_PV_DOCUMENTS, DEMO_ASOCIATIE } from '@/shared/demo/demoData';
+import { genId } from '@/shared/lib/id';
 
 // ── Validation ──────────────────────────────────────────────────────────────
 
@@ -62,7 +63,7 @@ export function pvForAsociatie(
 
 export function newPvDocument(input: NewPvInput, asociatieId: string): PvDocument {
   return {
-    id: `pv-${Date.now()}`,
+    id: genId(),
     asociatie_id: asociatieId,
     title: input.title.trim(),
     doc_date: input.doc_date,

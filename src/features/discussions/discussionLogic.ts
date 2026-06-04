@@ -1,6 +1,7 @@
 import type { DiscussionMessage, DiscussionThread } from '@/shared/types/domain';
 import type { Role } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_DISCUSSIONS } from '@/shared/demo/demoData';
+import { genId } from '@/shared/lib/id';
 
 /** New users are rate-limited to this many messages per hour until vetted. */
 export const NEW_USER_HOURLY_LIMIT = 10;
@@ -159,7 +160,7 @@ export function newThread(
   now: Date = new Date(),
 ): DiscussionThread {
   return {
-    id: `dt-${now.getTime()}`,
+    id: genId(),
     asociatie_id: asociatieId,
     topic: input.topic.trim() || '#general',
     title: input.title.trim(),
@@ -177,7 +178,7 @@ export function newMessage(
   now: Date = new Date(),
 ): DiscussionMessage {
   return {
-    id: `dm-${now.getTime()}`,
+    id: genId(),
     thread_id: threadId,
     author_user_id: author.id,
     author_name: author.name,

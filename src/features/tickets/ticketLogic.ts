@@ -1,6 +1,7 @@
 import type { Role, Ticket, TicketSeverity, TicketStatus } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_TICKETS } from '@/shared/demo/demoData';
 import { type FileValidationError, validateFile } from '@/shared/lib/file';
+import { genId } from '@/shared/lib/id';
 
 export const TICKET_ATTACHMENT_MAX_BYTES = 5 * 1024 * 1024;
 export const TICKET_ATTACHMENT_MAX_FILES = 5;
@@ -137,7 +138,7 @@ export function newTicket(
 ): Ticket {
   const iso = now.toISOString();
   return {
-    id: `t-${now.getTime()}`,
+    id: genId(),
     asociatie_id: asociatieId,
     reporter_user_id: reporterUserId,
     apartment_id: null,

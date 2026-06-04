@@ -72,6 +72,15 @@ describe('announcementsLogic', () => {
     expect(a.scheduled_at).toBeNull();
   });
 
+  it('id is a valid UUID so Supabase uuid column accepts it', () => {
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const a = newAnnouncement({ title: 'T', body_html: '<p>x</p>', category: 'informativ' }, 'a', 'u');
+    const b = newAnnouncement({ title: 'T', body_html: '<p>x</p>', category: 'informativ' }, 'a', 'u');
+    expect(a.id).toMatch(UUID_RE);
+    expect(b.id).toMatch(UUID_RE);
+    expect(a.id).not.toBe(b.id);
+  });
+
   it('addAnnouncementIn prepends, is pure, and is scoped per asociație', () => {
     const before = seedAnnouncements();
     const snapshot = JSON.parse(JSON.stringify(before));

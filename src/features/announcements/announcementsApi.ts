@@ -1,6 +1,7 @@
 import type { Announcement, AnnouncementAttachment } from '@/shared/types/domain';
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import { reportError } from '@/shared/lib/errorReporting';
+import { genId } from '@/shared/lib/id';
 import {
   type NewAnnouncementInput,
   announcementsForAsociatie,
@@ -107,7 +108,7 @@ export async function uploadAnnouncementAttachments(
   const uploaded: AnnouncementAttachment[] = [];
   try {
     for (const file of files) {
-      const id = `att-${Date.now()}-${uploaded.length}`;
+      const id = genId();
       const path = buildAttachmentPath(asociatieId, id, file.name);
       const { error } = await supabase.storage
         .from(BUCKET)

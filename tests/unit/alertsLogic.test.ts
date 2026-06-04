@@ -92,6 +92,15 @@ describe('alertsLogic', () => {
     expect(a.sent_at).toBe(now.toISOString());
   });
 
+  it('id is a valid UUID so Supabase uuid column accepts it', () => {
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const a = newAlert({ title: 'Gaz', body: 'Evacuați' }, 'asoc-b', 'u-1', 9);
+    const b = newAlert({ title: 'Gaz', body: 'Evacuați' }, 'asoc-b', 'u-1', 9);
+    expect(a.id).toMatch(UUID_RE);
+    expect(b.id).toMatch(UUID_RE);
+    expect(a.id).not.toBe(b.id);
+  });
+
   it('addAlertIn prepends, is pure, and is scoped per asociație', () => {
     const before = seedAlerts();
     const snapshot = JSON.parse(JSON.stringify(before));

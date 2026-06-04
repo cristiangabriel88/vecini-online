@@ -3,6 +3,7 @@ import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import { reportError } from '@/shared/lib/errorReporting';
 import { type NewTicketInput, newTicket, ticketsForAsociatie } from './ticketLogic';
 import { useTicketsStore } from './ticketsStore';
+import { genId } from '@/shared/lib/id';
 
 /* Dual-mode sesizări/reclamații repository (F17, T57). The zustand store is the
    synchronous source of truth the page reads; these functions apply each change
@@ -82,7 +83,7 @@ export async function uploadTicketAttachments(
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
     try {
-      const id = `tatt-${Date.now()}-${i}`;
+      const id = genId();
       const path = buildAttachmentPath(asociatieId, ticketId, file.name);
       const { error } = await supabase.storage
         .from(BUCKET)

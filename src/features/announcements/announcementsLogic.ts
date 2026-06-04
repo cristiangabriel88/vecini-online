@@ -5,6 +5,7 @@ import type {
 } from '@/shared/types/domain';
 import { type FileValidationError, validateFile } from '@/shared/lib/file';
 import { DEMO_ANNOUNCEMENTS, DEMO_ASOCIATIE } from '@/shared/demo/demoData';
+import { genId } from '@/shared/lib/id';
 
 /**
  * Announcements (F01) scoped per asociație (T47).
@@ -112,7 +113,7 @@ export function newAnnouncement(
   const scheduledMs = input.scheduled_at ? new Date(input.scheduled_at).getTime() : NaN;
   const isFutureSchedule = Number.isFinite(scheduledMs) && scheduledMs > now.getTime();
   return {
-    id: `an-${now.getTime()}`,
+    id: genId(),
     asociatie_id: asociatieId,
     author_user_id: authorUserId,
     title: input.title,
