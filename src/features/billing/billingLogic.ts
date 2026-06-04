@@ -102,6 +102,71 @@ export function usagePercent(used: number, max: number | null): number {
   return Math.min(100, Math.round((used / max) * 100));
 }
 
+export interface PreContractualRow {
+  label: string;
+  value: string;
+}
+
+const PCT_LABELS = {
+  ro: {
+    service: 'Serviciu',
+    price: 'Preț total (TVA inclus)',
+    period: 'Perioadă de facturare',
+    duration: 'Durată',
+    cancellation: 'Anulare',
+    payment: 'Mijloace de plată',
+  },
+  en: {
+    service: 'Service',
+    price: 'Total price (VAT included)',
+    period: 'Billing period',
+    duration: 'Duration',
+    cancellation: 'Cancellation',
+    payment: 'Payment methods',
+  },
+};
+
+const PCT_STATIC = {
+  ro: {
+    period: 'lunar (30 de zile)',
+    duration: 'nedeterminată, reînnoire automată lunară',
+    cancellation: 'oricând, fără penalități; cu efect la sfârșitul perioadei curente',
+    payment: 'card bancar (procesare Stripe)',
+    free: 'Gratuit',
+  },
+  en: {
+    period: 'monthly (30 days)',
+    duration: 'open-ended, automatic monthly renewal',
+    cancellation: 'any time, no penalty; takes effect at end of current period',
+    payment: 'bank card (Stripe)',
+    free: 'Free',
+  },
+};
+
+export function preContractualRows(plan: BillingPlan, lang: 'ro' | 'en'): PreContractualRow[] {
+  const labels = PCT_LABELS[lang];
+  const statics = PCT_STATIC[lang];
+  const name = lang === 'en' ? plan.name_en : plan.name_ro;
+  const serviceValue =
+    lang === 'ro'
+      ? `Platformă digitală vecini.online — Plan ${name}`
+      : `vecini.online digital platform — ${name} Plan`;
+  const priceValue =
+    plan.price_ron === 0
+      ? statics.free
+      : lang === 'ro'
+        ? `${plan.price_ron.toLocaleString('ro-RO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} lei / lună (TVA inclus)`
+        : `${plan.price_ron.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} lei / month (VAT incl.)`;
+  return [
+    { label: labels.service, value: serviceValue },
+    { label: labels.price, value: priceValue },
+    { label: labels.period, value: statics.period },
+    { label: labels.duration, value: statics.duration },
+    { label: labels.cancellation, value: statics.cancellation },
+    { label: labels.payment, value: statics.payment },
+  ];
+}
+
 export function summariseSubscriptions(
   subs: Subscription[],
 ): Record<SubscriptionStatus, number> {

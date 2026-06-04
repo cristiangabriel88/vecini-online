@@ -831,3 +831,220 @@ select.input {
   .notif-row { animation: none; }
 }
 
+/* ── Billing page (T19) ─────────────────────────────────── */
+.billing-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+.billing-alert--warning { border-color: var(--warning-500); }
+.billing-alert--danger  { border-color: var(--danger-500); }
+
+.billing-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.billing-summary__plan {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.billing-summary__plan-name {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.billing-summary__plan-period {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.billing-summary__status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.billing-meters {
+  margin-top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.billing-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.billing-meter__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.billing-meter__label {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.billing-meter__count {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.billing-meter__bar {
+  height: 6px;
+  background: var(--bg-sunken);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.billing-meter__fill {
+  height: 100%;
+  background: var(--primary-500);
+  border-radius: 999px;
+  transition: width 300ms var(--ease-out);
+}
+.billing-meter__fill[data-over="true"] { background: var(--danger-500); }
+
+.billing-section-title {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: var(--space-6) 0 var(--space-3);
+}
+
+.billing-plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.billing-plan-card { position: relative; }
+.billing-plan-card--current { border-color: var(--primary-500); }
+.billing-plan-card__current-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--primary-500);
+  margin-bottom: var(--space-2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.billing-plan-card__name {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.billing-plan-card__price {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-3);
+}
+.billing-plan-card__limits {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.billing-plan-card__limits li {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.billing-plan-card__cta { width: 100%; }
+
+.billing-invoices-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.billing-invoices-table th,
+.billing-invoices-table td {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-size: var(--text-sm);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.billing-invoices-table th {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+.billing-invoices-table tr:last-child td { border-bottom: none; }
+
+/* ── Checkout modal (T110) ──────────────────────────────── */
+.checkout-modal__table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--space-4);
+}
+.checkout-modal__table th,
+.checkout-modal__table td {
+  padding: var(--space-2) 0;
+  font-size: var(--text-xs);
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: top;
+}
+.checkout-modal__table tr:last-child th,
+.checkout-modal__table tr:last-child td { border-bottom: none; }
+.checkout-modal__table th {
+  font-weight: 500;
+  color: var(--text-muted);
+  width: 42%;
+  padding-right: var(--space-3);
+  text-align: left;
+}
+.checkout-modal__table td {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.checkout-modal__withdrawal {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: oklch(from var(--warning-500) l c h / 0.08);
+  border: 1px solid oklch(from var(--warning-500) l c h / 0.35);
+  border-radius: var(--radius);
+  margin-bottom: var(--space-4);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.checkout-modal__withdrawal svg { flex-shrink: 0; color: var(--warning-500); margin-top: 2px; }
+.checkout-modal__withdrawal strong {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.checkout-modal__withdrawal p {
+  font-size: var(--text-xs);
+  margin: 0 0 var(--space-2);
+  line-height: 1.5;
+}
+.checkout-modal__withdrawal a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-xs);
+  color: var(--primary-500);
+  text-decoration: none;
+}
+.checkout-modal__withdrawal a:hover { text-decoration: underline; }
+
+.checkout-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+

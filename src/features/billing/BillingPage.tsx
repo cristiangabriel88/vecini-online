@@ -21,6 +21,7 @@ import {
   statusTone,
   usagePercent,
 } from './billingLogic';
+import { CheckoutModal } from './CheckoutModal';
 import {
   useAsociatieInvoices,
   useAsociatieSubscription,
@@ -126,6 +127,7 @@ export default function BillingPage() {
   );
 
   const [isHydrating, setIsHydrating] = useState(false);
+  const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isSupabaseConfigured || !currentAsociatieId) return;
@@ -144,8 +146,13 @@ export default function BillingPage() {
     : BILLING_PLANS[0];
 
   const handleUpgrade = (planId: string) => {
-    if (!currentAsociatieId) return;
-    upgradePlan(currentAsociatieId, planId);
+    setPendingPlanId(planId);
+  };
+
+  const handleConfirmUpgrade = () => {
+    if (!currentAsociatieId || !pendingPlanId) return;
+    upgradePlan(currentAsociatieId, pendingPlanId);
+    setPendingPlanId(null);
   };
 
   return (
@@ -233,6 +240,14 @@ export default function BillingPage() {
           />
         ))}
       </div>
+
+      {pendingPlanId && (
+        <CheckoutModal
+          plan={findPlanById(BILLING_PLANS, pendingPlanId) ?? BILLING_PLANS[0]}
+          onConfirm={handleConfirmUpgrade}
+          onClose={() => setPendingPlanId(null)}
+        />
+      )}
 
       {/* Invoice history */}
       <h2 className="billing-section-title">{t('billing.invoicesTitle')}</h2>

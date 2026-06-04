@@ -3163,6 +3163,27 @@
       "past_due": "Plată restantă",
       "unpaid": "Blocat",
       "canceled": "Anulat"
+    },
+    "checkout": {
+      "title": "Confirmare abonament",
+      "serviceLabel": "Serviciu",
+      "priceLabel": "Preț total (TVA inclus)",
+      "periodLabel": "Perioadă de facturare",
+      "periodValue": "lunar (30 de zile)",
+      "durationLabel": "Durată",
+      "durationValue": "nedeterminată, reînnoire automată lunară",
+      "cancelLabel": "Anulare",
+      "cancelValue": "oricând, fără penalități; cu efect la sfârșitul perioadei curente",
+      "paymentLabel": "Mijloace de plată",
+      "paymentValue": "card bancar (procesare Stripe)",
+      "withdrawalTitle": "Dreptul de retragere (OUG nr. 34/2014)",
+      "withdrawalBody": "Ai dreptul de a te retrage în termen de 14 zile fără a justifica decizia. Dacă soliciți activarea imediată a serviciului și acesta este executat integral în termenul de retragere, poți pierde dreptul de retragere. Apasă caseta de mai jos pentru a-ți da acordul expres.",
+      "learnMore": "Informații complete privind drepturile consumatorilor",
+      "consentLabel": "Solicit activarea imediată a serviciului și înțeleg că, dacă serviciul este executat integral în termenul de retragere de 14 zile, pierd dreptul de retragere (OUG nr. 34/2014, art. 16).",
+      "cancel": "Renunță",
+      "confirm": "Confirmă abonamentul",
+      "free": "Gratuit",
+      "priceRon": "{{amount}} lei / lună (TVA inclus)"
     }
   }
 }

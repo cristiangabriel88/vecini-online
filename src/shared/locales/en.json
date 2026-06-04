@@ -3163,6 +3163,27 @@
       "past_due": "Past due",
       "unpaid": "Blocked",
       "canceled": "Canceled"
+    },
+    "checkout": {
+      "title": "Confirm subscription",
+      "serviceLabel": "Service",
+      "priceLabel": "Total price (VAT included)",
+      "periodLabel": "Billing period",
+      "periodValue": "monthly (30 days)",
+      "durationLabel": "Duration",
+      "durationValue": "open-ended, automatic monthly renewal",
+      "cancelLabel": "Cancellation",
+      "cancelValue": "any time, no penalty; takes effect at end of current period",
+      "paymentLabel": "Payment methods",
+      "paymentValue": "bank card (Stripe)",
+      "withdrawalTitle": "Right of withdrawal (OUG no. 34/2014)",
+      "withdrawalBody": "You have the right to withdraw within 14 days without giving any reason. If you request immediate service activation and the service is fully performed within the withdrawal period, you may lose the right of withdrawal. Check the box below to give your express consent.",
+      "learnMore": "Full consumer rights information",
+      "consentLabel": "I request immediate service activation and understand that if the service is fully performed within the 14-day withdrawal period, I lose the right of withdrawal (OUG no. 34/2014, art. 16).",
+      "cancel": "Cancel",
+      "confirm": "Confirm subscription",
+      "free": "Free",
+      "priceRon": "{{amount}} lei / month (VAT incl.)"
     }
   }
 }
