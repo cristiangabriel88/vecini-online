@@ -879,10 +879,8 @@ export default function ApartmentsPage() {
                     <td className="px-4 py-2">
                       <div className="flex justify-center gap-1.5">
                         <button
-                          className="flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200 hover:-translate-y-px active:scale-95 active:translate-y-0"
+                          className="row-action-btn"
                           style={{
-                            width: 30,
-                            height: 30,
                             background: 'var(--primary-soft)',
                             border: '1px solid var(--accent-200)',
                             color: 'var(--primary-soft-text)',
@@ -894,10 +892,8 @@ export default function ApartmentsPage() {
                           <Pencil size={13} />
                         </button>
                         <button
-                          className="flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200 hover:-translate-y-px active:scale-95 active:translate-y-0"
+                          className="row-action-btn"
                           style={{
-                            width: 30,
-                            height: 30,
                             background: 'var(--danger-soft)',
                             border: '1px solid oklch(58% 0.18 25 / 0.22)',
                             color: 'var(--danger-text)',
@@ -940,10 +936,8 @@ export default function ApartmentsPage() {
                   </div>
                   <div className="flex shrink-0 gap-1.5">
                     <button
-                      className="flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200 hover:-translate-y-px active:scale-95 active:translate-y-0"
+                      className="row-action-btn"
                       style={{
-                        width: 32,
-                        height: 32,
                         background: 'var(--primary-soft)',
                         border: '1px solid var(--accent-200)',
                         color: 'var(--primary-soft-text)',
@@ -955,10 +949,8 @@ export default function ApartmentsPage() {
                       <Pencil size={14} />
                     </button>
                     <button
-                      className="flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200 hover:-translate-y-px active:scale-95 active:translate-y-0"
+                      className="row-action-btn"
                       style={{
-                        width: 32,
-                        height: 32,
                         background: 'var(--danger-soft)',
                         border: '1px solid oklch(58% 0.18 25 / 0.22)',
                         color: 'var(--danger-text)',

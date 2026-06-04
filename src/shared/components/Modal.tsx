@@ -128,7 +128,7 @@ export function Modal({ open, onClose, title, children, footer, size = 'md', bar
         ) : (
           <div className="modal__header">
             <h2 id={titleId} className="modal__title">{title}</h2>
-            <button className="iconbtn" onClick={onClose} aria-label={t('common.close')} style={{ width: 32, height: 32 }}>
+            <button className="iconbtn" onClick={onClose} aria-label={t('common.close')}>
               <X size={16} />
             </button>
           </div>

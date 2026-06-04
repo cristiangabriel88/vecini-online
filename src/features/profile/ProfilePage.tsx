@@ -535,7 +535,7 @@ function CustomFieldRow({
       <div className="mb-2 flex items-center justify-between gap-2">
         <button
           className="iconbtn shrink-0 cursor-grab active:cursor-grabbing"
-          style={{ width: 32, height: 32, touchAction: 'none' }}
+          style={{ touchAction: 'none' }}
           aria-label={t('profile.dragReorder')}
           onPointerDown={onDragStart}
           onPointerMove={onDragMove}
@@ -554,7 +554,6 @@ function CustomFieldRow({
         <div className="flex shrink-0 items-center gap-1">
           <button
             className="iconbtn"
-            style={{ width: 32, height: 32 }}
             disabled={isFirst}
             aria-label={t('profile.moveUp')}
             onClick={() => onMove('up')}
@@ -563,7 +562,6 @@ function CustomFieldRow({
           </button>
           <button
             className="iconbtn"
-            style={{ width: 32, height: 32 }}
             disabled={isLast}
             aria-label={t('profile.moveDown')}
             onClick={() => onMove('down')}
@@ -572,7 +570,6 @@ function CustomFieldRow({
           </button>
           <button
             className="iconbtn"
-            style={{ width: 32, height: 32 }}
             aria-label={t('profile.removeField')}
             onClick={onRemove}
           >

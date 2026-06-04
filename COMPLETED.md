@@ -4,6 +4,10 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### ✅ T233 — [P2] Touch-target sizing for in-table action buttons
+
+Done: Added `.row-action-btn` class to `primitives.css` (30px base, flex centering, `border-radius: var(--radius)`, hover/active transforms) with a `@media (max-width: 600px)` override to 44x44px. Updated the same mobile touch-target block to bump `.btn--sm` from 38px to 44px, `.btn--icon.btn--sm` from 38px to 44px, and added `.iconbtn` at 44x44px. Applied `.row-action-btn` to the four inline-style action buttons in `ApartmentsPage.tsx` (desktop table 30px + mobile card 30px), removing the inline `width`/`height` that held them at 30/32px. Removed the `style={{ width: 32, height: 32 }}` inline overrides from the four `iconbtn` custom-field action buttons in `ProfilePage.tsx` (move up, move down, remove, drag handle) and from the `Modal.tsx` close button, so the CSS `@media` rule can take effect. 278 test files / 2673 tests / lint + typecheck + build + build:pi + build:demo all green.
+
 ### ✅ T232 — [P2] DatePicker bottom-sheet variant on phones
 
 Done: Added `isMobile` state to `DatePicker.tsx`; `openPicker` checks `window.innerWidth <= 600` at open-time and skips position computation on mobile. Portal conditionally renders a `.dp-sheet-overlay` wrapper (fixed full-screen, backdrop `oklch(0% 0 0 / 0.4)`, `onMouseDown` closes on tap-outside) with a `.dp-popover .dp-popover--sheet` inner calendar (`stopPropagation` on the inner div prevents the overlay handler from firing). Added to `primitives.css`: `.dp-sheet-overlay` (fixed, flex column, bottom-aligned, fade-in/out), `.dp-popover--sheet` (relative, full-width, rounded top corners, `env(safe-area-inset-bottom)` padding, drag-handle `::before` pill), `iv-dp-sheet-in`/`iv-dp-sheet-out` keyframes mirroring the modal sheet animations, and `prefers-reduced-motion` overrides for both. Updated `handleAnimationEnd` to recognise `iv-dp-sheet-out` for teardown. 277 files / 2668 tests / lint + typecheck + build + build:pi + build:demo all green.
