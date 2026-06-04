@@ -5,18 +5,28 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-04
-- last_task: T96 [P2] Platform error feed (superadmin app)
+- last_task: T97 [P2] Platform usage/health metrics (superadmin app)
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 271 files / 2514 tests
+- counts: 267 files / 2530 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T97 [P2] Platform usage/health metrics (superadmin app)
-- features: 67/67 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01-F24 + F28-F32 + F33-F55 + F57-F65 (60 features) + auth/invites/onboarding; remaining 7 features offline-first, live-activation queued (F25-F27 bookings already live-wired T208, F56 emergency contacts live-wired earlier). F28/F36/F66 cross-feature glue wired (T104). Platform console: shell + provisioning + live list read + E2E + cross-tenant audit viewer + error feed done (T93/T94/T119/T120/T121/T95/T96); remaining oversight tools T97-T99.
+- next: T98 [P2] Audited superadmin impersonation (read-only)
+- features: 67/67 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01-F24 + F28-F32 + F33-F55 + F57-F65 (60 features) + auth/invites/onboarding; remaining 7 features offline-first, live-activation queued (F25-F27 bookings already live-wired T208, F56 emergency contacts live-wired earlier). F28/F36/F66 cross-feature glue wired (T104). Platform console: shell + provisioning + live list read + E2E + cross-tenant audit viewer + error feed + usage/health metrics done (T93/T94/T119/T120/T121/T95/T96/T97); remaining oversight tools T98-T99.
 - e2e: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F18/F19/F20/F21/F22/F23/F24/F25/F26/F27/F28/F29/F30/F31/F32/F33/F34/F35/F36/F37/F38/F39/F40/F41/F44/F47/F48/F50/F51/F52/F53/F57/F62/F63/F65/F66/F67 happy paths green on chromium + mobile (55 features / 82%). Platform shell + provisioning E2E (T119/T121) done. Full smoke harness reworked (T211 done). E2E closure continues T224+.
 - blockers: none.
-- completion_estimate: 79% of original product vision delivered end-to-end (updated 2026-06-04). Detail: all 67 features demo-complete and offline-functional; 60/67 live-wired (90%); security posture ~93% (T212 done, remaining: T141 JWT hook); GDPR surface ~91% (T72 erasure done, T75 ROPA/DPA persistence done, T76 breach fan-out done, T95 cross-tenant audit viewer done); Telegram bot handlers + live /start resolver complete (T15 + T58 done); SaaS billing 0% (T19 on hold); platform console ~55% (shell + provisioning + T119/T121 E2E + T120 live list + T95 audit viewer + T96 error feed done, T97-T99 remaining); E2E coverage 82% (55/67 features).
+- completion_estimate: 80% of original product vision delivered end-to-end (updated 2026-06-04). Detail: all 67 features demo-complete and offline-functional; 60/67 live-wired (90%); security posture ~93% (T212 done, remaining: T141 JWT hook); GDPR surface ~91% (T72 erasure done, T75 ROPA/DPA persistence done, T76 breach fan-out done, T95 cross-tenant audit viewer done); Telegram bot handlers + live /start resolver complete (T15 + T58 done); SaaS billing 0% (T19 on hold); platform console ~65% (shell + provisioning + T119/T121 E2E + T120 live list + T95 audit viewer + T96 error feed + T97 usage/health done, T98-T99 remaining); E2E coverage 82% (55/67 features).
 
 ---
+
+### T97 P2 ✅ 2026-06-04 -- Platform usage/health metrics (superadmin app)
+- new: supabase/migrations/20260604000004_usage_metrics_superadmin_rls.sql (super_admin SELECT on announcements/tickets/votes)
+- new: src/platform/platformUsageStore.ts (AssocUsageMetric, deriveHealthStatus, computeRollup, seeded store)
+- modified: src/platform/platformApi.ts (hydrateUsageMetrics: 7 parallel queries, 30-day activity window)
+- new: src/platform/PlatformUsagePage.tsx (/consola/utilizare: summary bar, search filter, per-asociatie list)
+- modified: src/platform/PlatformLayout.tsx (usage section ready: true)
+- modified: src/platform/platformRouter.tsx (utilizare route + lazy import)
+- modified: src/shared/locales/ro.json + en.json (platform.usage.* keys, all plural forms)
+- new: tests/unit/platformUsage.test.ts (16 assertions: deriveHealthStatus, computeRollup, store seed)
 
 ### T96 P2 ✅ 2026-06-04 -- Platform error feed (superadmin app)
 - new: supabase/migrations/20260604000003_platform_error_reports.sql (platform_error_reports table + super_admin SELECT RLS policy)

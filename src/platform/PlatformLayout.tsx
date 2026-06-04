@@ -28,7 +28,7 @@ const SECTIONS = [
   { key: 'asociatii', path: '/consola/asociatii', icon: Building2, ready: true },
   { key: 'audit', path: '/consola/audit', icon: ScrollText, ready: true },
   { key: 'errors', path: '/consola/erori', icon: TriangleAlert, ready: true },
-  { key: 'usage', path: '/consola/utilizare', icon: Activity, ready: false },
+  { key: 'usage', path: '/consola/utilizare', icon: Activity, ready: true },
   { key: 'impersonation', path: '/consola/impersonare', icon: UserCog, ready: false },
   { key: 'messenger', path: '/consola/mesaje', icon: MessagesSquare, ready: false },
 ] as const;

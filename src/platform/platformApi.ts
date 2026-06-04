@@ -10,6 +10,7 @@ import { type PlatformAsociatieSummary } from './demoPlatform';
 import { usePlatformAsociatiiStore } from './platformAsociatiiStore';
 import { usePlatformAuditStore } from './platformAuditStore';
 import { type PlatformErrorReport, usePlatformErrorStore } from './platformErrorStore';
+import { type AssocUsageMetric, deriveHealthStatus, usePlatformUsageStore } from './platformUsageStore';
 
 type RowWithAsoc = { asociatie_id: string };
 type SignInRow = { asociatie_id: string | null; created_at: string };
@@ -195,6 +196,101 @@ function rowToErrorReport(row: DbErrorReportRow): PlatformErrorReport {
     extra: row.extra as PlatformErrorReport['extra'] ?? undefined,
     at: row.at,
   };
+}
+
+/**
+ * Load per-asociatie usage/health metrics (T97): member count, apartment count,
+ * last admin sign-in, and recent activity (30-day window for announcements,
+ * tickets, votes). Cross-tenant reads gated by super_admin RLS policies added
+ * in the T97 migration. No-op in demo/offline mode.
+ */
+export async function hydrateUsageMetrics(): Promise<void> {
+  if (!isSupabaseConfigured) return;
+
+  usePlatformUsageStore.getState().setFetchError(null);
+
+  try {
+    const windowStart = new Date(Date.now() - 30 * 86400000).toISOString();
+
+    const [
+      { data: asocRows, error: asocErr },
+      { data: memberRows },
+      { data: aptRows },
+      { data: signInRows },
+      { data: annRows },
+      { data: ticketRows },
+      { data: voteRows },
+    ] = await Promise.all([
+      supabase
+        .from('asociatii')
+        .select('id, name')
+        .is('deleted_at', null)
+        .order('name'),
+      supabase
+        .from('memberships')
+        .select('asociatie_id')
+        .is('ended_at', null)
+        .neq('role', 'super_admin'),
+      supabase
+        .from('apartments')
+        .select('asociatie_id')
+        .eq('is_active', true),
+      supabase
+        .from('auth_audit_events')
+        .select('asociatie_id, created_at')
+        .eq('event_type', 'sign_in')
+        .order('created_at', { ascending: false })
+        .limit(1000),
+      supabase
+        .from('announcements')
+        .select('asociatie_id')
+        .gte('created_at', windowStart),
+      supabase
+        .from('tickets')
+        .select('asociatie_id')
+        .gte('created_at', windowStart),
+      supabase
+        .from('votes')
+        .select('asociatie_id')
+        .gte('created_at', windowStart),
+    ]);
+
+    if (asocErr) {
+      usePlatformUsageStore.getState().setFetchError('load');
+      reportError(new Error(asocErr.message), { source: 'platformApi.hydrateUsageMetrics' });
+      return;
+    }
+
+    const memberCounts = groupCount((memberRows ?? []) as RowWithAsoc[]);
+    const aptCounts = groupCount((aptRows ?? []) as RowWithAsoc[]);
+    const lastSignIn = groupLatest((signInRows ?? []) as SignInRow[]);
+    const annCounts = groupCount((annRows ?? []) as RowWithAsoc[]);
+    const ticketCounts = groupCount((ticketRows ?? []) as RowWithAsoc[]);
+    const voteCounts = groupCount((voteRows ?? []) as RowWithAsoc[]);
+
+    const metrics: AssocUsageMetric[] = (asocRows ?? []).map((a) => {
+      const lastSignInAt = lastSignIn[a.id as string] ?? null;
+      return {
+        asociatie_id: a.id as string,
+        name: a.name as string,
+        city: '',
+        members: memberCounts[a.id as string] ?? 0,
+        apartments: aptCounts[a.id as string] ?? 0,
+        lastAdminSignInAt: lastSignInAt,
+        recentAnnouncements: annCounts[a.id as string] ?? 0,
+        recentTickets: ticketCounts[a.id as string] ?? 0,
+        recentVotes: voteCounts[a.id as string] ?? 0,
+        healthStatus: deriveHealthStatus(lastSignInAt),
+      };
+    });
+
+    usePlatformUsageStore.getState().setMetrics(metrics);
+  } catch (err) {
+    usePlatformUsageStore.getState().setFetchError('load');
+    reportError(err instanceof Error ? err : new Error(String(err)), {
+      source: 'platformApi.hydrateUsageMetrics',
+    });
+  }
 }
 
 /**
