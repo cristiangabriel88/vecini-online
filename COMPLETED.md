@@ -4,6 +4,10 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T239 P1 ✅ 2026-06-04 -- Cut modal-open jank: optimize full-viewport backdrop blur
+- modified: src/styles/primitives.css (`.modal-overlay`: reduced `backdrop-filter` from `blur(8px) saturate(1.1)` to `blur(5px)`; added `will-change: opacity` + `contain: layout paint`; added `prefers-reduced-motion` block that drops overlay to flat dim and suppresses all modal animations)
+- note: blur-only animation was already `opacity`-only via `iv-fade-in`; the blur is now static and rasterized once per compositor layer. No behavior change. 274 test files / 2642 tests / lint + typecheck + build + build:pi + build:demo all green.
+
 ### T238 P1 ✅ 2026-06-04 -- Stop per-keystroke page re-renders in compose/create modals (state isolation reference fix)
 - modified: src/features/announcements/AnnouncementsPage.tsx (extracted AnnouncementComposeModal child owning all draft state; extracted AnnouncementRow = memo(...) with useMemo for sanitizeHtml; stable useCallback handlers at page level; useMemo for visibleAnnouncements derivation)
 - new: tests/unit/announcementsRenderIsolation.test.tsx (4 assertions: initial render count = 1, opening modal does not re-render list, typing 5 keystrokes does not re-render list, items remain in DOM throughout compose flow)
