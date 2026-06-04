@@ -4,6 +4,10 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### ✅ T240 — [P2] Memoize AppLayout feature filtering + shell components
+
+Done: Added `memo` and `useMemo` to React imports. Updated `useEnabledFeatures` to use `useMemo([flags, role])` and changed its role selector to `useAuthStore((s) => s.activeRole())` so Zustand correctly tracks role changes. In `Sidebar`, replaced the inline per-render `categories.map + enabled.filter` with a `useMemo([enabled])`-computed `groups` array precomputing category+items pairs. Wrapped `Sidebar`, `BottomNav`, and `Topbar` with `React.memo` to prevent parent-triggered re-renders. Added `tests/unit/appLayoutMemo.test.ts` (5 parse-based assertions). 279 files / 2678 tests / lint + typecheck + build + build:pi + build:demo all green.
+
 ### ✅ T233 — [P2] Touch-target sizing for in-table action buttons
 
 Done: Added `.row-action-btn` class to `primitives.css` (30px base, flex centering, `border-radius: var(--radius)`, hover/active transforms) with a `@media (max-width: 600px)` override to 44x44px. Updated the same mobile touch-target block to bump `.btn--sm` from 38px to 44px, `.btn--icon.btn--sm` from 38px to 44px, and added `.iconbtn` at 44x44px. Applied `.row-action-btn` to the four inline-style action buttons in `ApartmentsPage.tsx` (desktop table 30px + mobile card 30px), removing the inline `width`/`height` that held them at 30/32px. Removed the `style={{ width: 32, height: 32 }}` inline overrides from the four `iconbtn` custom-field action buttons in `ProfilePage.tsx` (move up, move down, remove, drag handle) and from the `Modal.tsx` close button, so the CSS `@media` rule can take effect. 278 test files / 2673 tests / lint + typecheck + build + build:pi + build:demo all green.

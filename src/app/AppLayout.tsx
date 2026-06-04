@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate, NavLink, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Home, Menu, User, Bell, Moon, Sun, Settings, Search, ChevronDown, Info, Phone, Siren, ArrowUpRight, Globe, ScrollText, Building2, LayoutDashboard, Activity, TriangleAlert, UserCog, MessagesSquare, Plus, type LucideIcon } from 'lucide-react';
@@ -48,8 +48,11 @@ function Avatar({ name, accent, lg }: { name: string; accent?: boolean; lg?: boo
 
 function useEnabledFeatures() {
   const flags = useAsociatieFlags();
-  const role = useAuthStore((s) => s.activeRole)();
-  return FEATURES.filter((f) => flags[f.key] && roleMatchesAudience(f.audience, role));
+  const role = useAuthStore((s) => s.activeRole());
+  return useMemo(
+    () => FEATURES.filter((f) => flags[f.key] && roleMatchesAudience(f.audience, role)),
+    [flags, role],
+  );
 }
 
 function useActive() {
@@ -90,7 +93,7 @@ const PLATFORM_PLANNED = [
   { key: 'messenger', icon: MessagesSquare },
 ] as const;
 
-function Sidebar() {
+const Sidebar = memo(function Sidebar() {
   const { t } = useTranslation();
   const enabled = useEnabledFeatures();
   const navigate = useNavigate();
@@ -102,7 +105,16 @@ function Sidebar() {
   const role = useAuthStore((s) => s.activeRole)();
   const isPlatformSuperAdmin = useAuthStore((s) => s.isPlatformSuperAdmin);
   const showAdmin = isAdminRole(role);
-  const categories = Object.keys(FEATURE_CATEGORIES) as FeatureCategory[];
+  const groups = useMemo(
+    () =>
+      (Object.keys(FEATURE_CATEGORIES) as FeatureCategory[])
+        .map((cat) => ({
+          cat,
+          items: enabled.filter((f) => f.category === cat && f.path && f.key !== 'F56'),
+        }))
+        .filter((g) => g.items.length > 0),
+    [enabled],
+  );
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(loadCollapsed);
   const toggleGroup = (key: string) =>
     setCollapsed((prev) => {
@@ -212,29 +224,24 @@ function Sidebar() {
         />
       </div>
 
-      {categories.map((cat) => {
-        // F56 (emergency numbers) now lives in the footer, not the sidebar.
-        const items = enabled.filter((f) => f.category === cat && f.path && f.key !== 'F56');
-        if (items.length === 0) return null;
-        return (
-          <div key={cat} className="sidebar__group">
-            <GroupHeader id={cat} label={categoryLabel(t, cat)} />
-            <div className="sidebar__collapse" data-collapsed={collapsed[cat] ? 'true' : 'false'}>
-              <div className="sidebar__collapse-inner">
-                {items.map((f) => (
-                  <NavItem
-                    key={f.key}
-                    label={featureTitle(t, f)}
-                    active={isActive(f.path)}
-                    onClick={() => navigate(`/app/${f.path}`)}
-                    icon={<Icon name={f.icon} size={16} />}
-                  />
-                ))}
-              </div>
+      {groups.map(({ cat, items }) => (
+        <div key={cat} className="sidebar__group">
+          <GroupHeader id={cat} label={categoryLabel(t, cat)} />
+          <div className="sidebar__collapse" data-collapsed={collapsed[cat] ? 'true' : 'false'}>
+            <div className="sidebar__collapse-inner">
+              {items.map((f) => (
+                <NavItem
+                  key={f.key}
+                  label={featureTitle(t, f)}
+                  active={isActive(f.path)}
+                  onClick={() => navigate(`/app/${f.path}`)}
+                  icon={<Icon name={f.icon} size={16} />}
+                />
+              ))}
             </div>
           </div>
-        );
-      })}
+        </div>
+      ))}
 
       {showAdmin && (
       <div className="sidebar__group">
@@ -291,7 +298,7 @@ function Sidebar() {
       </div>
     </aside>
   );
-}
+});
 
 interface BottomNavLink {
   to: string;
@@ -327,7 +334,7 @@ function BottomNavItem({ link }: { link: BottomNavLink }) {
   );
 }
 
-function BottomNav() {
+const BottomNav = memo(function BottomNav() {
   const { t } = useTranslation();
   const isActive = useActive();
   const { pathname } = useLocation();
@@ -400,9 +407,9 @@ function BottomNav() {
       {createOpen && <QuickCreateSheet onClose={() => setCreateOpen(false)} />}
     </>
   );
-}
+});
 
-function Topbar() {
+const Topbar = memo(function Topbar() {
   const { t, i18n } = useTranslation();
   const theme = useThemeStore((s) => s.theme);
   const toggleTheme = useThemeStore((s) => s.toggle);
@@ -533,7 +540,7 @@ function Topbar() {
     <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </>
   );
-}
+});
 
 const APP_VERSION = '0.1.0';
 
