@@ -4,6 +4,14 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T108 P3 ✅ 2026-06-04 -- Rich per-card home widgets (live at-a-glance state on shortcut cards)
+- new: src/features/home/homeWidgets.ts (pure builders: buildAnnouncementWidget/buildEventWidget/buildPollWidget/buildTicketWidget + widgetForFeature dispatcher; WidgetData discriminated union; no React, fully testable)
+- new: tests/unit/homeWidgets.test.ts (25 assertions across all four builders + the dispatcher)
+- modified: src/features/home/HomePage.tsx (WidgetContent renderer; expanded shortcut cards show latest announcement (F01), next event (F08), active polls (F09), my open tickets (F17), derived via useMemo from existing per-asociatie stores)
+- modified: src/shared/locales/{en,ro}.json (home.widget.* bilingual keys, RO with _few plural form)
+- modified: src/styles/globals.css (.home-widget-* card-footer styles)
+- note: widgets render only when a card is sized `expanded`; content is pure/derived and null-safe (no widget when there is nothing to show). lint + typecheck + 2640 tests + build + build:pi + build:demo all green.
+
 ### T229 P3 ✅ 2026-06-04 -- Health-check Netlify function + uptime-monitoring docs
 - new: netlify/functions/health.ts (GET-only, no auth, returns {"status":"ok","stage":"<stage>"}, rate-limited 120 req/60 s per IP)
 - new: tests/unit/healthFunction.test.ts (3 assertions: 200 OK, correct JSON shape, 405 non-GET)

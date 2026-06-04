@@ -368,7 +368,17 @@
     "hideCard": "Hide card",
     "showCard": "Show card",
     "allHiddenTitle": "No cards shown",
-    "allHiddenBody": "You have hidden every card. Tap \"Customize\" to bring back the features you care about."
+    "allHiddenBody": "You have hidden every card. Tap \"Customize\" to bring back the features you care about.",
+    "widget": {
+      "latestAnn": "Latest announcement",
+      "nextEvent": "Upcoming",
+      "polls_one": "{{count}} active vote",
+      "polls_few": "{{count}} active votes",
+      "polls_other": "{{count}} active votes",
+      "tickets_one": "{{count}} open ticket",
+      "tickets_few": "{{count}} open tickets",
+      "tickets_other": "{{count}} open tickets"
+    }
   },
   "onboarding": {
     "title": "Association setup",

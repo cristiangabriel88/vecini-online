@@ -368,7 +368,17 @@
     "hideCard": "Ascunde cardul",
     "showCard": "Afișează cardul",
     "allHiddenTitle": "Niciun card afișat",
-    "allHiddenBody": "Ai ascuns toate cardurile. Apasă „Personalizează” ca să afișezi din nou funcțiile care te interesează."
+    "allHiddenBody": "Ai ascuns toate cardurile. Apasă „Personalizează” ca să afișezi din nou funcțiile care te interesează.",
+    "widget": {
+      "latestAnn": "Ultimul anunț",
+      "nextEvent": "Urmează",
+      "polls_one": "{{count}} vot activ",
+      "polls_few": "{{count}} voturi active",
+      "polls_other": "{{count}} voturi active",
+      "tickets_one": "{{count}} sesizare deschisă",
+      "tickets_few": "{{count}} sesizări deschise",
+      "tickets_other": "{{count}} sesizări deschise"
+    }
   },
   "onboarding": {
     "title": "Configurarea asociației",

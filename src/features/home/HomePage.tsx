@@ -22,13 +22,16 @@ import { EmptyState } from '@/shared/components/EmptyState';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { useAsociatieFlags } from '@/shared/features/featureStore';
 import { useAuthStore } from '@/shared/store/authStore';
-import { FEATURE_MAP, featureTitle, type FeatureDef } from '@/shared/features/registry';
+import { FEATURE_MAP, featureTitle, type FeatureDef, type FeatureKey } from '@/shared/features/registry';
 import { useCurrentAsociatie } from '@/features/admin/asociatieStore';
 import { useMyIdentity } from '@/features/profile/profileStore';
 import { useAsociatieAnnouncements } from '@/features/announcements/announcementsStore';
 import { useAsociatiePolls } from '@/features/polls/pollsStore';
-import { formatDateTime } from '@/shared/lib/format';
+import { useAsociatieTickets } from '@/features/tickets/ticketsStore';
+import { useAsociatieEvents } from '@/features/events/eventsStore';
+import { formatDate, formatDateTime } from '@/shared/lib/format';
 import { cn } from '@/shared/lib/cn';
+import { type WidgetData, widgetForFeature } from './homeWidgets';
 import {
   type HomeCard,
   cycleCardSize,
@@ -43,8 +46,55 @@ import { useHomeLayoutKey, useHomeLayoutStore } from './homeLayoutStore';
 import { deleteHomeLayout, hydrateHomeLayout, persistHomeLayout } from './homeLayoutApi';
 import { useHomeReorder } from './useHomeReorder';
 
+/** Renders live at-a-glance state for one feature inside an expanded card. */
+function WidgetContent({ data }: { data: WidgetData }) {
+  const { t } = useTranslation();
+  if (data.kind === 'announcement') {
+    return (
+      <div className="home-widget-content">
+        <p className="home-widget-label">{t('home.widget.latestAnn')}</p>
+        <p className="home-widget-line truncate">{data.title}</p>
+        {data.date && <p className="home-widget-meta">{formatDate(data.date)}</p>}
+      </div>
+    );
+  }
+  if (data.kind === 'event') {
+    return (
+      <div className="home-widget-content">
+        <p className="home-widget-label">{t('home.widget.nextEvent')}</p>
+        <p className="home-widget-line truncate">{data.title}</p>
+        <p className="home-widget-meta">{formatDate(data.startsAt)}</p>
+      </div>
+    );
+  }
+  if (data.kind === 'polls') {
+    return (
+      <div className="home-widget-content">
+        <p className="home-widget-line">{t('home.widget.polls', { count: data.count })}</p>
+        <p className="home-widget-meta truncate">{data.firstTitle}</p>
+      </div>
+    );
+  }
+  if (data.kind === 'open_tickets') {
+    return (
+      <div className="home-widget-content">
+        <p className="home-widget-line">{t('home.widget.tickets', { count: data.count })}</p>
+      </div>
+    );
+  }
+  return null;
+}
+
 /** A read-only feature shortcut card (view mode). */
-function ShortcutCard({ feature, expanded }: { feature: FeatureDef; expanded: boolean }) {
+function ShortcutCard({
+  feature,
+  expanded,
+  widget,
+}: {
+  feature: FeatureDef;
+  expanded: boolean;
+  widget?: WidgetData | null;
+}) {
   const { t } = useTranslation();
   return (
     <Link
@@ -54,6 +104,7 @@ function ShortcutCard({ feature, expanded }: { feature: FeatureDef; expanded: bo
       <Card className="home-shortcut h-full transition-colors hover:bg-surface-2">
         <Icon name={feature.icon} className="h-7 w-7 text-primary" />
         <span className="text-sm font-medium">{featureTitle(t, feature)}</span>
+        {expanded && widget ? <WidgetContent data={widget} /> : null}
       </Card>
     </Link>
   );
@@ -178,9 +229,18 @@ export default function HomePage() {
   const flags = useAsociatieFlags();
   const announcements = useAsociatieAnnouncements();
   const { polls } = useAsociatiePolls();
+  const tickets = useAsociatieTickets();
+  const events = useAsociatieEvents();
   const { userId } = useMyIdentity();
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
   const asociatie = useCurrentAsociatie();
+
+  const nowIso = useMemo(() => new Date().toISOString(), []);
+  const widgets = useMemo<Partial<Record<FeatureKey, WidgetData | null>>>(() => {
+    const src = { announcements, polls, tickets, events, userId, nowIso };
+    const keys: FeatureKey[] = ['F01', 'F08', 'F09', 'F17'];
+    return Object.fromEntries(keys.map((k) => [k, widgetForFeature(k, src)]));
+  }, [announcements, polls, tickets, events, userId, nowIso]);
 
   const layoutKey = useHomeLayoutKey();
   const saved = useHomeLayoutStore((s) => s.forKey(layoutKey));
@@ -291,7 +351,12 @@ export default function HomePage() {
           {shown.map((card) => {
             const feature = FEATURE_MAP[card.key];
             return feature ? (
-              <ShortcutCard key={card.key} feature={feature} expanded={card.size === 'expanded'} />
+              <ShortcutCard
+                key={card.key}
+                feature={feature}
+                expanded={card.size === 'expanded'}
+                widget={widgets[card.key]}
+              />
             ) : null;
           })}
         </div>
