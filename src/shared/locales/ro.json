@@ -2668,7 +2668,9 @@
       "aga.closed": "AGA încheiată",
       "budget.proposed": "Propunere buget adăugată",
       "petition.created": "Petiție creată",
-      "petition.forwarded": "Petiție înaintată comitetului"
+      "petition.forwarded": "Petiție înaintată comitetului",
+      "impersonation.started": "Sesiune de diagnosticare pornită",
+      "impersonation.ended": "Sesiune de diagnosticare încheiată"
     },
     "entity": {
       "feature": "Funcționalitate",
@@ -2684,7 +2686,8 @@
       "ticket": "Sesizare",
       "aga": "Ședință AGA",
       "budget": "Buget",
-      "petition": "Petiție"
+      "petition": "Petiție",
+      "impersonation": "Impersonare"
     }
   },
   "chrome": {
@@ -3039,6 +3042,26 @@
         "active": "Activă",
         "moderate": "Moderată",
         "dormant": "Inactivă"
+      }
+    },
+    "impersonation": {
+      "title": "Impersonare auditată",
+      "subtitle": "Intră, doar pentru citire, în contextul unei asociații pentru a diagnostica o problemă raportată. Fiecare pornire și ieșire este înregistrată în jurnalul de audit inviolabil.",
+      "auditNotice": "Toate sesiunile de diagnosticare sunt înregistrate în jurnalul de audit imutabil. Nicio acțiune de scriere nu este permisă pe durata sesiunii.",
+      "selectTitle": "Selectează asociația de vizualizat",
+      "startBtn": "Pornește diagnosticare",
+      "exitBtn": "Ieși din diagnosticare",
+      "viewing": "În vizualizare",
+      "activeSession": "Sesiune de diagnosticare activă",
+      "banner": "Vizualizezi {{name}} — diagnostic doar citire",
+      "bannerNote": "Nicio acțiune de scriere nu este permisă.",
+      "sessionStartedAt": "Sesiune pornită la {{time}}",
+      "err": {
+        "unauthorized": "Neautentificat. Conectează-te din nou.",
+        "forbidden": "Acces refuzat. Contul nu are drepturi de superadmin.",
+        "not-found": "Asociația nu a fost găsită.",
+        "backend-not-configured": "Backend-ul nu este configurat.",
+        "failed": "Pornirea sesiunii a eșuat. Încearcă din nou."
       }
     }
   }

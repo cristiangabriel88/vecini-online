@@ -58,6 +58,8 @@ export const AUDIT_ACTIONS = [
   'budget.proposed',
   'petition.created',
   'petition.forwarded',
+  'impersonation.started',
+  'impersonation.ended',
 ] as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
@@ -78,6 +80,7 @@ export const AUDIT_ENTITIES = [
   'aga',
   'budget',
   'petition',
+  'impersonation',
 ] as const;
 
 export type AuditEntity = (typeof AUDIT_ENTITIES)[number];

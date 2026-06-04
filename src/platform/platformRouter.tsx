@@ -12,6 +12,7 @@ const PlatformAddAsociatiePage = lazy(() => import('./PlatformAddAsociatiePage')
 const PlatformAuditPage = lazy(() => import('./PlatformAuditPage'));
 const PlatformErrorsPage = lazy(() => import('./PlatformErrorsPage'));
 const PlatformUsagePage = lazy(() => import('./PlatformUsagePage'));
+const PlatformImpersonatePage = lazy(() => import('./PlatformImpersonatePage'));
 
 function S({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<RouteFallback />}>{children}</Suspense>;
@@ -33,10 +34,10 @@ export const platformRouter = createBrowserRouter([
       { path: 'audit', element: <S><PlatformAuditPage /></S> },
       { path: 'erori', element: <S><PlatformErrorsPage /></S> },
       { path: 'utilizare', element: <S><PlatformUsagePage /></S> },
+      { path: 'impersonare', element: <S><PlatformImpersonatePage /></S> },
     ],
   },
-  // The remaining console pages (impersonation, messenger)
-  // mount under /consola as they land (T98-T99). Until then any unknown path
-  // returns to the overview rather than a dead end.
+  // The remaining console page (messenger, T99) mounts under /consola when it lands.
+  // Until then any unknown path returns to the overview rather than a dead end.
   { path: '*', element: <Navigate to="/consola" replace /> },
 ]);

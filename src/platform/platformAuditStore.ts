@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { type AuditEntry, buildDemoAuditChain } from '@/features/audit/auditLogic';
+import { type AuditEntry, type AuditInput, appendEntry, buildDemoAuditChain } from '@/features/audit/auditLogic';
 import { DEMO_PLATFORM_ASOCIATII } from './demoPlatform';
 
 const DEMO_ACTORS = [
@@ -23,6 +23,8 @@ interface PlatformAuditState {
   fetchError: string | null;
   setChains: (chains: Record<string, AuditEntry[]>) => void;
   setFetchError: (err: string | null) => void;
+  /** Append a new entry to one asociație's chain (demo mode impersonation audit). */
+  recordEntry: (asociatieId: string, input: AuditInput) => void;
 }
 
 export const usePlatformAuditStore = create<PlatformAuditState>()((set) => ({
@@ -30,4 +32,9 @@ export const usePlatformAuditStore = create<PlatformAuditState>()((set) => ({
   fetchError: null,
   setChains: (chains) => set({ chains, fetchError: null }),
   setFetchError: (fetchError) => set({ fetchError }),
+  recordEntry: (asociatieId, input) =>
+    set((s) => {
+      const chain = s.chains[asociatieId] ?? [];
+      return { chains: { ...s.chains, [asociatieId]: appendEntry(chain, input) } };
+    }),
 }));

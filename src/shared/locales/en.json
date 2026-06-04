@@ -2668,7 +2668,9 @@
       "aga.closed": "AGA meeting closed",
       "budget.proposed": "Budget item proposed",
       "petition.created": "Petition created",
-      "petition.forwarded": "Petition forwarded to committee"
+      "petition.forwarded": "Petition forwarded to committee",
+      "impersonation.started": "Diagnostic session started",
+      "impersonation.ended": "Diagnostic session ended"
     },
     "entity": {
       "feature": "Feature",
@@ -2684,7 +2686,8 @@
       "ticket": "Issue",
       "aga": "AGA meeting",
       "budget": "Budget",
-      "petition": "Petition"
+      "petition": "Petition",
+      "impersonation": "Impersonation"
     }
   },
   "chrome": {
@@ -3039,6 +3042,26 @@
         "active": "Active",
         "moderate": "Moderate",
         "dormant": "Dormant"
+      }
+    },
+    "impersonation": {
+      "title": "Audited impersonation",
+      "subtitle": "Enter an association's context read-only to diagnose a reported problem. Every start and exit is written to the tamper-evident audit trail.",
+      "auditNotice": "All diagnostic sessions are logged in the immutable audit trail. No write actions are permitted while a session is active.",
+      "selectTitle": "Select association to view",
+      "startBtn": "Start diagnostic view",
+      "exitBtn": "Exit diagnostic",
+      "viewing": "Viewing now",
+      "activeSession": "Active diagnostic session",
+      "banner": "Viewing {{name}} — read-only diagnostic",
+      "bannerNote": "No write actions allowed.",
+      "sessionStartedAt": "Session started at {{time}}",
+      "err": {
+        "unauthorized": "Not authenticated. Sign in again.",
+        "forbidden": "Access denied. Account does not have superadmin rights.",
+        "not-found": "Association not found.",
+        "backend-not-configured": "Backend not configured.",
+        "failed": "Failed to start session. Try again."
       }
     }
   }

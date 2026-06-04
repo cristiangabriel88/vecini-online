@@ -17,6 +17,7 @@ import { Atmosphere } from '@/shared/components/Atmosphere';
 import { useThemeStore } from '@/shared/store/themeStore';
 import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
 import { usePlatformAuthStore } from './platformAuthStore';
+import { ImpersonationBanner } from './ImpersonationBanner';
 
 /**
  * The console sections this shell hosts. Only the overview ships in T93; the rest
@@ -29,7 +30,7 @@ const SECTIONS = [
   { key: 'audit', path: '/consola/audit', icon: ScrollText, ready: true },
   { key: 'errors', path: '/consola/erori', icon: TriangleAlert, ready: true },
   { key: 'usage', path: '/consola/utilizare', icon: Activity, ready: true },
-  { key: 'impersonation', path: '/consola/impersonare', icon: UserCog, ready: false },
+  { key: 'impersonation', path: '/consola/impersonare', icon: UserCog, ready: true },
   { key: 'messenger', path: '/consola/mesaje', icon: MessagesSquare, ready: false },
 ] as const;
 
@@ -131,6 +132,7 @@ export function PlatformLayout() {
       <Header />
       <Sidebar />
       <main className="platform-main">
+        <ImpersonationBanner />
         <div className="platform-main__inner" key={pathname}>
           <ErrorBoundary source="platform-route" resetKeys={[pathname]}>
             <Outlet />

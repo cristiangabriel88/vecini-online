@@ -59,6 +59,8 @@ const ACTION_TONE: Record<AuditAction, 'success' | 'danger' | 'warning' | 'neutr
   'budget.proposed': 'success',
   'petition.created': 'success',
   'petition.forwarded': 'success',
+  'impersonation.started': 'warning',
+  'impersonation.ended': 'neutral',
 };
 
 /** Trigger a client-side download of a text document. */
