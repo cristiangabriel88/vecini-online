@@ -249,7 +249,7 @@ export default function HomePage() {
                 onClick={() => setEditing(true)}
                 aria-label={t('home.customize')}
               >
-                <Pencil size={15} /> {t('home.customize')}
+                <Pencil size={15} /><span className="hidden sm:inline">{t('home.customize')}</span>
               </Button>
             )
           ) : undefined
