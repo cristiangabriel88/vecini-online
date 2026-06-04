@@ -1,5 +1,6 @@
 import {
   forwardRef,
+  memo,
   useId,
   type InputHTMLAttributes,
   type ReactNode,
@@ -15,7 +16,7 @@ interface FieldProps {
   suffix?: ReactNode;
 }
 
-export const Input = forwardRef<
+const InputBase = forwardRef<
   HTMLInputElement,
   InputHTMLAttributes<HTMLInputElement> & FieldProps
 >(function Input({ label, hint, error, suffix, className, id, ...rest }, ref) {
@@ -58,8 +59,9 @@ export const Input = forwardRef<
     </div>
   );
 });
+export const Input = memo(InputBase);
 
-export const Textarea = forwardRef<
+const TextareaBase = forwardRef<
   HTMLTextAreaElement,
   TextareaHTMLAttributes<HTMLTextAreaElement> & FieldProps
 >(function Textarea({ label, hint, error, className, id, ...rest }, ref) {
@@ -92,3 +94,4 @@ export const Textarea = forwardRef<
     </div>
   );
 });
+export const Textarea = memo(TextareaBase);

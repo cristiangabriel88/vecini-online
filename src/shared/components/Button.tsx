@@ -1,4 +1,4 @@
-import { forwardRef, type ButtonHTMLAttributes } from 'react';
+import { forwardRef, memo, type ButtonHTMLAttributes } from 'react';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 
@@ -24,7 +24,7 @@ const sizes: Record<Size, string> = {
   lg: 'btn--lg',
 };
 
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+const ButtonBase = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   { variant = 'primary', size = 'md', loading = false, className, children, disabled, ...rest },
   ref,
 ) {
@@ -45,3 +45,4 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     </button>
   );
 });
+export const Button = memo(ButtonBase);

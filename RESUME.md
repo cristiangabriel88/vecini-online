@@ -5,18 +5,26 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-05
-- last_task: T242 [P2] App-wide render and scroll smoothness pass (profiling-driven)
+- last_task: T243 [P2] Memoize shared presentational primitives (Button/Card/Badge/Input/Select)
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 281 test files / 2690 tests
+- counts: 282 test files / 2698 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T243 [P2] Memoize shared presentational primitives (Button/Card/Badge/Input/Select)
+- next: T234 [P2] Visible-state adapter for the assistant (DOM grounding foundation)
 - features: 67/67 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01-F24 + F28-F32 + F33-F55 + F57-F65 (60 features) + auth/invites/onboarding; remaining 7 features offline-first, live-activation queued (F25-F27 bookings already live-wired T208, F56 emergency contacts live-wired earlier). F28/F36/F66 cross-feature glue wired (T104). Platform console: T20 umbrella complete (T93/T94/T95/T96/T97/T98/T99/T119/T120/T121 all done).
 - e2e: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F18/F19/F20/F21/F22/F23/F24/F25/F26/F27/F28/F29/F30/F31/F32/F33/F34/F35/F36/F37/F38/F39/F40/F41/F44/F47/F48/F50/F51/F52/F53/F57/F62/F63/F65/F66/F67 happy paths green on chromium + mobile (55 features / 82%). Platform shell + provisioning E2E (T119/T121) done. Full smoke harness reworked (T211 done). E2E closure continues T224+.
 - blockers: none.
 - completion_estimate: 85% of original product vision delivered end-to-end (updated 2026-06-04). Detail: all 67 features demo-complete and offline-functional; 60/67 live-wired (90%); security posture ~93% (T212 done, remaining: T141 JWT hook); GDPR surface ~91% (T72/T75/T76/T78 done, T95 cross-tenant audit viewer done); Telegram bot handlers + live /start resolver complete (T15 + T58 done); SaaS billing foundation complete (T19 done: 3-tier plans, subscription + invoice DB, admin billing page, platform subscriptions page, Stripe-stub checkout function); platform console 100% of planned features done (T20 umbrella + subscriptions page); E2E coverage 82% (55/67 features).
 
 ---
+
+### T243 P2 ✅ 2026-06-05 -- Memoize shared presentational primitives (Button/Card/Badge/Input/Select)
+- modified: src/shared/components/Button.tsx (memo import; ButtonBase intermediate; Button = memo(ButtonBase))
+- modified: src/shared/components/Card.tsx (memo import; Card = memo(function Card(...)))
+- modified: src/shared/components/Badge.tsx (memo import; Badge = memo(function Badge(...)))
+- modified: src/shared/components/Input.tsx (memo import; InputBase/TextareaBase intermediates; Input/Textarea = memo(...))
+- modified: src/shared/components/Select.tsx (memo import; SelectBase intermediate; Select = memo(SelectBase))
+- new: tests/unit/primitiveMemo.test.ts (8 assertions)
 
 ### T242 P2 ✅ 2026-06-05 -- App-wide render and scroll smoothness pass (profiling-driven)
 - modified: src/styles/primitives.css (contain: layout style on .card; contain: content on .notif-row)

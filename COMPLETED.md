@@ -4,6 +4,17 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T243 P2 ✅ 2026-06-05 -- Memoize shared presentational primitives (Button/Card/Badge/Input/Select)
+
+Wrapped all five primitives in `React.memo`. For `forwardRef` components (`Button`, `Input`, `Textarea`, `Select`), an intermediate `*Base` const holds the `forwardRef(...)` call and the named export is `memo(Base)` — this preserves the ref type, display name (from the inner function name), and all accessibility wiring (`aria-busy`, `aria-invalid`, `aria-describedby`, `htmlFor`). For plain function components (`Card`, `Badge`), the export is rewritten as `memo(function ComponentName(...) {...})` inline. 8 new assertions in `tests/unit/primitiveMemo.test.ts` verify both the memo wrap and the preserved a11y attributes. 282 files / 2698 tests / lint + typecheck + build + build:pi + build:demo all green.
+
+- modified: src/shared/components/Button.tsx (memo import; ButtonBase intermediate; Button = memo(ButtonBase))
+- modified: src/shared/components/Card.tsx (memo import; Card = memo(function Card(...)))
+- modified: src/shared/components/Badge.tsx (memo import; Badge = memo(function Badge(...)))
+- modified: src/shared/components/Input.tsx (memo import; InputBase/TextareaBase intermediates; Input/Textarea = memo(...))
+- modified: src/shared/components/Select.tsx (memo import; SelectBase intermediate; Select = memo(SelectBase))
+- new: tests/unit/primitiveMemo.test.ts (8 assertions)
+
 ### ✅ T242 — [P2] App-wide render & scroll smoothness pass (profiling-driven)
 
 Done: Added `contain: layout style` to `.card` (primitives.css) bounding reflow to each card boundary; added `contain: content` to `.notif-row` (primitives.css) isolating notification list items; added `contain: layout style; content-visibility: auto; contain-intrinsic-size: 0 64px` to `.audit-row` (legal.css) skipping off-screen items in long audit trails. Extracted `AuditRow = memo(...)` in `AuditLogPage.tsx` (previously inline JSX in the filtered.map call). Wrapped `NotifRow` in `memo()` and stabilized `handleRead` via `useCallback([store.markRead])` in `NotificationsPage.tsx`. Added `useMemo` in `DirectoryPage.tsx` to memoize the neighbour map + search computation so it skips on unrelated re-renders. Store audit finding: `replaceForAsociatie` is correct for hydration (atomic snapshot); realtime apply helpers already do targeted row mutations; row-level `memo()` is the right defence. Virtualization deferred (demo data bounded, no list approaches 50+ items in demo; T243 covers primitive-level memo). 281 files / 2690 tests / lint + typecheck + build + build:pi + build:demo all green.

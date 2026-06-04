@@ -1,4 +1,4 @@
-import { forwardRef, useId, type SelectHTMLAttributes } from 'react';
+import { forwardRef, memo, useId, type SelectHTMLAttributes } from 'react';
 import { cn } from '@/shared/lib/cn';
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
@@ -6,7 +6,7 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   error?: string;
 }
 
-export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select(
+const SelectBase = forwardRef<HTMLSelectElement, SelectProps>(function Select(
   { label, error, className, id, children, ...rest },
   ref,
 ) {
@@ -34,3 +34,4 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
     </div>
   );
 });
+export const Select = memo(SelectBase);

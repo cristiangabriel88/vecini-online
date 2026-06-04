@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { memo, type ReactNode } from 'react';
 import { cn } from '@/shared/lib/cn';
 
 type Tone = 'neutral' | 'primary' | 'success' | 'warning' | 'danger' | 'urgent';
@@ -13,6 +13,6 @@ const tones: Record<Tone, string> = {
   urgent: 'badge--danger',
 };
 
-export function Badge({ tone = 'neutral', children }: { tone?: Tone; children: ReactNode }) {
+export const Badge = memo(function Badge({ tone = 'neutral', children }: { tone?: Tone; children: ReactNode }) {
   return <span className={cn('badge', tones[tone])}>{children}</span>;
-}
+});

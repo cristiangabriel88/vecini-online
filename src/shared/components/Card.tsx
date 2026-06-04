@@ -1,4 +1,4 @@
-import type { HTMLAttributes, ReactNode } from 'react';
+import { memo, type HTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@/shared/lib/cn';
 
 interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
@@ -6,7 +6,7 @@ interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
   footer?: ReactNode;
 }
 
-export function Card({ title, footer, className, children, ...rest }: CardProps) {
+export const Card = memo(function Card({ title, footer, className, children, ...rest }: CardProps) {
   return (
     <div className={cn('card', className)} {...rest}>
       {title && (
@@ -20,4 +20,4 @@ export function Card({ title, footer, className, children, ...rest }: CardProps)
       {footer && <div className="card__footer">{footer}</div>}
     </div>
   );
-}
+});
