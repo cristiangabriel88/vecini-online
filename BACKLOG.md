@@ -202,6 +202,52 @@ Add `netlify/functions/health.ts`: GET-only, no auth required, returns `{"status
 
 Done: Created `netlify/functions/health.ts` (GET-only, per-IP 120 req/60 s rate limit via `checkSlidingWindow`, returns `{"status":"ok","stage":"<VITE_APP_STAGE>"}` with `Content-Type: application/json`; rejects non-GET with 405). Created `tests/unit/healthFunction.test.ts` with 3 assertions. Added section 6 "Uptime monitoring" to `RUNBOOK-MVP.md` documenting the endpoint as the UptimeRobot/BetterUptime watch URL with recommended monitor settings. 263 files / 2611 tests / lint + typecheck + build + build:pi + build:demo all green.
 
+### ⬜ T230 — [P1] Tap-accessible status tooltips (hover-only info unreachable on touch)
+
+Surfaced while reviewing mobile UX: status/info tooltips that reveal only on `:hover`
+(e.g. the apartment-status tooltip in `src/features/admin/ApartmentsPage.tsx` using
+`group-hover/status:opacity-100`) are unreachable on touch devices, where there is no hover
+state — the content never appears and there is no way to dismiss it (WCAG 1.4.13 Content on
+Hover or Focus). Make these tooltips tap-to-toggle (and keyboard-focusable) on touch/coarse
+pointers, or move the information inline so it is always visible on small screens. Audit other
+`:hover`-gated informational reveals for the same pattern. Bilingual RO/EN, premium-feel
+(no layout jump). Prereq: none.
+
+### ⬜ T231 — [P2] Responsive data tables — stack to cards on phones
+
+Surfaced while reviewing mobile UX: several data tables overflow horizontally on a 375px
+viewport because they use fixed multi-column grids with no narrow-screen fallback —
+the GDPR retention table (`.gdpr-table__row` fixed `grid-template-columns: 1.2fr 1.4fr 1.4fr`
+in `src/styles/legal.css:577-584`), the billing invoices table (`.billing-invoices-table` in
+`src/styles/primitives.css`, no `overflow-x`/card fallback), and the admin apartments table
+(`src/features/admin/ApartmentsPage.tsx`). Add a `@media (max-width: 600px)` treatment that
+stacks each row to a single-column card (label + value pairs) or wraps the table in a
+horizontal-scroll container with a visible affordance, consistent across all three. Reuse the
+existing card/label tokens; no new design primitives. Bilingual RO/EN, premium-feel. Prereq: none.
+
+### ⬜ T232 — [P2] DatePicker bottom-sheet variant on phones
+
+Surfaced while reviewing mobile UX: `DatePicker` opens as a fixed 280px popover
+(`.dp-popover` in `src/styles/primitives.css:1083`), positioned with
+`left: Math.min(rect.left, window.innerWidth - 292)` in `src/shared/components/DatePicker.tsx`,
+which can clip off-screen on very narrow (<320px) viewports and does not match the bottom-sheet
+pattern Modal and CommandPalette already use at <=600px. Add a `@media (max-width: 600px)`
+variant that renders the calendar as a bottom sheet (rounded top corners
+`var(--radius-2xl) var(--radius-2xl) 0 0`, full-width, `env(safe-area-inset-bottom)` padding,
+sheet-rise entrance, optional drag handle), mirroring the Modal sheet styling so the close
+animation/`prefers-reduced-motion` handling stays consistent with the commit-8e6f654 fixes.
+Bilingual RO/EN, premium-feel. Prereq: none.
+
+### ⬜ T233 — [P2] Touch-target sizing for in-table action buttons
+
+Surfaced while reviewing mobile UX: secondary action buttons inside tables (e.g. edit/delete
+in `src/features/admin/ApartmentsPage.tsx`, ~30-40px) stay below the 44px touch minimum that
+the app already enforces for primary controls at <=600px (`.input, .select-trigger,
+.dp-trigger, .btn { height: 44px }` in `src/styles/primitives.css`). Bring these small/icon
+action buttons up to a >=44px tap area on coarse-pointer / <=600px screens (padding or a larger
+hit-box, without enlarging the visual glyph if undesirable), so per-row actions are reliably
+tappable. Apply consistently to comparable per-row action clusters across features. Prereq: none.
+
 ### ⬜ T108 — [P3] Rich per-card home widgets (beyond feature-shortcut links)
 
 Surfaced in T12: F67 makes the home's feature-shortcut cards customizable (show/hide/reorder/size), but each card is still a plain icon+title link, while the F67 spec envisions each card exposing a small live widget (latest announcement, my open tickets, next event, active polls, etc.). Add per-feature home-widget content rendered inside the card (especially when sized `expanded`), drawn from the active asociație's stores, so a pinned card shows useful at-a-glance state rather than just a shortcut. Keep the widget content pure/derived and bilingual; reuse the existing per-asociație selectors. Prereq: T12.
