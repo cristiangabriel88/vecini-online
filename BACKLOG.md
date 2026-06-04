@@ -202,6 +202,14 @@ Add `netlify/functions/health.ts`: GET-only, no auth required, returns `{"status
 
 Done: Created `netlify/functions/health.ts` (GET-only, per-IP 120 req/60 s rate limit via `checkSlidingWindow`, returns `{"status":"ok","stage":"<VITE_APP_STAGE>"}` with `Content-Type: application/json`; rejects non-GET with 405). Created `tests/unit/healthFunction.test.ts` with 3 assertions. Added section 6 "Uptime monitoring" to `RUNBOOK-MVP.md` documenting the endpoint as the UptimeRobot/BetterUptime watch URL with recommended monitor settings. 263 files / 2611 tests / lint + typecheck + build + build:pi + build:demo all green.
 
+### ⬜ T238 — [P1] Stop per-keystroke page re-renders in compose/create modals (state isolation) — REFERENCE FIX
+
+Surfaced from a performance report: opening compose modals (e.g. "Compune anunț") is slow and typing in their fields lags. Root cause: feature pages hold the modal's form state at the page level, so every keystroke re-renders the whole page and its list. In `src/features/announcements/AnnouncementsPage.tsx` the draft fields (`title`, `body`, `category`, `schedule`, `pendingFiles`, `fileError`, `saving`) live on the page (lines ~91-97); each `setTitle`/`setBody` re-runs `visibleAnnouncements(all)` (unmemoized) and re-renders the entire list (lines ~262-347), which calls `sanitizeHtml(a.body_html)` — a full DOMPurify DOM-parse — once per announcement, on every keystroke (line ~300). Fix announcements as the reference: extract the compose form into a self-contained `AnnouncementComposeModal` child that owns its own draft state, leaving the page with only `open` + the submit handler so keystrokes re-render just the modal subtree. Wrap each announcement row in a `React.memo` item component and move `sanitizeHtml` into it via `useMemo` keyed on `body_html` so DOMPurify runs once per item, not once per keystroke. `useMemo` the `visibleAnnouncements(all)` derivation. Document the reusable pattern in `DECISIONS.md` so T241 can replicate it. Add a render-count unit test proving typing in the modal does not re-render the list. Bilingual unchanged, demo mode intact, premium-feel. Prereq: none.
+
+### ⬜ T239 — [P1] Cut modal-open jank: optimize the full-viewport backdrop blur
+
+Surfaced from a performance report: modals open slowly/janky because `.modal-overlay` runs `backdrop-filter: blur(8px) saturate(1.1)` over the entire viewport (`src/styles/primitives.css:538`), composited on top of the already-active topbar blur(20px), sidebar blur(14px), and bottom-nav blur(16px), while the `iv-modal-in` transform animation plays — so on open the browser allocates a new compositor layer and rasterizes an expensive whole-viewport blur mid-animation (worst on mobile / low-end devices). CSS-only, app-wide fix that keeps a glassy feel (decision: reduce, do not flatten): lower the overlay blur to ~4-6px and drop `saturate`, add `will-change: opacity` and `contain: layout paint` so the blur layer is promoted/rasterized once rather than re-rasterized, and fade in only `opacity` while keeping the blur static (do not animate the blur radius). Verify the `prefers-reduced-motion` path drops to a flat dim. Confirm the look stays premium and the open holds 60fps. Prereq: none.
+
 ### ⬜ T230 — [P1] Tap-accessible status tooltips (hover-only info unreachable on touch)
 
 Surfaced while reviewing mobile UX: status/info tooltips that reveal only on `:hover`
@@ -247,6 +255,22 @@ the app already enforces for primary controls at <=600px (`.input, .select-trigg
 action buttons up to a >=44px tap area on coarse-pointer / <=600px screens (padding or a larger
 hit-box, without enlarging the visual glyph if undesirable), so per-row actions are reliably
 tappable. Apply consistently to comparable per-row action clusters across features. Prereq: none.
+
+### ⬜ T240 — [P2] Memoize AppLayout feature filtering + shell components
+
+Surfaced from a performance report: `AppLayout`/`Sidebar` recompute `useEnabledFeatures()` (filters all 67 features) and then double-filter per category on every render (`src/app/AppLayout.tsx` ~lines 49-52 and ~215-236), with no `React.memo` on `Sidebar`/`BottomNav`/`Topbar`. Because the layout re-renders on every store change (notifications, realtime sync, theme/tint), this O(n) filtering cost is paid constantly and contributes to app-wide sluggishness. Memoize the enabled-features computation with `useMemo` keyed on flags+role, precompute the per-category feature groups once instead of re-filtering inside the category map, and wrap `Sidebar`, `BottomNav`, and `Topbar` in `React.memo`. No behavior change to active states, badges, or counts. Premium-feel unchanged. Prereq: none.
+
+### ⬜ T241 — [P2] Roll modal state-isolation across remaining feature pages (umbrella)
+
+Apply the T238 state-isolation pattern to every `src/features/*` page that still holds create/edit modal form state alongside a list, so typing in those modals no longer re-renders the underlying page/list. Audit candidates include tickets/sesizări, polls/voturi, payments, reservations/rezervări, events/evenimente, marketplace, and the locator compose post, plus any other page that embeds a `Modal` whose fields are driven by page-level `useState`. Each extracted modal owns its own draft state; the page keeps only `open` + submit. Break into per-area sub-tasks if the sweep is too large for one `make progress` unit. Reuse the `AnnouncementComposeModal` reference and the pattern recorded in `DECISIONS.md`. Bilingual unchanged, demo mode intact, premium-feel. Prereq: T238.
+
+### ⬜ T242 — [P2] App-wide render & scroll smoothness pass (profiling-driven)
+
+Surfaced from a performance report: beyond the modal fixes, the broader app benefits from bounding paint/reflow scope and trimming re-render churn. Driven by a React DevTools Profiler pass, add CSS containment to repeated list/card surfaces (`content-visibility: auto` + `contain-intrinsic-size` on list rows, `contain: layout paint` on cards) so off-screen content is skipped and reflow stays local; wrap genuinely heavy repeated list items in `React.memo`; virtualize any list that can grow long. Audit realtime store writes that replace whole arrays (e.g. `replaceForAsociatie` in the feature stores) to reduce subscriber-wide re-renders, preferring in-place patch updates where safe. Record the profiling findings and any deferred follow-ups as new tasks. Premium-feel and behavior unchanged. Prereq: none.
+
+### ⬜ T243 — [P2] Memoize shared presentational primitives (Button/Card/Badge/Input/Select)
+
+Surfaced from a performance report: the shared primitives in `src/shared/components/*` (`Button`, `Card`, `Badge`, `Input`, `Select`) are not memoized, so they re-render whenever a parent does even when their props are unchanged. Once parents stabilize (T238/T240), wrap these stable presentational primitives in `React.memo` so identical-prop renders are skipped. Preserve `forwardRef`, `className` merging (`cn`), and all current accessibility wiring exactly — verify with the existing unit/E2E suites that focus, labels, and refs still work. Premium-feel unchanged. Prereq: T238, T240.
 
 ### ⬜ T234 — [P2] Visible-state adapter for the assistant (DOM grounding foundation)
 
