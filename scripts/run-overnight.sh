@@ -45,7 +45,11 @@
 #   --max-tasks N      Cap on total passes (build + replenish). 0 = unbounded (default).
 #   --max-hours N      Wall-clock budget in hours (fractional ok). 0 = unbounded (default).
 #   --stuck-limit N    Consecutive non-build passes before stopping. Default 3.
-#   --wait-on-limit N  Seconds to wait before retrying on a usage/rate limit. Default 1800.
+#   --wait-on-limit N  Seconds to wait before retrying when the account is out of
+#                      tokens / hits a usage or rate limit. Default 1800 (30 min).
+#                      On a limit the pass is NOT counted as a stall: the loop parks
+#                      and retries the same pass every N seconds, forever, resuming
+#                      the instant the quota refills. Waiting costs no tokens.
 #   --heartbeat N      Seconds between "still alive" heartbeat lines. 0 = off. Default 300.
 #   --no-replenish     Do not audit/replenish. When the queue empties (or a build
 #                      stalls), stop cleanly instead of generating more work. Use
@@ -64,13 +68,21 @@
 #                      to also grow the queue from each task (divergent mode).
 #   -h, --help         Show this help and exit.
 #
-# TOKEN EFFICIENCY: there is no /clear to add. Each pass is a separate `claude -p`
-# process, which already starts with a FRESH, empty context window -- strictly
-# better than /clear (an interactive-only command that would still reload CLAUDE.md
-# and memory). Spawning one process per task is the most token-efficient pattern;
-# context never accumulates across passes. --verbose is display-only and costs no
-# tokens, so it is kept for liveness. To spend less per pass, keep the default
-# sonnet model and/or use --claude-arg --max-budget-usd as above.
+# TOKEN EFFICIENCY: tokens are spent ONLY inside the `claude -p` passes. The
+# npm pipeline (lint / test / build*) and the limit-wait sleeps run as separate
+# local processes and cost ZERO model tokens -- so "wasting tokens" can only mean
+# burning a whole pass, never the verification steps. The loop is built to avoid
+# that waste:
+#   * Each pass is a separate `claude -p` with a FRESH, empty context window --
+#     strictly better than /clear (interactive-only, and it would still reload
+#     CLAUDE.md + memory). Context never accumulates across passes.
+#   * A token/usage/rate limit parks and retries the SAME pass (see --wait-on-limit)
+#     instead of spending a pass on a guaranteed failure.
+#   * The post-commit pipeline omits the standalone `typecheck` step because every
+#     stage build already runs tsc --noEmit -- no duplicated compile per pass.
+#   * --verbose is display-only and costs no tokens, so it is kept for liveness.
+# To spend even less per pass, keep the default sonnet model and/or use
+# --claude-arg --max-budget-usd as above.
 #
 # NOTE: passes --dangerously-skip-permissions so Claude can edit, run the pipeline,
 # commit, and push unattended. Only launch this when you intend autonomous progress.
@@ -91,7 +103,7 @@ EXTRA_CLAUDE_ARGS=()
 # --- help ---------------------------------------------------------------------
 print_help() {
     # Print the usage/options block from the header comment (lines starting "# ").
-    sed -n '3,77p' "$0" | sed 's/^#\{0,1\} \{0,1\}//'
+    sed -n '3,88p' "$0" | sed 's/^#\{0,1\} \{0,1\}//'
 }
 
 # --- arg parsing --------------------------------------------------------------
@@ -167,6 +179,19 @@ LOG="$LOG_DIR/overnight-$STAMP.log"
 
 write_both() { printf '%s\n' "$1"; printf '%s\n' "$1" >> "$LOG"; }
 
+# --- benign live-database noise filter ----------------------------------------
+# The app is NOT wired to a live Supabase, so the live-mirror code paths
+# (store.mirrorLive -> supabase.auth.getUser) throw a TypeError that vitest prints
+# to stderr in red, and zustand's persist middleware logs "storage unavailable"
+# in the jsdom test env. These lines are pure noise: the surrounding tests still
+# PASS (the suite is green, exit 0). They look like "live database not configured"
+# failures but are not. strip_noise drops exactly these known-benign lines from
+# the terminal and the log so a clean run never looks broken. Real failures
+# (FAIL / "Tests  N failed" / assertion diffs) do not match and pass straight
+# through. --line-buffered keeps the live stream responsive.
+NOISE_RE='mirrorLive: |\.mirrorLive\b|persist middleware\] Unable to update item|storage is currently unavailable|live database( is)? not configured'
+strip_noise() { grep -v --line-buffered -E "$NOISE_RE"; }
+
 # --- liveness: stage banners + background heartbeat ---------------------------
 # The script announces what it is doing ("analyzing", "working", "testing", ...)
 # so you can see it is alive, and a background heartbeat reprints the current
@@ -224,9 +249,14 @@ get_open_task_count() {
 # build:demo is still caught here.
 test_pipeline() {
     local step rc
-    for step in lint typecheck test build build:pi build:demo; do
+    # `typecheck` is intentionally omitted: each of build / build:pi / build:demo
+    # already runs `tsc -p ... --noEmit` for both tsconfigs before bundling, so a
+    # standalone typecheck step would re-run the compiler for no extra coverage.
+    # Dropping it removes one redundant full tsc pass per commit (wall-clock saved,
+    # zero verification lost). lint + test + all three stage builds still run.
+    for step in lint test build build:pi build:demo; do
         set_stage "Testing: npm run $step"
-        npm run "$step" 2>&1 | tee -a "$LOG"
+        npm run "$step" 2>&1 | strip_noise | tee -a "$LOG"
         rc=${PIPESTATUS[0]}
         if [[ $rc -ne 0 ]]; then
             write_both "  gate FAILED at: npm run $step (exit $rc)"
@@ -249,7 +279,7 @@ invoke_pass() {
     # PIPESTATUS[0] is Claude's own exit code (the pipe ends with tee).
     : > "$PASS_FILE"
     claude -p "$pass_prompt" "${CLAUDE_FLAGS[@]}" 2>&1 \
-        | tee -a "$LOG" | tee "$PASS_FILE"
+        | strip_noise | tee -a "$LOG" | tee "$PASS_FILE"
     PASS_RC=${PIPESTATUS[0]}
     PASS_OUTPUT="$(cat "$PASS_FILE" 2>/dev/null || true)"
     after="$(git rev-parse HEAD)"
@@ -334,10 +364,15 @@ while true; do
     fi
     invoke_pass "$phase" "$pass_prompt"
 
-    # Usage/rate limit: don't burn a pass on it. Wait, then retry the same pass.
-    if printf '%s' "$PASS_OUTPUT" | grep -qiE 'rate limit|usage limit|quota exceeded|too many requests|\b429\b'; then
+    # Usage / token / rate limit: never burn a pass on it. Wait, then retry the
+    # SAME pass -- forever. The pass counter is rolled back and the stall detector
+    # is untouched, so a token-exhausted account simply parks here and retries
+    # every WAIT_ON_LIMIT seconds (default 1800 = 30 min) until tokens return. This
+    # is a deliberate infinite retry: the loop must survive a depleted budget
+    # unattended and resume the instant the quota refills.
+    if printf '%s' "$PASS_OUTPUT" | grep -qiE 'rate limit|usage limit|usage limit reached|reached your (usage )?limit|quota exceeded|too many requests|\b429\b|out of (tokens|credit)|run out of|credit balance|insufficient (credit|quota|tokens|funds)|limit reached|limit will reset|reset(s)? at|5-?hour limit'; then
         write_both ""
-        set_stage "Waiting: usage/rate limit hit, sleeping ${WAIT_ON_LIMIT}s before retrying this pass"
+        set_stage "Waiting: token/usage limit hit, sleeping ${WAIT_ON_LIMIT}s then retrying this pass (infinite retry until quota returns)"
         pass=$(( pass - 1 ))
         sleep "$WAIT_ON_LIMIT"
         continue
