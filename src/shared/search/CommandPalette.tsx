@@ -110,6 +110,18 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
     }
   }, [open, mounted]);
 
+  // Fallback unmount. `onAnimationEnd` (below) drives the snappy teardown, but
+  // it only fires for a named close animation. When that animation is
+  // suppressed or replaced (prefers-reduced-motion sets `animation: none`; the
+  // mobile sheet variant runs `iv-palette-sheet-out`), the event never arrives
+  // and the portal would stay mounted, trapping pointer events. A timer
+  // guarantees teardown regardless.
+  useEffect(() => {
+    if (open || !mounted) return;
+    const timer = window.setTimeout(() => setMounted(false), 320);
+    return () => window.clearTimeout(timer);
+  }, [open, mounted]);
+
   const close = useCallback(() => onClose(), [onClose]);
 
   const selectResult = useCallback(
@@ -178,7 +190,10 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
         data-state={state}
         onClick={(e) => e.stopPropagation()}
         onAnimationEnd={(e) => {
-          if (!open && e.animationName === 'iv-palette-out') setMounted(false);
+          // Match desktop (`iv-palette-out`) and mobile-sheet close variants.
+          if (!open && (e.animationName === 'iv-palette-out' || e.animationName === 'iv-palette-sheet-out')) {
+            setMounted(false);
+          }
         }}
       >
         <div className="cmdpalette__input-row">

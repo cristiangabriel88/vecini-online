@@ -144,13 +144,34 @@ export function DatePicker({
     setClosing(true);
   }, []);
 
+  const teardown = useCallback(() => {
+    setOpen(false);
+    setClosing(false);
+    setMounted(false);
+  }, []);
+
   const handleAnimationEnd = (e: AnimationEvent<HTMLDivElement>) => {
-    if (e.animationName === 'iv-dp-out') {
-      setOpen(false);
-      setClosing(false);
-      setMounted(false);
+    if (!closing) return;
+    // Match every close-animation variant: `iv-dp-out` (down), `iv-dp-out-up`
+    // (open-up), and `iv-fade-out` (prefers-reduced-motion fallback).
+    if (
+      e.animationName === 'iv-dp-out' ||
+      e.animationName === 'iv-dp-out-up' ||
+      e.animationName === 'iv-fade-out'
+    ) {
+      teardown();
     }
   };
+
+  // Fallback unmount. `onAnimationEnd` drives the snappy teardown, but if the
+  // close animation is suppressed (prefers-reduced-motion may set
+  // `animation: none`) the event never fires and the popover would linger,
+  // trapping pointer events. A timer guarantees teardown regardless.
+  useEffect(() => {
+    if (!closing) return;
+    const timer = window.setTimeout(teardown, 260);
+    return () => window.clearTimeout(timer);
+  }, [closing, teardown]);
 
   // Click outside
   useEffect(() => {

@@ -35,6 +35,18 @@ export function Modal({ open, onClose, title, children, footer, size = 'md', bar
     if (open) setMounted(true);
   }, [open]);
 
+  // Fallback unmount. `onAnimationEnd` (below) drives the snappy teardown, but
+  // it only fires for the `iv-modal-out` animation. When that animation is
+  // suppressed or replaced (prefers-reduced-motion sets `animation: none`; the
+  // mobile sheet variant runs `iv-modal-sheet-out`), the event never arrives
+  // and the portal would stay mounted, trapping pointer events behind an
+  // invisible overlay. A timer guarantees teardown regardless.
+  useEffect(() => {
+    if (open || !mounted) return;
+    const timer = window.setTimeout(() => setMounted(false), 320);
+    return () => window.clearTimeout(timer);
+  }, [open, mounted]);
+
   // Restore focus to the trigger element when the modal closes.
   useEffect(() => {
     if (!open && returnFocusTo.current instanceof HTMLElement) {
@@ -83,7 +95,11 @@ export function Modal({ open, onClose, title, children, footer, size = 'md', bar
 
   const state = open ? 'open' : 'closing';
   const handleAnimationEnd = (e: AnimationEvent<HTMLDivElement>) => {
-    if (!open && e.animationName === 'iv-modal-out') setMounted(false);
+    // Match every close-animation variant: `iv-modal-out` on desktop and
+    // `iv-modal-sheet-out` for the mobile bottom-sheet (max-width: 600px).
+    if (!open && (e.animationName === 'iv-modal-out' || e.animationName === 'iv-modal-sheet-out')) {
+      setMounted(false);
+    }
   };
 
   return createPortal(
