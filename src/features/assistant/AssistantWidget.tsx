@@ -8,7 +8,8 @@ import { useAsociatieFlags } from '@/shared/features/featureStore';
 import { KNOWLEDGE_BASE } from '@/features/assistant/knowledge';
 import { useDataEntries } from '@/features/assistant/dataSources';
 import { visibleEntries } from '@/features/assistant/visibility';
-import { answerQuery } from '@/features/assistant/engine';
+import { useVisibleContext } from '@/features/assistant/visibleState';
+import { routeQuery, toMessage } from '@/features/assistant/intentRouter';
 
 /**
  * Floating corner help assistant. Answers are produced locally by the grounded
@@ -40,17 +41,22 @@ export function AssistantWidget() {
     () => visibleEntries([...KNOWLEDGE_BASE, ...dataEntries], role, flags),
     [role, flags, dataEntries],
   );
+  const snapshot = useVisibleContext();
 
   const ask = (text: string) => {
     const trimmed = text.trim();
     if (!trimmed) return;
     // Use the turn index as the variant seed so wording rotates deterministically.
-    const seed = useAssistantStore.getState().messages.length;
+    const msgs = useAssistantStore.getState().messages;
+    const seed = msgs.length;
+    const lastBot = [...msgs].reverse().find((m) => m.role === 'bot');
+    const lastOffered = lastBot?.chips;
     addMessage({ role: 'user', text: trimmed });
-    const reply = answerQuery(trimmed, entries, t, seed);
+    const result = routeQuery(trimmed, entries, snapshot(), t, seed, lastOffered);
+    const reply = toMessage(result);
 
     const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    const delay = reduceMotion ? 0 : Math.min(900, Math.max(300, reply.text.length * 12));
+    const delay = reduceMotion ? 0 : Math.min(900, Math.max(300, result.message.length * 12));
 
     setTyping(true);
     window.clearTimeout(replyTimer.current);

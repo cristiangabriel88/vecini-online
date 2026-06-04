@@ -4,6 +4,10 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T236 P2 ✅ 2026-06-05 -- Wire visible-first grounding into the assistant widget
+
+Modified `src/features/assistant/AssistantWidget.tsx`: replaced `answerQuery` import with `useVisibleContext` (visibleState.ts) + `routeQuery`/`toMessage` (intentRouter.ts). Added `const snapshot = useVisibleContext()` hook inside the component. Updated `ask()` to: read `lastOffered` from the last bot message chips before the user message is added, call `routeQuery(trimmed, entries, snapshot(), t, seed, lastOffered)`, derive reply via `toMessage(result)`, and compute typing delay from `result.message.length`. Created `tests/unit/assistantWidget.visibleGrounding.test.tsx` with 2 assertions: a question about an on-screen heading yields the heading text (visible-prefix + value); a question about the F01 KB feature does not include the fixture heading and has a route. 285 files / 2724 tests / lint + typecheck + build + build:pi + build:demo all green.
+
 ### T235 P2 ✅ 2026-06-05 -- Visible-first intent router with structured schema + pluggable phrasing engine
 
 Created `src/features/assistant/intentRouter.ts` with `RouterIntent` union, `RouterResult` interface, `PhrasingEngine` interface + `deterministicPhrasing` default (phrase=pickVariant, no select), `routeQuery` (7-step: greeting/capabilities→greeting, thanks/bye/identity→ask, affirm+single→confirm, affirm+multi→clarify, visible-first score merge, near-tie clarify, confident visible/KB answer), `fromReply`/`toMessage` adapters. Exported `variants` from `engine.ts` (no behavior change). Added `assistant.visiblePrefix` locale key to ro.json ("Din pagina aceasta:") and en.json ("From this page:"). Created `tests/unit/assistant.intentRouter.test.ts` with 19 assertions. 284 files / 2722 tests / lint + typecheck + build + build:pi + build:demo all green.
