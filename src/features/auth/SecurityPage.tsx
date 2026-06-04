@@ -781,7 +781,7 @@ export default function SecurityPage() {
                   {!telegramEnabled && !myTelegramLink && (
                     <p className="text-xs text-muted">
                       {t('auth.mfa.channels.telegramLinkHint')}{' '}
-                      <Link to="/app/profil" className="auth-link text-xs">
+                      <Link to="/app/notificari" className="auth-link text-xs">
                         <MessageCircle className="mr-0.5 inline h-3 w-3" />
                         {t('auth.mfa.channels.telegramLinkAction')}
                       </Link>

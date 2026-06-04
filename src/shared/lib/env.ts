@@ -31,6 +31,10 @@ interface ClientEnv {
    *  when Supabase is configured and `demo` when it is not, so existing deploys
    *  are unaffected by the new variable. */
   appStage: AppStage;
+  /** Telegram bot username (without @) for building deep links. Reads
+   *  `VITE_TELEGRAM_BOT_USERNAME`; empty string when unset (deep-link UI
+   *  shows placeholder text instead of a live URL). */
+  telegramBotUsername: string;
 }
 
 const rawUrl = import.meta.env.VITE_SUPABASE_URL ?? '';
@@ -80,6 +84,7 @@ export const env: ClientEnv = {
   securityEnforcement: parseSecurityEnforcement(import.meta.env.VITE_SECURITY_ENFORCEMENT),
   platformUrl: (import.meta.env.VITE_PLATFORM_URL as string | undefined)?.trim() || null,
   appStage: resolveAppStage(import.meta.env.VITE_APP_STAGE as string | undefined, isSupabaseConfigured),
+  telegramBotUsername: (import.meta.env.VITE_TELEGRAM_BOT_USERNAME as string | undefined)?.trim() || '',
 };
 
 /** Returns the current deployment stage. */

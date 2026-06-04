@@ -1,14 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bell, BellOff, CheckCheck, ExternalLink, Mail, MailX, Moon } from 'lucide-react';
+import { Bell, BellOff, CheckCheck, Copy, ExternalLink, Link2Off, Mail, MailX, Moon, Send } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Card } from '@/shared/components/Card';
+import { Button } from '@/shared/components/Button';
 import { useNotificationStore } from '@/shared/store/notificationStore';
 import { useNotifPrefsStore } from '@/shared/store/notifPrefsStore';
 import { useMyIdentity } from '@/features/profile/profileStore';
 import { useAuthStore } from '@/shared/store/authStore';
+import { useTelegramLinkStore } from '@/shared/store/telegramLinkStore';
+import { env } from '@/shared/lib/env';
+import { formatDate } from '@/shared/lib/format';
+import { buildTelegramDeepLink } from '@/features/telegram/telegramDeepLink';
 import {
   hydrateNotifications,
   hydrateNotifPrefs,
@@ -105,6 +111,132 @@ function NotifRow({ n, onRead }: { n: AppNotification; onRead: (id: string) => v
         </div>
       </div>
     </div>
+  );
+}
+
+/** Panel for the resident to link / unlink their Telegram account (T68). */
+function TelegramLinkPanel({
+  userId,
+  asociatieId,
+  role,
+}: {
+  userId: string;
+  asociatieId: string;
+  role: import('@/shared/types/domain').Role | null;
+}) {
+  const { t } = useTranslation();
+  const links = useTelegramLinkStore((s) => s.links);
+  const issueLinkCode = useTelegramLinkStore((s) => s.issueLinkCode);
+  const unlink = useTelegramLinkStore((s) => s.unlink);
+  const botUsername = env.telegramBotUsername;
+
+  const myLink = links.find((l) => l.userId === userId) ?? null;
+  const [activeCode, setActiveCode] = useState<string | null>(null);
+
+  const deepLink =
+    activeCode && botUsername ? buildTelegramDeepLink(botUsername, activeCode) : null;
+
+  function handleIssueCode() {
+    const linkCode = issueLinkCode({
+      userId,
+      asociatieId,
+      role: role ?? 'proprietar',
+      expiresAt: null,
+    });
+    setActiveCode(linkCode.code);
+  }
+
+  async function handleCopy() {
+    if (!deepLink) return;
+    try {
+      await navigator.clipboard.writeText(deepLink);
+      toast.success(t('notifications.telegramCopied'));
+    } catch {
+      /* clipboard unavailable */
+    }
+  }
+
+  function handleUnlink() {
+    if (!myLink) return;
+    unlink(myLink.telegramUserId);
+    setActiveCode(null);
+    toast.success(t('notifications.telegramUnlinked'));
+  }
+
+  const handle = myLink?.username ?? myLink?.firstName ?? null;
+  const linkedAtFormatted = myLink ? formatDate(myLink.linkedAt) : null;
+
+  return (
+    <Card title={t('notifications.telegramTitle')}>
+      <p className="text-sm text-muted">{t('notifications.telegramBody')}</p>
+
+      {myLink ? (
+        <div className="mt-4">
+          <div className="flex items-center gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--success-soft,var(--primary-soft))] text-[var(--success,var(--primary))]">
+              <Send className="h-4 w-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium">{t('notifications.telegramLinked')}</p>
+              {handle && (
+                <p className="text-xs text-muted">
+                  {t('notifications.telegramLinkedHint', { handle })}
+                </p>
+              )}
+              {linkedAtFormatted && (
+                <p className="text-xs text-muted">
+                  {t('notifications.telegramLinkedAt', { date: linkedAtFormatted })}
+                </p>
+              )}
+            </div>
+          </div>
+          <div className="mt-4">
+            <Button variant="danger" size="sm" onClick={handleUnlink}>
+              <Link2Off className="h-4 w-4" /> {t('notifications.telegramUnlink')}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-4 space-y-4">
+          {!activeCode ? (
+            <Button variant="secondary" onClick={handleIssueCode}>
+              <Send className="h-4 w-4" /> {t('notifications.telegramGenerateCode')}
+            </Button>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm font-medium">{t('notifications.telegramCodeTitle')}</p>
+              <p className="text-xs text-muted">{t('notifications.telegramCodeHint')}</p>
+              <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-sunken)] px-4 py-3">
+                <p className="iv-mono text-center text-xl font-bold tracking-[0.25em] text-text">
+                  {activeCode}
+                </p>
+              </div>
+              {!botUsername && (
+                <p className="text-xs text-warning">{t('notifications.telegramNoBotUsername')}</p>
+              )}
+              <div className="flex flex-wrap gap-2">
+                {deepLink && (
+                  <a
+                    href={deepLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn--secondary btn--sm inline-flex items-center gap-2"
+                  >
+                    <ExternalLink className="h-4 w-4" /> {t('notifications.telegramDeepLink')}
+                  </a>
+                )}
+                <Button variant="secondary" size="sm" onClick={() => void handleCopy()}>
+                  <Copy className="h-4 w-4" /> {t('notifications.telegramCopyLink')}
+                </Button>
+                <Button variant="ghost" size="sm" onClick={handleIssueCode}>
+                  {t('notifications.telegramGenerateAnother')}
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </Card>
   );
 }
 
@@ -251,6 +383,7 @@ export default function NotificationsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { userId } = useMyIdentity();
   const currentAsociatieId = useAuthStore((s) => s.currentAsociatieId) ?? '';
+  const activeRole = useAuthStore((s) => s.activeRole)();
   const store = useNotificationStore();
   const prefsStore = useNotifPrefsStore();
   const notifications = store.forUser(userId, currentAsociatieId);
@@ -336,8 +469,13 @@ export default function NotificationsPage() {
         </div>
       )}
 
-      <div className="mt-6">
+      <div className="mt-6 space-y-4">
         <NotifPrefsPanel userId={userId} />
+        <TelegramLinkPanel
+          userId={userId}
+          asociatieId={currentAsociatieId}
+          role={activeRole}
+        />
       </div>
     </div>
   );
