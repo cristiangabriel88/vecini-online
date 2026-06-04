@@ -4,6 +4,11 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T238 P1 ✅ 2026-06-04 -- Stop per-keystroke page re-renders in compose/create modals (state isolation reference fix)
+- modified: src/features/announcements/AnnouncementsPage.tsx (extracted AnnouncementComposeModal child owning all draft state; extracted AnnouncementRow = memo(...) with useMemo for sanitizeHtml; stable useCallback handlers at page level; useMemo for visibleAnnouncements derivation)
+- new: tests/unit/announcementsRenderIsolation.test.tsx (4 assertions: initial render count = 1, opening modal does not re-render list, typing 5 keystrokes does not re-render list, items remain in DOM throughout compose flow)
+- modified: DECISIONS.md (T238 pattern documented for T241 roll-out)
+
 ### T108 P3 ✅ 2026-06-04 -- Rich per-card home widgets (live at-a-glance state on shortcut cards)
 - new: src/features/home/homeWidgets.ts (pure builders: buildAnnouncementWidget/buildEventWidget/buildPollWidget/buildTicketWidget + widgetForFeature dispatcher; WidgetData discriminated union; no React, fully testable)
 - new: tests/unit/homeWidgets.test.ts (25 assertions across all four builders + the dispatcher)
