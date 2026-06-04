@@ -20,6 +20,70 @@ import { useIdeasStore, useAsociatieIdeas } from './ideasStore';
 import { hydrateIdeas, submitIdea, castIdeaVote } from './ideasApi';
 import { rankIdeas, IDEA_STATUS_TONE, isPromoted, newIdea } from './ideaLogic';
 
+function IdeaComposeModal({
+  open,
+  onClose,
+  asociatieId,
+  authorUserId,
+  authorName,
+}: {
+  open: boolean;
+  onClose: () => void;
+  asociatieId: string;
+  authorUserId: string;
+  authorName: string;
+}) {
+  const { t } = useTranslation();
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+
+  const submit = () => {
+    if (!title.trim() || !body.trim()) return;
+    const idea = newIdea(
+      { title: title.trim(), body: body.trim() },
+      asociatieId,
+      authorUserId,
+      authorName,
+    );
+    submitIdea(asociatieId, idea, authorUserId);
+    toast.success(t('ideas.submitted'));
+    setTitle('');
+    setBody('');
+    onClose();
+  };
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={t('ideas.new')}
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>
+            {t('common.cancel')}
+          </Button>
+          <Button onClick={submit} disabled={!title.trim() || !body.trim()}>
+            {t('common.create')}
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <Input
+          label={t('ideas.ideaTitle')}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <Textarea
+          label={t('ideas.body')}
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+        />
+      </div>
+    </Modal>
+  );
+}
+
 export default function IdeasPage() {
   const { t } = useTranslation();
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
@@ -31,8 +95,6 @@ export default function IdeasPage() {
   const apartments = useAsociatieApartments();
 
   const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
 
   useEffect(() => {
     if (asociatieId) void hydrateIdeas(asociatieId);
@@ -62,21 +124,6 @@ export default function IdeasPage() {
 
   const ranked = rankIdeas(catalog.items);
   const apartmentId = findVoterApartmentId(apartments, authorUserId);
-
-  const submit = () => {
-    if (!title.trim() || !body.trim() || !asociatieId) return;
-    const idea = newIdea(
-      { title: title.trim(), body: body.trim() },
-      asociatieId,
-      authorUserId,
-      authorName,
-    );
-    submitIdea(asociatieId, idea, authorUserId);
-    toast.success(t('ideas.submitted'));
-    setOpen(false);
-    setTitle('');
-    setBody('');
-  };
 
   return (
     <div>
@@ -144,34 +191,13 @@ export default function IdeasPage() {
         </div>
       )}
 
-      <Modal
+      <IdeaComposeModal
         open={open}
         onClose={() => setOpen(false)}
-        title={t('ideas.new')}
-        footer={
-          <>
-            <Button variant="ghost" onClick={() => setOpen(false)}>
-              {t('common.cancel')}
-            </Button>
-            <Button onClick={submit} disabled={!title.trim() || !body.trim()}>
-              {t('common.create')}
-            </Button>
-          </>
-        }
-      >
-        <div className="space-y-4">
-          <Input
-            label={t('ideas.ideaTitle')}
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          <Textarea
-            label={t('ideas.body')}
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-          />
-        </div>
-      </Modal>
+        asociatieId={asociatieId ?? ''}
+        authorUserId={authorUserId}
+        authorName={authorName}
+      />
     </div>
   );
 }

@@ -4,6 +4,12 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### ✅ T241 — [P2] Roll modal state-isolation across remaining feature pages (umbrella)
+
+Done: Audited all feature pages. Polls/Events have no create-form modals; Tickets/Petitions/Discussions are complex multi-modal pages left for a follow-up. Extracted draft state from 5 pages into dedicated child modal components: `LocatorComposeModal` (title/body/category + submit, plus `PostCard = memo(...)` for list rows), `IdeaComposeModal` (title/body + submit), `MarketplaceComposeModal` (title/description/newCategory/price + submit, using hooks internally), `ProjectCreateModal` (title/description/contractor/budget + submit, plus `ProjectCard = memo(...)` replacing the `renderProject` inline function), `CrowdfundCreateModal` (title/description/target/deadline + submit) and `CrowdfundPledgeModal` (pledgeAmount + submit). Each page now holds only `open` boolean (plus `pledgeId` for Crowdfund). Added `tests/unit/modalStateIsolation.test.tsx` (4 assertions) proving 5 keystrokes in a compose modal do not re-render the memo list. 280 files / 2682 tests / lint + typecheck + build + build:pi + build:demo all green.
+
+---
+
 ### ✅ T240 — [P2] Memoize AppLayout feature filtering + shell components
 
 Done: Added `memo` and `useMemo` to React imports. Updated `useEnabledFeatures` to use `useMemo([flags, role])` and changed its role selector to `useAuthStore((s) => s.activeRole())` so Zustand correctly tracks role changes. In `Sidebar`, replaced the inline per-render `categories.map + enabled.filter` with a `useMemo([enabled])`-computed `groups` array precomputing category+items pairs. Wrapped `Sidebar`, `BottomNav`, and `Topbar` with `React.memo` to prevent parent-triggered re-renders. Added `tests/unit/appLayoutMemo.test.ts` (5 parse-based assertions). 279 files / 2678 tests / lint + typecheck + build + build:pi + build:demo all green.

@@ -30,32 +30,25 @@ function defaultDeadline(): string {
   return d.toISOString().slice(0, 10);
 }
 
-export default function CrowdfundPage() {
+function CrowdfundCreateModal({
+  open,
+  onClose,
+  asociatieId,
+}: {
+  open: boolean;
+  onClose: () => void;
+  asociatieId: string;
+}) {
   const { t } = useTranslation();
-  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
-  const userId = useAuthStore((s) => s.session?.user?.id ?? '');
-  const fetchError = useCrowdfundStore((s) => s.fetchError);
-  const myPledged = useCrowdfundStore((s) => s.myPledged);
-  const funds = useAsociatieCrowdfunds();
-
-  const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [target, setTarget] = useState('');
   const [deadline, setDeadline] = useState(defaultDeadline());
-  const [pledgeId, setPledgeId] = useState<string | null>(null);
-  const [pledgeAmount, setPledgeAmount] = useState('');
 
-  useEffect(() => {
-    if (asociatieId) void hydrateCrowdfunds(asociatieId, userId || null);
-  }, [asociatieId, userId]);
-
-  const list = sortCrowdfunds(funds);
   const valid = isValidCrowdfund(title, Number(target));
-  const pledgeValid = isValidPledge(Number(pledgeAmount));
 
   const submit = () => {
-    if (!valid || !asociatieId) return;
+    if (!valid) return;
     const fund = {
       id: `cf-${Date.now()}`,
       asociatie_id: asociatieId,
@@ -68,20 +61,106 @@ export default function CrowdfundPage() {
     };
     createCrowdfundLive(asociatieId, fund);
     toast.success(t('crowdfund.created'));
-    setOpen(false);
     setTitle('');
     setDescription('');
     setTarget('');
     setDeadline(defaultDeadline());
+    onClose();
   };
 
-  const submitPledge = () => {
-    if (!pledgeId || !pledgeValid || !asociatieId) return;
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={t('crowdfund.new')}
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>
+            {t('common.cancel')}
+          </Button>
+          <Button onClick={submit} disabled={!valid}>
+            {t('common.publish')}
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <Input label={t('crowdfund.titleLabel')} value={title} onChange={(e) => setTitle(e.target.value)} />
+        <Textarea label={t('crowdfund.description')} value={description} onChange={(e) => setDescription(e.target.value)} />
+        <Input label={t('crowdfund.target')} type="number" min={0} value={target} onChange={(e) => setTarget(e.target.value)} />
+        <DatePicker label={t('crowdfund.deadline')} value={deadline} onChange={(v) => setDeadline(v)} />
+      </div>
+    </Modal>
+  );
+}
+
+function CrowdfundPledgeModal({
+  pledgeId,
+  onClose,
+  asociatieId,
+  userId,
+}: {
+  pledgeId: string | null;
+  onClose: () => void;
+  asociatieId: string;
+  userId: string;
+}) {
+  const { t } = useTranslation();
+  const [pledgeAmount, setPledgeAmount] = useState('');
+
+  const pledgeValid = isValidPledge(Number(pledgeAmount));
+
+  const submit = () => {
+    if (!pledgeId || !pledgeValid) return;
     pledgeLive(asociatieId, pledgeId, Number(pledgeAmount), userId);
     toast.success(t('crowdfund.pledged'));
-    setPledgeId(null);
     setPledgeAmount('');
+    onClose();
   };
+
+  return (
+    <Modal
+      open={pledgeId !== null}
+      onClose={onClose}
+      title={t('crowdfund.pledge')}
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>
+            {t('common.cancel')}
+          </Button>
+          <Button onClick={submit} disabled={!pledgeValid}>
+            {t('crowdfund.pledge')}
+          </Button>
+        </>
+      }
+    >
+      <Input
+        label={t('crowdfund.amount')}
+        type="number"
+        min={0}
+        value={pledgeAmount}
+        onChange={(e) => setPledgeAmount(e.target.value)}
+      />
+    </Modal>
+  );
+}
+
+export default function CrowdfundPage() {
+  const { t } = useTranslation();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const userId = useAuthStore((s) => s.session?.user?.id ?? '');
+  const fetchError = useCrowdfundStore((s) => s.fetchError);
+  const myPledged = useCrowdfundStore((s) => s.myPledged);
+  const funds = useAsociatieCrowdfunds();
+
+  const [open, setOpen] = useState(false);
+  const [pledgeId, setPledgeId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (asociatieId) void hydrateCrowdfunds(asociatieId, userId || null);
+  }, [asociatieId, userId]);
+
+  const list = sortCrowdfunds(funds);
 
   if (fetchError) {
     return (
@@ -113,15 +192,15 @@ export default function CrowdfundPage() {
       ) : (
         <div className="space-y-3">
           {list.map((c) => {
-            const open2 = isOpen(c);
+            const openFund = isOpen(c);
             const hasPledged = myPledged.includes(c.id);
             return (
-              <Card key={c.id} className={`space-y-2 p-4 ${open2 ? '' : 'opacity-70'}`}>
+              <Card key={c.id} className={`space-y-2 p-4 ${openFund ? '' : 'opacity-70'}`}>
                 <div className="flex items-start justify-between gap-3">
                   <p className="font-medium">{c.title}</p>
                   {isFunded(c) ? (
                     <Badge tone="success">{t('crowdfund.funded')}</Badge>
-                  ) : open2 ? (
+                  ) : openFund ? (
                     <Badge tone="primary">{t('crowdfund.until', { date: formatDate(c.deadline) })}</Badge>
                   ) : (
                     <Badge tone="neutral">{t('crowdfund.closed')}</Badge>
@@ -135,7 +214,7 @@ export default function CrowdfundPage() {
                   <span className="text-sm text-muted">
                     {t('crowdfund.raised', { raised: formatLei(c.pledged), target: formatLei(c.target_amount) })}
                   </span>
-                  {open2 && (
+                  {openFund && (
                     <Button
                       variant={hasPledged ? 'ghost' : 'primary'}
                       disabled={hasPledged}
@@ -151,52 +230,17 @@ export default function CrowdfundPage() {
         </div>
       )}
 
-      <Modal
+      <CrowdfundCreateModal
         open={open}
         onClose={() => setOpen(false)}
-        title={t('crowdfund.new')}
-        footer={
-          <>
-            <Button variant="ghost" onClick={() => setOpen(false)}>
-              {t('common.cancel')}
-            </Button>
-            <Button onClick={submit} disabled={!valid}>
-              {t('common.publish')}
-            </Button>
-          </>
-        }
-      >
-        <div className="space-y-4">
-          <Input label={t('crowdfund.titleLabel')} value={title} onChange={(e) => setTitle(e.target.value)} />
-          <Textarea label={t('crowdfund.description')} value={description} onChange={(e) => setDescription(e.target.value)} />
-          <Input label={t('crowdfund.target')} type="number" min={0} value={target} onChange={(e) => setTarget(e.target.value)} />
-          <DatePicker label={t('crowdfund.deadline')} value={deadline} onChange={(v) => setDeadline(v)} />
-        </div>
-      </Modal>
-
-      <Modal
-        open={pledgeId !== null}
+        asociatieId={asociatieId ?? ''}
+      />
+      <CrowdfundPledgeModal
+        pledgeId={pledgeId}
         onClose={() => setPledgeId(null)}
-        title={t('crowdfund.pledge')}
-        footer={
-          <>
-            <Button variant="ghost" onClick={() => setPledgeId(null)}>
-              {t('common.cancel')}
-            </Button>
-            <Button onClick={submitPledge} disabled={!pledgeValid}>
-              {t('crowdfund.pledge')}
-            </Button>
-          </>
-        }
-      >
-        <Input
-          label={t('crowdfund.amount')}
-          type="number"
-          min={0}
-          value={pledgeAmount}
-          onChange={(e) => setPledgeAmount(e.target.value)}
-        />
-      </Modal>
+        asociatieId={asociatieId ?? ''}
+        userId={userId}
+      />
     </div>
   );
 }

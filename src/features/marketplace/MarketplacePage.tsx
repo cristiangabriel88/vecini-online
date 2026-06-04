@@ -18,30 +18,27 @@ import { useMarketplaceStore, useAsociatieMarketplace } from './marketplaceStore
 import { hydrateListings, addListingLive } from './marketplaceApi';
 import { activeListings, isValidListing, MARKETPLACE_CATEGORIES, expiryFrom } from './marketplaceLogic';
 
-export default function MarketplacePage() {
+function MarketplaceComposeModal({
+  open,
+  onClose,
+  asociatieId,
+}: {
+  open: boolean;
+  onClose: () => void;
+  asociatieId: string;
+}) {
   const { t } = useTranslation();
-  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
-  const fetchError = useMarketplaceStore((s) => s.fetchError);
-  const listings = useAsociatieMarketplace();
   const { userId } = useMyIdentity();
   const profileGet = useProfileStore((s) => s.get);
-  const [query, setQuery] = useState('');
-  const [category, setCategory] = useState('all');
-  const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [newCategory, setNewCategory] = useState<string>(MARKETPLACE_CATEGORIES[0]);
   const [price, setPrice] = useState('');
 
-  useEffect(() => {
-    if (asociatieId) void hydrateListings(asociatieId);
-  }, [asociatieId]);
-
-  const results = activeListings(listings, query, category);
   const valid = isValidListing(title);
 
   const submit = () => {
-    if (!valid || !asociatieId) return;
+    if (!valid) return;
     const profile = profileGet(userId ?? '', '');
     const sellerName = profile.fullName || profile.displayName || 'Rezident';
     const parsed = price.trim() === '' ? null : Math.max(0, Number(price.replace(',', '.')) || 0);
@@ -61,12 +58,73 @@ export default function MarketplacePage() {
     };
     addListingLive(asociatieId, item);
     toast.success(t('marketplace.added'));
-    setOpen(false);
     setTitle('');
     setDescription('');
     setPrice('');
     setNewCategory(MARKETPLACE_CATEGORIES[0]);
+    onClose();
   };
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={t('marketplace.new')}
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>
+            {t('common.cancel')}
+          </Button>
+          <Button onClick={submit} disabled={!valid}>
+            {t('common.publish')}
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <Input label={t('marketplace.titleLabel')} value={title} onChange={(e) => setTitle(e.target.value)} />
+        <Textarea
+          label={t('marketplace.description')}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+        <Select
+          label={t('marketplace.category')}
+          value={newCategory}
+          onChange={(e) => setNewCategory(e.target.value)}
+        >
+          {MARKETPLACE_CATEGORIES.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </Select>
+        <Input
+          label={t('marketplace.priceLabel')}
+          hint={t('marketplace.priceHint')}
+          inputMode="decimal"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+        />
+      </div>
+    </Modal>
+  );
+}
+
+export default function MarketplacePage() {
+  const { t } = useTranslation();
+  const asociatieId = useAuthStore((s) => s.currentAsociatieId);
+  const fetchError = useMarketplaceStore((s) => s.fetchError);
+  const listings = useAsociatieMarketplace();
+  const [query, setQuery] = useState('');
+  const [category, setCategory] = useState('all');
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (asociatieId) void hydrateListings(asociatieId);
+  }, [asociatieId]);
+
+  const results = activeListings(listings, query, category);
 
   if (fetchError) {
     return (
@@ -132,48 +190,11 @@ export default function MarketplacePage() {
         </div>
       )}
 
-      <Modal
+      <MarketplaceComposeModal
         open={open}
         onClose={() => setOpen(false)}
-        title={t('marketplace.new')}
-        footer={
-          <>
-            <Button variant="ghost" onClick={() => setOpen(false)}>
-              {t('common.cancel')}
-            </Button>
-            <Button onClick={submit} disabled={!valid}>
-              {t('common.publish')}
-            </Button>
-          </>
-        }
-      >
-        <div className="space-y-4">
-          <Input label={t('marketplace.titleLabel')} value={title} onChange={(e) => setTitle(e.target.value)} />
-          <Textarea
-            label={t('marketplace.description')}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-          <Select
-            label={t('marketplace.category')}
-            value={newCategory}
-            onChange={(e) => setNewCategory(e.target.value)}
-          >
-            {MARKETPLACE_CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </Select>
-          <Input
-            label={t('marketplace.priceLabel')}
-            hint={t('marketplace.priceHint')}
-            inputMode="decimal"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-          />
-        </div>
-      </Modal>
+        asociatieId={asociatieId ?? ''}
+      />
     </div>
   );
 }
