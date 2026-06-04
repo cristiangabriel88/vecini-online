@@ -2974,6 +2974,28 @@
       "loading": "Loading audit logs...",
       "fetchError": "Error loading audit logs.",
       "retry": "Retry"
+    },
+    "errors": {
+      "title": "App errors",
+      "subtitle": "Scrubbed error reports forwarded by the client sink. Grouped by error class and source. No PII.",
+      "noErrors": "No errors reported",
+      "reportCount_one": "{{count}} report",
+      "reportCount_few": "{{count}} reports",
+      "reportCount_other": "{{count}} reports",
+      "groupCount_one": "{{count}} group",
+      "groupCount_few": "{{count}} groups",
+      "groupCount_other": "{{count}} groups",
+      "occurrences_one": "{{count}} occurrence",
+      "occurrences_few": "{{count}} occurrences",
+      "occurrences_other": "{{count}} occurrences",
+      "firstSeen": "First seen",
+      "lastSeen": "Last seen",
+      "filterSearch": "Search",
+      "filterSearchPlaceholder": "Error name, message or source",
+      "loading": "Loading error reports...",
+      "fetchError": "Error loading reports.",
+      "retry": "Retry",
+      "empty": "No reports match the filters."
     }
   }
 }

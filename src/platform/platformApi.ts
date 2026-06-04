@@ -9,6 +9,7 @@ import {
 import { type PlatformAsociatieSummary } from './demoPlatform';
 import { usePlatformAsociatiiStore } from './platformAsociatiiStore';
 import { usePlatformAuditStore } from './platformAuditStore';
+import { type PlatformErrorReport, usePlatformErrorStore } from './platformErrorStore';
 
 type RowWithAsoc = { asociatie_id: string };
 type SignInRow = { asociatie_id: string | null; created_at: string };
@@ -172,6 +173,60 @@ export async function hydrateAllAuditLogs(): Promise<void> {
     usePlatformAuditStore.getState().setFetchError('load');
     reportError(err instanceof Error ? err : new Error(String(err)), {
       source: 'platformApi.hydrateAllAuditLogs',
+    });
+  }
+}
+
+interface DbErrorReportRow {
+  ref: string;
+  name: string;
+  message: string;
+  source: string | null;
+  extra: Record<string, unknown> | null;
+  at: number;
+}
+
+function rowToErrorReport(row: DbErrorReportRow): PlatformErrorReport {
+  return {
+    ref: row.ref,
+    name: row.name,
+    message: row.message,
+    source: row.source ?? undefined,
+    extra: row.extra as PlatformErrorReport['extra'] ?? undefined,
+    at: row.at,
+  };
+}
+
+/**
+ * Load the most recent scrubbed error reports (T96) from the platform-level
+ * error_reports table using the super_admin RLS policy. Returns the last 500
+ * reports ordered newest-first. No-op in demo/offline mode.
+ */
+export async function hydrateErrorReports(): Promise<void> {
+  if (!isSupabaseConfigured) return;
+
+  usePlatformErrorStore.getState().setFetchError(null);
+
+  try {
+    const { data, error } = await supabase
+      .from('platform_error_reports')
+      .select('ref, name, message, source, extra, at')
+      .order('at', { ascending: false })
+      .limit(500);
+
+    if (error) {
+      usePlatformErrorStore.getState().setFetchError('load');
+      reportError(new Error(error.message), { source: 'platformApi.hydrateErrorReports' });
+      return;
+    }
+
+    usePlatformErrorStore.getState().setReports(
+      (data as DbErrorReportRow[]).map(rowToErrorReport),
+    );
+  } catch (err) {
+    usePlatformErrorStore.getState().setFetchError('load');
+    reportError(err instanceof Error ? err : new Error(String(err)), {
+      source: 'platformApi.hydrateErrorReports',
     });
   }
 }

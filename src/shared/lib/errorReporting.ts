@@ -126,6 +126,14 @@ export function setErrorSink(next: ErrorSink | null): void {
   sink = next;
 }
 
+const MAX_BUFFER = 100;
+const _reportBuffer: ErrorReport[] = [];
+
+/** Read the in-process report buffer (last 100 reports). Used by the platform error feed in demo mode. */
+export function getReportBuffer(): readonly ErrorReport[] {
+  return _reportBuffer;
+}
+
 /**
  * Report an error: scrub it, hand the report to the sink (if any), and in dev
  * surface a compact console line. Returns the report so callers (e.g. the error
@@ -133,6 +141,8 @@ export function setErrorSink(next: ErrorSink | null): void {
  */
 export function reportError(error: unknown, context: ErrorContext = {}): ErrorReport {
   const report = buildReport(error, context, makeRef(Date.now(), Math.random()), Date.now());
+  if (_reportBuffer.length >= MAX_BUFFER) _reportBuffer.shift();
+  _reportBuffer.push(report);
   try {
     sink?.(report);
   } catch {

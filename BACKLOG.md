@@ -166,9 +166,9 @@ Platform-owner console: manage asociații, provision admins, the global feature 
 
 Done: Created `src/platform/platformAuditStore.ts` (seeded demo chains for all 3 demo asociații, setChains/setFetchError actions). Added `hydrateAllAuditLogs()` to `platformApi.ts` (cross-tenant query via super_admin RLS, groups by asociatie_id, updates store). Created `PlatformAuditPage.tsx` at `/consola/audit`: per-asociație integrity badges (verifyChain), T09 filter set (action/entity/actor/text/from/to) plus asociație filter, JSON/CSV export with timestamp filename, bilingual RO/EN. Wired route in `platformRouter.tsx`, unlocked sidebar link (ready: true). Added `platform.audit.*` locale keys to ro.json + en.json. 9 new unit tests in `tests/unit/platformAudit.test.ts`. 265 files / 2499 tests / lint + typecheck + build + build:pi + build:demo all green.
 
-### ⬜ T96 — [P2] Platform error feed (superadmin app)
+### ✅ T96 — [P2] Platform error feed (superadmin app)
 
-Give the superadmin visibility into app problems: persist the scrubbed error reports from the T07 `errorReporting` hook (no PII, the `IV-XXXX-XXXX` reference) to a `super_admin`-readable store/table and surface them as a filterable feed in the platform app (message, reference, route, count, first/last seen), so the two superadmins can spot errors and regressions. Wire to the live sink (T82) when present; demo shows the local report buffer. Prereq: T07, platform shell; coordinates with T82.
+Done: Created `platform_error_reports` table (RLS super_admin SELECT only; service-role key writes via `error-report.ts` Netlify function). Updated `error-report.ts` to persist scrubbed reports to the table when Supabase is configured. Added 100-report ring buffer (`getReportBuffer`) to `errorReporting.ts`. Created `platformErrorStore.ts` with `groupReports()` pure function and 7-report demo seed (4 distinct error groups). Added `hydrateErrorReports()` to `platformApi.ts`. Created `PlatformErrorsPage.tsx` at `/consola/erori`: summary bar, text + date filters, grouped feed with occurrence count, first/last seen, and ref codes. Set `errors` section `ready: true`; added route. 271 files / 2514 tests / lint + typecheck + build + build:pi + build:demo all green.
 
 ### ⬜ T97 — [P2] Platform usage/health metrics (superadmin app)
 

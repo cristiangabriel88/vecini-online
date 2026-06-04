@@ -27,7 +27,7 @@ const SECTIONS = [
   { key: 'overview', path: '/consola', icon: LayoutDashboard, ready: true },
   { key: 'asociatii', path: '/consola/asociatii', icon: Building2, ready: true },
   { key: 'audit', path: '/consola/audit', icon: ScrollText, ready: true },
-  { key: 'errors', path: '/consola/erori', icon: TriangleAlert, ready: false },
+  { key: 'errors', path: '/consola/erori', icon: TriangleAlert, ready: true },
   { key: 'usage', path: '/consola/utilizare', icon: Activity, ready: false },
   { key: 'impersonation', path: '/consola/impersonare', icon: UserCog, ready: false },
   { key: 'messenger', path: '/consola/mesaje', icon: MessagesSquare, ready: false },

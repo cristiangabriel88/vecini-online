@@ -2974,6 +2974,28 @@
       "loading": "Se încarcă jurnalele...",
       "fetchError": "Eroare la încărcarea jurnalelor de audit.",
       "retry": "Reîncearcă"
+    },
+    "errors": {
+      "title": "Erori aplicație",
+      "subtitle": "Rapoarte de erori anonimizate, transmise de sink-ul client. Grupate după clasa erorii și sursă. Fără date personale.",
+      "noErrors": "Nicio eroare raportată",
+      "reportCount_one": "{{count}} raport",
+      "reportCount_few": "{{count}} rapoarte",
+      "reportCount_other": "{{count}} rapoarte",
+      "groupCount_one": "{{count}} grup",
+      "groupCount_few": "{{count}} grupuri",
+      "groupCount_other": "{{count}} grupuri",
+      "occurrences_one": "{{count}} apariție",
+      "occurrences_few": "{{count}} apariții",
+      "occurrences_other": "{{count}} apariții",
+      "firstSeen": "Prima apariție",
+      "lastSeen": "Ultima apariție",
+      "filterSearch": "Caută",
+      "filterSearchPlaceholder": "Clasa erorii, mesaj sau sursă",
+      "loading": "Se încarcă rapoartele...",
+      "fetchError": "Eroare la încărcarea rapoartelor.",
+      "retry": "Reîncearcă",
+      "empty": "Niciun raport nu corespunde filtrelor."
     }
   }
 }
