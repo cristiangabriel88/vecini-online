@@ -4,6 +4,12 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T231 P2 ✅ 2026-06-04 -- Responsive data tables: stack to cards / horizontal scroll on phones
+- modified: src/styles/legal.css (added `@media (max-width: 600px)`: `.gdpr-table { overflow-x: auto; -webkit-overflow-scrolling: touch }` + `.gdpr-table__row { min-width: 400px }`)
+- modified: src/styles/primitives.css (added `@media (max-width: 600px)`: `.billing-invoices-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch }`)
+- new: tests/unit/responsiveTables.test.ts (5 parse-based assertions verifying both media blocks and their key properties)
+- note: ApartmentsPage table already had `hidden sm:block` / `sm:hidden` card fallback; no HTML changes needed for either affected table
+
 ### T230 P1 ✅ 2026-06-04 -- Tap-accessible status tooltips (hover-only info unreachable on touch)
 - modified: src/features/admin/ApartmentsPage.tsx (`ApartmentStatusCell`: added `useState<boolean>` tipOpen + `useRef` wrapperRef; computed `hasButton`; wrapper div gets `tabIndex={0}` + click/keydown/blur handlers when no inner button; tooltip gains `group-focus-within/status:opacity-100` + tipOpen override; `aria-hidden="true"` on tooltip span; `cursor-help` on wrapper)
 - new: src/shared/components/InfoTip.tsx (shared component: `<button aria-label aria-expanded>` wrapping `<Info>` icon; click/Esc/blur toggle a positioned tooltip span; `aria-hidden="true"` on tooltip; covers hover + keyboard focus + tap)

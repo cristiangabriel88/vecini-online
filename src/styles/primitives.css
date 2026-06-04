@@ -998,6 +998,14 @@ select.input {
 }
 .billing-invoices-table tr:last-child td { border-bottom: none; }
 
+@media (max-width: 600px) {
+  .billing-invoices-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 /* ── Checkout modal (T110) ──────────────────────────────── */
 .checkout-modal__table {
   width: 100%;

@@ -220,7 +220,7 @@ Surfaced from a performance report: modals open slowly/janky because `.modal-ove
 
 Done: `ApartmentStatusCell` now holds `tipOpen` state; the wrapper div gets `tabIndex={0}`, click/keydown/blur handlers when no inner button (static icon), and the tooltip gains `group-focus-within/status:opacity-100` + tipOpen override (WCAG 1.4.13: hover + keyboard focus + tap all work). Created `src/shared/components/InfoTip.tsx`: a `<button aria-label aria-expanded>` wrapping an Info icon with click/Esc/blur-toggle tooltip. Replaced the two hover-only `<span title aria-label>` info icons in `ApartmentFormPage.tsx` with `<InfoTip>`. 14 new unit tests. 275 files / 2656 tests / lint + typecheck + build + build:pi + build:demo all green.
 
-### ⬜ T231 — [P2] Responsive data tables — stack to cards on phones
+### ✅ T231 — [P2] Responsive data tables — stack to cards on phones
 
 Surfaced while reviewing mobile UX: several data tables overflow horizontally on a 375px
 viewport because they use fixed multi-column grids with no narrow-screen fallback —
@@ -231,6 +231,8 @@ in `src/styles/legal.css:577-584`), the billing invoices table (`.billing-invoic
 stacks each row to a single-column card (label + value pairs) or wraps the table in a
 horizontal-scroll container with a visible affordance, consistent across all three. Reuse the
 existing card/label tokens; no new design primitives. Bilingual RO/EN, premium-feel. Prereq: none.
+
+Done: The admin apartments table already had a full mobile-card fallback (`hidden sm:block` / `sm:hidden`). Added `@media (max-width: 600px)` to the remaining two tables: `.gdpr-table` gets `overflow-x: auto; -webkit-overflow-scrolling: touch` and `.gdpr-table__row` gets `min-width: 400px` so the 3-column grid does not squish before scrolling kicks in (pure CSS, no HTML changes). `.billing-invoices-table` gets `display: block; overflow-x: auto; -webkit-overflow-scrolling: touch` so the HTML `<table>` element scrolls horizontally on narrow screens (also pure CSS, applies to both BillingPage and PlatformSubscriptionsPage which share the same class). Created `tests/unit/responsiveTables.test.ts` with 5 parse-based assertions verifying both media blocks and their key properties. 276 files / 2661 tests / lint + typecheck + build + build:pi + build:demo all green.
 
 ### ⬜ T232 — [P2] DatePicker bottom-sheet variant on phones
 

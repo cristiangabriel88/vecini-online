@@ -596,6 +596,16 @@
   color: var(--text-faint);
 }
 
+@media (max-width: 600px) {
+  .gdpr-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .gdpr-table__row {
+    min-width: 400px;
+  }
+}
+
 /* Erasure plan list */
 .gdpr-plan__list {
   list-style: none;
