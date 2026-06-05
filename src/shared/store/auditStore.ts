@@ -109,6 +109,12 @@ interface AuditState {
    * re-fetched on each mount so the page always reflects the server state.
    */
   liveByAsociatie: AuditByAsociatie;
+  /**
+   * Server-returned HMAC-SHA256 of the chain tail, keyed by asociatieId.
+   * undefined = not yet fetched; null = fetched but AUDIT_HMAC_SECRET not configured.
+   * Not persisted -- re-requested each session so it reflects the live tail.
+   */
+  chainHmacByAsociatie: Record<string, string | null>;
   /** Append a change to one asociație's chain (and mirror it live). */
   record: (input: AuditInput) => void;
   /**
@@ -117,6 +123,12 @@ interface AuditState {
    * asociatieId is empty. Falls back silently on error (offline chain shown).
    */
   hydrateForAsociatie: (asociatieId: string) => Promise<void>;
+  /**
+   * Request the HMAC-SHA256 signature for the current chain tail from the
+   * `audit-hmac` Netlify function. Stores the result in `chainHmacByAsociatie`.
+   * No-op when offline, no session, or the chain is empty.
+   */
+  fetchChainHmac: (asociatieId: string) => Promise<void>;
   /** The chain for one asociație: live when available, persisted otherwise. */
   forAsociatie: (asociatieId: string | null) => AuditEntry[];
 }
@@ -141,6 +153,7 @@ export const useAuditStore = create<AuditState>()(
     (set, get) => ({
       byAsociatie: seedAudit(),
       liveByAsociatie: {},
+      chainHmacByAsociatie: {},
       record: (input) => {
         let appended: AuditEntry | null = null;
         set((s) => {
@@ -167,6 +180,32 @@ export const useAuditStore = create<AuditState>()(
         } catch (err) {
           reportError(err, { source: 'auditStore.hydrateForAsociatie' });
           // leave liveByAsociatie unchanged; forAsociatie falls back to local chain
+        }
+      },
+      fetchChainHmac: async (asociatieId) => {
+        if (!isSupabaseConfigured || !asociatieId) return;
+        try {
+          const { data: sessionData } = await supabase.auth.getSession();
+          const token = sessionData.session?.access_token;
+          if (!token) return;
+          const chain = get().forAsociatie(asociatieId);
+          if (!chain.length) return;
+          const tailHash = chain[chain.length - 1].hash;
+          const resp = await fetch('/.netlify/functions/audit-hmac', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ asociatie_id: asociatieId, tail_hash: tailHash }),
+          });
+          if (!resp.ok) return;
+          const body = (await resp.json()) as { hmac: string | null };
+          set((s) => ({
+            chainHmacByAsociatie: { ...s.chainHmacByAsociatie, [asociatieId]: body.hmac },
+          }));
+        } catch (err) {
+          reportError(err, { source: 'auditStore.fetchChainHmac' });
         }
       },
       forAsociatie: (asociatieId) => {

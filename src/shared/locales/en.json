@@ -2663,6 +2663,7 @@
     "noAccessBody": "Only the admin or president can view the audit log.",
     "integrityOk": "Chain intact",
     "integrityBroken": "Chain broken at #{{seq}}",
+    "hmacSigned": "HMAC-signed chain",
     "count": "{{count}} entries",
     "filterAction": "Action",
     "filterEntity": "Type",

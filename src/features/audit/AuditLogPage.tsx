@@ -1,6 +1,6 @@
-import { memo, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Download, History, ScrollText, ShieldAlert, ShieldCheck, ShieldX } from 'lucide-react';
+import { Download, History, Lock, ScrollText, ShieldAlert, ShieldCheck, ShieldX } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
@@ -10,7 +10,8 @@ import { DatePicker } from '@/shared/components/DatePicker';
 import { Select } from '@/shared/components/Select';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { useAuthStore } from '@/shared/store/authStore';
-import { useAsociatieAudit } from '@/shared/store/auditStore';
+import { useAsociatieAudit, useAuditStore } from '@/shared/store/auditStore';
+import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import { formatDateTime } from '@/shared/lib/format';
 import { DEMO_ASOCIATIE } from '@/shared/demo/demoData';
 import {
@@ -135,6 +136,17 @@ export default function AuditLogPage() {
   // Integrity is checked over the full chain in stored order, not the filtered view.
   const integrity = useMemo(() => verifyChain(entries), [entries]);
 
+  const fetchChainHmac = useAuditStore((s) => s.fetchChainHmac);
+  const chainHmac = useAuditStore((s) =>
+    currentAsociatieId ? s.chainHmacByAsociatie[currentAsociatieId] : undefined,
+  );
+
+  useEffect(() => {
+    if (currentAsociatieId && isSupabaseConfigured) {
+      void fetchChainHmac(currentAsociatieId);
+    }
+  }, [currentAsociatieId, fetchChainHmac]);
+
   if (!canView) {
     return (
       <div>
@@ -184,6 +196,11 @@ export default function AuditLogPage() {
           ) : (
             <Badge tone="danger">
               <ShieldX size={14} /> {t('audit.integrityBroken', { seq: integrity.brokenAt })}
+            </Badge>
+          )}
+          {typeof chainHmac === 'string' && (
+            <Badge tone="neutral">
+              <Lock size={14} /> {t('audit.hmacSigned')}
             </Badge>
           )}
           <span className="text-sm text-muted">

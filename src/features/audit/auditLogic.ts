@@ -130,6 +130,17 @@ export const GENESIS_HASH = '0000000000000000';
 /** Default retention: 2 years, aligned with the security-log window (T06). */
 export const AUDIT_RETENTION_DAYS = 730;
 
+/**
+ * Canonical input for the server-held HMAC-SHA256 of the chain tail (T87).
+ * Versioned so future format changes produce a distinct, non-matching value.
+ * The HMAC itself is computed server-side by the `audit-hmac` Netlify function;
+ * this pure helper produces the identical input string the server hashes so
+ * tests and documentation share a single definition.
+ */
+export function hmacCanonical(asociatieId: string, tailHash: string): string {
+  return `v1:${asociatieId}:${tailHash}`;
+}
+
 /* --------------------------------- hashing -------------------------------- */
 
 /** cyrb53: a fast, well-distributed 64-bit non-cryptographic hash. */

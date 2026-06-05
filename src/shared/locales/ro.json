@@ -2663,6 +2663,7 @@
     "noAccessBody": "Doar administratorul sau președintele pot consulta jurnalul de audit.",
     "integrityOk": "Lanț integru",
     "integrityBroken": "Lanț compromis la #{{seq}}",
+    "hmacSigned": "Lanț semnat HMAC",
     "count": "{{count}} înregistrări",
     "filterAction": "Acțiune",
     "filterEntity": "Tip",
