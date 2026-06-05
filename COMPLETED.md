@@ -4,6 +4,14 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T248 ✅ 2026-06-05 -- DEV role-selector removed + backlog cleanup + dedup audit
+
+Interactive maintenance pass (not `make progress`). Three things: (1) `DevRoleSwitcher` now renders only in the offline DEMO build (`if (!isDemo())`), so the DEV stage is a true PROD replica with no one-tap persona switcher; the dead `signInAsDevUser` auth-store action and its `else` branch were removed (DEV personas are exercised through the real login form with `pi:seed` `{role}@dev.local` accounts). Updated `devRoleSwitcher.test.tsx`, `piSeed.test.ts` comments, `PI_DEPLOYMENT.md`, `.env.pi.example`, and recorded the decision in `DECISIONS.md`. (2) `BACKLOG.md` cleaned: every `✅` block in the Main queue (T15–T243) was a duplicate of an entry already in `COMPLETED.md`, so the redundant blocks were removed and the queue now holds only open work. (3) A dedup/cleanup audit surfaced four code-health refactor tasks now queued as T244 (per-asociatie store factory), T245 (roleUtils permission helper), T246 (hydrate() abstraction), T247 (frozen-empty-array helper).
+
+### T20 ✅ 2026-06-05 -- Super-admin platform console (umbrella)
+
+Umbrella task. All sub-tasks complete and individually archived: T93/T94 (platform shell + provisioning), T95 (cross-tenant audit viewer), T96 (error feed), T97 (usage/health metrics), T98 (audited impersonation), T99 (admin↔superadmin messenger), T119/T120/T121 (provisioning live wiring + E2E). The platform app lives at `src/platform/*` and deploys to its own subdomain, gated to `super_admin`. Archived here so the umbrella heading is not orphaned after the BACKLOG cleanup.
+
 ### T79 P3 ✅ 2026-06-05 -- Guard that every RLS-enabled table carries at least one policy
 
 Created `tests/unit/rlsPolicyCoverage.test.ts` with 5 assertions. Parses all migration SQL to build two sets: `enabled` (RLS-on tables) and `hasPolicies` (tables with at least one `create policy ... on TABLE` or macro call). An `INTENTIONAL_DENY_ALL` map documents 4 service-role-only tables that legitimately carry zero client-facing policies (`mfa_otp_challenges`, `session_elevations`, `login_attempt_locks`, `mfa_recovery_attempt_counts`). Core assertion: every zero-policy table is in the map; two inverse assertions flag stale entries and entries that have since gained a policy, keeping the map self-maintaining. 288 files / 2748 tests / lint + typecheck + build + build:pi + build:demo all green.

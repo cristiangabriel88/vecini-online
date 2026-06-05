@@ -3,6 +3,20 @@
 Compact, machine-readable log of non-trivial choices. Newest first. Format:
 - choice / why / alternatives rejected (when non-obvious) / blast radius.
 
+## 2026-06-05
+
+### "lite" rendering tier strips the glass/blur layer on the Pi (perf)
+- choice: add a stage-derived render tier via `document.documentElement.dataset.perf = isDev() ? 'lite' : 'full'` (set in `src/main.tsx` before first paint), with all overrides isolated in a new `src/styles/perf-lite.css` gated on `[data-perf="lite"]`. The lite tier removes every `backdrop-filter: blur()` (frosted topbar/sidebar/bottomnav/menus/overlays get solid surface-token fills instead), deletes the three animated `filter: blur()` atmosphere blobs + grain (a static gradient wash replaces them), snaps the `grid-template-rows` collapses instead of tweening them, and kills the continuous `aboutGlow` animation + leftover `will-change`. Two cheap wins ship to all stages: `scroll-behavior: smooth` removed from `.main`, and the atmosphere blob blur cut from 140px to 60px.
+- why: the user reported the whole app feeling slow (scroll, menus, "everything") on the Raspberry Pi. The Pi's VideoCore GPU cannot composite large `backdrop-filter`/`filter` blurs at frame rate, and the app re-blurred scrolling content behind the frosted chrome on every frame plus ran three viewport-sized blurred blobs forever. Gating on `isDev()` (the Pi stage) keeps PROD/DEMO visually identical while making the Pi fast. User explicitly chose the "balanced" approach: keep the premium look where the GPU can afford it.
+- alternatives rejected: (a) flatten the glass globally -- violates the premium-feel mandate on capable devices; (b) lower every blur radius for everyone -- still pays backdrop-filter cost on the Pi, which is the actual bottleneck; (c) combine the duplicate `useAuthStore` atomic selectors in `AppLayout` -- those atomic primitive selectors are the *correct* Zustand pattern; merging into one object selector would create a new ref each store change and cause more re-renders (would need `useShallow`), so it was left unchanged as it is not a real win and the GPU work dominates.
+- blast radius: `src/main.tsx` (tier flag + import), `src/styles/perf-lite.css` (new, lite overrides only), `src/styles/shell.css` (smooth-scroll removed, blob blur 140->60). No PROD/DEMO visual change. Follow-up T257 promotes the tier to a user-facing reduce-motion/perf toggle for any low-end device.
+
+### Role switcher is DEMO-only; DEV is a true PROD replica (revises T176)
+- choice: `DevRoleSwitcher` now returns null unless `isDemo()` (previously it rendered in any non-`prod` stage, i.e. DEV too). The dead `signInAsDevUser` auth-store action and its `else` branch are removed; in DEV every persona is exercised through the real login form with the `pi:seed`-minted `{role}@dev.local` accounts.
+- why: DEV (Pi backend, real auth/DB) must be a faithful pre-production replica of PROD, not a hybrid that exposes a one-tap persona switcher. The switcher is a demo-affordance for the offline, backend-less DEMO build only. Logging in through the real form in DEV exercises the same auth code path PROD users hit (the original T176 goal), so the auto-sign-in shortcut added no coverage that the form does not.
+- alternatives rejected: keep the switcher in DEV behind a flag -- still diverges from PROD and leaves `signInAsDevUser` as a non-prod auth path; remove the `pi:seed` accounts too -- they are still the way you log in as each role in DEV, so they stay.
+- blast radius: `src/shared/components/DevRoleSwitcher.tsx` (gate + simplified handler), `src/shared/store/authStore.ts` (`signInAsDevUser` removed from interface + impl), `tests/unit/devRoleSwitcher.test.tsx` (env mock + null-outside-demo test + enter-demo assertion), `tests/unit/piSeed.test.ts` (comment wording), `PI_DEPLOYMENT.md` + `.env.pi.example` (doc wording). No PROD behaviour change. The `pi:seed` script and `VITE_DEV_PASSWORD` are unchanged.
+
 ## 2026-06-04
 
 ### T238 modal state-isolation pattern for feature pages with compose modals

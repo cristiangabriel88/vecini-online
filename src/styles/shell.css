@@ -47,7 +47,9 @@
 .atmos__blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(140px);
+  /* 60px reads almost identically to the old 140px at this blob size but is far
+     cheaper for the compositor to rasterize each animation frame. */
+  filter: blur(60px);
   animation: atmos-drift 26s var(--ease) infinite alternate;
   will-change: transform;
 }
@@ -635,7 +637,9 @@
   overflow-y: auto;
   overflow-x: hidden;
   background: transparent;
-  scroll-behavior: smooth;
+  /* No scroll-behavior: smooth — it forces the browser to animate every wheel /
+     touch / keyboard scroll over several frames, which reads as lag (especially on
+     the Pi). Native OS scroll momentum is instant and smoother. */
 }
 .main__inner {
   max-width: 1100px;

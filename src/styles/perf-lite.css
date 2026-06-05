@@ -1,0 +1,84 @@
+/* ════════════════════════════════════════════════════════════════════════
+   perf-lite.css — the "lite" rendering tier (Pi / dev stage)
+
+   The premium look leans on backdrop-filter blur (frosted chrome, menus,
+   overlays) and large animated filter: blur() blobs. Those are the single
+   most expensive thing for the Raspberry Pi's VideoCore GPU to composite, so
+   on the Pi they turn smooth scrolling and menu opens into visible jank.
+
+   This sheet is gated entirely behind [data-perf="lite"] (set once in main.tsx
+   from isDev()). PROD and DEMO never load these overrides, so the full glass
+   aesthetic is untouched everywhere except the Pi. Because each rule is
+   [data-perf="lite"] + class, it always out-specifies the base rule.
+
+   The guiding swaps:
+     - backdrop-filter: blur(...)  ->  none, and the translucent fill becomes a
+       SOLID surface token so content no longer shows through un-blurred.
+     - large animated filter: blur() blobs  ->  removed (static wash instead).
+     - layout-animating collapses (grid-template-rows)  ->  snap, no transition.
+     - continuous decorative animations / will-change  ->  off.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── Atmosphere: drop the animated blurred blobs + grain entirely ────────── */
+[data-perf="lite"] .atmos__blob,
+[data-perf="lite"] .atmos::after {
+  display: none;
+}
+/* Keep a faint, static warm wash so the canvas is not flatly bare. No blur,
+   no animation, no compositor layer — just a cheap painted gradient. */
+[data-perf="lite"] .atmos {
+  background:
+    radial-gradient(70vw 60vw at 8% -10%, var(--atmos-1) 0%, transparent 70%),
+    radial-gradient(60vw 50vw at 105% 110%, var(--atmos-2) 0%, transparent 70%);
+  opacity: 0.5;
+}
+
+/* ── Frosted chrome: opaque fills, no backdrop blur ──────────────────────── */
+[data-perf="lite"] .topbar,
+[data-perf="lite"] .sidebar,
+[data-perf="lite"] .bottomnav {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: var(--bg-canvas);
+}
+
+/* ── Floating menus / panels: opaque surface, no backdrop blur ───────────── */
+[data-perf="lite"] .usermenu__panel,
+[data-perf="lite"] .assistant__panel {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: var(--bg-surface);
+}
+
+/* ── Overlays: keep the dim scrim, drop the (very expensive) blur ────────── */
+[data-perf="lite"] .modal-overlay,
+[data-perf="lite"] .cmdpalette-overlay {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  will-change: auto;
+}
+
+/* Small decorative blurs that are not worth their GPU cost on the Pi. */
+[data-perf="lite"] .modal__close--floating,
+[data-perf="lite"] .aboutcard__logo {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* ── Collapses: snap instead of animating grid-template-rows (per-frame
+      layout recalc is costly on the Pi; the toggle still works, it just
+      does not tween open/closed). ─────────────────────────────────────────── */
+[data-perf="lite"] .sidebar__collapse,
+[data-perf="lite"] .hub-section__collapse {
+  transition: none;
+}
+
+/* ── Continuous decorative animations + layer promotion: off ─────────────── */
+[data-perf="lite"] .aboutcard__hero::before {
+  animation: none;
+  filter: none;
+}
+[data-perf="lite"] .atmos__blob,
+[data-perf="lite"] .sidebar__collapse {
+  will-change: auto;
+}

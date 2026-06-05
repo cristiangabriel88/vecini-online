@@ -132,13 +132,6 @@ interface AuthState {
    * the admin, superadmin, and locatar experiences without a backend.
    */
   enterDemo: (role?: Role) => void;
-  /**
-   * DEV-stage only: sign in as the pre-seeded dev user for the given role.
-   * Expects users seeded by `npm run pi:seed` (T176) at `{role}@dev.local`
-   * with the password from `VITE_DEV_PASSWORD` (default `dev-password`).
-   * No-ops in PROD or when Supabase is not configured.
-   */
-  signInAsDevUser: (role: Role) => Promise<void>;
 }
 
 // Monotonic token so a slow hydrate cannot overwrite the result of a newer one
@@ -544,15 +537,5 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       memberships,
       isPlatformSuperAdmin: role === 'super_admin',
     });
-  },
-
-  signInAsDevUser: async (role) => {
-    if (!isSupabaseConfigured) return;
-    // super_admin uses a dot to keep the email valid: super.admin@dev.local
-    const localPart = role === 'super_admin' ? 'super.admin' : role;
-    const email = `${localPart}@dev.local`;
-    const password = (import.meta.env.VITE_DEV_PASSWORD as string | undefined) ?? 'dev-password';
-    await supabase.auth.signInWithPassword({ email, password });
-    // onAuthStateChange picks up the new session and runs hydrate().
   },
 }));

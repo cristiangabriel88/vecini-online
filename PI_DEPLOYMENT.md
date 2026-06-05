@@ -246,9 +246,10 @@ creation and re-applies any missing membership / platform grant.
 - `VITE_APP_STAGE` must equal `dev`
 - `VITE_SUPABASE_URL` must not match `*.supabase.co` (prevents cloud seeding)
 
-After seeding, use `npm run dev:pi` and log in with any of the emails above, or
-click the floating role switcher -- it calls `signInAsDevUser(role)` which signs
-in as `{role}@dev.local` using the same `VITE_DEV_PASSWORD`.
+After seeding, use `npm run dev:pi` and log in through the normal login form with
+any of the emails above and the shared `VITE_DEV_PASSWORD`. DEV is a true replica
+of PROD: there is no one-tap role switcher (that exists only in the offline DEMO
+build), so each persona is exercised through the real sign-in flow.
 
 ---
 
@@ -320,13 +321,13 @@ code — it is never hardcoded in the app.
 | `VITE_SUPABASE_ANON_KEY` | Local anon key from `supabase start`. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Local service-role key (server-side only). |
 | `SUPABASE_DB_URL` | Direct Postgres URL (:54322) for backups/migrations. |
-| `VITE_APP_STAGE` | `dev` for the Pi. Controls stage-specific UI (role switcher, stage banner, DEV outbox panel). Must be `dev` for `pi:seed` to run. |
+| `VITE_APP_STAGE` | `dev` for the Pi. Controls stage-specific UI (stage banner, DEV outbox panel). Must be `dev` for `pi:seed` to run. |
 | `VITE_STORAGE_MODE` | `supabase` \| `local` \| `none` -- object storage behaviour. |
 | `VITE_SECURITY_ENFORCEMENT` | `strict` (default/production) \| `relaxed` (self-hosted) -- see [Security enforcement](#security-enforcement). |
 | `MAIL_MODE` | `log` (Pi default) captures invite emails in `email_outbox` + console instead of sending; `resend` sends via Resend; `disabled` suppresses all email. See [DEV email workflow](#dev-email-workflow-mail_modelog). |
 | `RESEND_API_KEY` | Resend API key. Required only when `MAIL_MODE=resend`. |
 | `RESEND_FROM_EMAIL` | Verified Resend sender address. Required only when `MAIL_MODE=resend`. |
-| `VITE_DEV_PASSWORD` | Shared password for all `{role}@dev.local` accounts (default `dev-password`). Used by `pi:seed` and the floating role switcher. |
+| `VITE_DEV_PASSWORD` | Shared password for all `{role}@dev.local` accounts (default `dev-password`). Used by `pi:seed`; log in with these accounts through the normal login form. |
 | `TELEGRAM_BOT_TOKEN` | Bot token from @BotFather. |
 | `TELEGRAM_BOT_USERNAME` | Bot username (for deep links). |
 | `TELEGRAM_WEBHOOK_SECRET` | Secret matched against the Telegram secret header. |

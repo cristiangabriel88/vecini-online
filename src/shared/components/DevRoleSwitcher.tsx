@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { Role } from '@/shared/types/domain';
 import { useAuthStore } from '@/shared/store/authStore';
-import { getStage, isDemo } from '@/shared/lib/env';
+import { isDemo } from '@/shared/lib/env';
 
 const ROLES: Role[] = [
   'admin',
@@ -35,11 +35,12 @@ export function DevRoleSwitcher({ variant = 'floating', onSelect }: Props) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const enterDemo = useAuthStore((s) => s.enterDemo);
-  const signInAsDevUser = useAuthStore((s) => s.signInAsDevUser);
   const activeRole = useAuthStore((s) => s.activeRole);
   const isPlatformSuperAdmin = useAuthStore((s) => s.isPlatformSuperAdmin);
 
-  if (getStage() === 'prod') return null;
+  // Demo-only persona switcher. DEV is a true replica of PROD (real login,
+  // no switcher); only the offline DEMO build exposes one-tap persona preview.
+  if (!isDemo()) return null;
 
   const currentRole: Role | null = isPlatformSuperAdmin
     ? 'super_admin'
@@ -50,12 +51,8 @@ export function DevRoleSwitcher({ variant = 'floating', onSelect }: Props) {
       onSelect(role);
       return;
     }
-    if (isDemo()) {
-      enterDemo(role);
-      navigate('/app');
-    } else {
-      void signInAsDevUser(role);
-    }
+    enterDemo(role);
+    navigate('/app');
   };
 
   const chips = (

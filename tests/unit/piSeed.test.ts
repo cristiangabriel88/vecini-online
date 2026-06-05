@@ -23,7 +23,7 @@ describe('pi-seed.mjs static contract', () => {
     expect(src).toContain('process.exit(1)');
   });
 
-  it('defines all seven role emails matching authStore.signInAsDevUser convention', () => {
+  it('defines all seven role emails using the {role}@dev.local convention', () => {
     expect(src).toContain('admin@dev.local');
     expect(src).toContain('presedinte@dev.local');
     expect(src).toContain('comitet@dev.local');
@@ -33,7 +33,7 @@ describe('pi-seed.mjs static contract', () => {
     expect(src).toContain('super.admin@dev.local');
   });
 
-  it('maps super_admin to super.admin@dev.local (dot convention from authStore)', () => {
+  it('maps super_admin to super.admin@dev.local (dot keeps the email valid)', () => {
     const superAdminIdx = src.indexOf('super_admin');
     const superDotIdx = src.indexOf('super.admin@dev.local');
     expect(superAdminIdx).toBeGreaterThan(-1);

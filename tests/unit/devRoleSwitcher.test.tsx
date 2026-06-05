@@ -4,18 +4,15 @@ import { MemoryRouter } from 'react-router-dom';
 import { DevRoleSwitcher } from '@/shared/components/DevRoleSwitcher';
 
 vi.mock('@/shared/lib/env', () => ({
-  getStage: vi.fn().mockReturnValue('demo'),
   isDemo: vi.fn().mockReturnValue(true),
 }));
 
 const mockEnterDemo = vi.fn();
-const mockSignInAsDevUser = vi.fn();
 
 vi.mock('@/shared/store/authStore', () => ({
   useAuthStore: vi.fn((selector: (s: Record<string, unknown>) => unknown) =>
     selector({
       enterDemo: mockEnterDemo,
-      signInAsDevUser: mockSignInAsDevUser,
       activeRole: () => 'admin',
       isPlatformSuperAdmin: false,
     }),
@@ -32,8 +29,7 @@ const renderSwitcher = (props?: React.ComponentProps<typeof DevRoleSwitcher>) =>
 describe('DevRoleSwitcher', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
-    const { getStage, isDemo } = await import('@/shared/lib/env');
-    vi.mocked(getStage).mockReturnValue('demo');
+    const { isDemo } = await import('@/shared/lib/env');
     vi.mocked(isDemo).mockReturnValue(true);
   });
 
@@ -68,28 +64,21 @@ describe('DevRoleSwitcher', () => {
     expect(pressed).toHaveLength(1);
   });
 
-  it('returns null in prod stage', async () => {
-    const { getStage } = await import('@/shared/lib/env');
-    vi.mocked(getStage).mockReturnValue('prod');
+  it('returns null outside demo stage (DEV is a PROD replica, no switcher)', async () => {
+    const { isDemo } = await import('@/shared/lib/env');
+    vi.mocked(isDemo).mockReturnValue(false);
     const { container } = renderSwitcher();
     expect(container.firstChild).toBeNull();
+  });
+
+  it('enters demo as the clicked role in the floating variant', () => {
+    renderSwitcher();
+    fireEvent.click(screen.getAllByRole('button')[0]);
+    expect(mockEnterDemo).toHaveBeenCalledWith('admin');
   });
 
   it('shows the label paragraph in inline variant', () => {
     const { container } = renderSwitcher({ variant: 'inline' });
     expect(container.querySelector('.dev-role-switcher__label')).toBeTruthy();
-  });
-});
-
-describe('DevRoleSwitcher signInAsDevUser email format (pure logic)', () => {
-  it('maps super_admin to super.admin@dev.local', () => {
-    const role = 'super_admin' as const;
-    const localPart = role === 'super_admin' ? 'super.admin' : role;
-    expect(`${localPart}@dev.local`).toBe('super.admin@dev.local');
-  });
-
-  it('maps other roles directly to {role}@dev.local', () => {
-    expect(`admin@dev.local`).toBe('admin@dev.local');
-    expect(`locatar@dev.local`).toBe('locatar@dev.local');
   });
 });
