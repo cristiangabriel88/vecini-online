@@ -2748,7 +2748,9 @@
       "petition.created": "Petiție creată",
       "petition.forwarded": "Petiție înaintată comitetului",
       "impersonation.started": "Sesiune de diagnosticare pornită",
-      "impersonation.ended": "Sesiune de diagnosticare încheiată"
+      "impersonation.ended": "Sesiune de diagnosticare încheiată",
+      "platform.admin_invited": "Operator platformă invitat",
+      "platform.admin_revoked": "Acces operator platformă revocat"
     },
     "entity": {
       "feature": "Funcționalitate",
@@ -2938,6 +2940,10 @@
       "subscriptions": {
         "title": "Abonamente",
         "desc": "Starea abonamentului fiecărei asociații, planul activ și facturile emise."
+      },
+      "team": {
+        "title": "Echipa platformei",
+        "desc": "Gestionează lista operatorilor platformei -- invită operatori noi și revocă accesul."
       }
     },
     "asociatii": {
@@ -3242,6 +3248,44 @@
       "messageCount": "{{count}} mesaje",
       "awaitingReply": "așteaptă răspuns",
       "empty": "Nicio conversație de asistență."
+    },
+    "team": {
+      "title": "Echipa platformei",
+      "subtitle": "Gestionează lista operatorilor platformei. Orice modificare este auditată.",
+      "membersTitle": "Operatori platformă",
+      "membersEmpty": "Niciun operator.",
+      "pendingTitle": "Invitații în așteptare",
+      "pendingEmpty": "Nicio invitație în așteptare.",
+      "inviteCta": "Invită operator",
+      "inviteFormTitle": "Invită un operator nou",
+      "nameLabel": "Nume complet",
+      "namePlaceholder": "Nume complet",
+      "emailLabel": "Adresă de email",
+      "emailPlaceholder": "operator@exemplu.ro",
+      "submit": "Trimite invitație",
+      "cancel": "Anulează",
+      "inviteSuccess": "Invitație trimisă către {{email}}",
+      "grantedOn": "Adăugat pe {{date}}",
+      "invitedOn": "Invitat pe {{date}}",
+      "lastSignIn": "Ultima autentificare: {{date}}",
+      "neverSignedIn": "Niciodată autentificat",
+      "youBadge": "Tu",
+      "pendingBadge": "În așteptare",
+      "revokeCta": "Revocă accesul",
+      "confirmRevoke": "Confirmă revocarea",
+      "confirmRevokeBody": "Revoci accesul la platformă pentru {{name}}? Acțiunea nu poate fi anulată.",
+      "cancelInviteCta": "Anulează invitația",
+      "err": {
+        "required": "Câmp obligatoriu",
+        "tooShort": "Prea scurt (minimum 2 caractere)",
+        "email": "Adresă de email invalidă",
+        "alreadyAdmin": "Această adresă de email este deja operator al platformei.",
+        "failed": "Operațiunea a eșuat. Încearcă din nou.",
+        "unauthorized": "Sesiunea a expirat. Autentifică-te din nou.",
+        "lastAdmin": "Nu se poate elimina ultimul operator al platformei.",
+        "inviteFailed": "Invitația a eșuat. Încearcă din nou.",
+        "revokeFailed": "Revocarea a eșuat. Încearcă din nou."
+      }
     }
   },
   "support": {

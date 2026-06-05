@@ -7,12 +7,13 @@ import {
   GENESIS_HASH,
 } from '@/features/audit/auditLogic';
 import type { SupportMessage, SupportThread } from '@/shared/types/domain';
-import { type PlatformAsociatieSummary } from './demoPlatform';
+import { type PlatformAsociatieSummary, type PlatformTeamAdmin } from './demoPlatform';
 import { usePlatformAsociatiiStore } from './platformAsociatiiStore';
 import { usePlatformAuditStore } from './platformAuditStore';
 import { type PlatformErrorReport, usePlatformErrorStore } from './platformErrorStore';
 import { type AssocUsageMetric, deriveHealthStatus, usePlatformUsageStore } from './platformUsageStore';
 import { usePlatformMessengerStore } from './platformMessengerStore';
+import { usePlatformTeamStore } from './platformTeamStore';
 
 type RowWithAsoc = { asociatie_id: string };
 type SignInRow = { asociatie_id: string | null; created_at: string };
@@ -426,6 +427,79 @@ export async function hydrateAllSupportThreads(): Promise<void> {
     usePlatformMessengerStore.getState().setFetchError('load');
     reportError(err instanceof Error ? err : new Error(String(err)), {
       source: 'platformApi.hydrateAllSupportThreads',
+    });
+  }
+}
+
+interface DbPlatformAdminRow {
+  user_id: string;
+  name: string;
+  email: string;
+  granted_at: string;
+}
+
+interface DbSignInRow {
+  user_id: string;
+  created_at: string;
+}
+
+/**
+ * Load the platform operator roster (T251) from `platform_admins` using the
+ * service-role client's super_admin SELECT policy. Merges in the most recent
+ * sign-in timestamp from `auth_audit_events` per operator. No-op in
+ * demo/offline mode.
+ */
+export async function hydrateTeam(): Promise<void> {
+  if (!isSupabaseConfigured) return;
+
+  usePlatformTeamStore.getState().setFetchError(null);
+
+  try {
+    const { data: adminRows, error: adminErr } = await supabase
+      .from('platform_admins')
+      .select('user_id, name, email, granted_at')
+      .order('granted_at', { ascending: true });
+
+    if (adminErr) {
+      usePlatformTeamStore.getState().setFetchError('load');
+      reportError(new Error(adminErr.message), { source: 'platformApi.hydrateTeam' });
+      return;
+    }
+
+    const userIds = ((adminRows ?? []) as DbPlatformAdminRow[]).map((r) => r.user_id);
+    let lastSignIn: Record<string, string> = {};
+
+    if (userIds.length > 0) {
+      const { data: signInRows } = await supabase
+        .from('auth_audit_events')
+        .select('user_id, created_at')
+        .eq('event_type', 'sign_in')
+        .in('user_id', userIds)
+        .order('created_at', { ascending: false })
+        .limit(500);
+
+      lastSignIn = ((signInRows ?? []) as DbSignInRow[]).reduce<Record<string, string>>(
+        (acc, r) => {
+          if (!acc[r.user_id]) acc[r.user_id] = r.created_at;
+          return acc;
+        },
+        {},
+      );
+    }
+
+    const admins: PlatformTeamAdmin[] = ((adminRows ?? []) as DbPlatformAdminRow[]).map((r) => ({
+      userId: r.user_id,
+      name: r.name,
+      email: r.email,
+      grantedAt: r.granted_at,
+      lastSignInAt: lastSignIn[r.user_id] ?? null,
+    }));
+
+    usePlatformTeamStore.getState().replaceAdmins(admins);
+  } catch (err) {
+    usePlatformTeamStore.getState().setFetchError('load');
+    reportError(err instanceof Error ? err : new Error(String(err)), {
+      source: 'platformApi.hydrateTeam',
     });
   }
 }

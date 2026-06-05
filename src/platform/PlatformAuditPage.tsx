@@ -74,6 +74,8 @@ const ACTION_TONE: Record<AuditAction, 'success' | 'danger' | 'warning' | 'neutr
   'petition.forwarded': 'success',
   'impersonation.started': 'warning',
   'impersonation.ended': 'neutral',
+  'platform.admin_invited': 'success',
+  'platform.admin_revoked': 'danger',
 };
 
 function downloadText(filename: string, content: string, mime: string): void {

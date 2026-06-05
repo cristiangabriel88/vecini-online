@@ -65,6 +65,8 @@ export const AUDIT_ACTIONS = [
   'petition.forwarded',
   'impersonation.started',
   'impersonation.ended',
+  'platform.admin_invited',
+  'platform.admin_revoked',
 ] as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];

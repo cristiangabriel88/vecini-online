@@ -43,12 +43,47 @@ export interface PlatformAsociatieSummary {
   statusChangedAt?: string;
 }
 
+/** A member of the platform operator team (T251). */
+export interface PlatformTeamAdmin {
+  userId: string;
+  name: string;
+  email: string;
+  grantedAt: string;
+  lastSignInAt: string | null;
+}
+
+/** A pending invitation to join the platform operator team (T251). */
+export interface PlatformTeamInvite {
+  id: string;
+  name: string;
+  email: string;
+  invitedAt: string;
+}
+
 /** The signed-in demo platform operator (a fictional SaaS owner account). */
 export const DEMO_PLATFORM_ADMIN = {
   id: 'pa-demo',
   name: 'Operator platformă',
   email: 'operator@vecini.online',
 } as const;
+
+/** The two-member demo platform operator roster (T251). */
+export const DEMO_PLATFORM_TEAM: PlatformTeamAdmin[] = [
+  {
+    userId: 'pa-demo',
+    name: 'Operator platformă',
+    email: 'operator@vecini.online',
+    grantedAt: '2026-01-15T09:00:00Z',
+    lastSignInAt: '2026-06-05T10:00:00Z',
+  },
+  {
+    userId: 'pa-demo-2',
+    name: 'Ana Georgescu',
+    email: 'ana.georgescu@vecini.online',
+    grantedAt: '2026-03-10T14:30:00Z',
+    lastSignInAt: '2026-06-03T16:45:00Z',
+  },
+];
 
 export const DEMO_PLATFORM_ASOCIATII: PlatformAsociatieSummary[] = [
   {

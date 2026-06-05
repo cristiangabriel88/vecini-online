@@ -2748,7 +2748,9 @@
       "petition.created": "Petition created",
       "petition.forwarded": "Petition forwarded to committee",
       "impersonation.started": "Diagnostic session started",
-      "impersonation.ended": "Diagnostic session ended"
+      "impersonation.ended": "Diagnostic session ended",
+      "platform.admin_invited": "Platform operator invited",
+      "platform.admin_revoked": "Platform operator revoked"
     },
     "entity": {
       "feature": "Feature",
@@ -2938,6 +2940,10 @@
       "subscriptions": {
         "title": "Subscriptions",
         "desc": "Each association's subscription status, active plan, and issued invoices."
+      },
+      "team": {
+        "title": "Platform team",
+        "desc": "Manage the platform operator roster — invite new operators and revoke access."
       }
     },
     "asociatii": {
@@ -3242,6 +3248,44 @@
       "messageCount": "{{count}} messages",
       "awaitingReply": "awaiting reply",
       "empty": "No support threads yet."
+    },
+    "team": {
+      "title": "Platform team",
+      "subtitle": "Manage the platform operator roster. Every change is audited.",
+      "membersTitle": "Platform operators",
+      "membersEmpty": "No operators.",
+      "pendingTitle": "Pending invitations",
+      "pendingEmpty": "No pending invitations.",
+      "inviteCta": "Invite operator",
+      "inviteFormTitle": "Invite new platform operator",
+      "nameLabel": "Full name",
+      "namePlaceholder": "Full name",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "operator@example.com",
+      "submit": "Send invitation",
+      "cancel": "Cancel",
+      "inviteSuccess": "Invitation sent to {{email}}",
+      "grantedOn": "Added on {{date}}",
+      "invitedOn": "Invited on {{date}}",
+      "lastSignIn": "Last sign-in: {{date}}",
+      "neverSignedIn": "Never signed in",
+      "youBadge": "You",
+      "pendingBadge": "Pending",
+      "revokeCta": "Revoke access",
+      "confirmRevoke": "Confirm revoke",
+      "confirmRevokeBody": "Revoke platform access for {{name}}? This cannot be undone.",
+      "cancelInviteCta": "Cancel invitation",
+      "err": {
+        "required": "Required",
+        "tooShort": "Too short (minimum 2 characters)",
+        "email": "Invalid email address",
+        "alreadyAdmin": "This email is already a platform operator.",
+        "failed": "Operation failed. Please try again.",
+        "unauthorized": "Session expired. Please sign in again.",
+        "lastAdmin": "Cannot remove the last platform operator.",
+        "inviteFailed": "Invitation failed. Please try again.",
+        "revokeFailed": "Revoke failed. Please try again."
+      }
     }
   },
   "support": {

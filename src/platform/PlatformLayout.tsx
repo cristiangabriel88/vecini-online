@@ -12,6 +12,7 @@ import {
   Sun,
   TriangleAlert,
   UserCog,
+  Users,
   Activity,
 } from 'lucide-react';
 import { Atmosphere } from '@/shared/components/Atmosphere';
@@ -34,6 +35,7 @@ const SECTIONS = [
   { key: 'impersonation', path: '/consola/impersonare', icon: UserCog, ready: true },
   { key: 'messenger', path: '/consola/mesaje', icon: MessagesSquare, ready: true },
   { key: 'subscriptions', path: '/consola/abonamente', icon: CreditCard, ready: true },
+  { key: 'team', path: '/consola/echipa', icon: Users, ready: true },
 ] as const;
 
 function Header() {
