@@ -335,7 +335,7 @@ the widget inside a `MemoryRouter` over a fixture page and asserts a question ab
 control yields a visible-grounded answer while a question about another feature still falls back
 to KB navigation. Existing `assistant.*` tests must remain green. Prereq: T234, T235.
 
-### ⬜ T237 — [P3] Optional LLM-backed PhrasingEngine (constrained selection only)
+### ✅ T237 — [P3] Optional LLM-backed PhrasingEngine (constrained selection only)
 
 Prereq: T235. With the `PhrasingEngine` seam in place, add an optional LLM-backed implementation
 used ONLY as a constrained phrasing/selection engine: it may choose among the pre-written
@@ -350,6 +350,8 @@ list of candidate strings; output is an index/choice, validated against that lis
 unit tests asserting the engine cannot emit an option outside the supplied set. Requires an
 external service + secret, so this is a deliberate later enhancement, not an overnight blocker.
 Prereq: T235.
+
+Done: Created `netlify/functions/assistant-phrase.ts` (POST-only, bearer auth, per-IP rate limit 20/60s, validates candidates array 1-8 items/200 chars each, optional query up to 500 chars, returns `{ choice_index }` always in-range; stub returns index 0 with detailed follow-up notes documenting the prompt contract for future LLM wiring). Created `src/features/assistant/llmPhrasingEngine.ts` exporting `safeChoice(candidates, choiceIndex)` (validates server response: must be a finite number, truncated to integer, in [0, candidates.length-1]; returns null on any other value) and `createLlmPhrasingEngine(getCachedChoice)` (PhrasingEngine factory that tries safeChoice on the cached server value, falls back to deterministicPhrasing when null). Created `tests/unit/assistant.llmPhrasingEngine.test.ts` with 13 assertions across `safeChoice` (valid 0-based index, out-of-range, negative, non-number types, Infinity/NaN, empty candidates, fractional-index truncation) and `createLlmPhrasingEngine` (valid cached choice, out-of-range falls back, null falls back, NaN falls back, safety fuzzing over 10 bad values, deterministicPhrasing always in-set). 286 files / 2737 tests / lint + typecheck + build + build:pi + build:demo all green.
 
 ### ⬜ T87 — [P3] Stronger cryptographic tamper-evidence for the audit chain
 
