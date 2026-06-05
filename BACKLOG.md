@@ -121,7 +121,7 @@ Support sometimes needs to enable/disable a specific feature for one tenant (e.g
 
 > From the 2026-06-05 dedup/cleanup audit. No user-facing change; sequenced by ROI and risk.
 
-### ⬜ T244 — [P2] Shared per-asociatie store factory
+### ✅ T244 — [P2] Shared per-asociatie store factory
 
 The ~53 live-wired features each hand-roll the same Zustand store shape: `byAsociatie: Record<string, T[]>` state, a `seed*`/`*ForAsociatie` selector pair, `replaceForAsociatie`, `setFetchError`, a `useAsociatie*()` hook scoped to the active asociație, and `persist({ version: 1, migrate })` that reseeds demo data. This is ~3K LOC of near-identical boilerplate (see `accessStore.ts`, `bikesStore.ts`, `parkingStore.ts`, etc.). Extract a generic `createAsociatieStore<T>(config)` factory in `src/shared/store/` that returns the store + the `useAsociatie*` hook, leaving each feature to supply only its seed data, demo source, and domain actions. Migrate 3–4 representative stores first to prove the seam (one with extra per-row actions, one plain list), keep every existing `useAsociatie*` hook name + signature stable so pages don't change, and verify the full unit + E2E suite stays green. Break the remaining stores into follow-up sub-tasks if one `make progress` unit cannot land them all. No behavior change; persisted-state `version`/`migrate` semantics must be preserved exactly so existing localStorage hydrates. Prereq: none.
 
