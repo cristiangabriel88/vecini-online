@@ -108,13 +108,6 @@ Done: added `platformOverviewLogic.ts` with `computeOverview()` (pure, 5-input r
 
 The superadmin has no way to communicate with all tenants at once (planned maintenance, incident notice, policy change). Add a `/consola/anunturi-platforma` section to compose a platform broadcast (title + body, severity info/warning/critical, optional scheduled window) that fans out as an **essential** communication (consent-bypassing like F03) to every tenant, and renders as a dismissible banner in the resident/admin app for the targeted audience (all tenants, or a chosen subset). New `platform_broadcasts` table (super_admin write; all members read active ones) + a render hook in the main app shell. Each publish/expire is audited. Demo shows a seeded active broadcast banner offline. Bilingual, premium-feel, unit tests + one E2E (publish → banner appears in app → dismiss). Prereq: platform shell, T14 (notification fan-out) for the live dispatch.
 
-### ⬜ T254a — [P2] Platform-side subscription: change plan + comp / credit
-
-`PlatformSubscriptionsPage` (`platformSubscriptionsStore.ts`) can only `markPaid`; a complete billing console needs to act on a tenant's plan. Add the two plan-mutating actions: **change plan** (move a tenant between the 3 canonical tiers with a prorated note) and **comp / apply credit** (set a tenant to a free or discounted plan with a reason, e.g. early adopter). Each privileged write is a service-role Netlify function re-checking `is_super_admin()`, audited into the tenant's chain, and mirrored to the `subscriptions` table. Demo drives the persisted `platformSubscriptionsStore`. Bilingual, premium-feel, unit tests for the new store actions + one E2E (change plan -> tier badge updates). Prereq: T19. (Split from the original T254; T254b covers payment + dunning.)
-
-### ⬜ T254b — [P2] Platform-side subscription: record manual payment + trigger dunning
-
-Building on T254a, add the two invoice/lifecycle actions: **record a manual payment** (offline bank transfer marks an invoice paid with a reference) and **trigger dunning** (move an overdue subscription into the grace/past-due flow that the T19 banners already render). Each privileged write is a service-role function re-checking `is_super_admin()`, audited, and mirrored to the `invoices`/`subscriptions` tables. Demo drives the persisted platform store. Bilingual, premium-feel, unit tests for the new store actions + one E2E (record payment -> invoice flips to paid). Prereq: T254a, T19.
 
 ### ⬜ T255 — [P3] Cross-tenant global search
 
@@ -261,6 +254,20 @@ Backup/restore and secret rotation are undocumented; the audit-HMAC (T87) and to
 ### ⬜ T277 — [P3] Dependency hygiene gate
 
 Unused and vulnerable dependencies are unguarded (e.g. `react-hook-form` sat unused until T266). Add a `depcheck` pass to flag unused/missing deps and an advisory `npm audit` (high/critical) step in CI, and document the triage policy (when to upgrade vs. accept). Keep it advisory-first so it does not block on noisy transitive advisories. Prereq: none.
+
+---
+
+## On hold
+
+> Tasks parked indefinitely — not picked by any trigger until explicitly reinstated.
+
+### ⏸ T254a — [P2] Platform-side subscription: change plan + comp / credit
+
+`PlatformSubscriptionsPage` (`platformSubscriptionsStore.ts`) can only `markPaid`; a complete billing console needs to act on a tenant's plan. Add the two plan-mutating actions: **change plan** (move a tenant between the 3 canonical tiers with a prorated note) and **comp / apply credit** (set a tenant to a free or discounted plan with a reason, e.g. early adopter). Each privileged write is a service-role Netlify function re-checking `is_super_admin()`, audited into the tenant's chain, and mirrored to the `subscriptions` table. Demo drives the persisted `platformSubscriptionsStore`. Bilingual, premium-feel, unit tests for the new store actions + one E2E (change plan -> tier badge updates). Prereq: T19. (Split from the original T254; T254b covers payment + dunning.)
+
+### ⏸ T254b — [P2] Platform-side subscription: record manual payment + trigger dunning
+
+Building on T254a, add the two invoice/lifecycle actions: **record a manual payment** (offline bank transfer marks an invoice paid with a reference) and **trigger dunning** (move an overdue subscription into the grace/past-due flow that the T19 banners already render). Each privileged write is a service-role function re-checking `is_super_admin()`, audited, and mirrored to the `invoices`/`subscriptions` tables. Demo drives the persisted platform store. Bilingual, premium-feel, unit tests for the new store actions + one E2E (record payment -> invoice flips to paid). Prereq: T254a, T19.
 
 ### End of queue
 
