@@ -2897,6 +2897,16 @@
       "sections": "Console sections",
       "signOut": "Sign out"
     },
+    "search": {
+      "label": "Search console",
+      "openHint": "Search...",
+      "placeholder": "Search associations, admins...",
+      "sectionAsociatii": "Associations",
+      "sectionAdmins": "Administrators",
+      "emptyTitle": "No results",
+      "emptyHint": "Try a different search term.",
+      "footer": "Enter to open · Esc to close"
+    },
     "home": {
       "welcome": "Hello, {{name}}",
       "operator": "operator",

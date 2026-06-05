@@ -1,8 +1,19 @@
 ﻿# COMPLETED — vecini.online
 
 Permanent archive of finished `make progress` tasks, newest first.
-Reference only — not read during a normal `make progress` task.
+Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
+
+### T255 ✅ 2026-06-05 -- Cross-tenant global search
+
+Added a command-palette-style global search to the platform console topbar. Pure search helper `platformSearchLogic.ts` ranks asociatii (by name, city, CUI, address) and provisioned admins/invites (by name, email) using the shared `scoreMatch` function, capped at 6 results per kind. `PlatformCommandPalette.tsx` mirrors the main-app palette: portal overlay, keyboard navigation (ArrowUp/Down/Enter/Escape), two section groups (asociatii/admins), navigates to the T249 detail page or asociatii list. Search trigger button added to the platform topbar with `.platform-search-trigger` CSS. Bilingual RO/EN keys added under `platform.search.*`. Revoked admins excluded from results. 16 unit tests for the pure search logic. All 2827 tests + 3 builds green.
+- new: src/platform/platformSearchLogic.ts
+- new: src/platform/PlatformCommandPalette.tsx
+- modified: src/platform/PlatformLayout.tsx (search trigger + palette mount)
+- modified: src/styles/platform.css (.platform-search-trigger styles)
+- modified: src/shared/locales/ro.json (platform.search.* keys)
+- modified: src/shared/locales/en.json (platform.search.* keys)
+- new: tests/unit/platformSearchLogic.test.ts (16 tests)
 
 ### T253 ✅ 2026-06-06 -- Platform-wide broadcast / maintenance notice
 

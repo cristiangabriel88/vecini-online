@@ -2897,6 +2897,16 @@
       "sections": "Secțiuni consolă",
       "signOut": "Ieșire"
     },
+    "search": {
+      "label": "Caută în consolă",
+      "openHint": "Caută...",
+      "placeholder": "Caută asociații, administratori...",
+      "sectionAsociatii": "Asociații",
+      "sectionAdmins": "Administratori",
+      "emptyTitle": "Niciun rezultat",
+      "emptyHint": "Încearcă un alt termen de căutare.",
+      "footer": "Enter pentru a deschide · Esc pentru a închide"
+    },
     "home": {
       "welcome": "Bună, {{name}}",
       "operator": "operator",

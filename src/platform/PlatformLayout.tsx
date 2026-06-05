@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -10,6 +11,7 @@ import {
   MessagesSquare,
   Moon,
   ScrollText,
+  Search,
   Sun,
   TriangleAlert,
   UserCog,
@@ -21,6 +23,7 @@ import { useThemeStore } from '@/shared/store/themeStore';
 import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
 import { usePlatformAuthStore } from './platformAuthStore';
 import { ImpersonationBanner } from './ImpersonationBanner';
+import { PlatformCommandPalette } from './PlatformCommandPalette';
 
 /**
  * The console sections this shell hosts. Only the overview ships in T93; the rest
@@ -40,7 +43,7 @@ const SECTIONS = [
   { key: 'broadcasts', path: '/consola/anunturi-platforma', icon: Megaphone, ready: true },
 ] as const;
 
-function Header() {
+function Header({ onSearchOpen }: { onSearchOpen: () => void }) {
   const { t, i18n } = useTranslation();
   const theme = useThemeStore((s) => s.theme);
   const toggleTheme = useThemeStore((s) => s.toggle);
@@ -63,6 +66,15 @@ function Header() {
 
       <div className="platform-topbar__actions">
         {demo && <span className="platform-demobadge">{t('platform.demoMode')}</span>}
+        <button
+          className="platform-search-trigger"
+          onClick={onSearchOpen}
+          aria-label={t('platform.search.label')}
+          title={t('platform.search.label')}
+        >
+          <Search size={15} />
+          <span className="platform-search-trigger__hint">{t('platform.search.openHint')}</span>
+        </button>
         <button
           className="iconbtn"
           onClick={toggleLang}
@@ -132,10 +144,12 @@ function Sidebar() {
 
 export function PlatformLayout() {
   const { pathname } = useLocation();
+  const [searchOpen, setSearchOpen] = useState(false);
+
   return (
     <div className="platform-shell">
       <Atmosphere />
-      <Header />
+      <Header onSearchOpen={() => setSearchOpen(true)} />
       <Sidebar />
       <main className="platform-main">
         <ImpersonationBanner />
@@ -145,6 +159,7 @@ export function PlatformLayout() {
           </ErrorBoundary>
         </div>
       </main>
+      <PlatformCommandPalette open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );
 }

@@ -109,7 +109,7 @@ Done: added `platformOverviewLogic.ts` with `computeOverview()` (pure, 5-input r
 The superadmin has no way to communicate with all tenants at once (planned maintenance, incident notice, policy change). Add a `/consola/anunturi-platforma` section to compose a platform broadcast (title + body, severity info/warning/critical, optional scheduled window) that fans out as an **essential** communication (consent-bypassing like F03) to every tenant, and renders as a dismissible banner in the resident/admin app for the targeted audience (all tenants, or a chosen subset). New `platform_broadcasts` table (super_admin write; all members read active ones) + a render hook in the main app shell. Each publish/expire is audited. Demo shows a seeded active broadcast banner offline. Bilingual, premium-feel, unit tests + one E2E (publish → banner appears in app → dismiss). Prereq: platform shell, T14 (notification fan-out) for the live dispatch.
 
 
-### ⬜ T255 — [P3] Cross-tenant global search
+### ✅ T255 — [P3] Cross-tenant global search
 
 A support operator should jump straight to a tenant/admin without scrolling the list. Add a command-palette-style global search in the platform topbar (mirroring the main app's `CommandPalette`) that searches asociații by name/city/CUI and provisioned admins by name/email across all tenants (super_admin RLS), returning links to the T249 detail page. Live query is debounced and capped; demo searches the seeded dataset. Bilingual, premium-feel, unit tests for the pure search/rank helper. Prereq: T249.
 

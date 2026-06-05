@@ -85,6 +85,29 @@
   border: 1px solid color-mix(in oklab, var(--warning) 28%, transparent);
 }
 
+.platform-search-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  background: var(--bg-sunken);
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+.platform-search-trigger:hover {
+  background: var(--bg-muted);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+.platform-search-trigger__hint {
+  font-size: var(--text-xs);
+  font-weight: 500;
+}
+
 .platform-signout {
   display: inline-flex;
   align-items: center;
