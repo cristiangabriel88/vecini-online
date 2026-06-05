@@ -80,7 +80,7 @@ When two tasks share a priority: prerequisites first, then smallest-safe-step.
 
 ## Main queue
 
-> Updated 2026-06-05. The redundant `✅` blocks that had accumulated here were removed (they duplicated `COMPLETED.md`). Two open groups remain, picked top-to-bottom: **Platform console completion** (T249-T256, closes the real operability gaps in the superadmin console so it can manage tenants, not just list them) and **Code-health refactors** (T244-T247, no user-facing change, from the dedup/cleanup audit). Each platform task follows the same Definition of Done: demo-first + live-ready behind `isSupabaseConfigured`, every privileged write in a service-role Netlify function that re-checks `is_super_admin()`, audited into the tamper-evident chain where it mutates a tenant, RLS scoped, bilingual RO/EN, premium-feel, unit + E2E tests.
+> Updated 2026-06-05. The redundant `✅` blocks that had accumulated here were removed (they duplicated `COMPLETED.md`). Open groups, picked top-to-bottom: **Platform console completion** (T249-T256, closes the real operability gaps in the superadmin console so it can manage tenants, not just list them), **Code-health refactors** (T244-T247, no user-facing change, from the dedup/cleanup audit), the **performance toggle** (T257), and the **2026-06-05 deep-analysis groups** D-H (T258-T277): observability (T258-T261), client performance & PWA (T262-T265), UX/flows/forms (T266-T269), accessibility & localization quality (T270-T272), and engineering standards & DX (T273-T277). Each platform task follows the same Definition of Done: demo-first + live-ready behind `isSupabaseConfigured`, every privileged write in a service-role Netlify function that re-checks `is_super_admin()`, audited into the tamper-evident chain where it mutates a tenant, RLS scoped, bilingual RO/EN, premium-feel, unit + E2E tests.
 
 ### Group A — Platform console completion
 
@@ -143,6 +143,106 @@ The ~72 `*Api.ts` files repeat the same live-hydration shell: guard on `isSupaba
 ### ⬜ T257 — [P2] User-facing performance / reduce-motion mode
 
 The "lite" rendering tier (added 2026-06-05, see `DECISIONS.md`) strips the GPU-expensive glass/blur layer and is currently auto-enabled only on the Pi `dev` stage via `document.documentElement.dataset.perf` in `src/main.tsx` and gated in `src/styles/perf-lite.css`. Promote it to a real user preference so any low-end device (not just the Pi) can opt in: add a `?perf=lite` / `?perf=full` URL override and a persisted toggle in Settings (Zustand, mirrors `themeStore`'s `apply()` pattern that sets a root attribute), fully bilingual (RO+EN), defaulting to the stage-derived value when unset. Also fold `prefers-reduced-motion` into the same tier resolution so reduced-motion users get the calmer surface automatically. Keep PROD/DEMO visually unchanged when the preference is unset. Prereq: none.
+
+### Group D — Observability & operational visibility
+
+> From the 2026-06-05 deep-analysis pass. The app reports errors into an in-memory ring buffer + a platform table but has no persistence-across-refresh, no alerting, no coverage metrics, no bundle budget, and nothing watching the health endpoint. These close the operational-visibility gaps without adding a third-party data processor (in-house only, per `DECISIONS.md`).
+
+### ⬜ T258 — [P1] In-house error monitoring + alerting
+
+Errors today land in an in-memory 100-item ring buffer (`src/shared/lib/errorReporting.ts`) and a `platform_error_reports` table surfaced at `/consola/erori` (T96), but the buffer is lost on refresh, there is no real-time alerting, no source maps, and no release/stage tagging. Keep everything in-house (no third-party sink, no new CSP `connect-src` exception): durably persist error groups (already partly in `platform_error_reports`; ensure client errors flush there reliably via `error-report.ts`), tag each report with the build release + `VITE_APP_STAGE`, add source-map symbolication on build so stack frames are readable, preserve the existing PII/secret scrubbing, and add an alerting path that emails (via the existing `_shared/resend.ts` wrapper) and/or raises a flag on the platform overview when a new error group first appears or spikes. If the in-app store proves insufficient at scale, the follow-up option is self-hosting a Sentry-compatible collector (GlitchTip) reached only via our own origin. Demo / no-key = no-op. Bilingual surfacing, unit tests for the grouping + alert-trigger logic. Prereq: T96.
+
+### ⬜ T259 — [P2] Test-coverage tooling + threshold gate
+
+There is no coverage measurement today (2,747 unit tests, but no line/branch metrics). Add the vitest v8 coverage provider, an `npm run test:coverage` script, an HTML report artifact in CI (`.github/workflows/ci.yml`), and a global threshold gate seeded at the current baseline so it can only ratchet upward. Exclude generated/demo-seed files from the denominator and surface a per-feature summary so thin spots are visible. No product change. Prereq: none.
+
+### ⬜ T260 — [P2] Bundle-size budget + analyzer
+
+Nothing guards bundle growth today. Wire `rollup-plugin-visualizer` into the Vite build to emit a treemap artifact, and add a `size-limit` (or `bundlesize`) gate in CI for the main entry + the largest route chunks so a careless import cannot silently bloat the initial payload. Record current sizes as the baseline in the config and document them. Pairs with T264. Prereq: none.
+
+### ⬜ T261 — [P2] Health-probe alerting + ops runbook
+
+`netlify/functions/health.ts` exists but nothing watches it, so an outage is invisible until a resident complains. Add a scheduled Netlify function (e.g. `@every 5m`) that probes `health` plus one lightweight Supabase round-trip and records anomalies to the platform error stream (and emails via `_shared/resend.ts` when configured), and add an `OPS_RUNBOOK.md` documenting external uptime monitoring (UptimeRobot/BetterUptime on the public health URL), the alert thresholds, and an escalation/on-call note. Demo = no-op. Unit test for the probe-evaluation logic. Prereq: none.
+
+### Group E — Client performance & PWA
+
+> From the 2026-06-05 deep-analysis pass. The manifest exists with no service worker, heavy libraries ship in shared chunks, images are unoptimized, and the realtime subscription lifecycle is unverified.
+
+### ⬜ T262 — [P1] Audit + fix realtime subscription lifecycle
+
+`useRealtimeSync` subscribes to Supabase channels from `AppLayout`. Verify the channels are reliably torn down on unmount and, crucially, on a tenant/persona switch (dev role switcher, impersonation start/stop) so subscriptions cannot leak or bleed events across tenants. Trace the subscribe/unsubscribe path in `src/shared/.../realtime*` and `AppLayout.tsx`; if a leak or cross-tenant bleed is possible, fix it (key the channel by `asociatie_id`, unsubscribe in the effect cleanup) and add a regression test that asserts teardown on tenant change. If already clean, document the guarantee in a test and downgrade the residual to P3. Prereq: none.
+
+### ⬜ T263 — [P2] Service worker / installable PWA
+
+`public/manifest.webmanifest` exists (with `pwaManifest.test.ts`) but there is no service worker, so the app is installable in name only with no offline shell. Add `vite-plugin-pwa` (or a hand-rolled SW) providing an offline app-shell + a cache strategy aligned with the offline-first demo ethos, an "update available" prompt when a new build ships, and correct behavior across all three stages (no stale-cache surprises in DEV/DEMO; SW disabled or scoped appropriately where it would interfere with the Pi/demo flows). Keep the strict CSP intact. Unit/E2E check that the SW registers in PROD and the app still boots offline after first load. Prereq: none.
+
+### ⬜ T264 — [P2] Lazy-load heavy dependencies
+
+Heavy libraries such as `xlsx` (and any PDF/render libs used by few features) currently sit in shared/vendor chunks even though only a handful of export/report features need them. Convert those imports to dynamic `import()` at the call sites (behind the existing export buttons) so they leave the initial and common route bundles, load on demand, and show a small loading state while fetching. Confirm the reduction with the T260 analyzer. Prereq: T260 (to measure before/after).
+
+### ⬜ T265 — [P2] Image handling for user uploads
+
+User-uploaded photos (tickets, project journal, parking, visitor reports, etc.) render via plain `<img>` with no `loading="lazy"`, no `decoding="async"`, and no width/height hints, and they are stored at full camera resolution. Add `loading="lazy"` + `decoding="async"` + intrinsic dimensions to photo render sites (ideally via a shared `<Photo>`/image component), and add a client-side downscale + re-encode step (canvas, cap longest edge + target quality) before upload to cut Storage cost and bandwidth. Keep the demo-stub upload path working when Storage is absent. Unit test for the resize helper. Prereq: none.
+
+### Group F — UX, flows & forms
+
+> From the 2026-06-05 deep-analysis pass. Form validation is hand-rolled per page, long forms discard input on navigation, and a few flows lack polish.
+
+### ⬜ T266 — [P2] Consolidate hand-rolled form validation + drop unused dep
+
+Forms are hand-rolled (`validateApartment` + local `useState` in `ApartmentFormPage.tsx`, and similar across feature forms) with slightly different error handling per page; `react-hook-form` is in `package.json` but has zero call sites. Per `DECISIONS.md`, do not introduce a form framework: codify the existing pattern into one small shared helper (a `useFormState` / field-validation utility that drives the existing Input/Select/Textarea `error` + `aria-invalid` props consistently), migrate a few representative forms onto it to prove the seam, and remove the unused `react-hook-form` dependency. No behavior change beyond more consistent error display. Unit tests for the helper. Prereq: none.
+
+### ⬜ T267 — [P2] Unsaved-changes guard
+
+Long create/edit forms (apartment, AGA agenda, RFP/quotes, profile) silently discard typed input when the user navigates away or closes the tab. Add a shared dirty-state guard: a React Router navigation block + `beforeunload` handler that prompts with a bilingual (RO/EN) confirm when the form is dirty, wired through the T266 form helper so every adopting form gets it for free. Premium-feel modal confirm. Unit test for the dirty-tracking logic, one E2E (edit, navigate, see prompt). Prereq: T266.
+
+### ⬜ T268 — [P3] Onboarding progress indicator
+
+The first-run welcome carousel (`src/features/welcome/`) is a 3-slide flow with no step counter, no progress bar, and no obvious skip, so users do not know how far they are. Add a `1 / 3` progress affordance (dots or bar) and a clear "skip" control, premium-feel and bilingual, without changing the seen-per-user persistence. Unit test for the step logic. Prereq: none.
+
+### ⬜ T269 — [P3] Empty-state consistency audit
+
+Some pages route empty lists through the shared `EmptyState` component (icon + title + body + optional action); others inline ad-hoc "no results" text. Sweep the feature pages and replace every ad-hoc empty rendering with `EmptyState`, with appropriate bilingual copy and a primary action where one makes sense (e.g. "Add the first announcement"). No logic change. Prereq: none.
+
+### Group G — Accessibility & localization quality
+
+> From the 2026-06-05 deep-analysis pass. Landmarks and reduced-motion are already handled; remaining gaps are document language sync, automated a11y scanning, and Romanian plural grammar.
+
+### ⬜ T270 — [P2] Sync `<html lang>` to the active locale
+
+The document root `lang` is static, so switching the UI to English never updates `document.documentElement.lang` and screen readers keep announcing content with Romanian pronunciation rules. Set `lang` from the i18next `languageChanged` handler at app init in both apps (`src/main.tsx`, `src/platform/main.tsx`), initialized to the persisted language on first paint. Small, high-value a11y fix. Unit/integration test asserting the attribute updates on language change. Prereq: none.
+
+### ⬜ T271 — [P2] Automated a11y scan in E2E + fixes
+
+`@axe-core/playwright` is available but not run as an explicit gate across representative surfaces. Add axe scans over a key set (dashboard, one feature list page, a form page, an open modal, the login page) in the Playwright suite with a fail-on-serious/critical gate, then fix what it surfaces (likely candidates: icon-only buttons missing `aria-label`, focus order in custom widgets like the DatePicker, any contrast misses). Keep the gate green. Prereq: none.
+
+### ⬜ T272 — [P2] Romanian plural-form correctness
+
+Count-bearing strings appear to use single-form keys, but Romanian has three plural categories (one: 1; few: 2-19; many: 20+ which also inserts "de", e.g. "21 de anunțuri"). Audit the locale files for count strings and convert them to i18next plural keys (`key_one` / `key_few` / `key_other`) in both `ro.json` and `en.json`, fixing the grammar at each call site (`t(key, { count })`). Add a test/lint guard that flags new count interpolations not using the plural form. Prereq: none.
+
+### Group H — Engineering standards & developer experience
+
+> From the 2026-06-05 deep-analysis pass. Shared UI primitives and the design system lack direct tests, a catalog, and drift protection; dependency hygiene is unguarded.
+
+### ⬜ T273 — [P3] Unit tests for shared UI primitives
+
+The shared primitives (`Button`, `Input`, `Select`, `Textarea`, `Modal`, `Switch`, `Checkbox` in `src/shared/components/`) have no direct component tests; only `*Logic.ts` and stores are covered. Add focused render/interaction/a11y tests (variants render, disabled/loading states, error wiring sets `aria-invalid` + `aria-describedby`, modal focus-trap + Escape, switch/checkbox `role`/`aria-checked`). Raises confidence before the T244/T266 refactors touch shared code. Prereq: none.
+
+### ⬜ T274 — [P3] Visual component gallery
+
+There is no catalog of the design system's variants, so contributors reverse-engineer them from CSS. Add a lightweight in-app gallery (a `/dev/components` route gated to dev/demo, or Ladle) that renders Button/Input/Card/Badge/Modal/Select variants across themes (light/dark) and the five palettes, so design review and drift-spotting are one click away. Not shipped to PROD users. Prereq: none.
+
+### ⬜ T275 — [P3] Visual-regression snapshots
+
+Design drift currently slips through (no screenshot diffing). Add Playwright screenshot snapshots for a few key surfaces (dashboard, a feature page, a modal, login) across light/dark and a couple of palettes, with baselines committed and diffs surfaced on CI. Keep the baseline set small and deterministic (freeze time/animations). Pairs with T274. Prereq: none.
+
+### ⬜ T276 — [P2] Disaster-recovery + key-rotation runbook
+
+Backup/restore and secret rotation are undocumented; the audit-HMAC (T87) and token-rotation work explicitly deferred the emergency-revocation and key-rotation procedures. Add a `DR_RUNBOOK.md` covering RTO/RPO targets, a quarterly Supabase restore-from-backup drill (with a step-by-step), and the rotation procedures for `SUPABASE_SERVICE_ROLE_KEY`, `AUDIT_HMAC_SECRET`, `TELEGRAM_BOT_TOKEN`/webhook secret, and `RESEND_API_KEY`, plus the JWT/token emergency-revocation path. Add a scripted restore-smoke if feasible. Docs + checklist; no product change. Prereq: none.
+
+### ⬜ T277 — [P3] Dependency hygiene gate
+
+Unused and vulnerable dependencies are unguarded (e.g. `react-hook-form` sat unused until T266). Add a `depcheck` pass to flag unused/missing deps and an advisory `npm audit` (high/critical) step in CI, and document the triage policy (when to upgrade vs. accept). Keep it advisory-first so it does not block on noisy transitive advisories. Prereq: none.
 
 ### End of queue
 
