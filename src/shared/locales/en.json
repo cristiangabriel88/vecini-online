@@ -2906,7 +2906,24 @@
       },
       "liveMetricsNote": "Live platform metrics appear as the console pages are activated.",
       "sectionsTitle": "Console sections",
-      "demoBanner": "Running in demo mode, with no backend. The data shown is sample data."
+      "demoBanner": "Running in demo mode, with no backend. The data shown is sample data.",
+      "overview": {
+        "associationsTitle": "Associations",
+        "activityTitle": "30-day activity",
+        "operationsTitle": "Operations",
+        "activeCount": "{{count}} active",
+        "moderateCount": "{{count}} moderate",
+        "dormantCount": "{{count}} dormant",
+        "suspendedCount": "{{count}} suspended",
+        "announcements": "Announcements",
+        "tickets": "Issues",
+        "votes": "Votes",
+        "mrrLabel": "MRR",
+        "overdueSubLabel": "{{count}} overdue",
+        "openThreadsLabel": "Open support threads",
+        "unansweredSubLabel": "{{count}} awaiting reply",
+        "errorGroupsLabel": "Error groups"
+      }
     },
     "sections": {
       "planned": "Coming soon",

@@ -4,6 +4,16 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T252 ✅ 2026-06-05 -- Live overview dashboard with real cross-tenant KPIs
+
+Added `platformOverviewLogic.ts` with a pure `computeOverview()` function that aggregates 5 store inputs into a single `PlatformOverview` object. Rewired `PlatformHomePage` with three labelled KPI sections: (1) associations breakdown (total, active/moderate/dormant health, suspended lifecycle) + members + apartments, each linking to `/consola/asociatii` or `/consola/utilizare`; (2) 30-day activity rollup (announcements, tickets, votes) linking to `/consola/utilizare`; (3) operations row (MRR with overdue count, open support threads with awaiting-reply sub-label, error groups) linking to their respective pages. All 8 section cards now link to their live routes (no more "planned" badges). Added `.platform-stat--link`, `.platform-stat__sub`, and color-dot sub-item variants (`--active`, `--moderate`, `--dormant`, `--suspended`, `--warn`) to `platform.css`. Bilingual RO/EN new keys under `platform.home.overview`. 16 unit tests green (including demo dataset shape assertions). All 2797 tests + 3 builds green.
+- new: src/platform/platformOverviewLogic.ts
+- new: tests/unit/platformOverview.test.ts
+- modified: src/platform/PlatformHomePage.tsx
+- modified: src/shared/locales/en.json (platform.home.overview.*)
+- modified: src/shared/locales/ro.json (platform.home.overview.*)
+- modified: src/styles/platform.css (.platform-stat--link, .platform-stat__sub, sub-item color variants)
+
 ### T251 ✅ 2026-06-05 -- Platform team management (manage `platform_admins`)
 
 Added `/consola/echipa` section to the platform console sidebar with full operator roster management. The page lists current platform superadmins (name, email, added date, last sign-in) and pending invitations seeded from `DEMO_PLATFORM_TEAM` (2 demo operators). Invite form sends a new operator's setup email via `auth.admin.inviteUserByEmail` + inserts into `platform_admins` via a new service-role Netlify function (`platform-team-invite.ts`). Revoke action removes from `platform_admins` via a second service-role function (`platform-team-revoke.ts`) with a hard guard: cannot remove the last operator. Two new audit actions (`platform.admin_invited`, `platform.admin_revoked`) added to `AUDIT_ACTIONS` with bilingual labels and tone maps in all 3 audit tone records. DB migration adds `name` + `email` columns to `platform_admins`. Live hydration via `platformApi.hydrateTeam()`. Demo drives all paths through the new persisted `platformTeamStore`. 13 unit tests green. RLS: existing super_admin SELECT policy already covers the roster; writes are service-role only.

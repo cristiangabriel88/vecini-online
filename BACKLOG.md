@@ -98,9 +98,11 @@ The pending-invites section on the asociații page is display-only, and after pr
 
 There is no UI to see or manage who the superadmins are; `platform_admins` is only read for auth gating. Add a `/consola/echipa` section (sidebar + overview card): list current platform admins (name, email, added date, last sign-in), **invite a new platform admin** (service-role function that creates the auth account with mandatory-MFA posture per T100 and inserts the `platform_admins` row), and **revoke a platform admin** (with a guard that the last remaining superadmin cannot be removed, and never self-revoke in a way that locks everyone out). Every change is audited to a dedicated platform-level audit stream (or the cross-tenant audit chain with a `platform` scope) so the superadmin roster itself is tamper-evident. Mandatory hardened MFA (T100) applies to every account minted here. Demo seeds 2 platform admins and drives invite/revoke against a persisted store. Bilingual, premium-feel, unit + E2E tests, RLS so only `super_admin` can read/write the roster. Prereq: T91, T100, platform shell.
 
-### ⬜ T252 — [P2] Live overview dashboard with real cross-tenant KPIs
+### ✅ T252 — [P2] Live overview dashboard with real cross-tenant KPIs
 
 In live mode `PlatformHomePage` shows no metrics (only a "live metrics note"); the real numbers already exist in the T95/T96/T97/T99/T19 hydrate paths but are never aggregated on the landing page. Turn the overview into a real operations dashboard: total asociații (active/suspended/dormant breakdown), total members + apartments, 30-day activity (announcements/tickets/votes) rollup, MRR + overdue-invoice count (from subscriptions), open support threads awaiting reply, and recent error-group count, each linking to its section. Reuse the existing `hydrateUsageMetrics` / `platformSubscriptionsStore` / `platformMessengerStore` / `platformErrorStore` selectors (add a small `computeOverview()` pure rollup); no new tables. Keep the demo dataset numbers working offline. Bilingual, premium-feel, unit tests for `computeOverview`. Prereq: T97, T19, T99, T96.
+
+Done: added `platformOverviewLogic.ts` with `computeOverview()` (pure, 5-input rollup); rewired `PlatformHomePage` with three KPI sections (associations breakdown, 30-day activity, operations); all 8 section cards now link to their live pages; 16 unit tests; bilingual RO/EN; CSS sub-label dots for health/lifecycle status. All pipelines green.
 
 ### ⬜ T253 — [P2] Platform-wide broadcast / maintenance notice
 

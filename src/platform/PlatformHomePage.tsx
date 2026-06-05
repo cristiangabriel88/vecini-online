@@ -3,42 +3,49 @@ import { Link } from 'react-router-dom';
 import {
   Activity,
   Building2,
+  CreditCard,
+  Home as HomeIcon,
+  Megaphone,
   MessagesSquare,
   ScrollText,
+  Shield,
+  TicketCheck,
   TriangleAlert,
   UserCog,
   Users,
-  Home as HomeIcon,
+  Vote,
 } from 'lucide-react';
 import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import { usePlatformAuthStore } from './platformAuthStore';
-import { DEMO_PLATFORM_ADMIN, DEMO_PLATFORM_ASOCIATII, platformTotals } from './demoPlatform';
+import { DEMO_PLATFORM_ADMIN } from './demoPlatform';
+import { usePlatformUsageStore } from './platformUsageStore';
+import { usePlatformAsociatiiStore } from './platformAsociatiiStore';
+import { usePlatformSubscriptionsStore } from './platformSubscriptionsStore';
+import { usePlatformMessengerStore } from './platformMessengerStore';
+import { usePlatformErrorStore } from './platformErrorStore';
+import { computeOverview } from './platformOverviewLogic';
 
 const SECTION_CARDS = [
   { key: 'asociatii', icon: Building2, path: '/consola/asociatii' },
-  { key: 'audit', icon: ScrollText },
-  { key: 'errors', icon: TriangleAlert },
-  { key: 'usage', icon: Activity },
-  { key: 'impersonation', icon: UserCog },
-  { key: 'messenger', icon: MessagesSquare },
+  { key: 'audit', icon: ScrollText, path: '/consola/audit' },
+  { key: 'errors', icon: TriangleAlert, path: '/consola/erori' },
+  { key: 'usage', icon: Activity, path: '/consola/utilizare' },
+  { key: 'impersonation', icon: UserCog, path: '/consola/impersonare' },
+  { key: 'messenger', icon: MessagesSquare, path: '/consola/mesaje' },
+  { key: 'subscriptions', icon: CreditCard, path: '/consola/abonamente' },
+  { key: 'team', icon: Shield, path: '/consola/echipa' },
 ] as const;
 
-/**
- * Platform console overview (T93) — the landing the shell mounts. It welcomes the
- * signed-in operator, shows the headline platform totals (from the demo dataset
- * offline; live cross-tenant metrics arrive with the console pages T94/T97), and
- * describes the console areas this shell will host (T94-T99).
- */
 export default function PlatformHomePage() {
   const { t } = useTranslation();
   const demo = usePlatformAuthStore((s) => s.demo);
-  const totals = platformTotals(DEMO_PLATFORM_ASOCIATII);
+  const metrics = usePlatformUsageStore((s) => s.metrics);
+  const asociatii = usePlatformAsociatiiStore((s) => s.asociatii);
+  const subRows = usePlatformSubscriptionsStore((s) => s.rows);
+  const allThreads = usePlatformMessengerStore((s) => s.allThreads());
+  const errorReports = usePlatformErrorStore((s) => s.reports);
 
-  const stats = [
-    { key: 'asociatii', icon: Building2, value: totals.asociatii },
-    { key: 'members', icon: Users, value: totals.members },
-    { key: 'apartments', icon: HomeIcon, value: totals.apartments },
-  ];
+  const ov = computeOverview(metrics, asociatii, subRows, allThreads, errorReports);
 
   return (
     <div className="platform-overview">
@@ -50,55 +57,128 @@ export default function PlatformHomePage() {
         <p className="platform-overview__subtitle">{t('platform.home.subtitle')}</p>
       </header>
 
-      {demo ? (
-        <section className="platform-stats" aria-label={t('platform.home.statsTitle')}>
-          {stats.map((s) => (
-            <div key={s.key} className="platform-stat">
-              <span className="platform-stat__icon" aria-hidden="true">
-                <s.icon size={18} />
-              </span>
-              <span className="platform-stat__value">{s.value}</span>
-              <span className="platform-stat__label">{t(`platform.home.stats.${s.key}`)}</span>
-            </div>
-          ))}
-        </section>
-      ) : (
-        <p className="platform-overview__note">{t('platform.home.liveMetricsNote')}</p>
-      )}
+      {/* Associations + Members + Apartments */}
+      <section aria-labelledby="platform-assoc-kpi-title">
+        <h2 id="platform-assoc-kpi-title" className="platform-overview__sectionhead">
+          {t('platform.home.overview.associationsTitle')}
+        </h2>
+        <div className="platform-stats">
+          <Link to="/consola/asociatii" className="platform-stat platform-stat--link">
+            <span className="platform-stat__icon" aria-hidden="true"><Building2 size={18} /></span>
+            <span className="platform-stat__value">{ov.totalAsociatii}</span>
+            <span className="platform-stat__label">{t('platform.home.stats.asociatii')}</span>
+            <ul className="platform-stat__sub">
+              <li className="platform-stat__sub-item platform-stat__sub-item--active">
+                {t('platform.home.overview.activeCount', { count: ov.activeHealth })}
+              </li>
+              {ov.moderateHealth > 0 && (
+                <li className="platform-stat__sub-item platform-stat__sub-item--moderate">
+                  {t('platform.home.overview.moderateCount', { count: ov.moderateHealth })}
+                </li>
+              )}
+              {ov.dormantHealth > 0 && (
+                <li className="platform-stat__sub-item platform-stat__sub-item--dormant">
+                  {t('platform.home.overview.dormantCount', { count: ov.dormantHealth })}
+                </li>
+              )}
+              {ov.suspendedLifecycle > 0 && (
+                <li className="platform-stat__sub-item platform-stat__sub-item--suspended">
+                  {t('platform.home.overview.suspendedCount', { count: ov.suspendedLifecycle })}
+                </li>
+              )}
+            </ul>
+          </Link>
+          <Link to="/consola/utilizare" className="platform-stat platform-stat--link">
+            <span className="platform-stat__icon" aria-hidden="true"><Users size={18} /></span>
+            <span className="platform-stat__value">{ov.totalMembers}</span>
+            <span className="platform-stat__label">{t('platform.home.stats.members')}</span>
+          </Link>
+          <Link to="/consola/utilizare" className="platform-stat platform-stat--link">
+            <span className="platform-stat__icon" aria-hidden="true"><HomeIcon size={18} /></span>
+            <span className="platform-stat__value">{ov.totalApartments}</span>
+            <span className="platform-stat__label">{t('platform.home.stats.apartments')}</span>
+          </Link>
+        </div>
+      </section>
+
+      {/* 30-day activity rollup */}
+      <section aria-labelledby="platform-activity-kpi-title">
+        <h2 id="platform-activity-kpi-title" className="platform-overview__sectionhead">
+          {t('platform.home.overview.activityTitle')}
+        </h2>
+        <div className="platform-stats">
+          <Link to="/consola/utilizare" className="platform-stat platform-stat--link">
+            <span className="platform-stat__icon" aria-hidden="true"><Megaphone size={18} /></span>
+            <span className="platform-stat__value">{ov.recentAnnouncements}</span>
+            <span className="platform-stat__label">{t('platform.home.overview.announcements')}</span>
+          </Link>
+          <Link to="/consola/utilizare" className="platform-stat platform-stat--link">
+            <span className="platform-stat__icon" aria-hidden="true"><TicketCheck size={18} /></span>
+            <span className="platform-stat__value">{ov.recentTickets}</span>
+            <span className="platform-stat__label">{t('platform.home.overview.tickets')}</span>
+          </Link>
+          <Link to="/consola/utilizare" className="platform-stat platform-stat--link">
+            <span className="platform-stat__icon" aria-hidden="true"><Vote size={18} /></span>
+            <span className="platform-stat__value">{ov.recentVotes}</span>
+            <span className="platform-stat__label">{t('platform.home.overview.votes')}</span>
+          </Link>
+        </div>
+      </section>
+
+      {/* Operations: subscriptions, support, errors */}
+      <section aria-labelledby="platform-ops-kpi-title">
+        <h2 id="platform-ops-kpi-title" className="platform-overview__sectionhead">
+          {t('platform.home.overview.operationsTitle')}
+        </h2>
+        <div className="platform-stats">
+          <Link to="/consola/abonamente" className="platform-stat platform-stat--link">
+            <span className="platform-stat__icon" aria-hidden="true"><CreditCard size={18} /></span>
+            <span className="platform-stat__value">{ov.mrr} lei</span>
+            <span className="platform-stat__label">{t('platform.home.overview.mrrLabel')}</span>
+            {ov.overdueCount > 0 && (
+              <ul className="platform-stat__sub">
+                <li className="platform-stat__sub-item platform-stat__sub-item--warn">
+                  {t('platform.home.overview.overdueSubLabel', { count: ov.overdueCount })}
+                </li>
+              </ul>
+            )}
+          </Link>
+          <Link to="/consola/mesaje" className="platform-stat platform-stat--link">
+            <span className="platform-stat__icon" aria-hidden="true"><MessagesSquare size={18} /></span>
+            <span className="platform-stat__value">{ov.openThreads}</span>
+            <span className="platform-stat__label">{t('platform.home.overview.openThreadsLabel')}</span>
+            {ov.unansweredThreads > 0 && (
+              <ul className="platform-stat__sub">
+                <li className="platform-stat__sub-item platform-stat__sub-item--warn">
+                  {t('platform.home.overview.unansweredSubLabel', { count: ov.unansweredThreads })}
+                </li>
+              </ul>
+            )}
+          </Link>
+          <Link to="/consola/erori" className="platform-stat platform-stat--link">
+            <span className="platform-stat__icon" aria-hidden="true"><TriangleAlert size={18} /></span>
+            <span className="platform-stat__value">{ov.recentErrorGroups}</span>
+            <span className="platform-stat__label">{t('platform.home.overview.errorGroupsLabel')}</span>
+          </Link>
+        </div>
+      </section>
 
       <section aria-labelledby="platform-sections-title">
         <h2 id="platform-sections-title" className="platform-overview__sectionhead">
           {t('platform.home.sectionsTitle')}
         </h2>
         <div className="platform-sectiongrid">
-          {SECTION_CARDS.map((c) => {
-            const path = 'path' in c ? c.path : undefined;
-            const body = (
-              <>
-                <span className="platform-sectioncard__icon" aria-hidden="true">
-                  <c.icon size={18} />
-                </span>
-                <div className="platform-sectioncard__body">
-                  <div className="platform-sectioncard__head">
-                    <h3 className="platform-sectioncard__title">{t(`platform.sections.${c.key}.title`)}</h3>
-                    {!path && (
-                      <span className="platform-sectioncard__badge">{t('platform.sections.planned')}</span>
-                    )}
-                  </div>
-                  <p className="platform-sectioncard__desc">{t(`platform.sections.${c.key}.desc`)}</p>
-                </div>
-              </>
-            );
-            return path ? (
-              <Link key={c.key} to={path} className="platform-sectioncard platform-sectioncard--link">
-                {body}
-              </Link>
-            ) : (
-              <article key={c.key} className="platform-sectioncard">
-                {body}
-              </article>
-            );
-          })}
+          {SECTION_CARDS.map((c) => (
+            <Link key={c.key} to={c.path} className="platform-sectioncard platform-sectioncard--link">
+              <span className="platform-sectioncard__icon" aria-hidden="true">
+                <c.icon size={18} />
+              </span>
+              <div className="platform-sectioncard__body">
+                <h3 className="platform-sectioncard__title">{t(`platform.sections.${c.key}.title`)}</h3>
+                <p className="platform-sectioncard__desc">{t(`platform.sections.${c.key}.desc`)}</p>
+              </div>
+            </Link>
+          ))}
         </div>
       </section>
 

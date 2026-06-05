@@ -2906,7 +2906,24 @@
       },
       "liveMetricsNote": "Metricile platformei live apar pe măsură ce paginile consolei sunt activate.",
       "sectionsTitle": "Secțiunile consolei",
-      "demoBanner": "Rulezi în mod demonstrativ, fără backend. Datele afișate sunt exemple."
+      "demoBanner": "Rulezi în mod demonstrativ, fără backend. Datele afișate sunt exemple.",
+      "overview": {
+        "associationsTitle": "Asociații",
+        "activityTitle": "Activitate 30 de zile",
+        "operationsTitle": "Operațiuni",
+        "activeCount": "{{count}} active",
+        "moderateCount": "{{count}} moderate",
+        "dormantCount": "{{count}} inactive",
+        "suspendedCount": "{{count}} suspendate",
+        "announcements": "Anunțuri",
+        "tickets": "Sesizări",
+        "votes": "Voturi",
+        "mrrLabel": "MRR",
+        "overdueSubLabel": "{{count}} restante",
+        "openThreadsLabel": "Thread-uri suport deschise",
+        "unansweredSubLabel": "{{count}} fără răspuns",
+        "errorGroupsLabel": "Grupuri de erori"
+      }
     },
     "sections": {
       "planned": "În curând",
