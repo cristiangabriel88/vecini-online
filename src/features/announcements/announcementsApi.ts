@@ -1,4 +1,4 @@
-import type { Announcement, AnnouncementAttachment } from '@/shared/types/domain';
+import type { Announcement, AnnouncementAttachment, AnnouncementCategory } from '@/shared/types/domain';
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import { reportError } from '@/shared/lib/errorReporting';
 import { genId } from '@/shared/lib/id';
@@ -204,6 +204,27 @@ export function deleteAnnouncements(asociatieId: string, ids: string[]): void {
         await supabase.from('announcements').delete().in('id', ids);
       } catch (err) {
         reportError(err, { source: 'announcementsApi.delete' });
+      }
+    })();
+  }
+}
+
+/** Update mutable fields of one announcement; updates the store and mirrors to the backend. */
+export function updateAnnouncement(
+  asociatieId: string,
+  id: string,
+  patch: { title?: string; body_html?: string; category?: AnnouncementCategory },
+): void {
+  useAnnouncementsStore.getState().update(asociatieId, id, patch);
+  if (isSupabaseConfigured) {
+    void (async () => {
+      try {
+        await supabase
+          .from('announcements')
+          .update({ ...patch, updated_at: new Date().toISOString() })
+          .eq('id', id);
+      } catch (err) {
+        reportError(err, { source: 'announcementsApi.update' });
       }
     })();
   }

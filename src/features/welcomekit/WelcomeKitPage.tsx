@@ -25,6 +25,7 @@ export default function WelcomeKitPage() {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
+  const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
 
   useEffect(() => {
     if (asociatieId) void hydrateWelcomeKit(asociatieId);
@@ -53,9 +54,14 @@ export default function WelcomeKitPage() {
   };
 
   const onRemove = (itemId: string) => {
-    if (!asociatieId) return;
-    removeItem(asociatieId, itemId);
-    removeWelcomeKitItemLive(itemId);
+    setPendingRemoveId(itemId);
+  };
+
+  const confirmRemove = () => {
+    if (!asociatieId || !pendingRemoveId) return;
+    removeItem(asociatieId, pendingRemoveId);
+    removeWelcomeKitItemLive(pendingRemoveId);
+    setPendingRemoveId(null);
   };
 
   if (fetchError) {
@@ -150,6 +156,24 @@ export default function WelcomeKitPage() {
           </div>
         </>
       )}
+
+      <Modal
+        open={pendingRemoveId !== null}
+        onClose={() => setPendingRemoveId(null)}
+        title={t('welcomeKit.removeStepTitle')}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setPendingRemoveId(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button variant="danger" onClick={confirmRemove}>
+              <Trash2 className="h-4 w-4" /> {t('common.delete')}
+            </Button>
+          </>
+        }
+      >
+        <p>{t('welcomeKit.removeStepConfirm')}</p>
+      </Modal>
 
       <Modal
         open={open}

@@ -114,6 +114,28 @@ export function registerKidsLive(asociatieId: string, range: KidsAgeRange): void
   })();
 }
 
+export function updateKidsEventLive(asociatieId: string, event: KidsEvent): void {
+  useKidsStore.getState().updateEvent(asociatieId, event);
+  if (!isSupabaseConfigured) return;
+  void (async () => {
+    try {
+      await supabase
+        .from('kids_events')
+        .update({
+          title: event.title,
+          date: event.date,
+          time: event.time,
+          location: event.location,
+          bucket: event.bucket,
+          note: event.note,
+        })
+        .eq('id', event.id);
+    } catch (err) {
+      reportError(err, { source: 'kidsApi.updateEvent' });
+    }
+  })();
+}
+
 export function addKidsEventLive(asociatieId: string, event: KidsEvent): void {
   useKidsStore.getState().addEvent(asociatieId, event);
   if (!isSupabaseConfigured) return;

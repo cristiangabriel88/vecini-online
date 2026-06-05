@@ -24,6 +24,8 @@ interface AnnouncementsState {
   add: (asociatieId: string, authorUserId: string, input: NewAnnouncementInput) => void;
   /** Remove announcements by id from one asociație's list. */
   remove: (asociatieId: string, ids: string[]) => void;
+  /** Update mutable fields of one announcement in place. */
+  update: (asociatieId: string, id: string, patch: Partial<Pick<Announcement, 'title' | 'body_html' | 'category'>>) => void;
   /** Replace the full list for one asociație (used by live hydration). */
   replaceForAsociatie: (asociatieId: string, items: Announcement[]) => void;
   /** Set or clear the live-fetch error (called by the API layer). */
@@ -57,6 +59,15 @@ export const useAnnouncementsStore = create<AnnouncementsState>()(
       remove: (asociatieId, ids) =>
         set((s) => ({
           byAsociatie: removeAnnouncementsIn(s.byAsociatie, asociatieId, ids),
+        })),
+      update: (asociatieId, id, patch) =>
+        set((s) => ({
+          byAsociatie: {
+            ...s.byAsociatie,
+            [asociatieId]: (s.byAsociatie[asociatieId] ?? []).map((a) =>
+              a.id === id ? { ...a, ...patch, updated_at: new Date().toISOString() } : a,
+            ),
+          },
         })),
       replaceForAsociatie: (asociatieId, items) =>
         set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: items } })),

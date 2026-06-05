@@ -29,6 +29,7 @@ export default function SafetyCodePage() {
   const [name, setName] = useState('');
   const [relationship, setRelationship] = useState('');
   const [phone, setPhone] = useState('');
+  const [pendingRemoveContactId, setPendingRemoveContactId] = useState<string | null>(null);
 
   useEffect(() => {
     void hydrateSafetyProfile(userId, asociatieId);
@@ -64,10 +65,11 @@ export default function SafetyCodePage() {
     setOpen(false);
   };
 
-  const removeContact = (id: string) => {
-    if (!profile) return;
-    const updated = { ...profile, contacts: profile.contacts.filter((c) => c.id !== id), updated_at: new Date().toISOString() };
+  const confirmRemoveContact = () => {
+    if (!profile || !pendingRemoveContactId) return;
+    const updated = { ...profile, contacts: profile.contacts.filter((c) => c.id !== pendingRemoveContactId), updated_at: new Date().toISOString() };
     persistSafetyProfile(userId, asociatieId, updated);
+    setPendingRemoveContactId(null);
   };
 
   if (fetchError) {
@@ -148,7 +150,7 @@ export default function SafetyCodePage() {
                   size="sm"
                   variant="ghost"
                   aria-label={t('safety.removeContact')}
-                  onClick={() => removeContact(c.id)}
+                  onClick={() => setPendingRemoveContactId(c.id)}
                 >
                   <Trash2 className="h-4 w-4 text-danger" />
                 </Button>
@@ -157,6 +159,28 @@ export default function SafetyCodePage() {
           ))}
         </div>
       )}
+
+      <Modal
+        open={pendingRemoveContactId !== null}
+        onClose={() => setPendingRemoveContactId(null)}
+        title={t('safety.removeContactTitle')}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setPendingRemoveContactId(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button variant="danger" onClick={confirmRemoveContact}>
+              <Trash2 className="h-4 w-4" /> {t('common.delete')}
+            </Button>
+          </>
+        }
+      >
+        <p>
+          {t('safety.removeContactConfirm', {
+            name: contacts.find((c) => c.id === pendingRemoveContactId)?.name ?? '',
+          })}
+        </p>
+      </Modal>
 
       <Modal
         open={open}

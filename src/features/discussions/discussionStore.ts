@@ -39,6 +39,7 @@ interface DiscussionState {
   togglePin: (asociatieId: string, threadId: string) => void;
   deleteMessage: (asociatieId: string, threadId: string, messageId: string) => void;
   deleteThread: (asociatieId: string, threadId: string) => void;
+  updateMessage: (asociatieId: string, threadId: string, messageId: string, body: string) => void;
   /** Replace the full thread list for one asociație (used by live hydration). */
   replaceForAsociatie: (asociatieId: string, threads: DiscussionThread[]) => void;
   /** Set or clear the live-fetch error (called by the API layer). */
@@ -83,6 +84,17 @@ export const useDiscussionStore = create<DiscussionState>()(
       deleteThread: (asociatieId, threadId) =>
         set((s) => ({
           byAsociatie: deleteThreadIn(s.byAsociatie, asociatieId, threadId),
+        })),
+      updateMessage: (asociatieId, threadId, messageId, body) =>
+        set((s) => ({
+          byAsociatie: {
+            ...s.byAsociatie,
+            [asociatieId]: (s.byAsociatie[asociatieId] ?? []).map((th) =>
+              th.id !== threadId
+                ? th
+                : { ...th, messages: th.messages.map((m) => (m.id !== messageId ? m : { ...m, body })) },
+            ),
+          },
         })),
       replaceForAsociatie: (asociatieId, threads) =>
         set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: threads } })),

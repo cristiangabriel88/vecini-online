@@ -1,7 +1,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { Calendar, Check, Download, Paperclip, Plus, Trash2, Upload, X } from 'lucide-react';
+import { Calendar, Check, Download, Paperclip, Pencil, Plus, Trash2, Upload, X } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Button } from '@/shared/components/Button';
 import { Card } from '@/shared/components/Card';
@@ -23,6 +23,7 @@ import { useAnnouncementsStore, useAsociatieAnnouncements } from './announcement
 import {
   hydrateAnnouncements,
   publishAnnouncement,
+  updateAnnouncement,
   uploadAnnouncementAttachments,
   getAttachmentSignedUrl,
   deleteAnnouncements,
@@ -70,9 +71,10 @@ interface ComposeModalProps {
   onClose: () => void;
   asociatieId: string | null;
   authorUserId: string;
+  editTarget?: Announcement;
 }
 
-function AnnouncementComposeModal({ open, onClose, asociatieId, authorUserId }: ComposeModalProps) {
+function AnnouncementComposeModal({ open, onClose, asociatieId, authorUserId, editTarget }: ComposeModalProps) {
   const { t } = useTranslation();
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -82,6 +84,27 @@ function AnnouncementComposeModal({ open, onClose, asociatieId, authorUserId }: 
   const [fileError, setFileError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    if (editTarget) {
+      setTitle(editTarget.title);
+      setBody(editTarget.body_html.replace(/^<p>/, '').replace(/<\/p>$/, ''));
+      setCategory(editTarget.category);
+      setSchedule(
+        editTarget.scheduled_at
+          ? new Date(editTarget.scheduled_at).toISOString().slice(0, 16)
+          : '',
+      );
+    } else {
+      setTitle('');
+      setBody('');
+      setCategory('informativ');
+      setSchedule('');
+    }
+    setPendingFiles([]);
+    setFileError(null);
+  }, [open, editTarget]);
 
   const handleClose = () => {
     setTitle('');
@@ -119,6 +142,23 @@ function AnnouncementComposeModal({ open, onClose, asociatieId, authorUserId }: 
     if (!asociatieId || !title.trim() || !body.trim() || saving) return;
     setSaving(true);
     try {
+      if (editTarget) {
+        updateAnnouncement(asociatieId, editTarget.id, {
+          title: title.trim(),
+          body_html: `<p>${body.trim()}</p>`,
+          category,
+        });
+        recordAudit({
+          action: 'announcement.published',
+          entity: 'announcement',
+          entity_label: title.trim(),
+          before: editTarget.category,
+          after: category,
+        });
+        toast.success(t('announcements.updated'));
+        handleClose();
+        return;
+      }
       const scheduledIso = schedule ? new Date(schedule).toISOString() : null;
       let attachments: AnnouncementAttachment[] = [];
       if (isSupabaseConfigured && pendingFiles.length) {
@@ -167,7 +207,7 @@ function AnnouncementComposeModal({ open, onClose, asociatieId, authorUserId }: 
     <Modal
       open={open}
       onClose={handleClose}
-      title={t('announcements.compose')}
+      title={editTarget ? t('announcements.editTitle') : t('announcements.compose')}
       footer={
         <>
           <Button variant="ghost" onClick={handleClose} disabled={saving}>
@@ -179,9 +219,11 @@ function AnnouncementComposeModal({ open, onClose, asociatieId, authorUserId }: 
           >
             {saving
               ? t('announcements.uploading')
-              : schedule
-                ? t('announcements.schedule')
-                : t('common.publish')}
+              : editTarget
+                ? t('common.save')
+                : schedule
+                  ? t('announcements.schedule')
+                  : t('common.publish')}
           </Button>
         </>
       }
@@ -274,6 +316,7 @@ interface RowProps {
   isSelected: boolean;
   isRead: boolean;
   onToggle: (id: string) => void;
+  onEdit: (a: Announcement) => void;
   onDelete: (id: string) => void;
   onMarkRead: (id: string) => void;
   onDownload: (att: AnnouncementAttachment) => void;
@@ -286,6 +329,7 @@ const AnnouncementRow = memo(function AnnouncementRow({
   isSelected,
   isRead,
   onToggle,
+  onEdit,
   onDelete,
   onMarkRead,
   onDownload,
@@ -354,14 +398,24 @@ const AnnouncementRow = memo(function AnnouncementRow({
           </span>
           <div className="flex items-center gap-1">
             {canDelete && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onDelete(a.id)}
-                aria-label={t('announcements.deleteOne')}
-              >
-                <Trash2 className="h-4 w-4 text-danger" />
-              </Button>
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onEdit(a)}
+                  aria-label={t('announcements.editTitle')}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onDelete(a.id)}
+                  aria-label={t('announcements.deleteOne')}
+                >
+                  <Trash2 className="h-4 w-4 text-danger" />
+                </Button>
+              </>
             )}
             <Button
               variant={isRead ? 'ghost' : 'secondary'}
@@ -397,6 +451,9 @@ export default function AnnouncementsPage() {
   );
   const { reads, markRead, fetchError } = useAnnouncementsStore();
   const [open, setOpen] = useState(false);
+  const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [pendingBulkDelete, setPendingBulkDelete] = useState(false);
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const allSelected = items.length > 0 && selectedIds.size === items.length;
@@ -418,23 +475,38 @@ export default function AnnouncementsPage() {
     });
   }, []);
 
+  const handleEdit = useCallback((a: Announcement) => {
+    setEditingAnnouncement(a);
+    setOpen(true);
+  }, []);
+
   const handleDeleteOne = useCallback((id: string) => {
-    if (!asociatieId) return;
-    deleteAnnouncements(asociatieId, [id]);
+    setPendingDeleteId(id);
+  }, []);
+
+  const confirmDeleteOne = useCallback(() => {
+    if (!asociatieId || !pendingDeleteId) return;
+    deleteAnnouncements(asociatieId, [pendingDeleteId]);
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      next.delete(id);
+      next.delete(pendingDeleteId);
       return next;
     });
     toast.success(t('announcements.deleted'));
-  }, [asociatieId, t]);
+    setPendingDeleteId(null);
+  }, [asociatieId, pendingDeleteId, t]);
 
   const handleDeleteSelected = useCallback(() => {
+    setPendingBulkDelete(true);
+  }, []);
+
+  const confirmDeleteSelected = useCallback(() => {
     if (!asociatieId) return;
     const ids = [...selectedIds];
     deleteAnnouncements(asociatieId, ids);
     setSelectedIds(new Set());
     toast.success(t('announcements.deletedBulk', { count: ids.length }));
+    setPendingBulkDelete(false);
   }, [asociatieId, selectedIds, t]);
 
   const handleMarkRead = useCallback((id: string) => {
@@ -514,6 +586,7 @@ export default function AnnouncementsPage() {
               isSelected={selectedIds.has(a.id)}
               isRead={!!reads[a.id]}
               onToggle={handleToggleItem}
+              onEdit={handleEdit}
               onDelete={handleDeleteOne}
               onMarkRead={handleMarkRead}
               onDownload={handleDownload}
@@ -524,10 +597,47 @@ export default function AnnouncementsPage() {
 
       <AnnouncementComposeModal
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={() => { setOpen(false); setEditingAnnouncement(null); }}
         asociatieId={asociatieId}
         authorUserId={authorUserId}
+        editTarget={editingAnnouncement ?? undefined}
       />
+
+      <Modal
+        open={pendingDeleteId !== null}
+        onClose={() => setPendingDeleteId(null)}
+        title={t('announcements.deleteOne')}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setPendingDeleteId(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button variant="danger" onClick={confirmDeleteOne}>
+              <Trash2 className="h-4 w-4" /> {t('common.delete')}
+            </Button>
+          </>
+        }
+      >
+        <p>{t('announcements.deleteConfirm')}</p>
+      </Modal>
+
+      <Modal
+        open={pendingBulkDelete}
+        onClose={() => setPendingBulkDelete(false)}
+        title={t('announcements.deleteBulkTitle', { count: selectedIds.size })}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setPendingBulkDelete(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button variant="danger" onClick={confirmDeleteSelected}>
+              <Trash2 className="h-4 w-4" /> {t('common.delete')}
+            </Button>
+          </>
+        }
+      >
+        <p>{t('announcements.deleteBulkConfirm', { count: selectedIds.size })}</p>
+      </Modal>
     </div>
   );
 }

@@ -67,6 +67,8 @@ export default function AdminChatPage() {
 
   // Bulk selection state (admin only)
   const [selectedThreadIds, setSelectedThreadIds] = useState<Set<string>>(new Set());
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [pendingBulkDelete, setPendingBulkDelete] = useState(false);
 
   useEffect(() => {
     if (currentAsociatieId) void hydrateThreads(currentAsociatieId);
@@ -158,24 +160,34 @@ export default function AdminChatPage() {
   };
 
   const deleteSelected = () => {
+    setPendingBulkDelete(true);
+  };
+
+  const confirmDeleteSelected = () => {
     if (!currentAsociatieId) return;
     const ids = [...selectedThreadIds];
     deleteThreads(currentAsociatieId, ids);
     if (selectedId && ids.includes(selectedId)) setSelectedId(null);
     setSelectedThreadIds(new Set());
     toast.success(t('adminChat.threadDeleted'));
+    setPendingBulkDelete(false);
   };
 
   const deleteOne = (id: string) => {
-    if (!currentAsociatieId) return;
-    deleteThreads(currentAsociatieId, [id]);
-    if (selectedId === id) setSelectedId(null);
+    setPendingDeleteId(id);
+  };
+
+  const confirmDeleteOne = () => {
+    if (!currentAsociatieId || !pendingDeleteId) return;
+    deleteThreads(currentAsociatieId, [pendingDeleteId]);
+    if (selectedId === pendingDeleteId) setSelectedId(null);
     setSelectedThreadIds((prev) => {
       const next = new Set(prev);
-      next.delete(id);
+      next.delete(pendingDeleteId);
       return next;
     });
     toast.success(t('adminChat.threadDeleted'));
+    setPendingDeleteId(null);
   };
 
   return (
@@ -298,6 +310,42 @@ export default function AdminChatPage() {
           })}
         </div>
       )}
+
+      <Modal
+        open={pendingDeleteId !== null}
+        onClose={() => setPendingDeleteId(null)}
+        title={t('adminChat.deleteThread')}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setPendingDeleteId(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button variant="danger" onClick={confirmDeleteOne}>
+              <Trash2 className="h-4 w-4" /> {t('common.delete')}
+            </Button>
+          </>
+        }
+      >
+        <p>{t('adminChat.deleteThreadConfirm')}</p>
+      </Modal>
+
+      <Modal
+        open={pendingBulkDelete}
+        onClose={() => setPendingBulkDelete(false)}
+        title={t('adminChat.deleteBulkTitle', { count: selectedThreadIds.size })}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setPendingBulkDelete(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button variant="danger" onClick={confirmDeleteSelected}>
+              <Trash2 className="h-4 w-4" /> {t('common.delete')}
+            </Button>
+          </>
+        }
+      >
+        <p>{t('adminChat.deleteBulkConfirm', { count: selectedThreadIds.size })}</p>
+      </Modal>
 
       <Modal
         open={newOpen}

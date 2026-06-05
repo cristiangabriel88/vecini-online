@@ -30,6 +30,7 @@ interface KidsState {
   removeRange: (asociatieId: string, userId: string, bucket: KidsAgeBucket) => void;
   addEvent: (asociatieId: string, event: KidsEvent) => void;
   removeEvent: (asociatieId: string, eventId: string) => void;
+  updateEvent: (asociatieId: string, event: KidsEvent) => void;
   toggleJoin: (eventId: string) => void;
   replaceForAsociatie: (asociatieId: string, catalog: KidsCatalog) => void;
   setFetchError: (msg: string | null) => void;
@@ -67,6 +68,19 @@ export const useKidsStore = create<KidsState>()(
           byAsociatie: removeEventIn(s.byAsociatie, asociatieId, eventId),
           joinedIds: s.joinedIds.filter((id) => id !== eventId),
         })),
+
+      updateEvent: (asociatieId, event) => {
+        assertAggregateOnly(event, KIDS_EVENT_FIELDS, 'kids_events');
+        set((s) => {
+          const cat = s.byAsociatie[asociatieId] ?? { ranges: [], events: [] };
+          return {
+            byAsociatie: {
+              ...s.byAsociatie,
+              [asociatieId]: { ...cat, events: cat.events.map((e) => (e.id === event.id ? event : e)) },
+            },
+          };
+        });
+      },
 
       toggleJoin: (eventId) =>
         set((s) => ({

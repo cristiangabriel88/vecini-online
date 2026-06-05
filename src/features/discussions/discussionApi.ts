@@ -212,6 +212,24 @@ export function deleteThread(asociatieId: string, threadId: string): void {
   })();
 }
 
+/** Update the body of a message; updates the store and mirrors to the backend. */
+export function updateMessage(
+  asociatieId: string,
+  threadId: string,
+  messageId: string,
+  body: string,
+): void {
+  useDiscussionStore.getState().updateMessage(asociatieId, threadId, messageId, body);
+  if (!isSupabaseConfigured) return;
+  void (async () => {
+    try {
+      await supabase.from('discussion_messages').update({ body }).eq('id', messageId);
+    } catch (err) {
+      reportError(err, { source: 'discussionApi.updateMessage' });
+    }
+  })();
+}
+
 /** Soft-delete a message; updates the store and mirrors to the backend. */
 export function deleteMessage(
   asociatieId: string,

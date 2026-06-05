@@ -35,6 +35,7 @@ export default function EvacuationPage() {
 
   const [open, setOpen] = useState(false);
   const [species, setSpecies] = useState('');
+  const [confirmClear, setConfirmClear] = useState(false);
 
   useEffect(() => {
     void hydrateEvacuation(asociatieId);
@@ -67,9 +68,14 @@ export default function EvacuationPage() {
   };
 
   const onClearMarker = () => {
+    setConfirmClear(true);
+  };
+
+  const confirmRemoveMarker = () => {
     if (!myMarker) return;
     removePetMarker(asociatieId, userId, apartmentId, myMarker.id);
     toast.success(t('evacuation.markerRemoved'));
+    setConfirmClear(false);
   };
 
   if (fetchError) {
@@ -155,6 +161,24 @@ export default function EvacuationPage() {
           )}
         </div>
       </Card>
+
+      <Modal
+        open={confirmClear}
+        onClose={() => setConfirmClear(false)}
+        title={t('evacuation.removeMarkerTitle')}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setConfirmClear(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button variant="danger" onClick={confirmRemoveMarker}>
+              <Trash2 className="h-4 w-4" /> {t('common.delete')}
+            </Button>
+          </>
+        }
+      >
+        <p>{t('evacuation.removeMarkerConfirm')}</p>
+      </Modal>
 
       <Modal
         open={open}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { ToyBrick, Plus, Users, Trash2, MapPin, Clock, Check } from 'lucide-react';
+import { ToyBrick, Plus, Users, Trash2, MapPin, Clock, Check, Pencil } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
@@ -16,7 +16,7 @@ import { formatDate } from '@/shared/lib/format';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useMyIdentity, useProfileStore } from '@/features/profile/profileStore';
 import { useKidsStore, useAsociatieKids } from './kidsStore';
-import { hydrateKids, addKidsEventLive } from './kidsApi';
+import { hydrateKids, addKidsEventLive, updateKidsEventLive } from './kidsApi';
 import {
   AGE_BUCKETS,
   EVENT_BUCKETS,
@@ -46,6 +46,9 @@ export default function KidsPage() {
   const [regOpen, setRegOpen] = useState(false);
   const [bucket, setBucket] = useState<KidsAgeBucket>(AGE_BUCKETS[0]);
   const [count, setCount] = useState('1');
+  const [pendingRemoveEventId, setPendingRemoveEventId] = useState<string | null>(null);
+  const [pendingRemoveRange, setPendingRemoveRange] = useState<{ bucket: KidsAgeBucket; userId: string } | null>(null);
+  const [editingEvent, setEditingEvent] = useState<KidsEvent | null>(null);
 
   const [evtOpen, setEvtOpen] = useState(false);
   const [title, setTitle] = useState('');
@@ -78,8 +81,46 @@ export default function KidsPage() {
     setRegOpen(false);
   };
 
+  const openEditEvent = (e: KidsEvent) => {
+    setEditingEvent(e);
+    setTitle(e.title);
+    setDate(e.date);
+    setTime(e.time);
+    setLocation(e.location);
+    setEvtBucket(e.bucket);
+    setNote(e.note);
+    setEvtOpen(true);
+  };
+
+  const closeEvtModal = () => {
+    setEvtOpen(false);
+    setEditingEvent(null);
+    setTitle('');
+    setDate(today());
+    setTime('17:00');
+    setLocation('');
+    setEvtBucket('all');
+    setNote('');
+  };
+
   const submitEvent = () => {
     if (!evtValid || !asociatieId) return;
+    if (editingEvent) {
+      const updated: KidsEvent = {
+        ...editingEvent,
+        title: title.trim(),
+        date,
+        time: time.trim(),
+        location: location.trim(),
+        bucket: evtBucket,
+        note: note.trim(),
+      };
+      assertAggregateOnly(updated, KIDS_EVENT_FIELDS, 'kids_events');
+      updateKidsEventLive(asociatieId, updated);
+      toast.success(t('kids.eventUpdated'));
+      closeEvtModal();
+      return;
+    }
     const prof = profileGet(userId ?? '', '');
     const organizerName = prof.fullName || prof.displayName || 'Rezident';
     const event: KidsEvent = {
@@ -99,10 +140,7 @@ export default function KidsPage() {
     assertAggregateOnly(event, KIDS_EVENT_FIELDS, 'kids_events');
     addKidsEventLive(asociatieId, event);
     toast.success(t('kids.eventAdded'));
-    setTitle('');
-    setLocation('');
-    setNote('');
-    setEvtOpen(false);
+    closeEvtModal();
   };
 
   const renderEvent = (e: KidsEvent, faded: boolean) => {
@@ -134,14 +172,24 @@ export default function KidsPage() {
             </p>
           </div>
           {isOrganizer && !faded && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => asociatieId && removeEvent(asociatieId, e.id)}
-              aria-label={t('kids.removeEvent')}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => openEditEvent(e)}
+                aria-label={t('kids.editEvent')}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setPendingRemoveEventId(e.id)}
+                aria-label={t('kids.removeEvent')}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           )}
         </div>
         {!faded && (
@@ -184,7 +232,7 @@ export default function KidsPage() {
         title={t('kids.title')}
         subtitle={t('kids.subtitle')}
         action={
-          <Button onClick={() => setEvtOpen(true)}>
+          <Button onClick={() => { setEditingEvent(null); setEvtOpen(true); }}>
             <Plus className="h-4 w-4" /> {t('kids.addEvent')}
           </Button>
         }
@@ -231,7 +279,7 @@ export default function KidsPage() {
                   {r.count}× {t('kids.bucketLabel', { range: r.bucket })}
                   <button
                     type="button"
-                    onClick={() => asociatieId && removeRange(asociatieId, userId ?? 'u-res', r.bucket)}
+                    onClick={() => setPendingRemoveRange({ bucket: r.bucket, userId: userId ?? 'u-res' })}
                     aria-label={t('kids.removeRange')}
                     className="text-muted hover:text-danger"
                   >
@@ -261,6 +309,60 @@ export default function KidsPage() {
           )}
         </div>
       )}
+
+      {/* Confirm remove event */}
+      <Modal
+        open={pendingRemoveEventId !== null}
+        onClose={() => setPendingRemoveEventId(null)}
+        title={t('kids.removeEventTitle')}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setPendingRemoveEventId(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => {
+                if (asociatieId && pendingRemoveEventId) {
+                  removeEvent(asociatieId, pendingRemoveEventId);
+                  setPendingRemoveEventId(null);
+                }
+              }}
+            >
+              <Trash2 className="h-4 w-4" /> {t('common.delete')}
+            </Button>
+          </>
+        }
+      >
+        <p>{t('kids.removeEventConfirm')}</p>
+      </Modal>
+
+      {/* Confirm remove age range */}
+      <Modal
+        open={pendingRemoveRange !== null}
+        onClose={() => setPendingRemoveRange(null)}
+        title={t('kids.removeRangeTitle')}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setPendingRemoveRange(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => {
+                if (asociatieId && pendingRemoveRange) {
+                  removeRange(asociatieId, pendingRemoveRange.userId, pendingRemoveRange.bucket);
+                  setPendingRemoveRange(null);
+                }
+              }}
+            >
+              <Trash2 className="h-4 w-4" /> {t('common.delete')}
+            </Button>
+          </>
+        }
+      >
+        <p>{t('kids.removeRangeConfirm')}</p>
+      </Modal>
 
       {/* Register kids modal */}
       <Modal
@@ -302,14 +404,14 @@ export default function KidsPage() {
         </div>
       </Modal>
 
-      {/* Add activity modal */}
+      {/* Add / edit activity modal */}
       <Modal
         open={evtOpen}
-        onClose={() => setEvtOpen(false)}
-        title={t('kids.addEvent')}
+        onClose={closeEvtModal}
+        title={editingEvent ? t('kids.editEvent') : t('kids.addEvent')}
         footer={
           <>
-            <Button variant="ghost" onClick={() => setEvtOpen(false)}>
+            <Button variant="ghost" onClick={closeEvtModal}>
               {t('common.cancel')}
             </Button>
             <Button onClick={submitEvent} disabled={!evtValid}>

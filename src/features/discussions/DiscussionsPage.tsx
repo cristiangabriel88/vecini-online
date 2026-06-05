@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { MessagesSquare, Plus, Pin, Trash2, Send } from 'lucide-react';
+import { MessagesSquare, Pencil, Plus, Pin, Trash2, Send } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
@@ -31,6 +31,7 @@ import {
   hydrateThreads,
   postMessage,
   togglePin,
+  updateMessage,
 } from './discussionApi';
 import { emitDiscussionReply } from '@/features/notifications/notificationFanout';
 
@@ -52,6 +53,11 @@ export default function DiscussionsPage() {
   const [newOpen, setNewOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [topic, setTopic] = useState('');
+  const [pendingDeleteThreadId, setPendingDeleteThreadId] = useState<string | null>(null);
+  const [pendingBulkDelete, setPendingBulkDelete] = useState(false);
+  const [pendingDeleteMessage, setPendingDeleteMessage] = useState<{ threadId: string; messageId: string } | null>(null);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingBody, setEditingBody] = useState('');
 
   const canModerate = canModerateDiscussion(role);
 
@@ -111,24 +117,40 @@ export default function DiscussionsPage() {
   };
 
   const deleteOneThread = (threadId: string) => {
-    if (!asociatieId) return;
-    deleteThread(asociatieId, threadId);
+    setPendingDeleteThreadId(threadId);
+  };
+
+  const confirmDeleteThread = () => {
+    if (!asociatieId || !pendingDeleteThreadId) return;
+    deleteThread(asociatieId, pendingDeleteThreadId);
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      next.delete(threadId);
+      next.delete(pendingDeleteThreadId);
       return next;
     });
-    if (openId === threadId) setOpenId(null);
+    if (openId === pendingDeleteThreadId) setOpenId(null);
     toast.success(t('discussions.threadDeleted'));
+    setPendingDeleteThreadId(null);
   };
 
   const deleteSelectedThreads = () => {
+    setPendingBulkDelete(true);
+  };
+
+  const confirmDeleteSelected = () => {
     if (!asociatieId) return;
     const ids = [...selectedIds];
     ids.forEach((id) => deleteThread(asociatieId, id));
     if (openId && ids.includes(openId)) setOpenId(null);
     setSelectedIds(new Set());
     toast.success(t('discussions.threadDeleted'));
+    setPendingBulkDelete(false);
+  };
+
+  const confirmDeleteMessage = () => {
+    if (!asociatieId || !pendingDeleteMessage) return;
+    deleteMessage(asociatieId, pendingDeleteMessage.threadId, pendingDeleteMessage.messageId);
+    setPendingDeleteMessage(null);
   };
 
   return (
@@ -234,22 +256,63 @@ export default function DiscussionsPage() {
                     <div className="space-y-2 border-t border-border pt-3">
                       {th.messages.map((m) => {
                         const canDeleteMsg = canModerate || m.author_user_id === author.id;
+                        const isEditingMsg = editingMessageId === m.id;
                         return (
                           <div key={m.id} className="flex items-start justify-between gap-2 text-sm">
-                            <div>
+                            <div className="min-w-0 flex-1">
                               <span className="font-medium">{m.author_name}</span>{' '}
                               <span className="text-muted">{formatDateTime(m.created_at)}</span>
-                              <p>{m.body}</p>
+                              {isEditingMsg ? (
+                                <div className="mt-1 flex gap-2">
+                                  <Input
+                                    value={editingBody}
+                                    onChange={(e) => setEditingBody(e.target.value)}
+                                    aria-label={t('discussions.editMessage')}
+                                  />
+                                  <Button
+                                    size="sm"
+                                    disabled={!isValidMessage(editingBody)}
+                                    onClick={() => {
+                                      if (asociatieId && isValidMessage(editingBody)) {
+                                        updateMessage(asociatieId, th.id, m.id, editingBody.trim());
+                                        toast.success(t('discussions.messageUpdated'));
+                                        setEditingMessageId(null);
+                                      }
+                                    }}
+                                  >
+                                    {t('common.save')}
+                                  </Button>
+                                  <Button size="sm" variant="ghost" onClick={() => setEditingMessageId(null)}>
+                                    {t('common.cancel')}
+                                  </Button>
+                                </div>
+                              ) : (
+                                <p>{m.body}</p>
+                              )}
                             </div>
-                            {canDeleteMsg && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => asociatieId && deleteMessage(asociatieId, th.id, m.id)}
-                                aria-label={t('discussions.deleteMessage')}
-                              >
-                                <Trash2 className="h-4 w-4 text-danger" />
-                              </Button>
+                            {!isEditingMsg && (
+                              <div className="flex shrink-0 items-center gap-1">
+                                {m.author_user_id === author.id && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => { setEditingMessageId(m.id); setEditingBody(m.body); }}
+                                    aria-label={t('discussions.editMessage')}
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                {canDeleteMsg && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => setPendingDeleteMessage({ threadId: th.id, messageId: m.id })}
+                                    aria-label={t('discussions.deleteMessage')}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-danger" />
+                                  </Button>
+                                )}
+                              </div>
                             )}
                           </div>
                         );
@@ -302,6 +365,60 @@ export default function DiscussionsPage() {
             placeholder="#parcare"
           />
         </div>
+      </Modal>
+
+      <Modal
+        open={pendingDeleteThreadId !== null}
+        onClose={() => setPendingDeleteThreadId(null)}
+        title={t('discussions.deleteThread')}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setPendingDeleteThreadId(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button variant="danger" onClick={confirmDeleteThread}>
+              <Trash2 className="h-4 w-4" /> {t('common.delete')}
+            </Button>
+          </>
+        }
+      >
+        <p>{t('discussions.deleteThreadConfirm')}</p>
+      </Modal>
+
+      <Modal
+        open={pendingBulkDelete}
+        onClose={() => setPendingBulkDelete(false)}
+        title={t('discussions.deleteBulkTitle', { count: selectedIds.size })}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setPendingBulkDelete(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button variant="danger" onClick={confirmDeleteSelected}>
+              <Trash2 className="h-4 w-4" /> {t('common.delete')}
+            </Button>
+          </>
+        }
+      >
+        <p>{t('discussions.deleteBulkConfirm', { count: selectedIds.size })}</p>
+      </Modal>
+
+      <Modal
+        open={pendingDeleteMessage !== null}
+        onClose={() => setPendingDeleteMessage(null)}
+        title={t('discussions.deleteMessage')}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setPendingDeleteMessage(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button variant="danger" onClick={confirmDeleteMessage}>
+              <Trash2 className="h-4 w-4" /> {t('common.delete')}
+            </Button>
+          </>
+        }
+      >
+        <p>{t('discussions.deleteMessageConfirm')}</p>
       </Modal>
     </div>
   );
