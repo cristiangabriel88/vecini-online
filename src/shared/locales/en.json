@@ -2731,6 +2731,9 @@
       "apartment.deleted": "Apartment deleted",
       "building.updated": "Building details updated",
       "asociatie.provisioned": "Association provisioned",
+      "asociatie.suspended": "Association suspended",
+      "asociatie.reactivated": "Association reactivated",
+      "asociatie.archived": "Association archived",
       "admin.provisioned": "Administrator provisioned",
       "document.uploaded": "Document uploaded",
       "document.deleted": "Document deleted",
@@ -2991,6 +2994,16 @@
       "neverSignedIn": "Administrator has not signed in yet",
       "dormant": "Dormant",
       "active": "Active",
+      "filterLabel": "Filter by status",
+      "filter": {
+        "all": "All",
+        "active": "Active",
+        "suspended": "Suspended",
+        "archived": "Archived",
+        "clearFilter": "Clear filter"
+      },
+      "emptyFiltered": "No associations with status \"{{filter}}\".",
+      "viewDetail": "View details {{name}}",
       "adminLabel": "Administrator",
       "pendingSetup": "Setup pending",
       "setupCodeLabel": "Setup code",
@@ -3040,6 +3053,34 @@
         "notConfigured": "Backend service is not configured. Check your Supabase environment variables.",
         "provisionFailed": "Error creating invitation. Check your configuration and try again.",
         "forbidden": "Access denied. Account does not have superadmin rights."
+      }
+    },
+    "detail": {
+      "back": "Back to associations",
+      "notFoundTitle": "Association not found",
+      "notFoundBody": "The requested association does not exist or is no longer available.",
+      "identityTitle": "Identity",
+      "statsTitle": "Statistics",
+      "lifecycleTitle": "Lifecycle management",
+      "subscriptionTitle": "Subscription",
+      "subscriptionNote": "Manage plan, payments and billing in the",
+      "subscriptionLink": "Subscriptions",
+      "status": {
+        "active": "Active",
+        "suspended": "Suspended",
+        "archived": "Archived"
+      },
+      "statusChangedAt": "Status changed on {{date}}",
+      "suspendCta": "Suspend association",
+      "reactivateCta": "Reactivate association",
+      "archiveCta": "Archive association",
+      "suspendReasonLabel": "Reason for suspension (required)",
+      "suspendReasonPlaceholder": "e.g. Overdue balance for more than 3 months",
+      "confirmSuspend": "Confirm suspension",
+      "err": {
+        "reasonRequired": "A reason is required when suspending",
+        "unauthorized": "Session expired. Please sign in again.",
+        "failed": "Operation failed. Please try again."
       }
     },
     "mfa": {

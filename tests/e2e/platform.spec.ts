@@ -212,3 +212,80 @@ test('T121: demo — provision new admin invite, verify pending-setup badge on l
     page.getByText(/Setup pending|Configurare în așteptare/i).first(),
   ).toBeVisible();
 });
+
+/**
+ * T249 — Asociatie detail page + lifecycle (suspend / reactivate / archive).
+ *
+ * Covers: (1) the suspended demo asociatie shows a "Suspended" badge on the
+ * list; (2) navigating to its detail page shows the status; (3) clicking
+ * "Reactivate" changes the badge back to "Active".
+ * Runs offline in demo mode only.
+ */
+
+// T249-1: Suspended badge is visible on the list for the seeded suspended asociatie.
+test('T249: demo — suspended asociatie shows Suspended badge on list', async ({ page }) => {
+  await goPlatformLogin(page);
+  if (!(await isDemoMode(page))) { test.skip(); return; }
+
+  await page.getByRole('button', { name: /Enter demo console|Intră în consola demo/i }).click();
+  await page.getByRole('link', { name: /Asociații|Associations/i }).click();
+  await expect(page).toHaveURL(/\/consola\/asociatii$/);
+
+  // The demo data has one suspended asociatie (Timișoara). Its badge should show "Suspended".
+  await expect(
+    page.getByText(/Suspended|Suspendată/i).first(),
+  ).toBeVisible();
+});
+
+// T249-2: Clicking a card navigates to the detail page.
+test('T249: demo — clicking asociatie card navigates to detail page', async ({ page }) => {
+  await goPlatformLogin(page);
+  if (!(await isDemoMode(page))) { test.skip(); return; }
+
+  await page.getByRole('button', { name: /Enter demo console|Intră în consola demo/i }).click();
+  await page.getByRole('link', { name: /Asociații|Associations/i }).click();
+  await expect(page).toHaveURL(/\/consola\/asociatii$/);
+
+  // Click the overlay link on the first card (navigates to detail).
+  const firstCard = page.locator('article.platform-asoc-card').first();
+  const detailLink = firstCard.locator('.platform-asoc-card__link-overlay');
+  await detailLink.click();
+
+  // Should be on a detail route /consola/asociatii/<id>.
+  await expect(page).toHaveURL(/\/consola\/asociatii\/[^/]+$/);
+
+  // Back button should be visible.
+  await expect(
+    page.getByRole('button', { name: /Back to associations|Înapoi la asociații/i }),
+  ).toBeVisible();
+});
+
+// T249-3: Suspended asociatie detail shows "Suspended" status; reactivate changes it to "Active".
+test('T249: demo — suspend badge on detail, reactivate changes status to active', async ({ page }) => {
+  await goPlatformLogin(page);
+  if (!(await isDemoMode(page))) { test.skip(); return; }
+
+  await page.getByRole('button', { name: /Enter demo console|Intră în consola demo/i }).click();
+  await page.getByRole('link', { name: /Asociații|Associations/i }).click();
+  await expect(page).toHaveURL(/\/consola\/asociatii$/);
+
+  // Navigate directly to the suspended demo asociatie detail page.
+  await page.goto('/platform.html#/consola/asociatii/demo-asoc-3');
+  // Wait for the detail content.
+  await expect(
+    page.getByText(/Suspended|Suspendată/i).first(),
+  ).toBeVisible();
+
+  // Click "Reactivate".
+  await page.getByRole('button', { name: /Reactivate association|Reactivează asociația/i }).click();
+
+  // Status should now show "Active".
+  await expect(
+    page.getByText(/^Active$|^Activă$/i).first(),
+  ).toBeVisible();
+
+  // The "Reactivate" button should no longer be visible (status is active now).
+  await expect(
+    page.getByRole('button', { name: /Reactivate association|Reactivează asociația/i }),
+  ).not.toBeVisible();
+});

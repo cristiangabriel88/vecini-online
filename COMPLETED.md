@@ -4,6 +4,24 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T249 ✅ 2026-06-05 -- Asociație detail page + lifecycle (suspend / reactivate / archive)
+
+Added full tenant detail page at `/consola/asociatii/:id` showing identity, stats, current status, and lifecycle controls. New `status` / `status_reason` / `status_changed_at` columns on `asociatii` (migration `20260605000007_asociatie_lifecycle.sql`) with a RESTRICTIVE membership-insert policy blocking new resident joins on suspended/archived tenants. New `netlify/functions/asociatie-lifecycle.ts` (POST, bearer auth, service-role super_admin re-verify) handles suspend/reactivate/archive and writes to the audit chain. Three new audit actions (`asociatie.suspended`, `asociatie.reactivated`, `asociatie.archived`) added to `AUDIT_ACTIONS` with bilingual labels and tone maps. Demo seeds the Timișoara asociatie as `suspended`. Platform store (v5) adds `updateLifecycle()` + `listFilter`/`setListFilter()`. List page gains status badges, filter tabs (all/active/suspended/archived), and card overlay links to the detail page. `platformApi.ts` now reads status fields in the live hydration query. Unit tests (8) + 3 E2E scenarios (suspended badge, card navigation, reactivate flow) all green.
+- new: supabase/migrations/20260605000007_asociatie_lifecycle.sql
+- new: netlify/functions/asociatie-lifecycle.ts
+- new: src/platform/PlatformAsociatieDetailPage.tsx
+- new: tests/unit/platformLifecycleLogic.test.ts
+- modified: src/features/audit/auditLogic.ts (3 new actions + entity)
+- modified: src/features/audit/AuditLogPage.tsx (tone map entries)
+- modified: src/platform/PlatformAuditPage.tsx (tone map entries)
+- modified: src/platform/demoPlatform.ts (AsociatieStatus type + status on demo data)
+- modified: src/platform/platformAsociatiiStore.ts (v5, updateLifecycle, listFilter)
+- modified: src/platform/platformApi.ts (status fields in hydrate query)
+- modified: src/platform/PlatformAsociatiiPage.tsx (filter tabs + status badges + detail links)
+- modified: src/platform/platformRouter.tsx (added :id detail route)
+- modified: src/shared/locales/ro.json + en.json (filter/detail/lifecycle/audit strings)
+- modified: tests/e2e/platform.spec.ts (T249 scenarios)
+
 ### T248 ✅ 2026-06-05 -- DEV role-selector removed + backlog cleanup + dedup audit
 
 Interactive maintenance pass (not `make progress`). Three things: (1) `DevRoleSwitcher` now renders only in the offline DEMO build (`if (!isDemo())`), so the DEV stage is a true PROD replica with no one-tap persona switcher; the dead `signInAsDevUser` auth-store action and its `else` branch were removed (DEV personas are exercised through the real login form with `pi:seed` `{role}@dev.local` accounts). Updated `devRoleSwitcher.test.tsx`, `piSeed.test.ts` comments, `PI_DEPLOYMENT.md`, `.env.pi.example`, and recorded the decision in `DECISIONS.md`. (2) `BACKLOG.md` cleaned: every `✅` block in the Main queue (T15–T243) was a duplicate of an entry already in `COMPLETED.md`, so the redundant blocks were removed and the queue now holds only open work. (3) A dedup/cleanup audit surfaced four code-health refactor tasks now queued as T244 (per-asociatie store factory), T245 (roleUtils permission helper), T246 (hydrate() abstraction), T247 (frozen-empty-array helper).

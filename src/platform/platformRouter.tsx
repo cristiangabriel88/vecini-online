@@ -9,6 +9,7 @@ const PlatformLoginPage = lazy(() => import('./PlatformLoginPage'));
 const PlatformHomePage = lazy(() => import('./PlatformHomePage'));
 const PlatformAsociatiiPage = lazy(() => import('./PlatformAsociatiiPage'));
 const PlatformAddAsociatiePage = lazy(() => import('./PlatformAddAsociatiePage'));
+const PlatformAsociatieDetailPage = lazy(() => import('./PlatformAsociatieDetailPage'));
 const PlatformAuditPage = lazy(() => import('./PlatformAuditPage'));
 const PlatformErrorsPage = lazy(() => import('./PlatformErrorsPage'));
 const PlatformUsagePage = lazy(() => import('./PlatformUsagePage'));
@@ -33,6 +34,7 @@ export const platformRouter = createBrowserRouter([
       { index: true, element: <S><PlatformHomePage /></S> },
       { path: 'asociatii', element: <S><PlatformAsociatiiPage /></S> },
       { path: 'asociatii/adauga', element: <S><PlatformAddAsociatiePage /></S> },
+      { path: 'asociatii/:id', element: <S><PlatformAsociatieDetailPage /></S> },
       { path: 'audit', element: <S><PlatformAuditPage /></S> },
       { path: 'erori', element: <S><PlatformErrorsPage /></S> },
       { path: 'utilizare', element: <S><PlatformUsagePage /></S> },

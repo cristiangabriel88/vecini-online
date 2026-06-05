@@ -5,6 +5,7 @@ import { useAuthStore } from '@/shared/store/authStore';
 import {
   DEMO_PLATFORM_ADMIN,
   DEMO_PLATFORM_ASOCIATII,
+  type AsociatieStatus,
   type PlatformAsociatieSummary,
 } from './demoPlatform';
 import {
@@ -82,6 +83,9 @@ export interface ConsumeSetupResult {
   asociatieName: string | null;
 }
 
+/** Filter applied to the asociații list in the platform console (T249). */
+export type AsociatiiListFilter = 'all' | 'active' | 'suspended' | 'archived';
+
 interface PlatformAsociatiiState {
   /** Every asociație the platform knows about (seeded + provisioned), sorted. */
   asociatii: PlatformAsociatieSummary[];
@@ -95,10 +99,20 @@ interface PlatformAsociatiiState {
   pendingInvites: PendingAdminInvite[];
   /** Set by the live hydration path when a fetch fails; null when healthy. */
   fetchError: string | null;
+  /** Active filter on the list page (T249). */
+  listFilter: AsociatiiListFilter;
   /** Replace the asociatii list with live data from the DB (T120 live read). */
   replaceAsociatii: (rows: PlatformAsociatieSummary[]) => void;
   /** Set or clear the fetch error (called by platformApi). */
   setFetchError: (err: string | null) => void;
+  /** Set the active list filter (T249). */
+  setListFilter: (filter: AsociatiiListFilter) => void;
+  /**
+   * Apply a lifecycle status change to one asociație in the local store (T249).
+   * Called after a successful asociatie-lifecycle Netlify function response, or
+   * directly in demo mode where there is no backend.
+   */
+  updateLifecycle: (id: string, status: AsociatieStatus, reason?: string) => void;
   /** Provision a new asociație + its first admin (offline path). */
   provision: (input: ProvisionInput) => ProvisionResult;
   /**
@@ -136,6 +150,7 @@ export const usePlatformAsociatiiStore = create<PlatformAsociatiiState>()(
       provisions: {},
       pendingInvites: [],
       fetchError: null,
+      listFilter: 'all',
 
       replaceAsociatii: (rows) => {
         set(() => ({ asociatii: rows }));
@@ -143,6 +158,39 @@ export const usePlatformAsociatiiStore = create<PlatformAsociatiiState>()(
 
       setFetchError: (err) => {
         set(() => ({ fetchError: err }));
+      },
+
+      setListFilter: (filter) => {
+        set(() => ({ listFilter: filter }));
+      },
+
+      updateLifecycle: (id, status, reason) => {
+        const now = new Date().toISOString();
+        set((s) => ({
+          asociatii: s.asociatii.map((a) =>
+            a.id === id
+              ? { ...a, status, statusReason: reason ?? a.statusReason, statusChangedAt: now }
+              : a,
+          ),
+        }));
+        const a = get().asociatii.find((x) => x.id === id);
+        if (!a) return;
+        const operator = actingOperator();
+        const actionMap: Record<AsociatieStatus, 'asociatie.suspended' | 'asociatie.reactivated' | 'asociatie.archived'> = {
+          active: 'asociatie.reactivated',
+          suspended: 'asociatie.suspended',
+          archived: 'asociatie.archived',
+        };
+        useAuditStore.getState().record({
+          asociatie_id: id,
+          actor_user_id: operator.id,
+          actor_name: operator.name,
+          action: actionMap[status],
+          entity: 'asociatie',
+          entity_label: a.name,
+          before: null,
+          after: status,
+        });
       },
 
       provision: (input) => {
@@ -253,9 +301,11 @@ export const usePlatformAsociatiiStore = create<PlatformAsociatiiState>()(
     }),
     {
       name: 'vecini.platform.asociatii',
-      version: 4,
+      version: 5,
       // v2 (T123) added the secure setup link's token + 24h expiry; v3 (T124)
-      // added the single-use `redeemedAt`; v4 (T152) added `pendingInvites`.
+      // added the single-use `redeemedAt`; v4 (T152) added `pendingInvites`;
+      // v5 (T249) added `listFilter` + `status`/`statusReason`/`statusChangedAt`
+      // on each asociatie summary.
       migrate: (persisted, version) => {
         const state = persisted as PlatformAsociatiiState;
         // v2/v3: backfill provision records
@@ -272,10 +322,12 @@ export const usePlatformAsociatiiStore = create<PlatformAsociatiiState>()(
               },
             ]),
           );
-          return { ...state, provisions, pendingInvites: state.pendingInvites ?? [] };
+          return { ...state, provisions, pendingInvites: state.pendingInvites ?? [], listFilter: 'all' };
         }
         // v4: ensure pendingInvites exists
-        if (version < 4) return { ...state, pendingInvites: state.pendingInvites ?? [] };
+        if (version < 4) return { ...state, pendingInvites: state.pendingInvites ?? [], listFilter: 'all' };
+        // v5: ensure listFilter exists
+        if (version < 5) return { ...state, listFilter: (state as PlatformAsociatiiState).listFilter ?? 'all' };
         return state;
       },
     },

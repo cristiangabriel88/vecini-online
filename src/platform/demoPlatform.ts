@@ -7,6 +7,9 @@ import { DEMO_ASOCIATIE, DEMO_APARTMENTS } from '@/shared/demo/demoData';
  * asociații list, members, audit, metrics) are layered on by the console pages
  * T94/T95/T97 behind `isSupabaseConfigured`; this seed keeps the demo complete.
  */
+/** Lifecycle status of an asociație on the platform (T249). */
+export type AsociatieStatus = 'active' | 'suspended' | 'archived';
+
 export interface PlatformAsociatieSummary {
   id: string;
   name: string;
@@ -32,6 +35,12 @@ export interface PlatformAsociatieSummary {
   contactPhone?: string;
   /** Public contact email. */
   contactEmail?: string;
+  /** Lifecycle status (T249). Defaults to 'active' when absent. */
+  status?: AsociatieStatus;
+  /** Operator-supplied reason for a lifecycle status change. */
+  statusReason?: string;
+  /** ISO instant the status was last changed. */
+  statusChangedAt?: string;
 }
 
 /** The signed-in demo platform operator (a fictional SaaS owner account). */
@@ -55,6 +64,7 @@ export const DEMO_PLATFORM_ASOCIATII: PlatformAsociatieSummary[] = [
     iban: 'RO49AAAA1B31007593840000',
     contactPhone: '+40 21 555 0123',
     contactEmail: 'contact@bloc12.ro',
+    status: 'active' as AsociatieStatus,
   },
   {
     id: 'demo-asoc-2',
@@ -69,6 +79,7 @@ export const DEMO_PLATFORM_ASOCIATII: PlatformAsociatieSummary[] = [
     iban: 'RO12BTRL0130120100000001',
     contactPhone: '+40 264 555 210',
     contactEmail: 'contact@bloc7crinului.ro',
+    status: 'active' as AsociatieStatus,
   },
   {
     id: 'demo-asoc-3',
@@ -83,6 +94,9 @@ export const DEMO_PLATFORM_ASOCIATII: PlatformAsociatieSummary[] = [
     iban: 'RO98RNCB0072000000010001',
     contactPhone: '+40 256 555 330',
     contactEmail: 'contact@mihaiviteazul3.ro',
+    status: 'suspended' as AsociatieStatus,
+    statusReason: 'Sold restant mai mult de 3 luni',
+    statusChangedAt: '2026-06-01T10:00:00Z',
   },
 ];
 

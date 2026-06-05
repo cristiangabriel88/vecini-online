@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Building2,
@@ -21,22 +21,27 @@ import { EmptyState } from '@/shared/components/EmptyState';
 import { ErrorState } from '@/shared/components/ErrorState';
 import { formatDate } from '@/shared/lib/format';
 import { isSupabaseConfigured } from '@/shared/lib/supabase';
-import { usePlatformAsociatiiStore } from './platformAsociatiiStore';
+import { usePlatformAsociatiiStore, type AsociatiiListFilter } from './platformAsociatiiStore';
 import { isDormant } from './platformProvisioningLogic';
 import { hydrateAsociatiiList } from './platformApi';
+import type { AsociatieStatus } from './demoPlatform';
 
 /**
- * Superadmin console: asociații list page (T94, updated T152).
+ * Superadmin console: asociații list page (T94, updated T152, T249).
  *
- * Lists every asociație on the platform. The "Add association" button navigates
- * to the dedicated `/consola/asociatii/adauga` page (T152) where the operator
- * enters only the new administrator's name and email and sends the invite email.
- * A "Pending invitations" section shows invites that have been sent but where
- * the admin has not yet completed onboarding.
- *
- * Setup codes and setup links are no longer shown in the platform UI (T152);
- * the setup link lives exclusively in the invitation email (T153 admin template).
+ * Lists every asociație on the platform with status badges and a lifecycle
+ * filter. Cards link to the detail page (/consola/asociatii/:id). The "Add
+ * association" button navigates to the dedicated /consola/asociatii/adauga page.
  */
+
+function statusTone(status: AsociatieStatus | undefined): 'success' | 'warning' | 'neutral' {
+  if (status === 'suspended') return 'warning';
+  if (status === 'archived') return 'neutral';
+  return 'success';
+}
+
+const FILTERS: AsociatiiListFilter[] = ['all', 'active', 'suspended', 'archived'];
+
 export default function PlatformAsociatiiPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -44,6 +49,8 @@ export default function PlatformAsociatiiPage() {
   const provisions = usePlatformAsociatiiStore((s) => s.provisions);
   const pendingInvites = usePlatformAsociatiiStore((s) => s.pendingInvites);
   const fetchError = usePlatformAsociatiiStore((s) => s.fetchError);
+  const listFilter = usePlatformAsociatiiStore((s) => s.listFilter);
+  const setListFilter = usePlatformAsociatiiStore((s) => s.setListFilter);
   const [isHydrating, setIsHydrating] = useState(false);
 
   useEffect(() => {
@@ -58,6 +65,11 @@ export default function PlatformAsociatiiPage() {
   };
 
   const openAddPage = () => navigate('/consola/asociatii/adauga');
+
+  const filtered =
+    listFilter === 'all'
+      ? asociatii
+      : asociatii.filter((a) => (a.status ?? 'active') === listFilter);
 
   return (
     <div>
@@ -120,23 +132,54 @@ export default function PlatformAsociatiiPage() {
             </span>
           </div>
 
-          {asociatii.length === 0 && !isHydrating ? (
+          {/* Filter tabs */}
+          <div className="platform-asoc-filters" role="group" aria-label={t('platform.asociatii.filterLabel')}>
+            {FILTERS.map((f) => (
+              <button
+                key={f}
+                type="button"
+                className={`platform-asoc-filter-btn${listFilter === f ? ' platform-asoc-filter-btn--active' : ''}`}
+                onClick={() => setListFilter(f)}
+                aria-pressed={listFilter === f}
+              >
+                {t(`platform.asociatii.filter.${f}`)}
+              </button>
+            ))}
+          </div>
+
+          {filtered.length === 0 && !isHydrating ? (
             <EmptyState
               icon={<Building2 size={22} />}
-              body={t('platform.asociatii.empty')}
+              body={listFilter === 'all'
+                ? t('platform.asociatii.empty')
+                : t('platform.asociatii.emptyFiltered', { filter: t(`platform.asociatii.filter.${listFilter}`) })}
               action={
-                <Button onClick={openAddPage}>
-                  <Plus className="h-4 w-4" /> {t('platform.asociatii.provisionCta')}
-                </Button>
+                listFilter === 'all'
+                  ? (
+                    <Button onClick={openAddPage}>
+                      <Plus className="h-4 w-4" /> {t('platform.asociatii.provisionCta')}
+                    </Button>
+                  )
+                  : (
+                    <Button variant="ghost" onClick={() => setListFilter('all')}>
+                      {t('platform.asociatii.filter.clearFilter')}
+                    </Button>
+                  )
               }
             />
           ) : (
             <div className="platform-asoc-grid">
-              {asociatii.map((a) => {
+              {filtered.map((a) => {
                 const dormant = isDormant(a.lastAdminSignInAt);
                 const prov = provisions[a.id];
+                const status = a.status ?? 'active';
                 return (
                   <article key={a.id} className="platform-asoc-card">
+                    <Link
+                      to={`/consola/asociatii/${a.id}`}
+                      className="platform-asoc-card__link-overlay"
+                      aria-label={t('platform.asociatii.viewDetail', { name: a.name })}
+                    />
                     <header className="platform-asoc-card__head">
                       <span className="platform-asoc-card__icon" aria-hidden="true">
                         <Building2 size={18} />
@@ -145,9 +188,16 @@ export default function PlatformAsociatiiPage() {
                         <h3 className="platform-asoc-card__title">{a.name}</h3>
                         {a.city && <p className="platform-asoc-card__city">{a.city}</p>}
                       </div>
-                      <Badge tone={dormant ? 'warning' : 'success'}>
-                        {dormant ? t('platform.asociatii.dormant') : t('platform.asociatii.active')}
-                      </Badge>
+                      <div className="platform-asoc-card__badges">
+                        <Badge tone={statusTone(a.status)}>
+                          {t(`platform.detail.status.${status}`)}
+                        </Badge>
+                        {status === 'active' && (
+                          <Badge tone={dormant ? 'warning' : 'success'}>
+                            {dormant ? t('platform.asociatii.dormant') : t('platform.asociatii.active')}
+                          </Badge>
+                        )}
+                      </div>
                     </header>
 
                     <div className="platform-asoc-card__stats">

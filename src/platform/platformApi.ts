@@ -88,7 +88,7 @@ export async function hydrateAsociatiiList(): Promise<void> {
     ] = await Promise.all([
       supabase
         .from('asociatii')
-        .select('id, name, address, cui, iban, contact_phone, contact_email')
+        .select('id, name, address, cui, iban, contact_phone, contact_email, status, status_reason, status_changed_at')
         .is('deleted_at', null)
         .order('name'),
       supabase
@@ -130,6 +130,9 @@ export async function hydrateAsociatiiList(): Promise<void> {
       iban: (a.iban as string | null) ?? undefined,
       contactPhone: (a.contact_phone as string | null) ?? undefined,
       contactEmail: (a.contact_email as string | null) ?? undefined,
+      status: ((a.status as string | null) ?? 'active') as import('./demoPlatform').AsociatieStatus,
+      statusReason: (a.status_reason as string | null) ?? undefined,
+      statusChangedAt: (a.status_changed_at as string | null) ?? undefined,
     }));
 
     usePlatformAsociatiiStore.getState().replaceAsociatii(rows);

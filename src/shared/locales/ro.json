@@ -2731,6 +2731,9 @@
       "apartment.deleted": "Apartament șters",
       "building.updated": "Date clădire actualizate",
       "asociatie.provisioned": "Asociație provizionată",
+      "asociatie.suspended": "Asociație suspendată",
+      "asociatie.reactivated": "Asociație reactivată",
+      "asociatie.archived": "Asociație arhivată",
       "admin.provisioned": "Administrator provizionat",
       "document.uploaded": "Document încărcat",
       "document.deleted": "Document șters",
@@ -2991,6 +2994,16 @@
       "neverSignedIn": "Administratorul nu s-a conectat încă",
       "dormant": "Inactivă",
       "active": "Activă",
+      "filterLabel": "Filtrare după stare",
+      "filter": {
+        "all": "Toate",
+        "active": "Active",
+        "suspended": "Suspendate",
+        "archived": "Arhivate",
+        "clearFilter": "Elimină filtrul"
+      },
+      "emptyFiltered": "Nicio asociație cu starea \"{{filter}}\".",
+      "viewDetail": "Vezi detalii {{name}}",
       "adminLabel": "Administrator",
       "pendingSetup": "Configurare în așteptare",
       "setupCodeLabel": "Cod de configurare",
@@ -3040,6 +3053,34 @@
         "notConfigured": "Serviciul de backend nu este configurat. Verificați variabilele de mediu Supabase.",
         "provisionFailed": "Eroare la creare. Verificați configurarea și încercați din nou.",
         "forbidden": "Acces interzis. Contul nu are drepturi de superadmin."
+      }
+    },
+    "detail": {
+      "back": "Înapoi la asociații",
+      "notFoundTitle": "Asociație negăsită",
+      "notFoundBody": "Asociația solicitată nu există sau nu mai este disponibilă.",
+      "identityTitle": "Date de identificare",
+      "statsTitle": "Statistici",
+      "lifecycleTitle": "Gestionare stare",
+      "subscriptionTitle": "Abonament",
+      "subscriptionNote": "Gestionează planul, plățile și facturarea în secțiunea",
+      "subscriptionLink": "Abonamente",
+      "status": {
+        "active": "Activă",
+        "suspended": "Suspendată",
+        "archived": "Arhivată"
+      },
+      "statusChangedAt": "Stare modificată la {{date}}",
+      "suspendCta": "Suspendă asociația",
+      "reactivateCta": "Reactivează asociația",
+      "archiveCta": "Arhivează asociația",
+      "suspendReasonLabel": "Motivul suspendării (obligatoriu)",
+      "suspendReasonPlaceholder": "ex. Sold restant mai mult de 3 luni",
+      "confirmSuspend": "Confirmă suspendarea",
+      "err": {
+        "reasonRequired": "Motivul este obligatoriu pentru suspendare",
+        "unauthorized": "Sesiune expirată. Reautentifică-te.",
+        "failed": "Operația a eșuat. Încearcă din nou."
       }
     },
     "mfa": {
