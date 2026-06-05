@@ -1,5 +1,6 @@
 import type { Idea, IdeaStatus, Role } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_IDEAS } from '@/shared/demo/demoData';
+import { isGovernanceRole } from '@/shared/lib/roleUtils';
 
 /** Default number of top ideas promoted to the committee agenda each quarter. */
 export const PROMOTION_COUNT = 10;
@@ -24,7 +25,7 @@ export function isPromoted(idea: Idea, allIdeas: Idea[], n: number = PROMOTION_C
 
 /** Only admin/presedinte/comitet can change idea status (approve/reject). */
 export function canManageIdeas(role: Role | null): boolean {
-  return role === 'admin' || role === 'presedinte' || role === 'comitet';
+  return isGovernanceRole(role);
 }
 
 export const IDEA_STATUS_TONE: Record<IdeaStatus, 'neutral' | 'primary' | 'success' | 'danger'> = {

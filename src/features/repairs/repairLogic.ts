@@ -1,6 +1,7 @@
 import type { RepairRecord, RepairSystem, Role } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_REPAIRS } from '@/shared/demo/demoData';
 import { normalizeSearch } from '@/features/faq/faqLogic';
+import { isGovernanceRole } from '@/shared/lib/roleUtils';
 
 export type WarrantyStatus = 'none' | 'expired' | 'expiring' | 'active';
 
@@ -69,7 +70,7 @@ export function newRepairRecord(
 
 /** Whether the role can add/manage repair records. */
 export function canManageRepairs(role: Role | null): boolean {
-  return role === 'admin' || role === 'presedinte' || role === 'comitet';
+  return isGovernanceRole(role);
 }
 
 /** Days before warranty expiry at which we surface an "expiring soon" alert. */

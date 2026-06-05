@@ -2,6 +2,7 @@ import type { DiscussionMessage, DiscussionThread } from '@/shared/types/domain'
 import type { Role } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_DISCUSSIONS } from '@/shared/demo/demoData';
 import { genId } from '@/shared/lib/id';
+import { isGovernanceRole } from '@/shared/lib/roleUtils';
 
 /** New users are rate-limited to this many messages per hour until vetted. */
 export const NEW_USER_HOURLY_LIMIT = 10;
@@ -271,5 +272,5 @@ export function deleteThreadIn(
 
 /** True when the active role may moderate discussions (pin, delete). */
 export function canModerateDiscussion(role: string | null): boolean {
-  return role === 'admin' || role === 'presedinte' || role === 'comitet';
+  return isGovernanceRole(role);
 }

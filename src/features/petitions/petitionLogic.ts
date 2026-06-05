@@ -1,5 +1,6 @@
 import type { Petition, Role } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_PETITIONS } from '@/shared/demo/demoData';
+import { isGovernanceRole } from '@/shared/lib/roleUtils';
 
 /** A petition needs a short title and a body. */
 export function isValidPetition(title: string, body: string): boolean {
@@ -32,7 +33,7 @@ export function sortPetitions(petitions: Petition[]): Petition[] {
 
 /** Only admin/presedinte/comitet can manage (archive/respond to) petitions. */
 export function canManagePetitions(role: Role | null): boolean {
-  return role === 'admin' || role === 'presedinte' || role === 'comitet';
+  return isGovernanceRole(role);
 }
 
 // ── Per-asociație catalog ────────────────────────────────────────────────────

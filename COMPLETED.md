@@ -4,6 +4,10 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T245 ✅ 2026-06-05 -- Shared role-permission helper (roleUtils)
+
+Created `src/shared/lib/roleUtils.ts` with `GOVERNANCE_ROLES` (Set), `isGovernanceRole()`, `BOARD_ROLES` (Set), and `isBoardRole()`. Rewired all 10 `canManage*` functions (announcements, documents, ideas, petitions, priorities, pv, repairs, surveys, wiki) plus `canModerateDiscussion` to use `isGovernanceRole`, and `canViewAnyProfile` to use `isBoardRole`. Added 16 unit tests in `tests/unit/roleUtils.test.ts`. All 298 test files (2868 tests) green, all 3 builds pass.
+
 ### T244 ✅ 2026-06-05 -- Shared per-asociatie store factory
 
 New `src/shared/store/createAsociatieStore.ts` provides `createAsociatieStore<TItem, TExtra>()` factory that encapsulates the boilerplate common to all per-tenant feature stores: `byAsociatie` map, `fetchError`, `replaceForAsociatie`, `setFetchError`, `persist` config (name, version, partialize, migrate). Callers supply only `seed`, `migrate`, `selector`, and optional `extraActions`. Returns a typed `[useStore, useAsociatieItems]` tuple. Migrated three representative stores onto the factory: `bikesStore.ts` (two extra per-row actions: `addBike`, `toggleAbandoned`), `accessStore.ts` (one extra action: `addCode`), and `parkingStore.ts` (one extra action: `addSpot`). All existing hook names and signatures unchanged. New `tests/unit/createAsociatieStore.test.ts` (13 tests covering base state, setFetchError, replaceForAsociatie, extraActions, multi-tenant isolation). All 2857 tests + 3 builds green.

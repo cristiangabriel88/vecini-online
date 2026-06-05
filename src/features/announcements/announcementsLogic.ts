@@ -6,6 +6,7 @@ import type {
 import { type FileValidationError, validateFile } from '@/shared/lib/file';
 import { DEMO_ANNOUNCEMENTS, DEMO_ASOCIATIE } from '@/shared/demo/demoData';
 import { genId } from '@/shared/lib/id';
+import { isGovernanceRole } from '@/shared/lib/roleUtils';
 
 /**
  * Announcements (F01) scoped per asociație (T47).
@@ -53,7 +54,7 @@ export function announcementsForAsociatie(
 
 /** True when the active role may compose/schedule announcements (F01). */
 export function canManageAnnouncements(role: string | null): boolean {
-  return role === 'admin' || role === 'presedinte' || role === 'comitet';
+  return isGovernanceRole(role);
 }
 
 /* ── Attachments (F01) ─────────────────────────────────────────────────────

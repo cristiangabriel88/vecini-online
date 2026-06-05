@@ -1,6 +1,7 @@
 import type { WikiPage } from '@/shared/types/domain';
 import { normalizeSearch } from '@/features/faq/faqLogic';
 import { DEMO_ASOCIATIE, DEMO_WIKI } from '@/shared/demo/demoData';
+import { isGovernanceRole } from '@/shared/lib/roleUtils';
 
 /** A wiki page needs a title and a body. */
 export function isValidPage(title: string, body: string): boolean {
@@ -28,7 +29,7 @@ export function sortPages(pages: WikiPage[]): WikiPage[] {
 
 /** Only admin/presedinte/comitet may create or edit wiki pages. */
 export function canManageWiki(role: string | null): boolean {
-  return role === 'admin' || role === 'presedinte' || role === 'comitet';
+  return isGovernanceRole(role);
 }
 
 // ── Per-asociatie wiki catalog ───────────────────────────────────────────────

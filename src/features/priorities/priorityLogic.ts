@@ -1,5 +1,6 @@
 import type { Role, PriorityProject } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_PRIORITIES } from '@/shared/demo/demoData';
+import { isGovernanceRole } from '@/shared/lib/roleUtils';
 
 /** A project needs a title. */
 export function isValidProject(title: string): boolean {
@@ -58,7 +59,7 @@ export function applyReorder(
 
 /** Only admin/presedinte/comitet can add projects or save the canonical order. */
 export function canManagePriorities(role: Role | null): boolean {
-  return role === 'admin' || role === 'presedinte' || role === 'comitet';
+  return isGovernanceRole(role);
 }
 
 // ── Per-asociație catalog ────────────────────────────────────────────────────

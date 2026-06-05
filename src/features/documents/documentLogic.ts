@@ -1,6 +1,7 @@
 import type { DocumentRecord } from '@/shared/types/domain';
 import { normalizeSearch } from '@/features/faq/faqLogic';
 import { type FileValidationError, validateFile } from '@/shared/lib/file';
+import { isGovernanceRole } from '@/shared/lib/roleUtils';
 
 export { formatFileSize, readFileAsDataUrl } from '@/shared/lib/file';
 
@@ -46,7 +47,7 @@ export function validateDocumentFile(file: {
 
 /** True when the active role may upload or delete documents. */
 export function canManageDocuments(role: string | null): boolean {
-  return role === 'admin' || role === 'presedinte' || role === 'comitet';
+  return isGovernanceRole(role);
 }
 
 /** A document needs at least a short title. */

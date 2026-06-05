@@ -1,5 +1,6 @@
 import type { Role, Survey, SurveyTally } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_SURVEYS, DEMO_SURVEY_TALLIES } from '@/shared/demo/demoData';
+import { isGovernanceRole } from '@/shared/lib/roleUtils';
 
 /** Total responses recorded for a survey. */
 export function totalResponses(tally: SurveyTally): number {
@@ -20,7 +21,7 @@ export function isSurveyClosed(closesAt: string | null, now: Date = new Date()):
 
 /** Only admin/presedinte/comitet can create or manage surveys. */
 export function canManageSurveys(role: Role | null): boolean {
-  return role === 'admin' || role === 'presedinte' || role === 'comitet';
+  return isGovernanceRole(role);
 }
 
 // ── Per-asociație catalog ────────────────────────────────────────────────────

@@ -2,6 +2,7 @@ import type { PvDocument } from '@/shared/types/domain';
 import { normalizeSearch } from '@/features/faq/faqLogic';
 import { DEMO_PV_DOCUMENTS, DEMO_ASOCIATIE } from '@/shared/demo/demoData';
 import { genId } from '@/shared/lib/id';
+import { isGovernanceRole } from '@/shared/lib/roleUtils';
 
 // ── Validation ──────────────────────────────────────────────────────────────
 
@@ -12,7 +13,7 @@ export function isValidPv(title: string, docDate: string): boolean {
 
 /** Returns true when the role may create or upload PV documents. */
 export function canManagePv(role: string | null): boolean {
-  return role === 'admin' || role === 'presedinte' || role === 'comitet';
+  return isGovernanceRole(role);
 }
 
 // ── Search / sort / categories ───────────────────────────────────────────────

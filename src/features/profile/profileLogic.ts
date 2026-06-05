@@ -1,4 +1,5 @@
 import type { Locale, Role } from '@/shared/types/domain';
+import { isBoardRole } from '@/shared/lib/roleUtils';
 
 /**
  * F66 Profil complet — pure, backend-free profile model + validation.
@@ -389,11 +390,5 @@ export function neighbourVisibleFields(fields: CustomField[]): CustomField[] {
 
 /** Roles that may read any resident's full profile within their asociatie. */
 export function canViewAnyProfile(role: Role | null): boolean {
-  return (
-    role === 'admin' ||
-    role === 'presedinte' ||
-    role === 'comitet' ||
-    role === 'cenzor' ||
-    role === 'super_admin'
-  );
+  return isBoardRole(role);
 }
