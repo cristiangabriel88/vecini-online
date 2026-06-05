@@ -4,6 +4,22 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T250 ✅ 2026-06-05 -- Pending-invite resend / revoke + per-tenant admin roster
+
+Added resend and revoke actions to pending invite cards on the asociatii list page, and a full admin roster section on the asociatie detail page. The roster shows all provisioned admins (from `provisions` + new `additionalAdmins` store maps), with "Revoke invite" for pending (not yet redeemed) admins and "Revoke access" (with confirm) for active admins. A collapsible "Add additional administrator" form provisions a second admin for an existing asociatie. Two new audit actions (`admin.invite_revoked`, `admin.access_revoked`) added to `AUDIT_ACTIONS` with bilingual labels and tone maps. Three new service-role Netlify functions: `admin-invite-action.ts` (resend/revoke invite), `provision-additional-admin.ts` (add admin to existing tenant), `revoke-admin-access.ts` (soft-delete membership). Platform store bumped to v6 with migration and new actions. Demo drives all paths through persisted store. 14 unit tests + 3 E2E scenarios (revoke invite disappears, roster section visible, provision admin appears) all green.
+- new: netlify/functions/admin-invite-action.ts
+- new: netlify/functions/provision-additional-admin.ts
+- new: netlify/functions/revoke-admin-access.ts
+- new: tests/unit/platformAdminRoster.test.ts
+- modified: src/features/audit/auditLogic.ts (2 new actions)
+- modified: src/features/audit/AuditLogPage.tsx (tone map entries)
+- modified: src/platform/PlatformAuditPage.tsx (tone map entries)
+- modified: src/platform/platformAsociatiiStore.ts (v6, revokeInvite, resendInvite, provisionAdditionalAdmin, revokeAdminAccess, revokedInviteIds, additionalAdmins)
+- modified: src/platform/PlatformAsociatiiPage.tsx (resend/revoke buttons on pending invite cards)
+- modified: src/platform/PlatformAsociatieDetailPage.tsx (admin roster section + provision form)
+- modified: src/shared/locales/ro.json + en.json (new audit + platform.detail + platform.asociatii strings)
+- modified: tests/e2e/platform.spec.ts (T250 scenarios)
+
 ### T249 ✅ 2026-06-05 -- Asociație detail page + lifecycle (suspend / reactivate / archive)
 
 Added full tenant detail page at `/consola/asociatii/:id` showing identity, stats, current status, and lifecycle controls. New `status` / `status_reason` / `status_changed_at` columns on `asociatii` (migration `20260605000007_asociatie_lifecycle.sql`) with a RESTRICTIVE membership-insert policy blocking new resident joins on suspended/archived tenants. New `netlify/functions/asociatie-lifecycle.ts` (POST, bearer auth, service-role super_admin re-verify) handles suspend/reactivate/archive and writes to the audit chain. Three new audit actions (`asociatie.suspended`, `asociatie.reactivated`, `asociatie.archived`) added to `AUDIT_ACTIONS` with bilingual labels and tone maps. Demo seeds the Timișoara asociatie as `suspended`. Platform store (v5) adds `updateLifecycle()` + `listFilter`/`setListFilter()`. List page gains status badges, filter tabs (all/active/suspended/archived), and card overlay links to the detail page. `platformApi.ts` now reads status fields in the live hydration query. Unit tests (8) + 3 E2E scenarios (suspended badge, card navigation, reactivate flow) all green.

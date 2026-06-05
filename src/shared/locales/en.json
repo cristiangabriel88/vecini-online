@@ -2735,6 +2735,8 @@
       "asociatie.reactivated": "Association reactivated",
       "asociatie.archived": "Association archived",
       "admin.provisioned": "Administrator provisioned",
+      "admin.invite_revoked": "Administrator invite revoked",
+      "admin.access_revoked": "Administrator access revoked",
       "document.uploaded": "Document uploaded",
       "document.deleted": "Document deleted",
       "ticket.submitted": "Issue submitted",
@@ -2972,7 +2974,9 @@
         "email": "Invalid email address",
         "cui": "Invalid tax ID (digits only, optional RO prefix)",
         "iban": "Invalid IBAN",
-        "phone": "Invalid phone number"
+        "phone": "Invalid phone number",
+        "resendFailed": "Resend failed. Please try again.",
+        "revokeFailed": "Revoke failed. Please try again."
       },
       "submit": "Provision",
       "cancel": "Cancel",
@@ -3028,7 +3032,10 @@
       "expiredLabel": "Expired",
       "viewLinkQr": "View link & QR",
       "linkModalTitle": "Setup link & QR code",
-      "copyFailed": "Could not copy"
+      "copyFailed": "Could not copy",
+      "resendInviteCta": "Resend",
+      "revokeInviteCta": "Revoke",
+      "inviteRevoked": "Revoked"
     },
     "addAsociatie": {
       "title": "Add new association",
@@ -3077,10 +3084,28 @@
       "suspendReasonLabel": "Reason for suspension (required)",
       "suspendReasonPlaceholder": "e.g. Overdue balance for more than 3 months",
       "confirmSuspend": "Confirm suspension",
+      "adminRosterTitle": "Administrators",
+      "adminRosterEmpty": "No administrators registered.",
+      "adminProvisionTitle": "Add additional administrator",
+      "adminProvisionCta": "Send invitation",
+      "adminProvisionSuccess": "Invitation sent to {{email}}",
+      "adminPending": "Invite pending",
+      "adminActive": "Active administrator",
+      "adminProvisionedOn": "Invited on {{date}}",
+      "adminRedeemedOn": "Set up on {{date}}",
+      "resendInviteCta": "Resend invite",
+      "revokeInviteCta": "Revoke invite",
+      "revokeAdminCta": "Revoke access",
+      "confirmRevokeAdmin": "Confirm revoke",
+      "revokeAdminConfirmBody": "Revoke access for {{name}}? This cannot be undone.",
       "err": {
         "reasonRequired": "A reason is required when suspending",
         "unauthorized": "Session expired. Please sign in again.",
-        "failed": "Operation failed. Please try again."
+        "failed": "Operation failed. Please try again.",
+        "revokeAdminFailed": "Revoke failed. Please try again.",
+        "provisionAdminFailed": "Provision failed. Please try again.",
+        "resendFailed": "Resend failed. Please try again.",
+        "revokeFailed": "Revoke failed. Please try again."
       }
     },
     "mfa": {

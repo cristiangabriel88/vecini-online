@@ -80,6 +80,8 @@ const ACTION_TONE: Record<AuditAction, 'success' | 'danger' | 'warning' | 'neutr
   'asociatie.reactivated': 'success',
   'asociatie.archived': 'neutral',
   'admin.provisioned': 'success',
+  'admin.invite_revoked': 'danger',
+  'admin.access_revoked': 'danger',
   'document.uploaded': 'success',
   'document.deleted': 'danger',
   'ticket.submitted': 'success',

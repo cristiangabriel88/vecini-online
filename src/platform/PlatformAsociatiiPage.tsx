@@ -11,6 +11,8 @@ import {
   MapPin,
   Phone,
   Plus,
+  RotateCcw,
+  Trash2,
   UserCog,
   Users,
 } from 'lucide-react';
@@ -21,7 +23,9 @@ import { EmptyState } from '@/shared/components/EmptyState';
 import { ErrorState } from '@/shared/components/ErrorState';
 import { formatDate } from '@/shared/lib/format';
 import { isSupabaseConfigured } from '@/shared/lib/supabase';
+import { useAuthStore } from '@/shared/store/authStore';
 import { usePlatformAsociatiiStore, type AsociatiiListFilter } from './platformAsociatiiStore';
+import { usePlatformAuthStore } from './platformAuthStore';
 import { isDormant } from './platformProvisioningLogic';
 import { hydrateAsociatiiList } from './platformApi';
 import type { AsociatieStatus } from './demoPlatform';
@@ -42,16 +46,43 @@ function statusTone(status: AsociatieStatus | undefined): 'success' | 'warning' 
 
 const FILTERS: AsociatiiListFilter[] = ['all', 'active', 'suspended', 'archived'];
 
+async function callInviteAction(
+  action: 'resend' | 'revoke',
+  inviteId: string,
+  token: string,
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const resp = await fetch('/.netlify/functions/admin-invite-action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ action, inviteId }),
+    });
+    const data = (await resp.json()) as Record<string, unknown>;
+    if (!resp.ok) return { ok: false, error: String(data.error ?? 'failed') };
+    return { ok: true };
+  } catch {
+    return { ok: false, error: 'failed' };
+  }
+}
+
 export default function PlatformAsociatiiPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const asociatii = usePlatformAsociatiiStore((s) => s.asociatii);
   const provisions = usePlatformAsociatiiStore((s) => s.provisions);
   const pendingInvites = usePlatformAsociatiiStore((s) => s.pendingInvites);
+  const revokedInviteIds = usePlatformAsociatiiStore((s) => s.revokedInviteIds);
+  const revokeInvite = usePlatformAsociatiiStore((s) => s.revokeInvite);
+  const resendInvite = usePlatformAsociatiiStore((s) => s.resendInvite);
+  const markAdminEmailSent = usePlatformAsociatiiStore((s) => s.markAdminEmailSent);
   const fetchError = usePlatformAsociatiiStore((s) => s.fetchError);
   const listFilter = usePlatformAsociatiiStore((s) => s.listFilter);
   const setListFilter = usePlatformAsociatiiStore((s) => s.setListFilter);
   const [isHydrating, setIsHydrating] = useState(false);
+  const [inviteActionLoading, setInviteActionLoading] = useState<string | null>(null);
+  const [inviteActionError, setInviteActionError] = useState<string | null>(null);
+
+  const isDemo = usePlatformAuthStore.getState().demo || !isSupabaseConfigured;
 
   useEffect(() => {
     if (!isSupabaseConfigured) return;
@@ -64,7 +95,30 @@ export default function PlatformAsociatiiPage() {
     void hydrateAsociatiiList().finally(() => setIsHydrating(false));
   };
 
+  async function handleInviteAction(inviteId: string, action: 'resend' | 'revoke') {
+    setInviteActionError(null);
+    setInviteActionLoading(`${action}-${inviteId}`);
+    if (isDemo) {
+      if (action === 'revoke') revokeInvite(inviteId);
+      else resendInvite(inviteId);
+      setInviteActionLoading(null);
+      return;
+    }
+    const token = useAuthStore.getState().session?.access_token ?? '';
+    if (!token) { setInviteActionError('unauthorized'); setInviteActionLoading(null); return; }
+    const result = await callInviteAction(action, inviteId, token);
+    if (!result.ok) {
+      setInviteActionError(`${action}Failed`);
+      setInviteActionLoading(null);
+      return;
+    }
+    if (action === 'revoke') revokeInvite(inviteId);
+    else { resendInvite(inviteId); markAdminEmailSent(inviteId); }
+    setInviteActionLoading(null);
+  }
+
   const openAddPage = () => navigate('/consola/asociatii/adauga');
+  const activeInvites = pendingInvites.filter((inv) => !revokedInviteIds.includes(inv.id));
 
   const filtered =
     listFilter === 'all'
@@ -84,13 +138,18 @@ export default function PlatformAsociatiiPage() {
       />
 
       {/* ── Pending invitations ─────────────────────────────────────────── */}
-      {pendingInvites.length > 0 && (
+      {activeInvites.length > 0 && (
         <section className="platform-asoc-pending" aria-label={t('platform.asociatii.pendingInvitesTitle')}>
           <h2 className="platform-overview__sectionhead">
             {t('platform.asociatii.pendingInvitesTitle')}
           </h2>
+          {inviteActionError && (
+            <p role="alert" className="platform-detail-error">
+              {t(`platform.asociatii.err.${inviteActionError}`, { defaultValue: t('platform.asociatii.err.revokeFailed') })}
+            </p>
+          )}
           <div className="platform-asoc-pending-list">
-            {pendingInvites.map((inv) => (
+            {activeInvites.map((inv) => (
               <div key={inv.id} className="platform-asoc-pending-card">
                 <span className="platform-asoc-pending-card__icon" aria-hidden="true">
                   <Clock size={15} />
@@ -102,7 +161,29 @@ export default function PlatformAsociatiiPage() {
                     {t('platform.asociatii.invitedOn', { date: formatDate(inv.invitedAt) })}
                   </span>
                 </div>
-                <Badge tone="warning">{t('platform.asociatii.pendingSetup')}</Badge>
+                <div className="platform-asoc-pending-card__actions">
+                  <Badge tone="warning">{t('platform.asociatii.pendingSetup')}</Badge>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => void handleInviteAction(inv.id, 'resend')}
+                    disabled={!!inviteActionLoading}
+                    aria-label={t('platform.asociatii.resendInviteCta')}
+                  >
+                    <RotateCcw size={13} aria-hidden="true" />
+                    {t('platform.asociatii.resendInviteCta')}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => void handleInviteAction(inv.id, 'revoke')}
+                    disabled={!!inviteActionLoading}
+                    aria-label={t('platform.asociatii.revokeInviteCta')}
+                  >
+                    <Trash2 size={13} aria-hidden="true" />
+                    {t('platform.asociatii.revokeInviteCta')}
+                  </Button>
+                </div>
               </div>
             ))}
           </div>

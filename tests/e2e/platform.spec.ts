@@ -289,3 +289,96 @@ test('T249: demo — suspend badge on detail, reactivate changes status to activ
     page.getByRole('button', { name: /Reactivate association|Reactivează asociația/i }),
   ).not.toBeVisible();
 });
+
+/**
+ * T250 — Pending-invite resend / revoke + per-tenant admin roster.
+ *
+ * Covers: (1) provisioning a new invite then revoking it from the list page
+ * causes it to disappear; (2) navigating to an asociatie detail page shows the
+ * Administrators section; (3) provisioning an additional admin via the form
+ * shows the new admin in the roster.
+ * Runs offline in demo mode only.
+ */
+
+// T250-1: Revoke a pending invite from the list page -- it disappears.
+test('T250: demo -- revoke pending invite removes it from the list', async ({ page }) => {
+  await goPlatformLogin(page);
+  if (!(await isDemoMode(page))) { test.skip(); return; }
+
+  await page.getByRole('button', { name: /Enter demo console|Intră în consola demo/i }).click();
+  await page.getByRole('link', { name: /Asociații|Associations/i }).click();
+  await expect(page).toHaveURL(/\/consola\/asociatii$/);
+
+  // Add a new invite so we have something to revoke.
+  await page.getByRole('button', { name: /Provizionează|Add association/i }).click();
+  await page.getByLabel(/Administrator name|Numele administratorului/i).fill('Radu Test');
+  await page.getByLabel(/Administrator email|Email administrator/i).fill('radu-t250@example.com');
+  await page.getByRole('button', { name: /Send invitation|Trimite invitație/i }).click();
+  await page.getByRole('button', { name: /View associations list|Vezi lista de asociații/i }).click();
+  await expect(page).toHaveURL(/\/consola\/asociatii$/);
+
+  // The invite appears in the pending section.
+  await expect(page.getByText('Radu Test')).toBeVisible();
+
+  // Click "Revoke" for this invite.
+  const pendingSection = page.getByRole('region', { name: /Pending invitations|Invitații în așteptare/i });
+  const revokeBtn = pendingSection.getByRole('button', { name: /Revoke|Revocă/i }).first();
+  await revokeBtn.click();
+
+  // The invite should disappear from the list.
+  await expect(page.getByText('Radu Test')).not.toBeVisible();
+});
+
+// T250-2: Detail page shows Administrators section and provision-admin form.
+test('T250: demo -- detail page shows admin roster and provision form', async ({ page }) => {
+  await goPlatformLogin(page);
+  if (!(await isDemoMode(page))) { test.skip(); return; }
+
+  await page.getByRole('button', { name: /Enter demo console|Intră în consola demo/i }).click();
+  await page.getByRole('link', { name: /Asociații|Associations/i }).click();
+
+  // Navigate to the first asociatie's detail page.
+  const firstCard = page.locator('article.platform-asoc-card').first();
+  await firstCard.locator('.platform-asoc-card__link-overlay').click();
+  await expect(page).toHaveURL(/\/consola\/asociatii\/[^/]+$/);
+
+  // The Administrators section heading should be visible.
+  await expect(
+    page.getByRole('region', { name: /Administrators|Administratori/i }),
+  ).toBeVisible();
+
+  // The "Add additional administrator" button/CTA should be visible.
+  await expect(
+    page.getByRole('button', { name: /Add additional|Adaugă administrator/i }),
+  ).toBeVisible();
+});
+
+// T250-3: Provision additional admin via detail page form, verify it appears in roster.
+test('T250: demo -- provision additional admin appears in roster', async ({ page }) => {
+  await goPlatformLogin(page);
+  if (!(await isDemoMode(page))) { test.skip(); return; }
+
+  await page.getByRole('button', { name: /Enter demo console|Intră în consola demo/i }).click();
+
+  // Navigate directly to the first demo asociatie detail page.
+  await page.goto('/platform.html#/consola/asociatii/demo-asoc-2');
+  await expect(
+    page.getByRole('region', { name: /Administrators|Administratori/i }),
+  ).toBeVisible();
+
+  // Open the provision form.
+  await page.getByRole('button', { name: /Add additional|Adaugă administrator/i }).click();
+
+  // Fill in the new admin details.
+  await page.getByLabel(/Administrator name|Numele administratorului/i).last().fill('Claudia T250');
+  await page.getByLabel(/Administrator email|Email administrator/i).last().fill('claudia-t250@example.com');
+
+  // Submit.
+  await page.getByRole('button', { name: /Send invitation|Trimite invitație/i }).click();
+
+  // Success message shows the email.
+  await expect(page.getByRole('status')).toContainText('claudia-t250@example.com');
+
+  // The new admin appears in the roster.
+  await expect(page.getByText('Claudia T250')).toBeVisible();
+});

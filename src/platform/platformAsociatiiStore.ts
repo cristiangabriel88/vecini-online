@@ -74,6 +74,8 @@ export interface AdminProvisionRecord {
   redeemedAt: number | null;
   /** ISO instant the provisioning happened. */
   provisionedAt: string;
+  /** Epoch ms access was revoked by the platform operator (T250), or null when active. */
+  revokedAt?: number | null;
 }
 
 /** The outcome of consuming a setup token/code: status + the activated asociație. */
@@ -97,6 +99,14 @@ interface PlatformAsociatiiState {
    * during the onboarding wizard (T154) after accepting.
    */
   pendingInvites: PendingAdminInvite[];
+  /** IDs of pending invites that have been revoked (T250). */
+  revokedInviteIds: string[];
+  /**
+   * Additional admins provisioned for an existing asociație (T250), keyed by
+   * asociatieId. Each list entry is an AdminProvisionRecord; revokedAt !== null
+   * means the operator has revoked that admin's access.
+   */
+  additionalAdmins: Record<string, AdminProvisionRecord[]>;
   /** Set by the live hydration path when a fetch fails; null when healthy. */
   fetchError: string | null;
   /** Active filter on the list page (T249). */
@@ -132,6 +142,33 @@ interface PlatformAsociatiiState {
    * The live cross-tenant equivalent runs in the T92 service-role function.
    */
   consumeSetup: (value: string) => ConsumeSetupResult;
+  /**
+   * Revoke a pending invite (T250). The invite is removed from the active list
+   * and its id is recorded so the link cannot be redeemed. Audits
+   * `admin.invite_revoked` on the invite's email.
+   */
+  revokeInvite: (inviteId: string) => void;
+  /**
+   * Re-mint the setup token for a pending invite and reset its expiry (T250).
+   * Returns the updated invite so the caller can send the new link.
+   * Audits nothing -- the email-sent event is tracked by `markAdminEmailSent`.
+   */
+  resendInvite: (inviteId: string) => PendingAdminInvite | null;
+  /**
+   * Provision an additional admin for an existing asociație (T250). Adds a new
+   * AdminProvisionRecord to `additionalAdmins[asociatieId]`. Audits
+   * `admin.provisioned`.
+   */
+  provisionAdditionalAdmin: (
+    asociatieId: string,
+    adminName: string,
+    adminEmail: string,
+  ) => AdminProvisionRecord;
+  /**
+   * Revoke an active admin's access to an asociație (T250). Sets `revokedAt` on
+   * the matching AdminProvisionRecord. Audits `admin.access_revoked`.
+   */
+  revokeAdminAccess: (asociatieId: string, adminEmail: string) => void;
 }
 
 /** Resolve the acting operator: the live session user, or the demo operator. */
@@ -149,6 +186,8 @@ export const usePlatformAsociatiiStore = create<PlatformAsociatiiState>()(
       asociatii: sortAsociatii(DEMO_PLATFORM_ASOCIATII),
       provisions: {},
       pendingInvites: [],
+      revokedInviteIds: [],
+      additionalAdmins: {},
       fetchError: null,
       listFilter: 'all',
 
@@ -298,14 +337,118 @@ export const usePlatformAsociatiiStore = create<PlatformAsociatiiState>()(
         });
         return result;
       },
+
+      revokeInvite: (inviteId) => {
+        const inv = get().pendingInvites.find((x) => x.id === inviteId);
+        if (!inv) return;
+        set((s) => ({ revokedInviteIds: [...s.revokedInviteIds, inviteId] }));
+        const operator = actingOperator();
+        useAuditStore.getState().record({
+          asociatie_id: 'platform',
+          actor_user_id: operator.id,
+          actor_name: operator.name,
+          action: 'admin.invite_revoked',
+          entity: 'admin',
+          entity_label: inv.adminEmail,
+          before: null,
+          after: 'revoked',
+        });
+      },
+
+      resendInvite: (inviteId) => {
+        const inv = get().pendingInvites.find((x) => x.id === inviteId);
+        if (!inv) return null;
+        const now = Date.now();
+        const updated: PendingAdminInvite = {
+          ...inv,
+          setupToken: generateInviteToken(),
+          expiresAt: now + ONBOARDING_LINK_TTL_MS,
+          invitedAt: new Date().toISOString(),
+          emailSentAt: null,
+        };
+        set((s) => ({
+          pendingInvites: s.pendingInvites.map((x) => (x.id === inviteId ? updated : x)),
+        }));
+        return updated;
+      },
+
+      provisionAdditionalAdmin: (asociatieId, adminName, adminEmail) => {
+        const now = Date.now();
+        const record: AdminProvisionRecord = {
+          asociatieId,
+          name: adminName,
+          email: adminEmail,
+          setupCode: '',
+          setupToken: generateInviteToken(),
+          expiresAt: now + ONBOARDING_LINK_TTL_MS,
+          redeemedAt: null,
+          provisionedAt: new Date().toISOString(),
+          revokedAt: null,
+        };
+        set((s) => ({
+          additionalAdmins: {
+            ...s.additionalAdmins,
+            [asociatieId]: [...(s.additionalAdmins[asociatieId] ?? []), record],
+          },
+        }));
+        const operator = actingOperator();
+        const asociatieName = get().asociatii.find((a) => a.id === asociatieId)?.name ?? asociatieId;
+        useAuditStore.getState().record({
+          asociatie_id: asociatieId,
+          actor_user_id: operator.id,
+          actor_name: operator.name,
+          action: 'admin.provisioned',
+          entity: 'admin',
+          entity_label: adminEmail,
+          before: null,
+          after: `admin@${asociatieName}`,
+        });
+        return record;
+      },
+
+      revokeAdminAccess: (asociatieId, adminEmail) => {
+        const now = Date.now();
+        // Check both the primary provision record and the additional admins list.
+        const prov = get().provisions[asociatieId];
+        if (prov && prov.email === adminEmail) {
+          set((s) => ({
+            provisions: {
+              ...s.provisions,
+              [asociatieId]: { ...s.provisions[asociatieId], revokedAt: now },
+            },
+          }));
+        } else {
+          set((s) => ({
+            additionalAdmins: {
+              ...s.additionalAdmins,
+              [asociatieId]: (s.additionalAdmins[asociatieId] ?? []).map((r) =>
+                r.email === adminEmail ? { ...r, revokedAt: now } : r,
+              ),
+            },
+          }));
+        }
+        const operator = actingOperator();
+        const asociatieName = get().asociatii.find((a) => a.id === asociatieId)?.name ?? asociatieId;
+        useAuditStore.getState().record({
+          asociatie_id: asociatieId,
+          actor_user_id: operator.id,
+          actor_name: operator.name,
+          action: 'admin.access_revoked',
+          entity: 'admin',
+          entity_label: adminEmail,
+          before: `admin@${asociatieName}`,
+          after: 'revoked',
+        });
+      },
     }),
     {
       name: 'vecini.platform.asociatii',
-      version: 5,
+      version: 6,
       // v2 (T123) added the secure setup link's token + 24h expiry; v3 (T124)
       // added the single-use `redeemedAt`; v4 (T152) added `pendingInvites`;
       // v5 (T249) added `listFilter` + `status`/`statusReason`/`statusChangedAt`
-      // on each asociatie summary.
+      // on each asociatie summary; v6 (T250) added `revokedInviteIds` +
+      // `additionalAdmins` + `revokedAt` on AdminProvisionRecord.
       migrate: (persisted, version) => {
         const state = persisted as PlatformAsociatiiState;
         // v2/v3: backfill provision records
@@ -322,12 +465,14 @@ export const usePlatformAsociatiiStore = create<PlatformAsociatiiState>()(
               },
             ]),
           );
-          return { ...state, provisions, pendingInvites: state.pendingInvites ?? [], listFilter: 'all' };
+          return { ...state, provisions, pendingInvites: state.pendingInvites ?? [], listFilter: 'all', revokedInviteIds: [], additionalAdmins: {} };
         }
         // v4: ensure pendingInvites exists
-        if (version < 4) return { ...state, pendingInvites: state.pendingInvites ?? [], listFilter: 'all' };
+        if (version < 4) return { ...state, pendingInvites: state.pendingInvites ?? [], listFilter: 'all', revokedInviteIds: [], additionalAdmins: {} };
         // v5: ensure listFilter exists
-        if (version < 5) return { ...state, listFilter: (state as PlatformAsociatiiState).listFilter ?? 'all' };
+        if (version < 5) return { ...state, listFilter: (state as PlatformAsociatiiState).listFilter ?? 'all', revokedInviteIds: [], additionalAdmins: {} };
+        // v6: ensure revokedInviteIds + additionalAdmins exist
+        if (version < 6) return { ...state, revokedInviteIds: state.revokedInviteIds ?? [], additionalAdmins: state.additionalAdmins ?? {} };
         return state;
       },
     },

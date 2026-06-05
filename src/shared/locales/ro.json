@@ -2735,6 +2735,8 @@
       "asociatie.reactivated": "Asociație reactivată",
       "asociatie.archived": "Asociație arhivată",
       "admin.provisioned": "Administrator provizionat",
+      "admin.invite_revoked": "Invitație administrator revocată",
+      "admin.access_revoked": "Acces administrator revocat",
       "document.uploaded": "Document încărcat",
       "document.deleted": "Document șters",
       "ticket.submitted": "Sesizare depusă",
@@ -2972,7 +2974,9 @@
         "email": "Adresă de email invalidă",
         "cui": "CUI invalid (doar cifre, opțional prefix RO)",
         "iban": "IBAN invalid",
-        "phone": "Număr de telefon invalid"
+        "phone": "Număr de telefon invalid",
+        "resendFailed": "Retrimitere eșuată. Încearcă din nou.",
+        "revokeFailed": "Revocare eșuată. Încearcă din nou."
       },
       "submit": "Provizionează",
       "cancel": "Renunță",
@@ -3028,7 +3032,10 @@
       "expiredLabel": "Expirată",
       "viewLinkQr": "Vezi link și QR",
       "linkModalTitle": "Link de configurare și cod QR",
-      "copyFailed": "Copiere eșuată"
+      "copyFailed": "Copiere eșuată",
+      "resendInviteCta": "Retrimite",
+      "revokeInviteCta": "Revocă",
+      "inviteRevoked": "Revocată"
     },
     "addAsociatie": {
       "title": "Adaugă asociație nouă",
@@ -3077,10 +3084,28 @@
       "suspendReasonLabel": "Motivul suspendării (obligatoriu)",
       "suspendReasonPlaceholder": "ex. Sold restant mai mult de 3 luni",
       "confirmSuspend": "Confirmă suspendarea",
+      "adminRosterTitle": "Administratori",
+      "adminRosterEmpty": "Niciun administrator înregistrat.",
+      "adminProvisionTitle": "Adaugă administrator suplimentar",
+      "adminProvisionCta": "Trimite invitație",
+      "adminProvisionSuccess": "Invitație trimisă la {{email}}",
+      "adminPending": "Invitație în așteptare",
+      "adminActive": "Administrator activ",
+      "adminProvisionedOn": "Invitat la {{date}}",
+      "adminRedeemedOn": "Configurat la {{date}}",
+      "resendInviteCta": "Retrimite invitația",
+      "revokeInviteCta": "Revocă invitația",
+      "revokeAdminCta": "Revocă accesul",
+      "confirmRevokeAdmin": "Confirmă revocarea",
+      "revokeAdminConfirmBody": "Revoci accesul lui {{name}}? Acțiunea nu poate fi anulată.",
       "err": {
         "reasonRequired": "Motivul este obligatoriu pentru suspendare",
         "unauthorized": "Sesiune expirată. Reautentifică-te.",
-        "failed": "Operația a eșuat. Încearcă din nou."
+        "failed": "Operația a eșuat. Încearcă din nou.",
+        "revokeAdminFailed": "Eroare la revocare. Încearcă din nou.",
+        "provisionAdminFailed": "Eroare la provizionare. Încearcă din nou.",
+        "resendFailed": "Retrimitere eșuată. Încearcă din nou.",
+        "revokeFailed": "Revocare eșuată. Încearcă din nou."
       }
     },
     "mfa": {

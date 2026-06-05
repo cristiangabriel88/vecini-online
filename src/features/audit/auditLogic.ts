@@ -51,6 +51,8 @@ export const AUDIT_ACTIONS = [
   'asociatie.reactivated',
   'asociatie.archived',
   'admin.provisioned',
+  'admin.invite_revoked',
+  'admin.access_revoked',
   'document.uploaded',
   'document.deleted',
   'ticket.submitted',

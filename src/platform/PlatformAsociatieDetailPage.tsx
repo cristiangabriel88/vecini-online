@@ -4,12 +4,17 @@ import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft,
   Building2,
+  CheckCircle2,
+  Clock,
   Hash,
   Home as HomeIcon,
   Landmark,
   Mail,
   MapPin,
   Phone,
+  Plus,
+  Trash2,
+  UserCog,
   Users,
 } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
@@ -18,21 +23,81 @@ import { Badge } from '@/shared/components/Badge';
 import { formatDate } from '@/shared/lib/format';
 import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import { useAuthStore } from '@/shared/store/authStore';
-import { usePlatformAsociatiiStore } from './platformAsociatiiStore';
+import { usePlatformAsociatiiStore, type AdminProvisionRecord } from './platformAsociatiiStore';
 import { usePlatformAuthStore } from './platformAuthStore';
 import { isDormant } from './platformProvisioningLogic';
 import type { AsociatieStatus } from './demoPlatform';
 
 /**
- * Superadmin console: asociație detail page (T249).
+ * Superadmin console: asociație detail page (T249 + T250).
  *
  * Shows the full identity, member and apartment counts, last admin sign-in,
  * current lifecycle status and the lifecycle controls (suspend / reactivate /
- * archive). The privileged status write runs through the asociatie-lifecycle
- * Netlify function in live mode; demo drives the persisted platform store.
+ * archive). T250 adds the admin roster (active + pending admins) with resend,
+ * revoke-invite, provision-additional-admin, and revoke-access actions.
+ * All privileged writes run through service-role Netlify functions; demo drives
+ * the persisted platform store.
  */
 
 type LifecycleAction = 'suspend' | 'reactivate' | 'archive';
+
+async function callAdminInviteAction(
+  action: 'resend' | 'revoke',
+  inviteId: string,
+  token: string,
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const resp = await fetch('/.netlify/functions/admin-invite-action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ action, inviteId }),
+    });
+    const data = (await resp.json()) as Record<string, unknown>;
+    if (!resp.ok) return { ok: false, error: String(data.error ?? 'failed') };
+    return { ok: true };
+  } catch {
+    return { ok: false, error: 'failed' };
+  }
+}
+
+async function callProvisionAdditionalAdmin(
+  asociatieId: string,
+  adminName: string,
+  adminEmail: string,
+  token: string,
+): Promise<{ ok: boolean; inviteId?: string; emailSent?: boolean; error?: string }> {
+  try {
+    const resp = await fetch('/.netlify/functions/provision-additional-admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ asociatieId, adminName, adminEmail }),
+    });
+    const data = (await resp.json()) as Record<string, unknown>;
+    if (!resp.ok) return { ok: false, error: String(data.error ?? 'failed') };
+    return { ok: true, inviteId: data.inviteId as string, emailSent: data.emailSent as boolean };
+  } catch {
+    return { ok: false, error: 'failed' };
+  }
+}
+
+async function callRevokeAdminAccess(
+  asociatieId: string,
+  adminEmail: string,
+  token: string,
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const resp = await fetch('/.netlify/functions/revoke-admin-access', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ asociatieId, adminEmail }),
+    });
+    const data = (await resp.json()) as Record<string, unknown>;
+    if (!resp.ok) return { ok: false, error: String(data.error ?? 'failed') };
+    return { ok: true };
+  } catch {
+    return { ok: false, error: 'failed' };
+  }
+}
 
 async function callLifecycleFunction(
   action: LifecycleAction,
@@ -63,13 +128,19 @@ function statusTone(status: AsociatieStatus | undefined): 'success' | 'warning' 
   return 'success';
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function PlatformAsociatieDetailPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
   const asociatii = usePlatformAsociatiiStore((s) => s.asociatii);
+  const provisions = usePlatformAsociatiiStore((s) => s.provisions);
+  const additionalAdmins = usePlatformAsociatiiStore((s) => s.additionalAdmins);
   const updateLifecycle = usePlatformAsociatiiStore((s) => s.updateLifecycle);
+  const revokeAdminAccess = usePlatformAsociatiiStore((s) => s.revokeAdminAccess);
+  const provisionAdditionalAdmin = usePlatformAsociatiiStore((s) => s.provisionAdditionalAdmin);
   const a = asociatii.find((x) => x.id === id);
 
   const [loading, setLoading] = useState(false);
@@ -77,6 +148,16 @@ export default function PlatformAsociatieDetailPage() {
   const [reasonInput, setReasonInput] = useState('');
   const [showReasonForm, setShowReasonForm] = useState(false);
   const [pendingAction, setPendingAction] = useState<LifecycleAction | null>(null);
+
+  // Admin roster state (T250)
+  const [adminActionLoading, setAdminActionLoading] = useState<string | null>(null);
+  const [adminActionError, setAdminActionError] = useState<string | null>(null);
+  const [revokeConfirmEmail, setRevokeConfirmEmail] = useState<string | null>(null);
+  const [showProvisionForm, setShowProvisionForm] = useState(false);
+  const [provisionName, setProvisionName] = useState('');
+  const [provisionEmail, setProvisionEmail] = useState('');
+  const [provisionErrors, setProvisionErrors] = useState<{ name?: string; email?: string }>({});
+  const [provisionSuccess, setProvisionSuccess] = useState<string | null>(null);
 
   if (!a) {
     return (
@@ -153,6 +234,81 @@ export default function PlatformAsociatieDetailPage() {
     }
     void executeAction('suspend', reasonInput.trim());
   }
+
+  // Admin roster handlers (T250)
+  async function handleRevokeInvite(record: AdminProvisionRecord) {
+    setAdminActionError(null);
+    setAdminActionLoading(`revoke-invite-${record.email}`);
+    if (isDemo) {
+      revokeAdminAccess(a!.id, record.email);
+      setAdminActionLoading(null);
+      return;
+    }
+    const token = useAuthStore.getState().session?.access_token ?? '';
+    if (!token) { setAdminActionError('unauthorized'); setAdminActionLoading(null); return; }
+    const result = await callAdminInviteAction('revoke', record.setupToken, token);
+    if (!result.ok) { setAdminActionError('revokeFailed'); setAdminActionLoading(null); return; }
+    revokeAdminAccess(a!.id, record.email);
+    setAdminActionLoading(null);
+  }
+
+  async function handleRevokeAccess(adminEmail: string) {
+    setAdminActionError(null);
+    setRevokeConfirmEmail(null);
+    setAdminActionLoading(`revoke-access-${adminEmail}`);
+    if (isDemo) {
+      revokeAdminAccess(a!.id, adminEmail);
+      setAdminActionLoading(null);
+      return;
+    }
+    const token = useAuthStore.getState().session?.access_token ?? '';
+    if (!token) { setAdminActionError('unauthorized'); setAdminActionLoading(null); return; }
+    const result = await callRevokeAdminAccess(a!.id, adminEmail, token);
+    if (!result.ok) { setAdminActionError('revokeAdminFailed'); setAdminActionLoading(null); return; }
+    revokeAdminAccess(a!.id, adminEmail);
+    setAdminActionLoading(null);
+  }
+
+  async function handleProvisionAdditionalAdmin() {
+    const errors: { name?: string; email?: string } = {};
+    const name = provisionName.trim();
+    const email = provisionEmail.trim();
+    if (!name) errors.name = 'required';
+    else if (name.length < 2) errors.name = 'tooShort';
+    if (!email) errors.email = 'required';
+    else if (!EMAIL_RE.test(email)) errors.email = 'email';
+    if (Object.keys(errors).length > 0) { setProvisionErrors(errors); return; }
+    setProvisionErrors({});
+    setAdminActionError(null);
+    setAdminActionLoading('provision');
+    if (isDemo) {
+      provisionAdditionalAdmin(a!.id, name, email);
+      setProvisionSuccess(email);
+      setProvisionName('');
+      setProvisionEmail('');
+      setShowProvisionForm(false);
+      setAdminActionLoading(null);
+      return;
+    }
+    const token = useAuthStore.getState().session?.access_token ?? '';
+    if (!token) { setAdminActionError('unauthorized'); setAdminActionLoading(null); return; }
+    const result = await callProvisionAdditionalAdmin(a!.id, name, email, token);
+    if (!result.ok) { setAdminActionError('provisionAdminFailed'); setAdminActionLoading(null); return; }
+    provisionAdditionalAdmin(a!.id, name, email);
+    setProvisionSuccess(email);
+    setProvisionName('');
+    setProvisionEmail('');
+    setShowProvisionForm(false);
+    setAdminActionLoading(null);
+  }
+
+  // Build the combined admin roster for this asociatie
+  const primaryAdmin = id ? provisions[id] : undefined;
+  const extraAdmins: AdminProvisionRecord[] = id ? (additionalAdmins[id] ?? []) : [];
+  const allAdmins: AdminProvisionRecord[] = [
+    ...(primaryAdmin ? [primaryAdmin] : []),
+    ...extraAdmins,
+  ].filter((r) => !r.revokedAt);
 
   return (
     <div>
@@ -251,6 +407,179 @@ export default function PlatformAsociatieDetailPage() {
             </span>
           </div>
         </div>
+      </section>
+
+      {/* ── Admin roster ─────────────────────────────────────────────────── */}
+      <section className="platform-detail-section" aria-label={t('platform.detail.adminRosterTitle')}>
+        <h2 className="platform-overview__sectionhead">{t('platform.detail.adminRosterTitle')}</h2>
+
+        {adminActionError && (
+          <p role="alert" className="platform-detail-error">
+            {t(`platform.detail.err.${adminActionError}`, { defaultValue: t('platform.detail.err.failed') })}
+          </p>
+        )}
+
+        {provisionSuccess && (
+          <p role="status" className="platform-detail-success">
+            {t('platform.detail.adminProvisionSuccess', { email: provisionSuccess })}
+          </p>
+        )}
+
+        {allAdmins.length === 0 && !showProvisionForm ? (
+          <p className="platform-detail-sub-note">{t('platform.detail.adminRosterEmpty')}</p>
+        ) : (
+          <ul className="platform-roster-list">
+            {allAdmins.map((rec) => {
+              const isPending = !rec.redeemedAt;
+              const actionKey = `action-${rec.email}`;
+              return (
+                <li key={rec.email} className="platform-roster-item">
+                  <span className="platform-roster-item__icon" aria-hidden="true">
+                    {isPending ? <Clock size={14} /> : <CheckCircle2 size={14} />}
+                  </span>
+                  <div className="platform-roster-item__body">
+                    <span className="platform-roster-item__name">{rec.name}</span>
+                    <span className="platform-roster-item__email">{rec.email}</span>
+                    <Badge tone={isPending ? 'warning' : 'success'}>
+                      {isPending ? t('platform.detail.adminPending') : t('platform.detail.adminActive')}
+                    </Badge>
+                    <span className="platform-roster-item__date">
+                      {rec.redeemedAt
+                        ? t('platform.detail.adminRedeemedOn', { date: formatDate(new Date(rec.redeemedAt).toISOString()) })
+                        : t('platform.detail.adminProvisionedOn', { date: formatDate(rec.provisionedAt) })}
+                    </span>
+                  </div>
+                  <div className="platform-roster-item__actions">
+                    {isPending && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => void handleRevokeInvite(rec)}
+                        disabled={!!adminActionLoading}
+                        aria-label={t('platform.detail.revokeInviteCta')}
+                      >
+                        <Trash2 size={12} aria-hidden="true" />
+                        {t('platform.detail.revokeInviteCta')}
+                      </Button>
+                    )}
+                    {!isPending && revokeConfirmEmail !== rec.email && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setRevokeConfirmEmail(rec.email)}
+                        disabled={!!adminActionLoading}
+                        aria-label={t('platform.detail.revokeAdminCta')}
+                        data-testid={`revoke-admin-${rec.email}`}
+                      >
+                        <Trash2 size={12} aria-hidden="true" />
+                        {t('platform.detail.revokeAdminCta')}
+                      </Button>
+                    )}
+                    {!isPending && revokeConfirmEmail === rec.email && (
+                      <div className="platform-roster-confirm" key={actionKey}>
+                        <span className="platform-roster-confirm__body">
+                          {t('platform.detail.revokeAdminConfirmBody', { name: rec.name })}
+                        </span>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => void handleRevokeAccess(rec.email)}
+                          disabled={!!adminActionLoading}
+                        >
+                          {t('platform.detail.confirmRevokeAdmin')}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setRevokeConfirmEmail(null)}
+                          disabled={!!adminActionLoading}
+                        >
+                          {t('common.cancel')}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
+        {/* Provision additional admin form */}
+        {!showProvisionForm ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => { setShowProvisionForm(true); setProvisionSuccess(null); }}
+            className="platform-roster-add-btn"
+          >
+            <Plus size={13} aria-hidden="true" />
+            {t('platform.detail.adminProvisionTitle')}
+          </Button>
+        ) : (
+          <div className="platform-roster-provision-form">
+            <h3 className="platform-roster-provision-form__title">
+              {t('platform.detail.adminProvisionTitle')}
+            </h3>
+            <div className="platform-roster-provision-form__fields">
+              <div className="platform-detail-field">
+                <label htmlFor="provision-name" className="platform-detail-reason-label">
+                  <UserCog size={13} aria-hidden="true" />
+                  {t('platform.asociatii.fields.adminName')}
+                </label>
+                <input
+                  id="provision-name"
+                  type="text"
+                  className="platform-detail-reason-input platform-detail-reason-input--single"
+                  value={provisionName}
+                  onChange={(e) => setProvisionName(e.target.value)}
+                  placeholder={t('platform.asociatii.fields.adminNamePlaceholder')}
+                  aria-invalid={!!provisionErrors.name}
+                />
+                {provisionErrors.name && (
+                  <span className="platform-detail-field-error" role="alert">
+                    {t(`platform.asociatii.err.${provisionErrors.name}`)}
+                  </span>
+                )}
+              </div>
+              <div className="platform-detail-field">
+                <label htmlFor="provision-email" className="platform-detail-reason-label">
+                  <Mail size={13} aria-hidden="true" />
+                  {t('platform.asociatii.fields.adminEmail')}
+                </label>
+                <input
+                  id="provision-email"
+                  type="email"
+                  className="platform-detail-reason-input platform-detail-reason-input--single"
+                  value={provisionEmail}
+                  onChange={(e) => setProvisionEmail(e.target.value)}
+                  placeholder={t('platform.asociatii.fields.adminEmailPlaceholder')}
+                  aria-invalid={!!provisionErrors.email}
+                />
+                {provisionErrors.email && (
+                  <span className="platform-detail-field-error" role="alert">
+                    {t(`platform.asociatii.err.${provisionErrors.email}`)}
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="platform-detail-reason-actions">
+              <Button
+                onClick={() => void handleProvisionAdditionalAdmin()}
+                disabled={adminActionLoading === 'provision'}
+              >
+                {adminActionLoading === 'provision' ? t('common.saving') : t('platform.detail.adminProvisionCta')}
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => { setShowProvisionForm(false); setProvisionErrors({}); }}
+                disabled={adminActionLoading === 'provision'}
+              >
+                {t('common.cancel')}
+              </Button>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* ── Lifecycle controls ────────────────────────────────────────────── */}
