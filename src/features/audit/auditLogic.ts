@@ -69,6 +69,8 @@ export const AUDIT_ACTIONS = [
   'platform.admin_revoked',
   'broadcast.published',
   'broadcast.expired',
+  'feature.override_enabled',
+  'feature.override_disabled',
 ] as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];

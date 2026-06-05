@@ -2752,7 +2752,9 @@
       "platform.admin_invited": "Operator platformă invitat",
       "platform.admin_revoked": "Acces operator platformă revocat",
       "broadcast.published": "Anunț platformă publicat",
-      "broadcast.expired": "Anunț platformă expirat"
+      "broadcast.expired": "Anunț platformă expirat",
+      "feature.override_enabled": "Suprascrierea funcționalității: activată forțat",
+      "feature.override_disabled": "Suprascrierea funcționalității: dezactivată sau eliminată"
     },
     "entity": {
       "feature": "Funcționalitate",
@@ -3145,8 +3147,19 @@
         "revokeAdminFailed": "Eroare la revocare. Încearcă din nou.",
         "provisionAdminFailed": "Eroare la provizionare. Încearcă din nou.",
         "resendFailed": "Retrimitere eșuată. Încearcă din nou.",
-        "revokeFailed": "Revocare eșuată. Încearcă din nou."
-      }
+        "revokeFailed": "Revocare eșuată. Încearcă din nou.",
+        "overrideFailed": "Suprascrierea a eșuat. Încearcă din nou."
+      },
+      "featureOverridesTitle": "Suprascrieri funcționalități",
+      "featureOverridesSubtitle": "Activează sau dezactivează forțat funcționalitățile pentru această asociație, suprascriind setările administratorului. Folosește cu moderație.",
+      "featureOverridesEmpty": "Nicio funcționalitate definită în registru.",
+      "featureOverrideOn": "Activează forțat",
+      "featureOverrideOff": "Dezactivează forțat",
+      "featureOverrideClear": "Resetează la implicit",
+      "featureOverrideActive": "Suprascriere activă",
+      "featureOverrideForcedOn": "Activată forțat",
+      "featureOverrideForcedOff": "Dezactivată forțat",
+      "featureOverrideDefault": "Implicit (gestionat de administrator)"
     },
     "mfa": {
       "enrollTitle": "Autentificare în doi pași obligatorie",

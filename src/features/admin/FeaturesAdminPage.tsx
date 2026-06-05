@@ -20,7 +20,7 @@ import {
 } from '@/shared/features/registry';
 import { summarizeRequests } from '@/shared/features/featureRequestLogic';
 import { useAsociatieFlags } from '@/shared/features/featureStore';
-import { hydrateFeatureFlags, setFeatureFlagLive } from '@/shared/features/featureApi';
+import { hydrateFeatureFlags, hydrateFeatureOverrides, setFeatureFlagLive } from '@/shared/features/featureApi';
 import { useFeatureRequestStore } from '@/shared/store/featureRequestStore';
 import { useAuthStore } from '@/shared/store/authStore';
 import { recordAudit } from '@/shared/store/auditStore';
@@ -71,7 +71,10 @@ export default function FeaturesAdminPage() {
   // Supabase is configured. Both are no-ops offline; the persisted stores hold
   // the source of truth in demo/local mode.
   useEffect(() => {
-    if (asociatieId) void hydrateFeatureFlags(asociatieId);
+    if (asociatieId) {
+      void hydrateFeatureFlags(asociatieId);
+      void hydrateFeatureOverrides(asociatieId);
+    }
   }, [asociatieId]);
   useEffect(() => {
     if (asociatieId) void hydrateRequests(asociatieId);

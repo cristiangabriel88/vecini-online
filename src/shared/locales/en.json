@@ -2752,7 +2752,9 @@
       "platform.admin_invited": "Platform operator invited",
       "platform.admin_revoked": "Platform operator revoked",
       "broadcast.published": "Platform broadcast published",
-      "broadcast.expired": "Platform broadcast expired"
+      "broadcast.expired": "Platform broadcast expired",
+      "feature.override_enabled": "Feature override: forced on",
+      "feature.override_disabled": "Feature override: forced off or cleared"
     },
     "entity": {
       "feature": "Feature",
@@ -3145,8 +3147,19 @@
         "revokeAdminFailed": "Revoke failed. Please try again.",
         "provisionAdminFailed": "Provision failed. Please try again.",
         "resendFailed": "Resend failed. Please try again.",
-        "revokeFailed": "Revoke failed. Please try again."
-      }
+        "revokeFailed": "Revoke failed. Please try again.",
+        "overrideFailed": "Override failed. Please try again."
+      },
+      "featureOverridesTitle": "Feature overrides",
+      "featureOverridesSubtitle": "Force-enable or force-disable features for this association, overriding its admin's settings. Use sparingly.",
+      "featureOverridesEmpty": "No features defined in the registry.",
+      "featureOverrideOn": "Force on",
+      "featureOverrideOff": "Force off",
+      "featureOverrideClear": "Reset to default",
+      "featureOverrideActive": "Override active",
+      "featureOverrideForcedOn": "Forced on",
+      "featureOverrideForcedOff": "Forced off",
+      "featureOverrideDefault": "Default (admin-managed)"
     },
     "mfa": {
       "enrollTitle": "Two-factor authentication required",

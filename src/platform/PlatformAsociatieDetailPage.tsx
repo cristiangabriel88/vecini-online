@@ -13,7 +13,10 @@ import {
   MapPin,
   Phone,
   Plus,
+  RotateCcw,
   Trash2,
+  ToggleLeft,
+  ToggleRight,
   UserCog,
   Users,
 } from 'lucide-react';
@@ -27,6 +30,9 @@ import { usePlatformAsociatiiStore, type AdminProvisionRecord } from './platform
 import { usePlatformAuthStore } from './platformAuthStore';
 import { isDormant } from './platformProvisioningLogic';
 import type { AsociatieStatus } from './demoPlatform';
+import { useAuditStore } from '@/shared/store/auditStore';
+import { useFeatureOverridesStore } from '@/shared/features/featureOverridesStore';
+import { FEATURES, featureTitle, categoryLabel, type FeatureCategory } from '@/shared/features/registry';
 
 /**
  * Superadmin console: asociație detail page (T249 + T250).
@@ -143,6 +149,11 @@ export default function PlatformAsociatieDetailPage() {
   const provisionAdditionalAdmin = usePlatformAsociatiiStore((s) => s.provisionAdditionalAdmin);
   const a = asociatii.find((x) => x.id === id);
 
+  const setOverride = useFeatureOverridesStore((s) => s.setOverride);
+  const clearOverride = useFeatureOverridesStore((s) => s.clearOverride);
+  const overridesFor = useFeatureOverridesStore((s) => s.overridesFor);
+  const currentOverrides = id ? overridesFor(id) : {};
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reasonInput, setReasonInput] = useState('');
@@ -155,6 +166,10 @@ export default function PlatformAsociatieDetailPage() {
   const [revokeConfirmEmail, setRevokeConfirmEmail] = useState<string | null>(null);
   const [showProvisionForm, setShowProvisionForm] = useState(false);
   const [provisionName, setProvisionName] = useState('');
+
+  // Feature override state (T256)
+  const [overrideLoading, setOverrideLoading] = useState<string | null>(null);
+  const [overrideError, setOverrideError] = useState<string | null>(null);
   const [provisionEmail, setProvisionEmail] = useState('');
   const [provisionErrors, setProvisionErrors] = useState<{ name?: string; email?: string }>({});
   const [provisionSuccess, setProvisionSuccess] = useState<string | null>(null);
@@ -300,6 +315,58 @@ export default function PlatformAsociatieDetailPage() {
     setProvisionEmail('');
     setShowProvisionForm(false);
     setAdminActionLoading(null);
+  }
+
+  // Feature override handlers (T256)
+  async function handleSetOverride(featureKey: string, enabled: boolean | null) {
+    if (!id) return;
+    setOverrideError(null);
+    setOverrideLoading(featureKey);
+
+    if (isDemo) {
+      if (enabled === null) {
+        clearOverride(id, featureKey);
+      } else {
+        setOverride(id, featureKey, enabled);
+      }
+      const operator = useAuthStore.getState();
+      const actorId = operator.session?.user?.id ?? 'demo';
+      const actorName = operator.profile?.full_name ?? 'Demo operator';
+      useAuditStore.getState().record({
+        asociatie_id: id,
+        actor_user_id: actorId,
+        actor_name: actorName,
+        action: enabled ? 'feature.override_enabled' : 'feature.override_disabled',
+        entity: 'feature',
+        entity_label: featureKey,
+        before: null,
+        after: enabled === null ? 'cleared' : String(enabled),
+      });
+      setOverrideLoading(null);
+      return;
+    }
+
+    const token = useAuthStore.getState().session?.access_token ?? '';
+    if (!token) { setOverrideError('unauthorized'); setOverrideLoading(null); return; }
+    try {
+      const resp = await fetch('/.netlify/functions/feature-override', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ asociatieId: id, featureKey, overrideEnabled: enabled }),
+      });
+      const data = (await resp.json()) as Record<string, unknown>;
+      if (!resp.ok) { setOverrideError('overrideFailed'); setOverrideLoading(null); return; }
+      if (data.ok) {
+        if (enabled === null) {
+          clearOverride(id, featureKey);
+        } else {
+          setOverride(id, featureKey, enabled);
+        }
+      }
+    } catch {
+      setOverrideError('overrideFailed');
+    }
+    setOverrideLoading(null);
   }
 
   // Build the combined admin roster for this asociatie
@@ -578,6 +645,99 @@ export default function PlatformAsociatieDetailPage() {
                 {t('common.cancel')}
               </Button>
             </div>
+          </div>
+        )}
+      </section>
+
+      {/* ── Feature overrides ────────────────────────────────────────────── */}
+      <section className="platform-detail-section" aria-label={t('platform.detail.featureOverridesTitle')}>
+        <h2 className="platform-overview__sectionhead">{t('platform.detail.featureOverridesTitle')}</h2>
+        <p className="platform-detail-sub-note">{t('platform.detail.featureOverridesSubtitle')}</p>
+
+        {overrideError && (
+          <p role="alert" className="platform-detail-error">
+            {t(`platform.detail.err.${overrideError}`, { defaultValue: t('platform.detail.err.overrideFailed') })}
+          </p>
+        )}
+
+        {FEATURES.length === 0 ? (
+          <p className="platform-detail-sub-note">{t('platform.detail.featureOverridesEmpty')}</p>
+        ) : (
+          <div className="platform-feature-overrides">
+            {(
+              Object.entries(
+                FEATURES.reduce<Record<string, typeof FEATURES>>((acc, f) => {
+                  (acc[f.category] ??= []).push(f);
+                  return acc;
+                }, {}),
+              ) as [FeatureCategory, typeof FEATURES][]
+            ).map(([category, catFeatures]) => (
+              <div key={category} className="platform-feature-overrides__group">
+                <h3 className="platform-feature-overrides__category">
+                  {categoryLabel(t, category)}
+                </h3>
+                <ul className="platform-feature-overrides__list">
+                  {catFeatures.map((feat) => {
+                    const override = currentOverrides[feat.key];
+                    const hasOverride = override !== undefined;
+                    const loadingThis = overrideLoading === feat.key;
+                    return (
+                      <li key={feat.key} className="platform-feature-override-row">
+                        <span className="platform-feature-override-row__key" aria-hidden="true">
+                          {feat.key}
+                        </span>
+                        <span className="platform-feature-override-row__title">
+                          {featureTitle(t, feat)}
+                        </span>
+                        {hasOverride && (
+                          <Badge tone={override ? 'success' : 'warning'}>
+                            {override
+                              ? t('platform.detail.featureOverrideForcedOn')
+                              : t('platform.detail.featureOverrideForcedOff')}
+                          </Badge>
+                        )}
+                        <div className="platform-feature-override-row__actions">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => void handleSetOverride(feat.key, true)}
+                            disabled={loadingThis || override === true}
+                            aria-label={`${t('platform.detail.featureOverrideOn')} ${feat.key}`}
+                            aria-pressed={override === true}
+                          >
+                            <ToggleRight size={13} aria-hidden="true" />
+                            {t('platform.detail.featureOverrideOn')}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => void handleSetOverride(feat.key, false)}
+                            disabled={loadingThis || override === false}
+                            aria-label={`${t('platform.detail.featureOverrideOff')} ${feat.key}`}
+                            aria-pressed={override === false}
+                          >
+                            <ToggleLeft size={13} aria-hidden="true" />
+                            {t('platform.detail.featureOverrideOff')}
+                          </Button>
+                          {hasOverride && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => void handleSetOverride(feat.key, null)}
+                              disabled={loadingThis}
+                              aria-label={`${t('platform.detail.featureOverrideClear')} ${feat.key}`}
+                            >
+                              <RotateCcw size={13} aria-hidden="true" />
+                              {t('platform.detail.featureOverrideClear')}
+                            </Button>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
           </div>
         )}
       </section>

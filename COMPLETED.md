@@ -4,6 +4,25 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T256 ✅ 2026-06-06 -- Per-tenant feature-flag overrides
+
+Platform operators can now force-enable or force-disable any feature for one asociatie, overriding its admin's settings. New `featureOverridesLogic.ts` provides pure set/clear/merge helpers (tested in isolation). New `featureOverridesStore.ts` (Zustand, persisted as `vecini.feature_overrides`) is shared between the platform console and the resident app; demo-mode toggling reflects immediately in the running app. `featureStore.useFeature()` now applies overrides on top of base flags (override wins). `hydrateFeatureOverrides()` added to `featureApi.ts` and wired into `FeaturesAdminPage`. New `feature-override.ts` service-role Netlify function handles upsert/delete with `is_super_admin()` re-check and appends to the asociatie's audit chain. Feature overrides section added to `PlatformAsociatieDetailPage` (grouped by category, Force on / Force off / Reset per feature, bilingual badges). Two new audit actions (`feature.override_enabled`, `feature.override_disabled`) added to `AUDIT_ACTIONS` and both audit tone maps. New `asociatie_feature_overrides` DB table (migration, RLS: members read own). Bilingual RO/EN translations. 21 unit tests (logic + store). All 2848 tests + 3 builds green.
+- new: supabase/migrations/20260606000010_asociatie_feature_overrides.sql
+- new: src/shared/features/featureOverridesLogic.ts
+- new: src/shared/features/featureOverridesStore.ts
+- new: netlify/functions/feature-override.ts
+- new: tests/unit/featureOverridesLogic.test.ts
+- new: tests/unit/platformFeatureOverrides.test.ts
+- modified: src/shared/features/featureStore.ts (useFeature applies overrides)
+- modified: src/shared/features/featureApi.ts (hydrateFeatureOverrides added)
+- modified: src/features/audit/auditLogic.ts (2 new audit actions)
+- modified: src/features/audit/AuditLogPage.tsx (tone map entries)
+- modified: src/platform/PlatformAuditPage.tsx (tone map entries)
+- modified: src/platform/PlatformAsociatieDetailPage.tsx (imports + overrides section + handlers)
+- modified: src/features/admin/FeaturesAdminPage.tsx (hydrateFeatureOverrides call)
+- modified: src/shared/locales/en.json (platform.detail.featureOverrides.* + audit action labels)
+- modified: src/shared/locales/ro.json (platform.detail.featureOverrides.* + audit action labels)
+
 ### T255 ✅ 2026-06-05 -- Cross-tenant global search
 
 Added a command-palette-style global search to the platform console topbar. Pure search helper `platformSearchLogic.ts` ranks asociatii (by name, city, CUI, address) and provisioned admins/invites (by name, email) using the shared `scoreMatch` function, capped at 6 results per kind. `PlatformCommandPalette.tsx` mirrors the main-app palette: portal overlay, keyboard navigation (ArrowUp/Down/Enter/Escape), two section groups (asociatii/admins), navigates to the T249 detail page or asociatii list. Search trigger button added to the platform topbar with `.platform-search-trigger` CSS. Bilingual RO/EN keys added under `platform.search.*`. Revoked admins excluded from results. 16 unit tests for the pure search logic. All 2827 tests + 3 builds green.

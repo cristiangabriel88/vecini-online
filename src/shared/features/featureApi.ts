@@ -1,6 +1,8 @@
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import { useFeatureStore } from './featureStore';
 import type { FeatureFlags } from './featureFlagsLogic';
+import { useFeatureOverridesStore } from './featureOverridesStore';
+import type { FeatureOverrides } from './featureOverridesLogic';
 
 type FeatureRow = { feature_key: string; enabled: boolean };
 
@@ -25,6 +27,29 @@ export async function hydrateFeatureFlags(asociatieId: string): Promise<void> {
     useFeatureStore.getState().setAll(asociatieId, flags);
   } catch {
     /* best-effort: local persisted flags remain */
+  }
+}
+
+/**
+ * Hydrate per-tenant platform overrides from `asociatie_feature_overrides`
+ * when Supabase is configured. Replaces the override map for that asociatie so
+ * any platform-forced on/off states take effect immediately. No-op offline.
+ */
+export async function hydrateFeatureOverrides(asociatieId: string): Promise<void> {
+  if (!isSupabaseConfigured || !asociatieId) return;
+  try {
+    const { data, error } = await supabase
+      .from('asociatie_feature_overrides')
+      .select('feature_key, override_enabled')
+      .eq('asociatie_id', asociatieId);
+    if (error || !data) return;
+    const overrides: FeatureOverrides = {};
+    for (const row of data as { feature_key: string; override_enabled: boolean }[]) {
+      overrides[row.feature_key] = row.override_enabled;
+    }
+    useFeatureOverridesStore.getState().replaceForAsociatie(asociatieId, overrides);
+  } catch {
+    /* best-effort: local persisted overrides remain */
   }
 }
 

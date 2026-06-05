@@ -10,6 +10,7 @@ import {
   setAllIn,
   setFlagIn,
 } from './featureFlagsLogic';
+import { useAsociatieOverrides } from './featureOverridesStore';
 
 interface FeatureState {
   /** Enabled feature set per asociație, keyed by asociație id. */
@@ -56,8 +57,10 @@ export function useAsociatieFlags(): FeatureFlags {
   return useFeatureStore((s) => flagsForAsociatie(s.byAsociatie, asociatieId));
 }
 
-/** Hook: is a given feature enabled for the active asociație? */
+/** Hook: is a given feature enabled for the active asociație? Overrides win. */
 export function useFeature(key: string): boolean {
   const flags = useAsociatieFlags();
+  const overrides = useAsociatieOverrides();
+  if (key in overrides) return overrides[key];
   return Boolean(flags[key]);
 }

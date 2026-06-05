@@ -113,7 +113,7 @@ The superadmin has no way to communicate with all tenants at once (planned maint
 
 A support operator should jump straight to a tenant/admin without scrolling the list. Add a command-palette-style global search in the platform topbar (mirroring the main app's `CommandPalette`) that searches asociații by name/city/CUI and provisioned admins by name/email across all tenants (super_admin RLS), returning links to the T249 detail page. Live query is debounced and capped; demo searches the seeded dataset. Bilingual, premium-feel, unit tests for the pure search/rank helper. Prereq: T249.
 
-### ⬜ T256 — [P3] Per-tenant feature-flag overrides
+### ✅ T256 — [P3] Per-tenant feature-flag overrides
 
 Support sometimes needs to enable/disable a specific feature for one tenant (e.g. turn off a misbehaving module, or pilot a feature). Add a per-asociație feature-override surface on the T249 detail page that lets the superadmin override the `registry.ts` defaults per tenant, persisted in a new `asociatie_feature_overrides` table (super_admin write; members read their own tenant's overrides) and merged into the resident app's enabled-features computation (the resolver already filters by flags+role; add the override layer). Each change is audited. Demo drives a persisted store and reflects the toggle in the running app. Bilingual, premium-feel, unit tests for the merge logic + one E2E. Prereq: T249.
 

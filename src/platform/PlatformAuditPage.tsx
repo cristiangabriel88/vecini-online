@@ -78,6 +78,8 @@ const ACTION_TONE: Record<AuditAction, 'success' | 'danger' | 'warning' | 'neutr
   'platform.admin_revoked': 'danger',
   'broadcast.published': 'success',
   'broadcast.expired': 'neutral',
+  'feature.override_enabled': 'success',
+  'feature.override_disabled': 'warning',
 };
 
 function downloadText(filename: string, content: string, mime: string): void {
