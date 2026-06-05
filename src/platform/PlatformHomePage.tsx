@@ -34,6 +34,7 @@ const SECTION_CARDS = [
   { key: 'messenger', icon: MessagesSquare, path: '/consola/mesaje' },
   { key: 'subscriptions', icon: CreditCard, path: '/consola/abonamente' },
   { key: 'team', icon: Shield, path: '/consola/echipa' },
+  { key: 'broadcasts', icon: Megaphone, path: '/consola/anunturi-platforma' },
 ] as const;
 
 export default function PlatformHomePage() {

@@ -135,6 +135,48 @@ export const DEMO_PLATFORM_ASOCIATII: PlatformAsociatieSummary[] = [
   },
 ];
 
+/** A platform-wide broadcast / maintenance notice (T253). */
+export interface PlatformBroadcast {
+  id: string;
+  title: string;
+  body: string;
+  severity: 'info' | 'warning' | 'critical';
+  target: 'all' | 'admin';
+  startsAt: string;
+  endsAt: string | null;
+  createdBy: string;
+  createdAt: string;
+  expiredAt: string | null;
+}
+
+/** Demo seeded broadcasts (T253). One active info notice, one expired warning. */
+export const DEMO_PLATFORM_BROADCASTS: PlatformBroadcast[] = [
+  {
+    id: 'pb-demo-1',
+    title: 'Mentenanță programată',
+    body: 'Duminică, 08 iunie 2026, între orele 02:00 si 06:00, serverele vor fi in mentenanță. Aplicatia nu va fi disponibila in acest interval.',
+    severity: 'info',
+    target: 'all',
+    startsAt: '2026-06-06T00:00:00Z',
+    endsAt: '2026-06-08T06:00:00Z',
+    createdBy: 'pa-demo',
+    createdAt: '2026-06-06T09:00:00Z',
+    expiredAt: null,
+  },
+  {
+    id: 'pb-demo-2',
+    title: 'Incident rezolvat',
+    body: 'Incidentul care a afectat modulul de anunturi in data de 04 iunie a fost rezolvat. Multumim pentru rabdare.',
+    severity: 'warning',
+    target: 'all',
+    startsAt: '2026-06-04T14:00:00Z',
+    endsAt: '2026-06-05T23:59:00Z',
+    createdBy: 'pa-demo',
+    createdAt: '2026-06-04T14:00:00Z',
+    expiredAt: '2026-06-05T12:00:00Z',
+  },
+];
+
 export interface PlatformTotals {
   asociatii: number;
   members: number;

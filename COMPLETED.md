@@ -4,6 +4,30 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only — not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T253 ✅ 2026-06-06 -- Platform-wide broadcast / maintenance notice
+
+Added a `/consola/anunturi-platforma` section to the platform console for publishing platform-wide maintenance notices and incident alerts. New `platform_broadcasts` table (migration) with `severity` (info/warning/critical) and `target` (all/admin) columns. Writes go exclusively through a new `platform-broadcast.ts` service-role Netlify function (publish + expire actions, both audited via new `broadcast.published` and `broadcast.expired` audit actions). Platform-side `platformBroadcastStore.ts` (publish/expire/active/past selectors) seeded from two demo broadcasts. Platform console page with compose form (title, body, severity, target, optional ends_at) and active/past broadcast cards with expire action. Main-app `broadcastStore.ts` reads active broadcasts from Supabase (authenticated users); demo seeds one active info notice. Dismissible `BroadcastBanner` component added to `AppLayout` reads from `broadcastStore`, filters by target audience, persists dismissals in localStorage per broadcast id. Bilingual RO/EN keys added under `platform.broadcasts.*`. CSS: new `broadcast-banner` and `platform-broadcast-*` component styles. 14 unit tests + 2 E2E tests (broadcasts nav visible, publish-expire round-trip). All 2811 tests + 3 builds green.
+- new: supabase/migrations/20260606000009_platform_broadcasts.sql
+- new: netlify/functions/platform-broadcast.ts
+- new: src/platform/platformBroadcastStore.ts
+- new: src/platform/PlatformBroadcastsPage.tsx
+- new: src/shared/store/broadcastStore.ts
+- new: src/shared/components/BroadcastBanner.tsx
+- new: tests/unit/platformBroadcast.test.ts
+- modified: src/platform/demoPlatform.ts (PlatformBroadcast type + DEMO_PLATFORM_BROADCASTS)
+- modified: src/platform/platformApi.ts (hydratePlatformBroadcasts)
+- modified: src/platform/platformRouter.tsx (anunturi-platforma route)
+- modified: src/platform/PlatformLayout.tsx (broadcasts sidebar entry)
+- modified: src/platform/PlatformHomePage.tsx (broadcasts section card)
+- modified: src/app/AppLayout.tsx (BroadcastBanner)
+- modified: src/features/audit/auditLogic.ts (broadcast.published + broadcast.expired + broadcast entity)
+- modified: src/features/audit/AuditLogPage.tsx (tone map for broadcast actions)
+- modified: src/platform/PlatformAuditPage.tsx (tone map for broadcast actions)
+- modified: src/shared/locales/en.json + ro.json (platform.broadcasts.*, audit actions, entity)
+- modified: src/styles/shell.css (broadcast-banner styles)
+- modified: src/styles/platform.css (platform-broadcast-* styles)
+- modified: tests/e2e/platform.spec.ts (T253 E2E tests)
+
 ### T252 ✅ 2026-06-05 -- Live overview dashboard with real cross-tenant KPIs
 
 Added `platformOverviewLogic.ts` with a pure `computeOverview()` function that aggregates 5 store inputs into a single `PlatformOverview` object. Rewired `PlatformHomePage` with three labelled KPI sections: (1) associations breakdown (total, active/moderate/dormant health, suspended lifecycle) + members + apartments, each linking to `/consola/asociatii` or `/consola/utilizare`; (2) 30-day activity rollup (announcements, tickets, votes) linking to `/consola/utilizare`; (3) operations row (MRR with overdue count, open support threads with awaiting-reply sub-label, error groups) linking to their respective pages. All 8 section cards now link to their live routes (no more "planned" badges). Added `.platform-stat--link`, `.platform-stat__sub`, and color-dot sub-item variants (`--active`, `--moderate`, `--dormant`, `--suspended`, `--warn`) to `platform.css`. Bilingual RO/EN new keys under `platform.home.overview`. 16 unit tests green (including demo dataset shape assertions). All 2797 tests + 3 builds green.

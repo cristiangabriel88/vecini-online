@@ -2750,7 +2750,9 @@
       "impersonation.started": "Diagnostic session started",
       "impersonation.ended": "Diagnostic session ended",
       "platform.admin_invited": "Platform operator invited",
-      "platform.admin_revoked": "Platform operator revoked"
+      "platform.admin_revoked": "Platform operator revoked",
+      "broadcast.published": "Platform broadcast published",
+      "broadcast.expired": "Platform broadcast expired"
     },
     "entity": {
       "feature": "Feature",
@@ -2767,7 +2769,8 @@
       "aga": "AGA meeting",
       "budget": "Budget",
       "petition": "Petition",
-      "impersonation": "Impersonation"
+      "impersonation": "Impersonation",
+      "broadcast": "Broadcast"
     }
   },
   "chrome": {
@@ -2961,6 +2964,10 @@
       "team": {
         "title": "Platform team",
         "desc": "Manage the platform operator roster — invite new operators and revoke access."
+      },
+      "broadcasts": {
+        "title": "Broadcasts",
+        "desc": "Publish platform-wide maintenance notices and incident alerts to all tenants."
       }
     },
     "asociatii": {
@@ -3302,6 +3309,48 @@
         "lastAdmin": "Cannot remove the last platform operator.",
         "inviteFailed": "Invitation failed. Please try again.",
         "revokeFailed": "Revoke failed. Please try again."
+      }
+    },
+    "broadcasts": {
+      "title": "Platform broadcasts",
+      "subtitle": "Publish platform-wide notices for maintenance windows, incidents, or policy changes. Each notice appears as a dismissible banner in the resident and admin app.",
+      "newCta": "New broadcast",
+      "composeTitle": "Compose broadcast",
+      "publishCta": "Publish",
+      "publishedSuccess": "Broadcast published successfully.",
+      "expireCta": "Expire now",
+      "activeTitle": "Active broadcasts",
+      "pastTitle": "Past broadcasts",
+      "emptyActive": "No active broadcasts.",
+      "statusActive": "Active",
+      "statusExpired": "Expired",
+      "publishedOn": "Published {{date}}",
+      "expiresOn": "Expires {{date}}",
+      "expiredOn": "Expired {{date}}",
+      "dismissAriaLabel": "Dismiss notice",
+      "severity": {
+        "info": "Info",
+        "warning": "Warning",
+        "critical": "Critical"
+      },
+      "target": {
+        "all": "All users",
+        "admin": "Admins only"
+      },
+      "fields": {
+        "title": "Title",
+        "titlePlaceholder": "e.g. Scheduled maintenance on Sunday",
+        "body": "Message",
+        "bodyPlaceholder": "Describe the maintenance window, incident, or policy change.",
+        "severity": "Severity",
+        "target": "Audience",
+        "endsAt": "Auto-expire at",
+        "optional": "(optional)",
+        "endsAtHint": "Leave blank for a permanent notice; set a date to auto-hide after that time."
+      },
+      "err": {
+        "required": "Required field",
+        "tooShort": "Too short (minimum 4 characters)"
       }
     }
   },

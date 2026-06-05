@@ -14,6 +14,8 @@ import { type PlatformErrorReport, usePlatformErrorStore } from './platformError
 import { type AssocUsageMetric, deriveHealthStatus, usePlatformUsageStore } from './platformUsageStore';
 import { usePlatformMessengerStore } from './platformMessengerStore';
 import { usePlatformTeamStore } from './platformTeamStore';
+import { type PlatformBroadcast } from './demoPlatform';
+import { usePlatformBroadcastStore } from './platformBroadcastStore';
 
 type RowWithAsoc = { asociatie_id: string };
 type SignInRow = { asociatie_id: string | null; created_at: string };
@@ -500,6 +502,62 @@ export async function hydrateTeam(): Promise<void> {
     usePlatformTeamStore.getState().setFetchError('load');
     reportError(err instanceof Error ? err : new Error(String(err)), {
       source: 'platformApi.hydrateTeam',
+    });
+  }
+}
+
+interface DbBroadcastRow {
+  id: string;
+  title: string;
+  body: string;
+  severity: string;
+  target: string;
+  starts_at: string;
+  ends_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  expired_at: string | null;
+}
+
+/**
+ * Load all platform broadcasts for the superadmin console (T253).
+ * No-op in demo/offline mode.
+ */
+export async function hydratePlatformBroadcasts(): Promise<void> {
+  if (!isSupabaseConfigured) return;
+
+  usePlatformBroadcastStore.getState().setFetchError(null);
+
+  try {
+    const { data, error } = await supabase
+      .from('platform_broadcasts')
+      .select('id, title, body, severity, target, starts_at, ends_at, created_by, created_at, expired_at')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      usePlatformBroadcastStore.getState().setFetchError('load');
+      reportError(new Error(error.message), { source: 'platformApi.hydratePlatformBroadcasts' });
+      return;
+    }
+
+    const rows: PlatformBroadcast[] = ((data ?? []) as DbBroadcastRow[]).map((r) => ({
+      id: r.id,
+      title: r.title,
+      body: r.body,
+      severity: r.severity as PlatformBroadcast['severity'],
+      target: r.target as PlatformBroadcast['target'],
+      startsAt: r.starts_at,
+      endsAt: r.ends_at ?? null,
+      createdBy: r.created_by ?? '',
+      createdAt: r.created_at,
+      expiredAt: r.expired_at ?? null,
+    }));
+
+    usePlatformBroadcastStore.getState().replace(rows);
+  } catch (err) {
+    usePlatformBroadcastStore.getState().setFetchError('load');
+    reportError(err instanceof Error ? err : new Error(String(err)), {
+      source: 'platformApi.hydratePlatformBroadcasts',
     });
   }
 }

@@ -96,6 +96,8 @@ const ACTION_TONE: Record<AuditAction, 'success' | 'danger' | 'warning' | 'neutr
   'impersonation.ended': 'neutral',
   'platform.admin_invited': 'success',
   'platform.admin_revoked': 'danger',
+  'broadcast.published': 'success',
+  'broadcast.expired': 'neutral',
 };
 
 /** Trigger a client-side download of a text document. */

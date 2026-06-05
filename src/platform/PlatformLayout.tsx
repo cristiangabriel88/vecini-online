@@ -6,6 +6,7 @@ import {
   Globe,
   LayoutDashboard,
   LogOut,
+  Megaphone,
   MessagesSquare,
   Moon,
   ScrollText,
@@ -36,6 +37,7 @@ const SECTIONS = [
   { key: 'messenger', path: '/consola/mesaje', icon: MessagesSquare, ready: true },
   { key: 'subscriptions', path: '/consola/abonamente', icon: CreditCard, ready: true },
   { key: 'team', path: '/consola/echipa', icon: Users, ready: true },
+  { key: 'broadcasts', path: '/consola/anunturi-platforma', icon: Megaphone, ready: true },
 ] as const;
 
 function Header() {

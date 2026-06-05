@@ -27,6 +27,7 @@ import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
 import { cn } from '@/shared/lib/cn';
 import { DevRoleSwitcher } from '@/shared/components/DevRoleSwitcher';
 import { StageBanner } from '@/shared/components/StageBanner';
+import { BroadcastBanner } from '@/shared/components/BroadcastBanner';
 import { useRealtimeSync } from './useRealtimeSync';
 
 function initials(name: string) {
@@ -633,6 +634,7 @@ export function AppLayout() {
       <AssistantWidget />
       <DevRoleSwitcher />
       <StageBanner />
+      <BroadcastBanner />
     </div>
   );
 }

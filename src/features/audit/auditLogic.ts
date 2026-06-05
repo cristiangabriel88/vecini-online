@@ -67,6 +67,8 @@ export const AUDIT_ACTIONS = [
   'impersonation.ended',
   'platform.admin_invited',
   'platform.admin_revoked',
+  'broadcast.published',
+  'broadcast.expired',
 ] as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
@@ -88,6 +90,7 @@ export const AUDIT_ENTITIES = [
   'budget',
   'petition',
   'impersonation',
+  'broadcast',
 ] as const;
 
 export type AuditEntity = (typeof AUDIT_ENTITIES)[number];

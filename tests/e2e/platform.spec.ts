@@ -382,3 +382,76 @@ test('T250: demo -- provision additional admin appears in roster', async ({ page
   // The new admin appears in the roster.
   await expect(page.getByText('Claudia T250')).toBeVisible();
 });
+
+/**
+ * T253 -- Platform-wide broadcast / maintenance notice.
+ *
+ * Covers: (1) demo console shows "Broadcasts" section in the sidebar;
+ * (2) navigating to /consola/anunturi-platforma shows the page with a seeded demo broadcast;
+ * (3) publishing a new broadcast shows a success status and the card appears;
+ * (4) expiring the new broadcast removes it from the active list.
+ * Runs offline in demo mode only.
+ */
+
+// T253-1: Broadcasts nav entry is visible in the sidebar.
+test('T253: demo -- broadcasts section accessible via sidebar nav', async ({ page }) => {
+  await goPlatformLogin(page);
+  if (!(await isDemoMode(page))) { test.skip(); return; }
+
+  await page.getByRole('button', { name: /Enter demo console|Intră în consola demo/i }).click();
+  await expect(page).toHaveURL(/\/consola$/);
+
+  // The broadcasts section card link should be visible on the homepage.
+  await expect(
+    page.getByRole('link', { name: /Broadcasts|Anunțuri platformă/i }),
+  ).toBeVisible();
+});
+
+// T253-2: Happy path -- publish a broadcast, verify it appears, then expire it.
+test('T253: demo -- publish broadcast -> card appears -> expire removes from active', async ({ page }) => {
+  await goPlatformLogin(page);
+  if (!(await isDemoMode(page))) { test.skip(); return; }
+
+  await page.getByRole('button', { name: /Enter demo console|Intră în consola demo/i }).click();
+
+  // Navigate to the broadcasts page.
+  await page.goto('/platform.html#/consola/anunturi-platforma');
+  await expect(
+    page.getByRole('heading', { level: 1, name: /Platform broadcasts|Anunțuri platformă/i }),
+  ).toBeVisible();
+
+  // The demo active broadcast should be shown in the active section.
+  await expect(
+    page.getByText(/Mentenanță programată/i),
+  ).toBeVisible();
+
+  // Click "New broadcast".
+  await page.getByRole('button', { name: /New broadcast|Anunț nou/i }).click();
+
+  // Fill in the compose form.
+  await page.getByLabel(/Title|Titlu/i).fill('Test mentenanță T253');
+  await page.getByLabel(/Message|Mesaj/i).fill('Acest anunt este un test pentru T253.');
+
+  // Publish.
+  await page.getByRole('button', { name: /^Publish$|^Publică$/i }).click();
+
+  // Success status appears.
+  await expect(
+    page.getByRole('status'),
+  ).toBeVisible();
+
+  // The new broadcast card is visible.
+  await expect(page.getByText('Test mentenanță T253')).toBeVisible();
+
+  // Expire the new broadcast via its "Expire now" button.
+  const newCard = page.locator('.platform-broadcast-card').filter({ hasText: 'Test mentenanță T253' });
+  await newCard.getByRole('button', { name: /Expire now|Expiră acum/i }).click();
+
+  // After expiration the card should not be in the active section
+  // (it moves to past, but the active section no longer lists it).
+  // Check by confirming the active count dropped (the demo seed also has 1 active; after expire this one
+  // moves to past, so the active heading section no longer contains it).
+  await expect(
+    page.locator('.platform-broadcast-card--expired').filter({ hasText: 'Test mentenanță T253' }),
+  ).toBeVisible();
+});

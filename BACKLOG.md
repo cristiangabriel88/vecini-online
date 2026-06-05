@@ -104,7 +104,7 @@ In live mode `PlatformHomePage` shows no metrics (only a "live metrics note"); t
 
 Done: added `platformOverviewLogic.ts` with `computeOverview()` (pure, 5-input rollup); rewired `PlatformHomePage` with three KPI sections (associations breakdown, 30-day activity, operations); all 8 section cards now link to their live pages; 16 unit tests; bilingual RO/EN; CSS sub-label dots for health/lifecycle status. All pipelines green.
 
-### ⬜ T253 — [P2] Platform-wide broadcast / maintenance notice
+### ✅ T253 — [P2] Platform-wide broadcast / maintenance notice
 
 The superadmin has no way to communicate with all tenants at once (planned maintenance, incident notice, policy change). Add a `/consola/anunturi-platforma` section to compose a platform broadcast (title + body, severity info/warning/critical, optional scheduled window) that fans out as an **essential** communication (consent-bypassing like F03) to every tenant, and renders as a dismissible banner in the resident/admin app for the targeted audience (all tenants, or a chosen subset). New `platform_broadcasts` table (super_admin write; all members read active ones) + a render hook in the main app shell. Each publish/expire is audited. Demo shows a seeded active broadcast banner offline. Bilingual, premium-feel, unit tests + one E2E (publish → banner appears in app → dismiss). Prereq: platform shell, T14 (notification fan-out) for the live dispatch.
 

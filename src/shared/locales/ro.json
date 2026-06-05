@@ -2750,7 +2750,9 @@
       "impersonation.started": "Sesiune de diagnosticare pornită",
       "impersonation.ended": "Sesiune de diagnosticare încheiată",
       "platform.admin_invited": "Operator platformă invitat",
-      "platform.admin_revoked": "Acces operator platformă revocat"
+      "platform.admin_revoked": "Acces operator platformă revocat",
+      "broadcast.published": "Anunț platformă publicat",
+      "broadcast.expired": "Anunț platformă expirat"
     },
     "entity": {
       "feature": "Funcționalitate",
@@ -2767,7 +2769,8 @@
       "aga": "Ședință AGA",
       "budget": "Buget",
       "petition": "Petiție",
-      "impersonation": "Impersonare"
+      "impersonation": "Impersonare",
+      "broadcast": "Anunț platformă"
     }
   },
   "chrome": {
@@ -2961,6 +2964,10 @@
       "team": {
         "title": "Echipa platformei",
         "desc": "Gestionează lista operatorilor platformei -- invită operatori noi și revocă accesul."
+      },
+      "broadcasts": {
+        "title": "Anunțuri platformă",
+        "desc": "Publică anunțuri de mentenanță sau incidente la nivelul întregii platforme, vizibile tuturor chiriașilor."
       }
     },
     "asociatii": {
@@ -3302,6 +3309,48 @@
         "lastAdmin": "Nu se poate elimina ultimul operator al platformei.",
         "inviteFailed": "Invitația a eșuat. Încearcă din nou.",
         "revokeFailed": "Revocarea a eșuat. Încearcă din nou."
+      }
+    },
+    "broadcasts": {
+      "title": "Anunțuri platformă",
+      "subtitle": "Publică anunțuri pentru ferestre de mentenanță, incidente sau modificări de politică. Fiecare anunț apare ca un banner în aplicația locatarilor și administratorilor.",
+      "newCta": "Anunț nou",
+      "composeTitle": "Compune anunț",
+      "publishCta": "Publică",
+      "publishedSuccess": "Anunț publicat cu succes.",
+      "expireCta": "Expiră acum",
+      "activeTitle": "Anunțuri active",
+      "pastTitle": "Anunțuri trecute",
+      "emptyActive": "Niciun anunț activ.",
+      "statusActive": "Activ",
+      "statusExpired": "Expirat",
+      "publishedOn": "Publicat {{date}}",
+      "expiresOn": "Expiră {{date}}",
+      "expiredOn": "Expirat {{date}}",
+      "dismissAriaLabel": "Închide anunțul",
+      "severity": {
+        "info": "Informație",
+        "warning": "Avertisment",
+        "critical": "Critic"
+      },
+      "target": {
+        "all": "Toți utilizatorii",
+        "admin": "Doar administratori"
+      },
+      "fields": {
+        "title": "Titlu",
+        "titlePlaceholder": "ex: Mentenanță programată duminică",
+        "body": "Mesaj",
+        "bodyPlaceholder": "Descrie fereastra de mentenanță, incidentul sau modificarea de politică.",
+        "severity": "Severitate",
+        "target": "Audiență",
+        "endsAt": "Expiră automat la",
+        "optional": "(opțional)",
+        "endsAtHint": "Lasă gol pentru un anunț permanent; setează o dată pentru ascundere automată."
+      },
+      "err": {
+        "required": "Câmp obligatoriu",
+        "tooShort": "Prea scurt (minimum 4 caractere)"
       }
     }
   },
