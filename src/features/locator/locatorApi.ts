@@ -64,6 +64,23 @@ export async function hydrateLocator(asociatieId: string): Promise<void> {
   }
 }
 
+/** Update a neighbour post: updates the store and mirrors to `resident_posts`. */
+export function updatePost(
+  id: string,
+  patch: Pick<ResidentPost, 'title' | 'body' | 'category'>,
+): void {
+  useLocatorStore.getState().update(id, patch);
+  if (isSupabaseConfigured) {
+    void (async () => {
+      try {
+        await supabase.from('resident_posts').update(patch).eq('id', id);
+      } catch (err) {
+        reportError(err, { source: 'locatorApi.update' });
+      }
+    })();
+  }
+}
+
 /** Publish a neighbour post: updates the store and mirrors to `resident_posts`
  *  when a backend is configured. Returns the recorded post. */
 export function createPost(

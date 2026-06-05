@@ -20,6 +20,8 @@ interface LocatorState {
     input: NewResidentPostInput,
   ) => ResidentPost;
   remove: (id: string) => void;
+  /** Update mutable fields of one post in place. */
+  update: (id: string, patch: Pick<ResidentPost, 'title' | 'body' | 'category'>) => void;
   /** Replace the full list (used by live hydration). */
   replace: (items: ResidentPost[]) => void;
   /** Set or clear the live-fetch error (called by the API layer). */
@@ -50,6 +52,8 @@ export const useLocatorStore = create<LocatorState>((set) => ({
     return post;
   },
   remove: (id) => set((s) => ({ items: s.items.filter((p) => p.id !== id) })),
+  update: (id, patch) =>
+    set((s) => ({ items: s.items.map((p) => (p.id === id ? { ...p, ...patch } : p)) })),
   replace: (items) => set({ items }),
   setFetchError: (msg) => set({ fetchError: msg }),
 }));

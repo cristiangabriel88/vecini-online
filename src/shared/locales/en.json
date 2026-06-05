@@ -666,7 +666,9 @@
     "category_info": "Notice",
     "expiresIn": "Expires in {{count}} days",
     "posted": "Post published. Visible for 14 days.",
-    "empty": "No active posts. Publish the first one with the button above."
+    "empty": "No active posts. Publish the first one with the button above.",
+    "editPost": "Edit post",
+    "updated": "Post updated."
   },
   "faq": {
     "title": "Frequently asked questions",

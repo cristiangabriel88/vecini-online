@@ -568,7 +568,7 @@
     "prefEmailToggleOff": "Dezactivează",
     "prefEmailHint": "Notificările urgente (alerte de securitate, incendii, avarii) ajung întotdeauna, indiferent de această setare.",
     "prefQuietHours": "Ore de liniște",
-    "prefQuietHoursHint": "În intervalul configurat, emailurile sunt blocate (cu excepția urgenților).",
+    "prefQuietHoursHint": "În intervalul configurat, emailurile sunt blocate (cu excepția urgențelor).",
     "prefQuietStart": "De la",
     "prefQuietEnd": "Până la",
     "prefQuietSave": "Salvează",
@@ -666,7 +666,9 @@
     "category_info": "Informație",
     "expiresIn": "Expiră în {{count}} zile",
     "posted": "Anunț publicat. Va fi vizibil 14 zile.",
-    "empty": "Nu sunt anunțuri active. Poți publica primul cu butonul de mai sus."
+    "empty": "Nu sunt anunțuri active. Poți publica primul cu butonul de mai sus.",
+    "editPost": "Editează anunțul",
+    "updated": "Anunț actualizat."
   },
   "faq": {
     "title": "Întrebări frecvente",

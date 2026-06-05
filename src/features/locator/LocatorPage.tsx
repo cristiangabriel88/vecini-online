@@ -1,7 +1,7 @@
 import { memo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { Plus, StickyNote, Clock } from 'lucide-react';
+import { Pencil, Plus, StickyNote, Clock } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Button } from '@/shared/components/Button';
 import { Card } from '@/shared/components/Card';
@@ -16,7 +16,7 @@ import { useAuthStore } from '@/shared/store/authStore';
 import { DEMO_ASOCIATIE, DEMO_CURRENT_USER_ID, DEMO_CURRENT_USER_NAME } from '@/shared/demo/demoData';
 import type { ResidentPost, ResidentPostCategory } from '@/shared/types/domain';
 import { useLocatorStore } from './locatorStore';
-import { hydrateLocator, createPost } from './locatorApi';
+import { hydrateLocator, createPost, updatePost } from './locatorApi';
 import { isExpired, daysLeft } from './locatorLogic';
 
 const CATEGORIES: ResidentPostCategory[] = ['vand', 'caut', 'ofer', 'info'];
@@ -27,13 +27,33 @@ const tone: Record<ResidentPostCategory, 'success' | 'primary' | 'warning' | 'ne
   info: 'neutral',
 };
 
-const PostCard = memo(function PostCard({ p }: { p: ResidentPost }) {
+const PostCard = memo(function PostCard({
+  p,
+  isOwn,
+  onEdit,
+}: {
+  p: ResidentPost;
+  isOwn: boolean;
+  onEdit: (p: ResidentPost) => void;
+}) {
   const { t } = useTranslation();
   return (
     <Card>
       <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-lg font-semibold">{p.title}</h2>
-        <Badge tone={tone[p.category]}>{t(`locator.category_${p.category}`)}</Badge>
+        <div className="flex items-center gap-2">
+          <Badge tone={tone[p.category]}>{t(`locator.category_${p.category}`)}</Badge>
+          {isOwn && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onEdit(p)}
+              aria-label={t('locator.editPost')}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
       <p className="mb-2 text-sm text-muted">
         {p.author_name} · {formatDateLong(p.created_at)}
@@ -51,28 +71,45 @@ function LocatorComposeModal({
   onClose,
   asociatieId,
   profile,
+  editTarget,
 }: {
   open: boolean;
   onClose: () => void;
   asociatieId: string;
   profile: { id?: string; full_name?: string | null } | null;
+  editTarget?: ResidentPost;
 }) {
   const { t } = useTranslation();
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [category, setCategory] = useState<ResidentPostCategory>('vand');
 
+  useEffect(() => {
+    if (!open) return;
+    if (editTarget) {
+      setTitle(editTarget.title);
+      setBody(editTarget.body);
+      setCategory(editTarget.category);
+    } else {
+      setTitle('');
+      setBody('');
+      setCategory('vand');
+    }
+  }, [open, editTarget]);
+
   const submit = () => {
     if (!title.trim() || !body.trim()) return;
-    const author = {
-      id: profile?.id ?? DEMO_CURRENT_USER_ID,
-      name: profile?.full_name ?? DEMO_CURRENT_USER_NAME,
-    };
-    createPost(asociatieId, author, { title: title.trim(), body: body.trim(), category });
-    toast.success(t('locator.posted'));
-    setTitle('');
-    setBody('');
-    setCategory('vand');
+    if (editTarget) {
+      updatePost(editTarget.id, { title: title.trim(), body: body.trim(), category });
+      toast.success(t('locator.updated'));
+    } else {
+      const author = {
+        id: profile?.id ?? DEMO_CURRENT_USER_ID,
+        name: profile?.full_name ?? DEMO_CURRENT_USER_NAME,
+      };
+      createPost(asociatieId, author, { title: title.trim(), body: body.trim(), category });
+      toast.success(t('locator.posted'));
+    }
     onClose();
   };
 
@@ -80,14 +117,14 @@ function LocatorComposeModal({
     <Modal
       open={open}
       onClose={onClose}
-      title={t('locator.new')}
+      title={editTarget ? t('locator.editPost') : t('locator.new')}
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>
             {t('common.cancel')}
           </Button>
           <Button onClick={submit} disabled={!title.trim() || !body.trim()}>
-            {t('common.publish')}
+            {editTarget ? t('common.save') : t('common.publish')}
           </Button>
         </>
       }
@@ -115,9 +152,11 @@ export default function LocatorPage() {
   const { t } = useTranslation();
   const asociatieId = useAuthStore((s) => s.currentAsociatieId) ?? DEMO_ASOCIATIE.id;
   const profile = useAuthStore((s) => s.profile);
+  const currentUserId = profile?.id ?? DEMO_CURRENT_USER_ID;
   const items = useLocatorStore((s) => s.items);
   const fetchError = useLocatorStore((s) => s.fetchError);
   const [open, setOpen] = useState(false);
+  const [editingPost, setEditingPost] = useState<ResidentPost | undefined>(undefined);
 
   useEffect(() => {
     if (asociatieId) void hydrateLocator(asociatieId);
@@ -127,13 +166,23 @@ export default function LocatorPage() {
     .filter((p) => !isExpired(p.expires_at))
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
+  const handleEdit = (p: ResidentPost) => {
+    setEditingPost(p);
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setEditingPost(undefined);
+  };
+
   return (
     <div>
       <PageHeader
         title={t('locator.title')}
         subtitle={t('locator.subtitle')}
         action={
-          <Button onClick={() => setOpen(true)}>
+          <Button onClick={() => { setEditingPost(undefined); setOpen(true); }}>
             <Plus className="h-4 w-4" /> {t('locator.new')}
           </Button>
         }
@@ -159,16 +208,22 @@ export default function LocatorPage() {
       ) : (
         <div className="space-y-3">
           {live.map((p) => (
-            <PostCard key={p.id} p={p} />
+            <PostCard
+              key={p.id}
+              p={p}
+              isOwn={p.author_user_id === currentUserId}
+              onEdit={handleEdit}
+            />
           ))}
         </div>
       )}
 
       <LocatorComposeModal
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={handleClose}
         asociatieId={asociatieId}
         profile={profile}
+        editTarget={editingPost}
       />
     </div>
   );
