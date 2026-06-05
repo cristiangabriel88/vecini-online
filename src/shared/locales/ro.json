@@ -466,7 +466,11 @@
     "requestDismissedToast": "Cererile pentru {{feature}} au fost respinse",
     "managingFor": "Gestionezi funcționalitățile pentru: {{name}}",
     "noAsociatieTitle": "Nicio asociație selectată",
-    "noAsociatieBody": "Selectează sau creează o asociație pentru a gestiona funcționalitățile acesteia."
+    "noAsociatieBody": "Selectează sau creează o asociație pentru a gestiona funcționalitățile acesteia.",
+    "selectAll": "Activează toate",
+    "deselectAll": "Dezactivează toate",
+    "masterToggleLabel": "Toate funcționalitățile",
+    "masterToggleDesc": "Activează sau dezactivează toate funcționalitățile simultan"
   },
   "announcements": {
     "title": "Anunțuri",

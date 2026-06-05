@@ -466,7 +466,11 @@
     "requestDismissedToast": "Requests for {{feature}} dismissed",
     "managingFor": "Managing features for: {{name}}",
     "noAsociatieTitle": "No association selected",
-    "noAsociatieBody": "Select or create an association first to manage its features."
+    "noAsociatieBody": "Select or create an association first to manage its features.",
+    "selectAll": "Enable all",
+    "deselectAll": "Disable all",
+    "masterToggleLabel": "All features",
+    "masterToggleDesc": "Enable or disable all features at once"
   },
   "announcements": {
     "title": "Announcements",

@@ -38,8 +38,34 @@ export default function FeaturesAdminPage() {
   const clearRequests = useFeatureRequestStore((s) => s.clearFor);
   const hydrateRequests = useFeatureRequestStore((s) => s.hydrateFor);
 
-  // The module key whose dismissal is awaiting confirmation, or null.
   const [pendingDismiss, setPendingDismiss] = useState<string | null>(null);
+
+  const getCategoryFeatures = (cat: FeatureCategory) => featuresByCategory(cat);
+
+  const isCategoryAllEnabled = (cat: FeatureCategory) =>
+    getCategoryFeatures(cat).every((f) => Boolean(flags[f.key]));
+
+  const isAllEnabled = categories.every((cat) => isCategoryAllEnabled(cat));
+
+  const toggleCategory = (cat: FeatureCategory, enable: boolean) => {
+    if (!asociatieId) return;
+    getCategoryFeatures(cat).forEach((f) => {
+      if (Boolean(flags[f.key]) === enable) return;
+      setFeatureFlagLive(asociatieId, f.key, enable);
+      if (enable) clearRequests(asociatieId, f.key);
+      recordAudit({
+        action: enable ? 'feature.enabled' : 'feature.disabled',
+        entity: 'feature',
+        entity_label: f.key,
+        before: enable ? 'off' : 'on',
+        after: enable ? 'on' : 'off',
+      });
+    });
+  };
+
+  const toggleAll = (enable: boolean) => {
+    categories.forEach((cat) => toggleCategory(cat, enable));
+  };
 
   // Live: hydrate feature flags and feature requests from the backend when
   // Supabase is configured. Both are no-ops offline; the persisted stores hold
@@ -113,6 +139,18 @@ export default function FeaturesAdminPage() {
       ) : (
       <div className="space-y-6">
         <p className="text-sm text-muted">{t('features.managingFor', { name: asociatie?.name ?? asociatieId })}</p>
+        <div className="flex items-center justify-between rounded-lg border border-border bg-surface px-4 py-3">
+          <div>
+            <p className="font-medium">{t('features.masterToggleLabel')}</p>
+            <p className="text-sm text-muted">{t('features.masterToggleDesc')}</p>
+          </div>
+          <Switch
+            label={isAllEnabled ? t('features.deselectAll') : t('features.selectAll')}
+            checked={isAllEnabled}
+            disabled={!asociatieId}
+            onChange={toggleAll}
+          />
+        </div>
         {triage.length > 0 && (
           <section aria-label={t('features.requestsTitle')}>
             <h2 className="mb-2 flex items-center gap-2 text-lg font-semibold">
@@ -165,7 +203,20 @@ export default function FeaturesAdminPage() {
         )}
         {categories.map((cat) => (
           <section key={cat}>
-            <h2 className="mb-2 text-lg font-semibold">{categoryLabel(t, cat)}</h2>
+            <div className="mb-2 flex items-center justify-between">
+              <h2 className="text-lg font-semibold">{categoryLabel(t, cat)}</h2>
+              <div className="flex items-center gap-2">
+                <span className="select-none text-sm text-muted">
+                  {isCategoryAllEnabled(cat) ? t('features.deselectAll') : t('features.selectAll')}
+                </span>
+                <Switch
+                  label={`${categoryLabel(t, cat)}: ${isCategoryAllEnabled(cat) ? t('features.deselectAll') : t('features.selectAll')}`}
+                  checked={isCategoryAllEnabled(cat)}
+                  disabled={!asociatieId}
+                  onChange={(v) => toggleCategory(cat, v)}
+                />
+              </div>
+            </div>
             <Card className="divide-y divide-border p-0">
               {featuresByCategory(cat).map((f) => (
                 <div key={f.key} className="flex items-center gap-3 p-3">
