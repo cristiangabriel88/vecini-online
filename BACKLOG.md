@@ -106,9 +106,13 @@ In live mode `PlatformHomePage` shows no metrics (only a "live metrics note"); t
 
 The superadmin has no way to communicate with all tenants at once (planned maintenance, incident notice, policy change). Add a `/consola/anunturi-platforma` section to compose a platform broadcast (title + body, severity info/warning/critical, optional scheduled window) that fans out as an **essential** communication (consent-bypassing like F03) to every tenant, and renders as a dismissible banner in the resident/admin app for the targeted audience (all tenants, or a chosen subset). New `platform_broadcasts` table (super_admin write; all members read active ones) + a render hook in the main app shell. Each publish/expire is audited. Demo shows a seeded active broadcast banner offline. Bilingual, premium-feel, unit tests + one E2E (publish → banner appears in app → dismiss). Prereq: platform shell, T14 (notification fan-out) for the live dispatch.
 
-### ⬜ T254 — [P2] Platform-side subscription management (change plan / comp / dunning)
+### ⬜ T254a — [P2] Platform-side subscription: change plan + comp / credit
 
-`PlatformSubscriptionsPage` can only `markPaid`; a complete billing console needs to act on a tenant's plan. Add per-subscription actions: **change plan** (move a tenant between the 3 canonical tiers, prorated note), **comp / apply credit** (set a tenant to a free or discounted plan with a reason, e.g. early adopter), **record a manual payment** (offline bank transfer marks an invoice paid with a reference), and **trigger dunning** (move an overdue subscription into the grace/past-due flow that the T19 banners already render). Each privileged write is a service-role function re-checking `is_super_admin()`, audited, mirrored to the `subscriptions`/`invoices` tables. Demo drives the persisted platform store. Bilingual, premium-feel, unit tests for the new store actions + one E2E. Prereq: T19.
+`PlatformSubscriptionsPage` (`platformSubscriptionsStore.ts`) can only `markPaid`; a complete billing console needs to act on a tenant's plan. Add the two plan-mutating actions: **change plan** (move a tenant between the 3 canonical tiers with a prorated note) and **comp / apply credit** (set a tenant to a free or discounted plan with a reason, e.g. early adopter). Each privileged write is a service-role Netlify function re-checking `is_super_admin()`, audited into the tenant's chain, and mirrored to the `subscriptions` table. Demo drives the persisted `platformSubscriptionsStore`. Bilingual, premium-feel, unit tests for the new store actions + one E2E (change plan -> tier badge updates). Prereq: T19. (Split from the original T254; T254b covers payment + dunning.)
+
+### ⬜ T254b — [P2] Platform-side subscription: record manual payment + trigger dunning
+
+Building on T254a, add the two invoice/lifecycle actions: **record a manual payment** (offline bank transfer marks an invoice paid with a reference) and **trigger dunning** (move an overdue subscription into the grace/past-due flow that the T19 banners already render). Each privileged write is a service-role function re-checking `is_super_admin()`, audited, and mirrored to the `invoices`/`subscriptions` tables. Demo drives the persisted platform store. Bilingual, premium-feel, unit tests for the new store actions + one E2E (record payment -> invoice flips to paid). Prereq: T254a, T19.
 
 ### ⬜ T255 — [P3] Cross-tenant global search
 
@@ -148,9 +152,17 @@ The "lite" rendering tier (added 2026-06-05, see `DECISIONS.md`) strips the GPU-
 
 > From the 2026-06-05 deep-analysis pass. The app reports errors into an in-memory ring buffer + a platform table but has no persistence-across-refresh, no alerting, no coverage metrics, no bundle budget, and nothing watching the health endpoint. These close the operational-visibility gaps without adding a third-party data processor (in-house only, per `DECISIONS.md`).
 
-### ⬜ T258 — [P1] In-house error monitoring + alerting
+### ⬜ T258a — [P1] Durable error persistence + release/stage tagging
 
-Errors today land in an in-memory 100-item ring buffer (`src/shared/lib/errorReporting.ts`) and a `platform_error_reports` table surfaced at `/consola/erori` (T96), but the buffer is lost on refresh, there is no real-time alerting, no source maps, and no release/stage tagging. Keep everything in-house (no third-party sink, no new CSP `connect-src` exception): durably persist error groups (already partly in `platform_error_reports`; ensure client errors flush there reliably via `error-report.ts`), tag each report with the build release + `VITE_APP_STAGE`, add source-map symbolication on build so stack frames are readable, preserve the existing PII/secret scrubbing, and add an alerting path that emails (via the existing `_shared/resend.ts` wrapper) and/or raises a flag on the platform overview when a new error group first appears or spikes. If the in-app store proves insufficient at scale, the follow-up option is self-hosting a Sentry-compatible collector (GlitchTip) reached only via our own origin. Demo / no-key = no-op. Bilingual surfacing, unit tests for the grouping + alert-trigger logic. Prereq: T96.
+Errors today land in an in-memory 100-item ring buffer (`src/shared/lib/errorReporting.ts`, flushed via `errorSink.ts` -> `netlify/functions/error-report.ts` into the `platform_error_reports` table surfaced at `/consola/erori`, T96), but the buffer is lost on refresh and reports carry no build/stage context. Make client errors flush durably and reliably to `platform_error_reports` (retry/queue that survives a refresh, e.g. a small persisted outbox) and tag each report with the build release id + `VITE_APP_STAGE`. Preserve the existing PII/secret scrubbing exactly. Surface the release/stage on the `/consola/erori` group view. Keep it in-house (no third-party sink, no new CSP `connect-src` exception). Demo / no-key = no-op. Bilingual surfacing, unit tests for the tagging + flush-queue logic. Prereq: T96. (Split from the original T258.)
+
+### ⬜ T258b — [P2] Source-map symbolication for error stacks
+
+Stack frames in `platform_error_reports` point at minified bundle positions and are unreadable. Emit hidden source maps on the PROD/DEV builds (kept private, not served publicly so the CSP/exposure posture is unchanged) and add a symbolication step (build-time upload to a private location the platform console can read, or an on-demand resolver in the `/consola/erori` view) that maps a captured frame back to original `file:line`. In-house only, no third-party sink. Unit test for the frame-mapping helper. Prereq: T258a.
+
+### ⬜ T258c — [P1] New-error / spike alerting
+
+`platform_error_reports` is passive: nothing notifies the team when a new error group first appears or an existing one spikes. Add an alerting path that emails via the existing `_shared/resend.ts` wrapper and/or raises a flag on the platform overview when a group is first seen or crosses a rate threshold, with de-duplication so an error storm does not spam. In-house only (no new CSP `connect-src` exception); if the in-app store proves insufficient at scale, the documented follow-up is self-hosting a Sentry-compatible collector (GlitchTip) reached only via our own origin. Demo / no-key = no-op. Unit tests for the new-group + spike-trigger logic. Prereq: T258a.
 
 ### ⬜ T259 — [P2] Test-coverage tooling + threshold gate
 
@@ -180,9 +192,13 @@ Nothing guards bundle growth today. Wire `rollup-plugin-visualizer` into the Vit
 
 Heavy libraries such as `xlsx` (and any PDF/render libs used by few features) currently sit in shared/vendor chunks even though only a handful of export/report features need them. Convert those imports to dynamic `import()` at the call sites (behind the existing export buttons) so they leave the initial and common route bundles, load on demand, and show a small loading state while fetching. Confirm the reduction with the T260 analyzer. Prereq: T260 (to measure before/after).
 
-### ⬜ T265 — [P2] Image handling for user uploads
+### ⬜ T265a — [P2] Shared `<Photo>` component with lazy/async rendering
 
-User-uploaded photos (tickets, project journal, parking, visitor reports, etc.) render via plain `<img>` with no `loading="lazy"`, no `decoding="async"`, and no width/height hints, and they are stored at full camera resolution. Add `loading="lazy"` + `decoding="async"` + intrinsic dimensions to photo render sites (ideally via a shared `<Photo>`/image component), and add a client-side downscale + re-encode step (canvas, cap longest edge + target quality) before upload to cut Storage cost and bandwidth. Keep the demo-stub upload path working when Storage is absent. Unit test for the resize helper. Prereq: none.
+User-uploaded photos (tickets, project journal, parking, visitor reports, etc.) render via plain `<img>` with no `loading="lazy"`, no `decoding="async"`, and no width/height hints, causing layout shift and eager network use. Add a shared `<Photo>` image component (`loading="lazy"`, `decoding="async"`, intrinsic width/height, graceful fallback) and migrate the photo render sites onto it. No upload-path change. Keep the demo-stub image paths working. Unit test for the component. Prereq: none. (Split from the original T265.)
+
+### ⬜ T265b — [P2] Client-side image downscale before upload
+
+Photos are stored at full camera resolution, inflating Storage cost and bandwidth. Add a client-side downscale + re-encode step (canvas: cap longest edge + target quality) applied before upload at the photo-upload call sites, skipping re-encode for already-small images. Keep the demo-stub upload path working when Storage is absent. Unit test for the resize helper. Prereq: none.
 
 ### Group F — UX, flows & forms
 
