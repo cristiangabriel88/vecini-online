@@ -77,6 +77,26 @@ export default defineConfig(({ mode }) => {
       setupFiles: ['./tests/unit/setup.ts'],
       include: ['tests/unit/**/*.{test,spec}.{ts,tsx}'],
       css: false,
+      coverage: {
+        provider: 'v8',
+        reporter: ['text-summary', 'html', 'json-summary'],
+        include: ['src/**/*.{ts,tsx}'],
+        exclude: [
+          'src/shared/demo/**',
+          'src/**/*.d.ts',
+          'src/vite-env.d.ts',
+          'src/main.tsx',
+          'src/platform/main.tsx',
+          'src/i18n.ts',
+        ],
+        // Baseline thresholds from 2026-06-06 (T259). Only ratchet upward.
+        thresholds: {
+          lines: 30,
+          branches: 80,
+          functions: 68,
+          statements: 30,
+        },
+      },
     },
   };
 });

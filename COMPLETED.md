@@ -4,6 +4,13 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T259 ✅ 2026-06-06 -- Test-coverage tooling + threshold gate
+
+Added `@vitest/coverage-v8@3.2.4` (+ `@testing-library/dom` peer dep that was missing) to devDependencies. Added `"test:coverage": "vitest run --coverage"` script. Configured `test.coverage` block in `vite.config.ts`: provider `v8`; reporters `text-summary`, `html`, `json-summary`; include `src/**/*.{ts,tsx}`; exclude `src/shared/demo/**`, `*.d.ts`, `vite-env.d.ts`, `main.tsx`, `platform/main.tsx`, `i18n.ts`; global thresholds seeded at the 2026-06-06 baseline (lines 30, branches 80, functions 68, statements 30) to ratchet upward only. CI (`.github/workflows/ci.yml`): replaced `npm test` with `npm run test:coverage` and added an `actions/upload-artifact@v4` step (always, 30-day retention) that uploads the `coverage/` HTML report as `coverage-report`. The HTML report gives per-feature drill-down; the terminal `text-summary` prints totals on every run. All 304 test files (2945 tests) green, all 3 builds pass.
+- modified: package.json (new script + two devDependencies)
+- modified: vite.config.ts (test.coverage block)
+- modified: .github/workflows/ci.yml (coverage step + artifact upload)
+
 ### T258c ✅ 2026-06-06 -- New-error / spike alerting
 
 Pure alert-trigger logic extracted to `netlify/functions/_shared/errorAlertLogic.ts` (`shouldAlertNewGroup`, `shouldAlertSpike`, `buildAlertEmail`) with 13 unit tests. `error-report.ts` fires a post-insert `checkAndAlert()` call (fire-and-forget within the Lambda) that queries the DB for total group count (new-group detection: count == 1) and recent-hour count (spike detection: count >= 10); de-duplicates per group key via an in-memory `_alertStore` Map (4 h de-dup window, same pattern as rate limiter); emails via `_shared/resend.ts` to `PLATFORM_ALERT_EMAIL` (fallback `RESEND_FROM_EMAIL`); no-op when keys absent. `platformOverviewLogic.ts` gains `newErrorGroupsLast24h` (groups whose `firstAt` is within the last 24 h; accepts optional `nowMs` for testing). Platform homepage ops section shows a `n new in 24 h` warning sub-label on the error-groups stat when > 0. Bilingual RO/EN. 5 new `newErrorGroupsLast24h` tests in `platformOverview.test.ts`. All 304 test files (2945 tests) green, all 3 builds pass.

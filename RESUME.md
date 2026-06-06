@@ -5,12 +5,12 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-06
-- last_task: T258c New-error / spike alerting -- errorAlertLogic.ts (pure, 13 tests); error-report.ts post-insert alert check (new-group / spike, 4h de-dup, in-memory Map); email via resend.ts to PLATFORM_ALERT_EMAIL; platformOverviewLogic.ts newErrorGroupsLast24h field; homepage sub-label; bilingual
-- pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
+- last_task: T259 Test-coverage tooling + threshold gate -- @vitest/coverage-v8; test:coverage script; vite.config.ts coverage block (provider v8, reporters text-summary/html/json-summary, include src/**, excludes demo/d.ts/main, thresholds lines:30 branches:80 functions:68 statements:30); CI runs test:coverage + uploads HTML artifact (30d)
+- pipeline: green (lint + typecheck + test:coverage + build + build:pi + build:demo)
 - counts: 304 test files / 2945 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task. DEV now matches PROD exactly (no role switcher; switcher is DEMO-only)
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
-- next: T259 [P2] Test-coverage tooling + threshold gate
+- next: T260 [P2] Bundle-size budget + analyzer
 - features: 67/67 demo-complete (offline UI + pure logic + tests); live-wired to Supabase: F01-F24 + F28-F32 + F33-F55 + F57-F65 (60 features) + auth/invites/onboarding; remaining 7 features offline-first, live-activation queued (F25-F27 bookings already live-wired T208, F56 emergency contacts live-wired earlier). F28/F36/F66 cross-feature glue wired (T104). Platform console: T20 umbrella complete (T93/T94/T95/T96/T97/T98/T99/T119/T120/T121 all done).
 - e2e: F01/F02/F03/F04/F05/F06/F07/F08/F09/F10/F11/F12/F13/F14/F15/F16/F17/F18/F19/F20/F21/F22/F23/F24/F25/F26/F27/F28/F29/F30/F31/F32/F33/F34/F35/F36/F37/F38/F39/F40/F41/F44/F47/F48/F50/F51/F52/F53/F57/F62/F63/F65/F66/F67 happy paths green on chromium + mobile (55 features / 82%). Platform shell + provisioning E2E (T119/T121) done. Full smoke harness reworked (T211 done). E2E closure continues T224+.
 - blockers: none.

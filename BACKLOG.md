@@ -163,7 +163,7 @@ Done: `sourcemap: 'hidden'` emitted for PROD/DEV via `loadEnv` in vite.config.ts
 
 `platform_error_reports` is passive: nothing notifies the team when a new error group first appears or an existing one spikes. Add an alerting path that emails via the existing `_shared/resend.ts` wrapper and/or raises a flag on the platform overview when a group is first seen or crosses a rate threshold, with de-duplication so an error storm does not spam. In-house only (no new CSP `connect-src` exception); if the in-app store proves insufficient at scale, the documented follow-up is self-hosting a Sentry-compatible collector (GlitchTip) reached only via our own origin. Demo / no-key = no-op. Unit tests for the new-group + spike-trigger logic. Prereq: T258a.
 
-### ⬜ T259 — [P2] Test-coverage tooling + threshold gate
+### ✅ T259 — [P2] Test-coverage tooling + threshold gate
 
 There is no coverage measurement today (2,747 unit tests, but no line/branch metrics). Add the vitest v8 coverage provider, an `npm run test:coverage` script, an HTML report artifact in CI (`.github/workflows/ci.yml`), and a global threshold gate seeded at the current baseline so it can only ratchet upward. Exclude generated/demo-seed files from the denominator and surface a per-feature summary so thin spots are visible. No product change. Prereq: none.
 
