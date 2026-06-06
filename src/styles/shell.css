@@ -1384,6 +1384,37 @@
 }
 
 
+/* ── Perf mode segmented control ──────────────────────────── */
+.perfmode {
+  display: inline-flex;
+  border-radius: var(--radius-sm);
+  background: var(--bg-subtle);
+  padding: 2px;
+  gap: 2px;
+}
+.perfmode__btn {
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  padding: 2px 8px;
+  border: none;
+  border-radius: calc(var(--radius-sm) - 2px);
+  cursor: pointer;
+  color: var(--text-tertiary);
+  background: transparent;
+  transition: background 180ms var(--ease-out), color 180ms var(--ease-out);
+  letter-spacing: 0.01em;
+}
+.perfmode__btn:hover { color: var(--text-primary); }
+.perfmode__btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+.perfmode__btn[data-active="true"] {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-xs);
+}
+
 /* ── Lists inside the info modals ────────────────────────── */
 .usermodal__lead {
   font-family: var(--font-serif);

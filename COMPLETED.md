@@ -4,6 +4,16 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T257 ✅ 2026-06-06 -- User-facing performance / reduce-motion mode
+
+New `src/shared/store/perfStore.ts` with `usePerfStore` (Zustand, persisted at `vecini.perf`) and a pure `resolvePerf()` helper. Resolution priority: `?perf=<tier>` URL param > stored user preference > `prefers-reduced-motion` media query > stage default (dev = lite, prod/demo = full). `src/main.tsx` now calls `usePerfStore.getState().apply()` instead of the hardcoded `isDev() ? 'lite' : 'full'` assignment. Added a segmented Auto/Lite/Full control in UserMenu (`.perfmode` / `.perfmode__btn` CSS) below the tint row. Bilingual RO/EN keys (`chrome.userMenu.perfMode/perfModeAuto/perfModeLite/perfModeFull`). New `tests/unit/perfStore.test.ts` (11 tests covering all resolution tiers). All 301 test files (2890 tests) green, all 3 builds pass. PROD/DEMO visually unchanged when preference is unset.
+- new: src/shared/store/perfStore.ts
+- new: tests/unit/perfStore.test.ts
+- modified: src/main.tsx (use perfStore.apply() + remove isDev import)
+- modified: src/shared/components/UserMenu.tsx (perf mode selector)
+- modified: src/styles/shell.css (.perfmode segmented control)
+- modified: src/shared/locales/ro.json + en.json (perf mode keys)
+
 ### T247 ✅ 2026-06-06 -- Shared frozen-empty-array helper
 
 New `src/shared/lib/emptyArray.ts` exports `emptyArray<T>()` which always returns the same frozen `never[]` cast to `T[]` -- a single canonical stable reference replacing ~45 per-file `const EMPTY_* = []` / `Object.freeze([])` declarations across feature logic files and `auditStore.ts`. The const declarations in each file were updated from `const EMPTY_X: SomeType[] = []` or `Object.freeze([] as SomeType[]) as SomeType[]` to `const EMPTY_X = emptyArray<SomeType>()`. Referential identity is preserved (same object every call), so memoized selectors see no churn. New `tests/unit/emptyArray.test.ts` (4 tests: empty length, stable identity, cross-generic identity, frozen). All 300 test files (2879 tests) green, all 3 builds pass. No behavior change.

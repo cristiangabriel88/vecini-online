@@ -15,6 +15,7 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { useTintStore, type Tint } from '@/shared/store/tintStore';
+import { usePerfStore, type PerfPref } from '@/shared/store/perfStore';
 import { useAuthStore } from '@/shared/store/authStore';
 import { DEMO_CURRENT_USER_NAME } from '@/shared/demo/demoData';
 import { Modal } from '@/shared/components/Modal';
@@ -50,6 +51,8 @@ export function UserMenu() {
   const navigate = useNavigate();
   const tint = useTintStore((s) => s.tint);
   const setTint = useTintStore((s) => s.setTint);
+  const perf = usePerfStore((s) => s.pref);
+  const setPref = usePerfStore((s) => s.setPref);
   const signOut = useAuthStore((s) => s.signOut);
   // Reflect the active persona so each demo role (admin, superadmin, locatar)
   // shows its own identity here rather than a fixed placeholder.
@@ -192,6 +195,35 @@ export function UserMenu() {
                     style={{ ['--swatch' as string]: tnt.swatch }}
                     onClick={() => setTint(tnt.id)}
                   />
+                );
+              })}
+            </div>
+          </div>
+
+          {/* perf mode */}
+          <div className="usermenu__tintrow">
+            <span className="usermenu__caps">{t('chrome.userMenu.perfMode')}</span>
+            <div className="perfmode" role="radiogroup" aria-label={t('chrome.userMenu.perfMode')}>
+              {([null, 'lite', 'full'] as PerfPref[]).map((tier) => {
+                const active = perf === tier;
+                const labelKey =
+                  tier === null
+                    ? 'chrome.userMenu.perfModeAuto'
+                    : tier === 'lite'
+                      ? 'chrome.userMenu.perfModeLite'
+                      : 'chrome.userMenu.perfModeFull';
+                return (
+                  <button
+                    key={String(tier)}
+                    type="button"
+                    className="perfmode__btn"
+                    role="radio"
+                    aria-checked={active}
+                    data-active={active}
+                    onClick={() => setPref(tier)}
+                  >
+                    {t(labelKey)}
+                  </button>
                 );
               })}
             </div>

@@ -141,7 +141,7 @@ The ~72 `*Api.ts` files repeat the same live-hydration shell: guard on `isSupaba
 
 ### Group C — Performance
 
-### ⬜ T257 — [P2] User-facing performance / reduce-motion mode
+### ✅ T257 — [P2] User-facing performance / reduce-motion mode
 
 The "lite" rendering tier (added 2026-06-05, see `DECISIONS.md`) strips the GPU-expensive glass/blur layer and is currently auto-enabled only on the Pi `dev` stage via `document.documentElement.dataset.perf` in `src/main.tsx` and gated in `src/styles/perf-lite.css`. Promote it to a real user preference so any low-end device (not just the Pi) can opt in: add a `?perf=lite` / `?perf=full` URL override and a persisted toggle in Settings (Zustand, mirrors `themeStore`'s `apply()` pattern that sets a root attribute), fully bilingual (RO+EN), defaulting to the stage-derived value when unset. Also fold `prefers-reduced-motion` into the same tier resolution so reduced-motion users get the calmer surface automatically. Keep PROD/DEMO visually unchanged when the preference is unset. Prereq: none.
 
