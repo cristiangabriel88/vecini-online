@@ -21,6 +21,8 @@
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:visual": "playwright test tests/e2e/visual.spec.ts --project=chromium",
+    "test:visual:update": "playwright test tests/e2e/visual.spec.ts --project=chromium --update-snapshots",
     "upload-sourcemaps": "node scripts/upload-sourcemaps.mjs",
     "build:platform": "npm run build && node scripts/prepare-platform-deploy.mjs",
     "build:server": "node scripts/build-server.mjs",

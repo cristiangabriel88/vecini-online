@@ -261,7 +261,7 @@ The shared primitives (`Button`, `Input`, `Select`, `Textarea`, `Modal`, `Switch
 
 There is no catalog of the design system's variants, so contributors reverse-engineer them from CSS. Add a lightweight in-app gallery (a `/dev/components` route gated to dev/demo, or Ladle) that renders Button/Input/Card/Badge/Modal/Select variants across themes (light/dark) and the five palettes, so design review and drift-spotting are one click away. Not shipped to PROD users. Prereq: none.
 
-### ⬜ T275 — [P3] Visual-regression snapshots
+### ✅ T275 — [P3] Visual-regression snapshots
 
 Design drift currently slips through (no screenshot diffing). Add Playwright screenshot snapshots for a few key surfaces (dashboard, a feature page, a modal, login) across light/dark and a couple of palettes, with baselines committed and diffs surfaced on CI. Keep the baseline set small and deterministic (freeze time/animations). Pairs with T274. Prereq: none.
 

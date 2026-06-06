@@ -6,6 +6,13 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? 'html' : 'list',
+  // Omit {platform} so the same PNG baseline works on Windows (local) and
+  // Linux (CI). A 3 % pixel-ratio tolerance covers sub-pixel rendering
+  // differences between Chromium on the two OSes.
+  snapshotPathTemplate: '{snapshotDir}/{testFileDir}/{testFileName}-snapshots/{arg}-{projectName}{ext}',
+  expect: {
+    toHaveScreenshot: { maxDiffPixelRatio: 0.03 },
+  },
   use: {
     baseURL: 'http://localhost:4173',
     trace: 'on-first-retry',

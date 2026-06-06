@@ -4,6 +4,14 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T275 ✅ 2026-06-06 -- Visual-regression snapshots
+
+Playwright screenshot snapshots for 5 key surfaces (login, dashboard x2 themes/palettes, announcements list, component gallery) across light/dark and sage/ocean palettes. Each test pre-seeds localStorage (consent accepted, theme, tint, welcome tour seen) via `addInitScript` before navigation, freezes the wall-clock to `2026-06-06T12:00:00Z` via `page.clock.setFixedTime`, and disables CSS animations via an injected style tag so screenshots are bit-stable across runs. `snapshotPathTemplate` strips the `{platform}` suffix from the default so the same PNG baseline is compared on Windows (local) and Linux (CI); a 3% pixel-ratio tolerance covers minor sub-pixel rendering differences between the two OSes. Baseline PNGs committed under `tests/e2e/visual.spec.ts-snapshots/`. New scripts `test:visual` and `test:visual:update` in `package.json`. All 317 test files (3121 tests) green, all 3 builds pass.
+- new: tests/e2e/visual.spec.ts
+- modified: playwright.config.ts (snapshotPathTemplate + expect.toHaveScreenshot)
+- modified: package.json (test:visual, test:visual:update scripts)
+- new: tests/e2e/visual.spec.ts-snapshots/ (5 baseline PNGs)
+
 ### T274 ✅ 2026-06-06 -- Visual component gallery
 
 In-app gallery at `/app/dev/componente` gated to `isDemo() || isDev()` so it never reaches PROD users. Renders all shared primitives (Button, Input, Textarea, Select, Card, Badge, Modal, Switch, Checkbox) across all variants in the current theme/palette, with controls to switch theme (Sun/Moon toggle) and accent palette (5 swatch buttons) directly from the page header. Route registered conditionally in `router.tsx` via spread so no route exists in PROD. Bilingual RO/EN (`gallery.*` keys in both locales). 11 unit tests in `tests/unit/componentGallery.test.tsx` (render, all sections present, palette swatches, aria-pressed state, theme toggle, button variants, modal open/closing state, switch toggle, checkbox toggle, disabled state). All 317 test files (3121 tests) green, all 3 builds + bundle budgets pass.
