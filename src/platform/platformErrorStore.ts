@@ -12,6 +12,8 @@ export interface ErrorGroup {
   firstAt: number;
   lastAt: number;
   refs: string[];
+  releases: string[];
+  stages: string[];
 }
 
 /** Group a flat list of reports by name+source, sorted most-recent first. */
@@ -28,6 +30,8 @@ export function groupReports(reports: PlatformErrorReport[]): ErrorGroup[] {
         existing.lastAt = r.at;
         existing.message = r.message;
       }
+      if (r.release && !existing.releases.includes(r.release)) existing.releases.push(r.release);
+      if (r.stage && !existing.stages.includes(r.stage)) existing.stages.push(r.stage);
     } else {
       map.set(key, {
         key,
@@ -38,6 +42,8 @@ export function groupReports(reports: PlatformErrorReport[]): ErrorGroup[] {
         firstAt: r.at,
         lastAt: r.at,
         refs: [r.ref],
+        releases: r.release ? [r.release] : [],
+        stages: r.stage ? [r.stage] : [],
       });
     }
   }
@@ -52,7 +58,7 @@ const D1 = T0 - 86400000;     // 2026-06-03
 const H6 = T0 + 6 * 3600000;  // 2026-06-04 06:00
 
 const DEMO_REPORTS: PlatformErrorReport[] = [
-  // Group 1: NetworkError from announcementsApi -- 3 occurrences
+  // Group 1: NetworkError from announcementsApi -- 3 occurrences across two releases
   {
     ref: 'IV-M4P7-Q9RZ',
     name: 'NetworkError',
@@ -60,6 +66,8 @@ const DEMO_REPORTS: PlatformErrorReport[] = [
     source: 'announcementsApi.loadAnnouncements',
     extra: { status: 0, feature: 'announcements' },
     at: D5 + 3600000,
+    release: 'a1b2c3d',
+    stage: 'prod',
   },
   {
     ref: 'IV-N5Q8-R0SA',
@@ -68,6 +76,8 @@ const DEMO_REPORTS: PlatformErrorReport[] = [
     source: 'announcementsApi.loadAnnouncements',
     extra: { status: 0, feature: 'announcements' },
     at: D2 + 7200000,
+    release: 'a1b2c3d',
+    stage: 'prod',
   },
   {
     ref: 'IV-P6R9-S1TB',
@@ -76,6 +86,8 @@ const DEMO_REPORTS: PlatformErrorReport[] = [
     source: 'announcementsApi.loadAnnouncements',
     extra: { status: 0, feature: 'announcements' },
     at: H6,
+    release: 'b2c3d4e',
+    stage: 'prod',
   },
   // Group 2: TypeError from realtimeLogic -- 2 occurrences
   {
@@ -85,6 +97,8 @@ const DEMO_REPORTS: PlatformErrorReport[] = [
     source: 'realtimeLogic.applyVoteInsert',
     extra: { feature: 'polls' },
     at: D1 + 10800000,
+    release: 'b2c3d4e',
+    stage: 'prod',
   },
   {
     ref: 'IV-L4G5-M6HI',
@@ -93,6 +107,8 @@ const DEMO_REPORTS: PlatformErrorReport[] = [
     source: 'realtimeLogic.applyVoteInsert',
     extra: { feature: 'polls' },
     at: D1 + 72000000,
+    release: 'b2c3d4e',
+    stage: 'prod',
   },
   // Group 3: Error from error boundary -- 1 occurrence
   {
@@ -102,8 +118,10 @@ const DEMO_REPORTS: PlatformErrorReport[] = [
     source: 'platform-route',
     extra: { route: '/consola/asociatii' },
     at: H6 + 1800000,
+    release: 'b2c3d4e',
+    stage: 'prod',
   },
-  // Group 4: RangeError -- 1 occurrence (oldest)
+  // Group 4: RangeError -- 1 occurrence (oldest, no release tag -- pre-T258a)
   {
     ref: 'IV-R7S8-T9UV',
     name: 'RangeError',

@@ -43,8 +43,10 @@ export default async (req: Request): Promise<Response> => {
       ? report.extra as Record<string, unknown>
       : undefined;
     const safeAt = typeof report.at === 'number' ? report.at : undefined;
+    const safeRelease = typeof report.release === 'string' ? report.release.slice(0, 40) : undefined;
+    const safeStage = typeof report.stage === 'string' ? report.stage.slice(0, 16) : undefined;
 
-    console.info('[error-report]', { ref: safeRef, name: safeName, source: safeSource, at: safeAt });
+    console.info('[error-report]', { ref: safeRef, name: safeName, source: safeSource, at: safeAt, release: safeRelease, stage: safeStage });
 
     if (safeRef && safeName && safeMessage && safeAt && isSupabaseAdminConfigured()) {
       await supabaseAdmin()
@@ -56,6 +58,8 @@ export default async (req: Request): Promise<Response> => {
           source: safeSource ?? null,
           extra: safeExtra ?? null,
           at: safeAt,
+          release: safeRelease ?? null,
+          stage: safeStage ?? null,
         });
     }
   } catch {

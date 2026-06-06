@@ -35,6 +35,10 @@ export interface ErrorReport {
   extra?: Record<string, string | number | boolean | null>;
   /** Epoch ms the report was built. */
   at: number;
+  /** Build release identifier (git short SHA or CI commit ref). */
+  release?: string;
+  /** Deployment stage the report was captured on (prod | dev | demo). */
+  stage?: string;
 }
 
 export type ErrorSink = (report: ErrorReport) => void;
@@ -106,6 +110,8 @@ export function buildReport(
   context: ErrorContext,
   ref: string,
   now: number,
+  release?: string,
+  stage?: string,
 ): ErrorReport {
   const { name, message, stack } = normalizeError(error);
   return {
@@ -116,6 +122,8 @@ export function buildReport(
     source: context.source,
     extra: scrubExtra(context.extra),
     at: now,
+    ...(release ? { release } : {}),
+    ...(stage ? { stage } : {}),
   };
 }
 
@@ -140,7 +148,9 @@ export function getReportBuffer(): readonly ErrorReport[] {
  * boundary) can show its reference code to the user. Never throws.
  */
 export function reportError(error: unknown, context: ErrorContext = {}): ErrorReport {
-  const report = buildReport(error, context, makeRef(Date.now(), Math.random()), Date.now());
+  const release = import.meta.env.VITE_APP_RELEASE;
+  const stage = import.meta.env.VITE_APP_STAGE;
+  const report = buildReport(error, context, makeRef(Date.now(), Math.random()), Date.now(), release, stage);
   if (_reportBuffer.length >= MAX_BUFFER) _reportBuffer.shift();
   _reportBuffer.push(report);
   try {

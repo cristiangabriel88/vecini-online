@@ -149,7 +149,7 @@ The "lite" rendering tier (added 2026-06-05, see `DECISIONS.md`) strips the GPU-
 
 > From the 2026-06-05 deep-analysis pass. The app reports errors into an in-memory ring buffer + a platform table but has no persistence-across-refresh, no alerting, no coverage metrics, no bundle budget, and nothing watching the health endpoint. These close the operational-visibility gaps without adding a third-party data processor (in-house only, per `DECISIONS.md`).
 
-### ⬜ T258a — [P1] Durable error persistence + release/stage tagging
+### ✅ T258a — [P1] Durable error persistence + release/stage tagging
 
 Errors today land in an in-memory 100-item ring buffer (`src/shared/lib/errorReporting.ts`, flushed via `errorSink.ts` -> `netlify/functions/error-report.ts` into the `platform_error_reports` table surfaced at `/consola/erori`, T96), but the buffer is lost on refresh and reports carry no build/stage context. Make client errors flush durably and reliably to `platform_error_reports` (retry/queue that survives a refresh, e.g. a small persisted outbox) and tag each report with the build release id + `VITE_APP_STAGE`. Preserve the existing PII/secret scrubbing exactly. Surface the release/stage on the `/consola/erori` group view. Keep it in-house (no third-party sink, no new CSP `connect-src` exception). Demo / no-key = no-op. Bilingual surfacing, unit tests for the tagging + flush-queue logic. Prereq: T96. (Split from the original T258.)
 

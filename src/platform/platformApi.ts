@@ -193,6 +193,8 @@ interface DbErrorReportRow {
   source: string | null;
   extra: Record<string, unknown> | null;
   at: number;
+  release: string | null;
+  stage: string | null;
 }
 
 function rowToErrorReport(row: DbErrorReportRow): PlatformErrorReport {
@@ -203,6 +205,8 @@ function rowToErrorReport(row: DbErrorReportRow): PlatformErrorReport {
     source: row.source ?? undefined,
     extra: row.extra as PlatformErrorReport['extra'] ?? undefined,
     at: row.at,
+    ...(row.release ? { release: row.release } : {}),
+    ...(row.stage ? { stage: row.stage } : {}),
   };
 }
 
@@ -314,7 +318,7 @@ export async function hydrateErrorReports(): Promise<void> {
   try {
     const { data, error } = await supabase
       .from('platform_error_reports')
-      .select('ref, name, message, source, extra, at')
+      .select('ref, name, message, source, extra, at, release, stage')
       .order('at', { ascending: false })
       .limit(500);
 

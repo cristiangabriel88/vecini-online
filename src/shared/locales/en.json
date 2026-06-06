@@ -3201,7 +3201,9 @@
       "loading": "Loading error reports...",
       "fetchError": "Error loading reports.",
       "retry": "Retry",
-      "empty": "No reports match the filters."
+      "empty": "No reports match the filters.",
+      "release": "Build",
+      "stage": "Stage"
     },
     "usage": {
       "title": "Usage & health",

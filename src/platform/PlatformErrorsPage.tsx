@@ -158,6 +158,17 @@ export default function PlatformErrorsPage() {
                 {g.refs.slice(0, 5).join(' · ')}
                 {g.refs.length > 5 && ` (+${g.refs.length - 5})`}
               </p>
+              {(g.releases.length > 0 || g.stages.length > 0) && (
+                <p className="text-xs text-muted iv-mono" style={{ marginTop: 2 }}>
+                  {g.releases.length > 0 && (
+                    <span>{t('platform.errors.release')}: {g.releases.join(', ')}</span>
+                  )}
+                  {g.releases.length > 0 && g.stages.length > 0 && <span>{' · '}</span>}
+                  {g.stages.length > 0 && (
+                    <span>{t('platform.errors.stage')}: {g.stages.join(', ')}</span>
+                  )}
+                </p>
+              )}
             </li>
           ))}
         </ul>

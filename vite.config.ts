@@ -3,8 +3,18 @@ import react from '@vitejs/plugin-react';
 import { fileURLToPath, URL } from 'node:url';
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { execSync } from 'node:child_process';
 import type { Plugin } from 'vite';
 import { buildHeadersFileContent } from './scripts/cspHeaders';
+
+function resolveReleaseId(): string {
+  if (process.env.VITE_APP_RELEASE) return process.env.VITE_APP_RELEASE;
+  try {
+    return execSync('git rev-parse --short HEAD', { encoding: 'utf-8' }).trim();
+  } catch {
+    return 'dev';
+  }
+}
 
 function cspHeadersPlugin(): Plugin {
   return {
@@ -19,6 +29,9 @@ function cspHeadersPlugin(): Plugin {
 
 export default defineConfig({
   plugins: [react(), cspHeadersPlugin()],
+  define: {
+    'import.meta.env.VITE_APP_RELEASE': JSON.stringify(resolveReleaseId()),
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

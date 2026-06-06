@@ -3201,7 +3201,9 @@
       "loading": "Se încarcă rapoartele...",
       "fetchError": "Eroare la încărcarea rapoartelor.",
       "retry": "Reîncearcă",
-      "empty": "Niciun raport nu corespunde filtrelor."
+      "empty": "Niciun raport nu corespunde filtrelor.",
+      "release": "Build",
+      "stage": "Stadiu"
     },
     "usage": {
       "title": "Utilizare și sănătate",
