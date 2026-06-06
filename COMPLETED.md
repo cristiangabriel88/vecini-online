@@ -4,6 +4,13 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T277 ✅ 2026-06-06 -- Dependency hygiene gate
+- new: `.depcheckrc` (ignores tool-only packages and virtual:pwa-register Vite module)
+- new: `DEPS.md` (triage policy: upgrade vs. override vs. accept ladder)
+- modified: `package.json` (added `dep:check` / `dep:audit` scripts; added `depcheck@1.4.7` devDep; removed unused `recharts` prod dep)
+- modified: `.github/workflows/ci.yml` (two advisory `continue-on-error: true` steps: depcheck + npm audit --audit-level=high)
+- `npm run dep:check` clean; all 317 test files / 3121 tests green; all 3 builds pass
+
 ### T276 ✅ 2026-06-06 -- Disaster-recovery + key-rotation runbook
 
 Pure docs task; no product or pipeline change. Created `DR_RUNBOOK.md` with: RPO (24 h) / RTO (4 h) targets; quarterly Supabase restore-from-backup drill (step-by-step checklist including creating a test project, restoring, running the smoke script, and deleting the test project); rotation procedures for `SUPABASE_SERVICE_ROLE_KEY` (JWT secret rotation path + session impact note), `AUDIT_HMAC_SECRET` (generate with `openssl rand -hex 32`, impact on existing signatures documented), `TELEGRAM_BOT_TOKEN` / webhook secret (BotFather `/revoke` + `setWebhook` re-registration), `RESEND_API_KEY` / `RESEND_WEBHOOK_SECRET` (Resend dashboard flow); JWT / session emergency revocation (single-user via Admin API, nuclear JWT-secret rotation, platform-admin emergency removal); escalation contacts; external uptime monitoring target. Created `scripts/restore-smoke.sh`: accepts `HEALTH_URL`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`; probes the health endpoint (HTTP 200 check) and 5 core tables via Supabase REST API (`asociatii`, `memberships`, `audit_log`, `platform_admins`, `platform_error_reports`); exits 0 if all configured checks pass, 1 if any fail. All 317 test files (3121 tests) green, all 3 builds pass.

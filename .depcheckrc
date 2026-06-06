@@ -1,0 +1,46 @@
+{
+  "ignores": [
+    "@types/*",
+    "typescript",
+    "prettier",
+    "prettier-plugin-tailwindcss",
+    "autoprefixer",
+    "postcss",
+    "tailwindcss",
+    "@tailwindcss/*",
+    "globals",
+    "@eslint/js",
+    "typescript-eslint",
+    "@typescript-eslint/eslint-plugin",
+    "@typescript-eslint/parser",
+    "eslint-plugin-react",
+    "eslint-plugin-react-hooks",
+    "eslint-plugin-react-refresh",
+    "vitest",
+    "@vitest/coverage-v8",
+    "jsdom",
+    "vite",
+    "vite-plugin-pwa",
+    "rollup-plugin-visualizer",
+    "@vitejs/plugin-react",
+    "@playwright/test",
+    "@axe-core/playwright",
+    "@testing-library/*",
+    "@dnd-kit/*",
+    "source-map-js",
+    "esbuild",
+    "virtual:pwa-register"
+  ],
+  "ignorePatterns": [
+    "dist",
+    "dist-platform",
+    "playwright-report",
+    "coverage",
+    "public",
+    "node_modules"
+  ],
+  "parsers": {
+    "**/*.ts": ["typescript"],
+    "**/*.tsx": ["typescript"]
+  }
+}

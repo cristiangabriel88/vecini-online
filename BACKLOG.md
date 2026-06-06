@@ -269,9 +269,11 @@ Design drift currently slips through (no screenshot diffing). Add Playwright scr
 
 Done: created `DR_RUNBOOK.md` (RPO/RTO targets, quarterly Supabase restore drill with checklist, rotation procedures for `SUPABASE_SERVICE_ROLE_KEY`, `AUDIT_HMAC_SECRET`, `TELEGRAM_BOT_TOKEN`/webhook secret, `RESEND_API_KEY`/`RESEND_WEBHOOK_SECRET`, JWT/session emergency revocation, uptime monitoring note); created `scripts/restore-smoke.sh` (health endpoint + 5 core table REST checks, exit 0/1). All 317 test files green, all 3 builds pass.
 
-### ⬜ T277 — [P3] Dependency hygiene gate
+### ✅ T277 — [P3] Dependency hygiene gate
 
 Unused and vulnerable dependencies are unguarded (e.g. `react-hook-form` sat unused until T266). Add a `depcheck` pass to flag unused/missing deps and an advisory `npm audit` (high/critical) step in CI, and document the triage policy (when to upgrade vs. accept). Keep it advisory-first so it does not block on noisy transitive advisories. Prereq: none.
+
+Done: installed `depcheck@1.4.7`; created `.depcheckrc` (ignores tool-only packages -- eslint plugins, postcss, vite plugins, types, vitest, playwright -- plus the `virtual:pwa-register` Vite virtual module); removed genuinely unused `recharts` prod dependency; added `dep:check` and `dep:audit` scripts to `package.json`; updated `.github/workflows/ci.yml` with two advisory steps (`continue-on-error: true`) for depcheck and `npm audit --audit-level=high`; created `DEPS.md` documenting the triage ladder (direct dep with fix -> upgrade; transitive -> bump parent or override; unreachable -> document in accepted list). `npm run dep:check` returns "No depcheck issue". All 317 test files (3121 tests) green, all 3 builds pass.
 
 ---
 

@@ -44,6 +44,14 @@ jobs:
           path: dist/stats.html
           retention-days: 30
 
+      - name: Dependency hygiene (advisory)
+        run: npm run dep:check
+        continue-on-error: true
+
+      - name: Security audit advisory (high+critical)
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
   e2e:
     name: Playwright E2E (chromium)
     runs-on: ubuntu-latest
