@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { type ErrorReport } from '@/shared/lib/errorReporting';
 
-export type PlatformErrorReport = Omit<ErrorReport, 'stack'>;
+export type PlatformErrorReport = ErrorReport;
 
 export interface ErrorGroup {
   key: string;
@@ -14,6 +14,10 @@ export interface ErrorGroup {
   refs: string[];
   releases: string[];
   stages: string[];
+  /** Scrubbed stack from the most recent occurrence in the group. */
+  stack?: string;
+  /** Release tag of the most recent occurrence (used for source-map lookup). */
+  latestRelease?: string;
 }
 
 /** Group a flat list of reports by name+source, sorted most-recent first. */
@@ -29,6 +33,8 @@ export function groupReports(reports: PlatformErrorReport[]): ErrorGroup[] {
       if (r.at > existing.lastAt) {
         existing.lastAt = r.at;
         existing.message = r.message;
+        existing.stack = r.stack;
+        existing.latestRelease = r.release;
       }
       if (r.release && !existing.releases.includes(r.release)) existing.releases.push(r.release);
       if (r.stage && !existing.stages.includes(r.stage)) existing.stages.push(r.stage);
@@ -44,6 +50,8 @@ export function groupReports(reports: PlatformErrorReport[]): ErrorGroup[] {
         refs: [r.ref],
         releases: r.release ? [r.release] : [],
         stages: r.stage ? [r.stage] : [],
+        stack: r.stack,
+        latestRelease: r.release,
       });
     }
   }
@@ -89,7 +97,7 @@ const DEMO_REPORTS: PlatformErrorReport[] = [
     release: 'b2c3d4e',
     stage: 'prod',
   },
-  // Group 2: TypeError from realtimeLogic -- 2 occurrences
+  // Group 2: TypeError from realtimeLogic -- 2 occurrences (with minified stack)
   {
     ref: 'IV-K3F4-L5GH',
     name: 'TypeError',
@@ -99,6 +107,13 @@ const DEMO_REPORTS: PlatformErrorReport[] = [
     at: D1 + 10800000,
     release: 'b2c3d4e',
     stage: 'prod',
+    stack: [
+      "TypeError: Cannot read properties of undefined (reading 'selected_option_ids')",
+      '    at ts (https://vecini.online/assets/main-b2c3d4e.js:1:82345)',
+      '    at rs (https://vecini.online/assets/main-b2c3d4e.js:1:80123)',
+      '    at Object.<anonymous> (https://vecini.online/assets/main-b2c3d4e.js:1:79056)',
+      '    at ne (https://vecini.online/assets/react-vendor-5e6f7a.js:1:45678)',
+    ].join('\n'),
   },
   {
     ref: 'IV-L4G5-M6HI',
@@ -109,6 +124,11 @@ const DEMO_REPORTS: PlatformErrorReport[] = [
     at: D1 + 72000000,
     release: 'b2c3d4e',
     stage: 'prod',
+    stack: [
+      "TypeError: Cannot read properties of undefined (reading 'selected_option_ids')",
+      '    at ts (https://vecini.online/assets/main-b2c3d4e.js:1:82345)',
+      '    at rs (https://vecini.online/assets/main-b2c3d4e.js:1:80123)',
+    ].join('\n'),
   },
   // Group 3: Error from error boundary -- 1 occurrence
   {

@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AlertCircle, RefreshCw, TriangleAlert } from 'lucide-react';
+import { AlertCircle, ChevronDown, ChevronUp, RefreshCw, TriangleAlert } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
@@ -11,8 +11,35 @@ import { EmptyState } from '@/shared/components/EmptyState';
 import { ErrorState } from '@/shared/components/ErrorState';
 import { formatDateTime } from '@/shared/lib/format';
 import { isSupabaseConfigured } from '@/shared/lib/supabase';
+import { useAuthStore } from '@/shared/store/authStore';
+import { type ResolvedFrame } from '@/shared/lib/sourcemapUtils';
 import { groupReports, usePlatformErrorStore } from './platformErrorStore';
 import { hydrateErrorReports } from './platformApi';
+
+interface SymbolicationState {
+  loading: boolean;
+  frames: ResolvedFrame[] | null;
+  error: string | null;
+}
+
+async function callSymbolicate(
+  stack: string,
+  release: string,
+  token: string,
+): Promise<{ ok: boolean; frames?: ResolvedFrame[]; error?: string }> {
+  try {
+    const resp = await fetch('/.netlify/functions/symbolicate-stack', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ stack, release }),
+    });
+    const data = (await resp.json()) as Record<string, unknown>;
+    if (!resp.ok) return { ok: false, error: String(data.error ?? 'failed') };
+    return { ok: true, frames: data.frames as ResolvedFrame[] };
+  } catch {
+    return { ok: false, error: 'network' };
+  }
+}
 
 /**
  * Platform superadmin error feed (T96): aggregated scrubbed error reports
@@ -39,11 +66,34 @@ export default function PlatformErrorsPage() {
   const [search, setSearch] = useState('');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
+  const [expandedStack, setExpandedStack] = useState<string | null>(null);
+  const [symbolication, setSymbolication] = useState<Record<string, SymbolicationState>>({});
+  const symbolicatingRef = useRef<Set<string>>(new Set());
 
   const clearFilters = () => {
     setSearch('');
     setFrom('');
     setTo('');
+  };
+
+  const handleSymbolicate = async (groupKey: string, stack: string, release: string) => {
+    if (symbolicatingRef.current.has(groupKey)) return;
+    symbolicatingRef.current.add(groupKey);
+    setSymbolication((prev) => ({
+      ...prev,
+      [groupKey]: { loading: true, frames: null, error: null },
+    }));
+    const token = useAuthStore.getState().session?.access_token ?? '';
+    const result = await callSymbolicate(stack, release, token);
+    symbolicatingRef.current.delete(groupKey);
+    setSymbolication((prev) => ({
+      ...prev,
+      [groupKey]: {
+        loading: false,
+        frames: result.ok ? (result.frames ?? null) : null,
+        error: result.ok ? null : (result.error ?? 'failed'),
+      },
+    }));
   };
 
   const filteredReports = useMemo(() => {
@@ -168,6 +218,102 @@ export default function PlatformErrorsPage() {
                     <span>{t('platform.errors.stage')}: {g.stages.join(', ')}</span>
                   )}
                 </p>
+              )}
+
+              {/* Stack trace section */}
+              {g.stack && (
+                <div style={{ marginTop: 6 }}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      setExpandedStack(expandedStack === g.key ? null : g.key)
+                    }
+                  >
+                    {expandedStack === g.key ? (
+                      <><ChevronUp size={13} /> {t('platform.errors.hideStack')}</>
+                    ) : (
+                      <><ChevronDown size={13} /> {t('platform.errors.showStack')}</>
+                    )}
+                  </Button>
+
+                  {expandedStack === g.key && (
+                    <div style={{ marginTop: 6 }}>
+                      {/* Symbolication controls */}
+                      <div className="flex items-center gap-2" style={{ marginBottom: 6 }}>
+                        {isSupabaseConfigured && g.latestRelease ? (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            disabled={symbolication[g.key]?.loading}
+                            onClick={() =>
+                              void handleSymbolicate(g.key, g.stack!, g.latestRelease!)
+                            }
+                          >
+                            {symbolication[g.key]?.loading
+                              ? t('platform.errors.symbolicating')
+                              : t('platform.errors.symbolicate')}
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-muted">
+                            {t('platform.errors.mapsUnavailable')}
+                          </span>
+                        )}
+                        {symbolication[g.key]?.error && (
+                          <span className="text-xs text-error">
+                            {t('platform.errors.symbolicateError')}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Resolved frames */}
+                      {symbolication[g.key]?.frames && (
+                        <div style={{ marginBottom: 8 }}>
+                          <p className="text-xs text-muted" style={{ marginBottom: 4 }}>
+                            {t('platform.errors.symbolicated')}
+                          </p>
+                          <pre
+                            className="iv-mono text-xs"
+                            style={{
+                              background: 'var(--color-surface-2, rgba(0,0,0,.15))',
+                              borderRadius: 6,
+                              padding: '8px 10px',
+                              overflowX: 'auto',
+                              whiteSpace: 'pre-wrap',
+                              wordBreak: 'break-all',
+                            }}
+                          >
+                            {symbolication[g.key]!.frames!
+                              .map((f) =>
+                                f.source
+                                  ? `${f.name ?? ''} (${f.source}:${f.line ?? '?'}:${f.col ?? '?'})`.trim()
+                                  : f.raw,
+                              )
+                              .join('\n')}
+                          </pre>
+                        </div>
+                      )}
+
+                      {/* Raw stack */}
+                      <p className="text-xs text-muted" style={{ marginBottom: 4 }}>
+                        {t('platform.errors.rawStack')}
+                      </p>
+                      <pre
+                        className="iv-mono text-xs"
+                        style={{
+                          background: 'var(--color-surface-2, rgba(0,0,0,.15))',
+                          borderRadius: 6,
+                          padding: '8px 10px',
+                          overflowX: 'auto',
+                          whiteSpace: 'pre-wrap',
+                          wordBreak: 'break-all',
+                        }}
+                      >
+                        {g.stack}
+                      </pre>
+                    </div>
+                  )}
+                </div>
               )}
             </li>
           ))}

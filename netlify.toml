@@ -11,6 +11,17 @@
   to = "/index.html"
   status = 200
 
+# Block source map files from public access. Maps are emitted with
+# sourcemap: 'hidden' (no //# sourceMappingURL comment in JS files) and
+# uploaded to the private Supabase Storage bucket. The CDN redirect
+# ensures the files cannot be fetched even though they are deployed
+# alongside the JS assets (T258b).
+[[redirects]]
+  from = "/assets/*.js.map"
+  to = "/404"
+  status = 404
+  force = true
+
 [functions]
   node_bundler = "esbuild"
 

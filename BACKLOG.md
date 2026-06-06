@@ -153,9 +153,11 @@ The "lite" rendering tier (added 2026-06-05, see `DECISIONS.md`) strips the GPU-
 
 Errors today land in an in-memory 100-item ring buffer (`src/shared/lib/errorReporting.ts`, flushed via `errorSink.ts` -> `netlify/functions/error-report.ts` into the `platform_error_reports` table surfaced at `/consola/erori`, T96), but the buffer is lost on refresh and reports carry no build/stage context. Make client errors flush durably and reliably to `platform_error_reports` (retry/queue that survives a refresh, e.g. a small persisted outbox) and tag each report with the build release id + `VITE_APP_STAGE`. Preserve the existing PII/secret scrubbing exactly. Surface the release/stage on the `/consola/erori` group view. Keep it in-house (no third-party sink, no new CSP `connect-src` exception). Demo / no-key = no-op. Bilingual surfacing, unit tests for the tagging + flush-queue logic. Prereq: T96. (Split from the original T258.)
 
-### ⬜ T258b — [P2] Source-map symbolication for error stacks
+### ✅ T258b — [P2] Source-map symbolication for error stacks
 
 Stack frames in `platform_error_reports` point at minified bundle positions and are unreadable. Emit hidden source maps on the PROD/DEV builds (kept private, not served publicly so the CSP/exposure posture is unchanged) and add a symbolication step (build-time upload to a private location the platform console can read, or an on-demand resolver in the `/consola/erori` view) that maps a captured frame back to original `file:line`. In-house only, no third-party sink. Unit test for the frame-mapping helper. Prereq: T258a.
+
+Done: `sourcemap: 'hidden'` emitted for PROD/DEV via `loadEnv` in vite.config.ts function form; DEMO skips maps. CDN `.map` access blocked via `netlify.toml` 404 redirect. `stack` column added to `platform_error_reports` (migration + function + store + hydration). Pure `sourcemapUtils.ts` helper (Chrome + Firefox frame parsing, 13 unit tests). `netlify/functions/symbolicate-stack.ts` service-role function (fetches from private Supabase Storage bucket `source-maps/<release>/`, resolves with `source-map-js`). `scripts/upload-sourcemaps.mjs` post-build upload script. Platform errors page: expand/collapse raw stack, Symbolicate button with loading/error states, resolved frame display. Bilingual RO/EN. All 303 test files green, all 3 builds pass.
 
 ### ⬜ T258c — [P1] New-error / spike alerting
 

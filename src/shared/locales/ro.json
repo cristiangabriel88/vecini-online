@@ -3203,7 +3203,16 @@
       "retry": "Reîncearcă",
       "empty": "Niciun raport nu corespunde filtrelor.",
       "release": "Build",
-      "stage": "Stadiu"
+      "stage": "Stadiu",
+      "showStack": "Afișează stivă",
+      "hideStack": "Ascunde stivă",
+      "rawStack": "Stivă brută (minificată)",
+      "symbolicate": "Simbolizează",
+      "symbolicating": "Se simbolizează...",
+      "symbolicated": "Stivă rezolvată",
+      "symbolicateError": "Simbolizarea a eșuat.",
+      "noStack": "Fără stivă disponibilă pentru acest grup.",
+      "mapsUnavailable": "Hărțile sursă nu sunt disponibile în modul demo."
     },
     "usage": {
       "title": "Utilizare și sănătate",

@@ -4,6 +4,23 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T258b ✅ 2026-06-06 -- Source-map symbolication for error stacks
+
+`vite.config.ts` refactored to function form using `loadEnv` so `VITE_APP_STAGE` from mode-specific `.env.*` files is available at config-evaluation time; `sourcemap: 'hidden'` emitted for PROD and DEV builds (maps emitted without `//# sourceMappingURL` in JS files), skipped for DEMO. `netlify.toml` gains a force-404 redirect rule for `/assets/*.js.map` to block public CDN access. `stack` column added to `platform_error_reports` via migration `20260606000012_error_reports_stack.sql`; `error-report.ts` body limit raised to 16 KB and `stack` stored. New pure helper `src/shared/lib/sourcemapUtils.ts` (`parseMinifiedFrame`, `extractFilename`, `formatResolvedFrame`, `extractFrameLines`) with 13 unit tests covering Chrome, Firefox, and edge cases. New `netlify/functions/symbolicate-stack.ts`: service-role, verifies `is_super_admin()`, fetches `.js.map` from private Supabase Storage bucket `source-maps/<release>/` using `source-map-js`, returns `ResolvedFrame[]`. `scripts/upload-sourcemaps.mjs` post-build upload script (silently skips when credentials absent). `platformErrorStore.ts`: `PlatformErrorReport` now includes `stack`; `ErrorGroup` gains `stack` and `latestRelease` fields; demo data seeds realistic minified stacks for two groups. `platformApi.ts` hydration includes `stack`. `PlatformErrorsPage.tsx`: expand/collapse raw stack per group, Symbolicate button (calls the function with session token, shows loading/error states), resolved frame display. Bilingual RO/EN. New dep: `source-map-js`. All 303 test files (2919 tests) green, all 3 builds pass.
+- new: src/shared/lib/sourcemapUtils.ts
+- new: tests/unit/sourcemapUtils.test.ts
+- new: netlify/functions/symbolicate-stack.ts
+- new: scripts/upload-sourcemaps.mjs
+- new: supabase/migrations/20260606000012_error_reports_stack.sql
+- modified: vite.config.ts (function form + loadEnv + sourcemap)
+- modified: netlify.toml (404 redirect for *.js.map)
+- modified: netlify/functions/error-report.ts (body limit 16 KB + stack field)
+- modified: src/platform/platformErrorStore.ts (type + ErrorGroup + demo stacks)
+- modified: src/platform/platformApi.ts (select stack + rowToErrorReport)
+- modified: src/platform/PlatformErrorsPage.tsx (stack expand + symbolicate UI)
+- modified: src/shared/locales/ro.json + en.json (symbolication keys)
+- modified: package.json (upload-sourcemaps script + source-map-js dep)
+
 ### T258a ✅ 2026-06-06 -- Durable error persistence + release/stage tagging
 
 New `src/shared/lib/errorOutbox.ts`: localStorage-backed outbox (max 20 items) with `enqueueOutbox`, `removeFromOutbox`, `getOutbox`, and `flushOutbox`. Reports are written to the outbox before the fetch and removed on 2xx; network failures leave them for the next session. `initErrorSink` drains any leftover outbox items before registering the new session sink. `ErrorReport` gains optional `release` (build git SHA, injected via `vite.config.ts` `define`) and `stage` (deployment stage) fields; `buildReport` accepts them as params; `reportError` reads them from `import.meta.env`. DB migration `20260606000011_error_reports_release_stage.sql` adds nullable `release`/`stage` columns to `platform_error_reports`. `netlify/functions/error-report.ts` accepts and persists both fields. Platform errors store/API: `ErrorGroup` gains `releases` and `stages` arrays (unique values per group); hydration selects the new columns; demo data seeds a few reports with tags. `/consola/erori` shows build/stage as a small monospace line on each group. Bilingual RO/EN keys added. `vite-env.d.ts` declares `VITE_APP_STAGE` and `VITE_APP_RELEASE`. New `tests/unit/errorOutbox.test.ts` (15 tests: enqueue/remove/flush/corruption). All 302 test files (2904 tests) green, all 3 builds pass.

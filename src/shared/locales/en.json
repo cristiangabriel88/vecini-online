@@ -3203,7 +3203,16 @@
       "retry": "Retry",
       "empty": "No reports match the filters.",
       "release": "Build",
-      "stage": "Stage"
+      "stage": "Stage",
+      "showStack": "Show stack",
+      "hideStack": "Hide stack",
+      "rawStack": "Raw stack (minified)",
+      "symbolicate": "Symbolicate",
+      "symbolicating": "Symbolicating...",
+      "symbolicated": "Resolved stack",
+      "symbolicateError": "Symbolication failed.",
+      "noStack": "No stack available for this group.",
+      "mapsUnavailable": "Source maps not available in demo mode."
     },
     "usage": {
       "title": "Usage & health",

@@ -17,7 +17,9 @@ import { isSupabaseAdminConfigured, supabaseAdmin } from './_shared/supabaseAdmi
 const _ipStore = new Map<string, { timestamps: number[] }>();
 const IP_WINDOW_MS = 10 * 60 * 1000;
 const IP_MAX = 20;
-const MAX_BODY_BYTES = 4096;
+// Increased from 4 KB to allow a full scrubbed stack trace alongside the
+// other report fields (T258b).
+const MAX_BODY_BYTES = 16384;
 
 export default async (req: Request): Promise<Response> => {
   if (req.method !== 'POST') {
@@ -45,6 +47,7 @@ export default async (req: Request): Promise<Response> => {
     const safeAt = typeof report.at === 'number' ? report.at : undefined;
     const safeRelease = typeof report.release === 'string' ? report.release.slice(0, 40) : undefined;
     const safeStage = typeof report.stage === 'string' ? report.stage.slice(0, 16) : undefined;
+    const safeStack = typeof report.stack === 'string' ? report.stack.slice(0, 8192) : undefined;
 
     console.info('[error-report]', { ref: safeRef, name: safeName, source: safeSource, at: safeAt, release: safeRelease, stage: safeStage });
 
@@ -60,6 +63,7 @@ export default async (req: Request): Promise<Response> => {
           at: safeAt,
           release: safeRelease ?? null,
           stage: safeStage ?? null,
+          stack: safeStack ?? null,
         });
     }
   } catch {
