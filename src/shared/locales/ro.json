@@ -3476,5 +3476,10 @@
       "free": "Gratuit",
       "priceRon": "{{amount}} lei / lună (TVA inclus)"
     }
+  },
+  "pwa": {
+    "updateAvailable": "Versiune nouă disponibilă",
+    "updateNow": "Actualizează",
+    "updateLater": "Amână actualizarea"
   }
 }

@@ -4,6 +4,18 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T263 ✅ 2026-06-06 -- Service worker / installable PWA
+
+Installed `vite-plugin-pwa@1.3.0`. PROD and DEMO builds generate a full Workbox precache SW (221 entries, ~2.8 MB) via `generateSW` mode with `registerType: 'prompt'` and `injectRegister: null`. DEV (Pi) builds use `selfDestroying: true` -- the generated SW unregisters itself and clears all caches on activate, keeping rapid Pi iteration cache-free. The plugin is always present in the Vite config so `virtual:pwa-register/react` resolves in every build without conditional imports. `devOptions.enabled: false` keeps the Vite dev server fast. The `navigateFallback` (`/index.html`) is denied for `/platform/*` routes, `/.netlify/*` functions, and `*.map` files. CSP `worker-src 'self' blob:` already covered the SW. New `<UpdatePrompt>` component renders a floating pill (`update-prompt` CSS class) when `needRefresh` is true, using `useRegisterSW` hook; bilingual RO/EN copy; "Update now" calls `updateServiceWorker(true)`. Wired into `AppProviders`. 9 unit tests in `swRegistration.test.ts`. All 307 test files (2984 tests) green, all 3 builds pass.
+- new: src/shared/components/UpdatePrompt.tsx
+- new: tests/unit/swRegistration.test.ts (9 tests)
+- modified: vite.config.ts (VitePWA import + plugin config)
+- modified: src/vite-env.d.ts (pwa-register type reference)
+- modified: src/app/providers.tsx (UpdatePrompt wired in)
+- modified: src/styles/shell.css (.update-prompt CSS)
+- modified: src/shared/locales/ro.json + en.json (pwa.* keys)
+- devDep: vite-plugin-pwa@1.3.0
+
 ### T262 ✅ 2026-06-06 -- Realtime subscription lifecycle audit
 
 Traced `useRealtimeSync` (src/app/useRealtimeSync.ts) + AppLayout.tsx. Implementation already correct: `useEffect([asociatieId])` creates channel `rt-{aid}` on mount, calls `supabase.removeChannel(channel)` in the cleanup on unmount and on every tenant switch. Closure-captured `aid` ensures late-arriving network frames write to the correct store partition with no cross-tenant bleed. Demo mode (isSupabaseConfigured === false) and Pi DEV stage (appStage === 'dev') both return early -- no channels opened. No impersonation mechanism exists. Added `tests/unit/realtimeSyncLifecycle.test.ts` (7 tests) with `vi.hoisted` Supabase mock asserting channel create/teardown on mount, unmount, tenant switch (A → B), and null transitions. All 306 test files (2975 tests) green, all 3 builds pass.

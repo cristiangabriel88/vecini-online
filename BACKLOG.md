@@ -187,9 +187,11 @@ Done: installed `rollup-plugin-visualizer@7.0.1`; configured it in `vite.config.
 
 Done: audit found the implementation already clean -- `useEffect([asociatieId])` correctly creates channel `rt-{aid}` on mount, removes it on cleanup (unmount or tenant switch), and captures `aid` in closure so late-arriving frames always write to the correct store partition. Demo mode and Pi DEV stage short-circuit with no-op returns. No cross-tenant bleed possible. Added `tests/unit/realtimeSyncLifecycle.test.ts` (7 tests) documenting the lifecycle guarantee. All 306 test files (2975 tests) green, all 3 builds pass.
 
-### ⬜ T263 — [P2] Service worker / installable PWA
+### ✅ T263 — [P2] Service worker / installable PWA
 
 `public/manifest.webmanifest` exists (with `pwaManifest.test.ts`) but there is no service worker, so the app is installable in name only with no offline shell. Add `vite-plugin-pwa` (or a hand-rolled SW) providing an offline app-shell + a cache strategy aligned with the offline-first demo ethos, an "update available" prompt when a new build ships, and correct behavior across all three stages (no stale-cache surprises in DEV/DEMO; SW disabled or scoped appropriately where it would interfere with the Pi/demo flows). Keep the strict CSP intact. Unit/E2E check that the SW registers in PROD and the app still boots offline after first load. Prereq: none.
+
+Done: installed `vite-plugin-pwa@1.3.0`; PROD+DEMO builds generate a full Workbox precache SW (221 entries, ~2.8 MB) via `generateSW` mode; DEV (Pi) build uses `selfDestroying: true` -- the SW unregisters itself + clears all caches on activate so rapid iteration stays cache-free. `injectRegister: null` prevents double-injection in the multi-page build (index.html + platform.html); registration is handled by `<UpdatePrompt>` via `useRegisterSW` from `virtual:pwa-register/react`. New `UpdatePrompt.tsx` component renders a floating pill when `needRefresh` is true, with bilingual RO/EN copy and an "Update now" button that calls `updateServiceWorker(true)`. CSS in shell.css. `devOptions.enabled: false` keeps the dev server fast. CSP `worker-src 'self' blob:` already covered the SW. 9 unit tests in `swRegistration.test.ts`. All 307 test files (2984 tests) green, all 3 builds pass.
 
 ### ⬜ T264 — [P2] Lazy-load heavy dependencies
 

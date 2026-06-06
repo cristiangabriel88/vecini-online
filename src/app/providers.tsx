@@ -5,6 +5,7 @@ import { useThemeStore } from '@/shared/store/themeStore';
 import { useTintStore } from '@/shared/store/tintStore';
 import { ConsentBanner } from '@/features/legal/ConsentBanner';
 import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
+import { UpdatePrompt } from '@/shared/components/UpdatePrompt';
 import { backoffDelay, shouldRetry } from '@/shared/lib/retry';
 import '@/shared/lib/i18n';
 
@@ -37,6 +38,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <ErrorBoundary source="app-shell">{children}</ErrorBoundary>
       <ConsentBanner />
+      <UpdatePrompt />
       <Toaster
         position="top-center"
         toastOptions={{

@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitest/config';
 import { loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
+import { VitePWA } from 'vite-plugin-pwa';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { fileURLToPath, URL } from 'node:url';
 import { writeFileSync } from 'node:fs';
@@ -34,12 +35,48 @@ export default defineConfig(({ mode }) => {
   // at config-evaluation time (not just in import.meta.env in the browser bundle).
   const env = loadEnv(mode, process.cwd(), '');
 
+  // DEV (Pi) stage uses a self-destroying SW so stale caches never
+  // accumulate during rapid iteration. PROD and DEMO get full precaching.
+  const isDevStage = env.VITE_APP_STAGE === 'dev';
+
   return {
     plugins: [
       react(),
       cspHeadersPlugin(),
       // Emit dist/stats.html treemap on every build; uploaded as a CI artifact (T260).
       visualizer({ filename: 'dist/stats.html', gzipSize: true, open: false }) as Plugin,
+      // PWA plugin is always included so `virtual:pwa-register/react` resolves in
+      // every build. DEV stage uses selfDestroying to clear any leftover caches
+      // from a previous PROD/DEMO deploy. devOptions.enabled: false keeps the dev
+      // server fast. (T263)
+      ...VitePWA(
+        isDevStage
+          ? {
+              selfDestroying: true,
+              registerType: 'prompt',
+              injectRegister: null,
+              manifest: false,
+              devOptions: { enabled: false },
+            }
+          : {
+              registerType: 'prompt',
+              injectRegister: null,
+              manifest: false,
+              devOptions: { enabled: false },
+              workbox: {
+                globPatterns: ['**/*.{js,css,html,svg}'],
+                globIgnores: ['platform.html', 'stats.html'],
+                navigateFallback: '/index.html',
+                navigateFallbackDenylist: [
+                  /^\/platform/,
+                  /^\/.netlify\//,
+                  /\/assets\/.*\.map$/,
+                ],
+                runtimeCaching: [],
+                cleanupOutdatedCaches: true,
+              },
+            },
+      ),
     ],
     define: {
       'import.meta.env.VITE_APP_RELEASE': JSON.stringify(resolveReleaseId()),
