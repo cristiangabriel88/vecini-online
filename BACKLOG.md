@@ -237,7 +237,7 @@ Done: audited all 83 feature pages; found 2 ad-hoc `<p className="text-sm text-m
 
 > From the 2026-06-05 deep-analysis pass. Landmarks and reduced-motion are already handled; remaining gaps are document language sync, automated a11y scanning, and Romanian plural grammar.
 
-### ⬜ T270 — [P2] Sync `<html lang>` to the active locale
+### ✅ T270 — [P2] Sync `<html lang>` to the active locale
 
 The document root `lang` is static, so switching the UI to English never updates `document.documentElement.lang` and screen readers keep announcing content with Romanian pronunciation rules. Set `lang` from the i18next `languageChanged` handler at app init in both apps (`src/main.tsx`, `src/platform/main.tsx`), initialized to the persisted language on first paint. Small, high-value a11y fix. Unit/integration test asserting the attribute updates on language change. Prereq: none.
 
