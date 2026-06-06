@@ -464,7 +464,6 @@
     "preview": "preview",
     "requestsTitle": "Requested by residents",
     "requestsSubtitle": "Modules your residents asked you to turn on. Enabling one clears its requests.",
-    "requestCount": "{{count}} residents",
     "requestEnable": "Enable",
     "requestEnabledToast": "{{feature}} enabled",
     "requestDismiss": "Dismiss",
@@ -477,7 +476,10 @@
     "selectAll": "Enable all",
     "deselectAll": "Disable all",
     "masterToggleLabel": "All features",
-    "masterToggleDesc": "Enable or disable all features at once"
+    "masterToggleDesc": "Enable or disable all features at once",
+    "requestCount_one": "{{count}} resident",
+    "requestCount_other": "{{count}} residents",
+    "requestCount_few": "{{count}} residents"
   },
   "announcements": {
     "title": "Announcements",
@@ -514,17 +516,25 @@
     "bad_type": "File type not accepted (PDF or image).",
     "preview": "Preview",
     "deleted": "Announcement deleted.",
-    "deletedBulk": "{{count}} announcements deleted.",
     "deleteOne": "Delete announcement",
     "deleteConfirm": "Are you sure you want to delete this announcement? This action cannot be undone.",
-    "deleteBulkTitle": "Delete {{count}} announcements?",
-    "deleteBulkConfirm": "Permanently delete {{count}} announcements? This action cannot be undone.",
-    "deleteSelected": "Delete {{count}} selected",
     "selectAll": "Select all",
     "deselectAll": "Deselect all",
     "edit": "Edit",
     "editTitle": "Edit announcement",
-    "updated": "Announcement updated."
+    "updated": "Announcement updated.",
+    "deletedBulk_one": "1 announcement deleted.",
+    "deletedBulk_other": "{{count}} announcements deleted.",
+    "deleteBulkTitle_one": "Delete 1 announcement?",
+    "deleteBulkTitle_other": "Delete {{count}} announcements?",
+    "deleteBulkConfirm_one": "Permanently delete 1 announcement? This action cannot be undone.",
+    "deleteBulkConfirm_other": "Permanently delete {{count}} announcements? This action cannot be undone.",
+    "deleteSelected_one": "Delete {{count}} selected",
+    "deleteSelected_other": "Delete {{count}} selected",
+    "deletedBulk_few": "{{count}} announcements deleted.",
+    "deleteBulkTitle_few": "Delete {{count}} announcements?",
+    "deleteBulkConfirm_few": "Permanently delete {{count}} announcements? This action cannot be undone.",
+    "deleteSelected_few": "Delete {{count}} selected"
   },
   "polls": {
     "title": "Polls",
@@ -541,18 +551,16 @@
     "empty": "No active polls. The committee will announce proposals here.",
     "closed": "Poll closed",
     "weighted": "Weighted by ownership share",
-    "votesCount": "{{count}} votes",
     "quorumMet": "quorum met",
-    "quorumNotMet": "quorum not met"
+    "quorumNotMet": "quorum not met",
+    "votesCount_one": "{{count}} vote",
+    "votesCount_other": "{{count}} votes",
+    "votesCount_few": "{{count}} votes"
   },
   "notifications": {
     "empty": "You have no new notifications. You'll be notified about announcements, polls, and issues.",
     "markAllRead": "Mark all as read",
-    "unreadCount": "{{count}} unread",
     "justNow": "just now",
-    "minutesAgo": "{{count}} min ago",
-    "hoursAgo": "{{count}} hr ago",
-    "daysAgo": "{{count}} days ago",
     "membershipJoined": "{{name}} joined",
     "membershipJoinedBody": "{{name}} ({{role}}) accepted your invitation.",
     "anonymousMember": "A resident",
@@ -599,7 +607,19 @@
     "telegramCopyLink": "Copy link",
     "telegramCopied": "Link copied.",
     "telegramNoBotUsername": "Bot not configured. Set VITE_TELEGRAM_BOT_USERNAME.",
-    "telegramGenerateAnother": "Generate new code"
+    "telegramGenerateAnother": "Generate new code",
+    "unreadCount_one": "{{count}} unread",
+    "unreadCount_other": "{{count}} unread",
+    "minutesAgo_one": "{{count}} min ago",
+    "minutesAgo_other": "{{count}} min ago",
+    "hoursAgo_one": "{{count}} hr ago",
+    "hoursAgo_other": "{{count}} hr ago",
+    "daysAgo_one": "{{count}} day ago",
+    "daysAgo_other": "{{count}} days ago",
+    "unreadCount_few": "{{count}} unread",
+    "minutesAgo_few": "{{count}} min ago",
+    "hoursAgo_few": "{{count}} hr ago",
+    "daysAgo_few": "{{count}} days ago"
   },
   "tickets": {
     "title": "Issues",
@@ -650,7 +670,6 @@
     "title": "Events calendar",
     "new": "New event",
     "rsvp": "I'm attending",
-    "rsvpCount": "{{count}} attending",
     "empty": "No scheduled events. The committee will announce the next General Assembly here.",
     "viewToggle": "View mode",
     "viewAgenda": "Agenda",
@@ -658,7 +677,10 @@
     "upcoming": "Upcoming events",
     "noUpcoming": "No events scheduled right now.",
     "past": "Past events",
-    "exportIcs": "Add to calendar"
+    "exportIcs": "Add to calendar",
+    "rsvpCount_one": "{{count}} attending",
+    "rsvpCount_other": "{{count}} attending",
+    "rsvpCount_few": "{{count}} attending"
   },
   "locator": {
     "title": "Neighbour posts",
@@ -671,11 +693,13 @@
     "category_caut": "Looking for",
     "category_ofer": "Offering",
     "category_info": "Notice",
-    "expiresIn": "Expires in {{count}} days",
     "posted": "Post published. Visible for 14 days.",
     "empty": "No active posts. Publish the first one with the button above.",
     "editPost": "Edit post",
-    "updated": "Post updated."
+    "updated": "Post updated.",
+    "expiresIn_one": "Expires in {{count}} day",
+    "expiresIn_other": "Expires in {{count}} days",
+    "expiresIn_few": "Expires in {{count}} days"
   },
   "faq": {
     "title": "Frequently asked questions",
@@ -716,9 +740,11 @@
     "anonymous": "Anonymous",
     "closed": "Closed",
     "voted": "Response recorded. Thank you!",
-    "responses": "{{count}} responses",
     "closesAt": "closes on {{date}}",
-    "empty": "No active surveys right now."
+    "empty": "No active surveys right now.",
+    "responses_one": "{{count}} response",
+    "responses_other": "{{count}} responses",
+    "responses_few": "{{count}} responses"
   },
   "repairs": {
     "title": "Repair history",
@@ -935,14 +961,16 @@
     "asset": "Equipment",
     "purchasedAt": "Purchase date",
     "warrantyMonths": "Warranty length (months)",
-    "months": "{{count}} months warranty",
     "expiresOn": "expires on {{date}}",
     "status_active": "under warranty",
     "status_expiring": "expiring soon",
     "status_expired": "expired",
     "status_none": "no warranty",
     "added": "Warranty added.",
-    "empty": "No warranties tracked. Add the first one with the button above."
+    "empty": "No warranties tracked. Add the first one with the button above.",
+    "months_one": "{{count}} month warranty",
+    "months_other": "{{count}} months warranty",
+    "months_few": "{{count}} months warranty"
   },
   "emergency": {
     "title": "Emergency numbers",
@@ -953,9 +981,13 @@
     "title": "Building alerts",
     "send": "Send alert",
     "confirmSend": "This alert will be sent immediately to all residents, bypassing quiet hours. Continue?",
-    "sent": "Alert sent to {{count}} people.",
-    "recipients": "This alert will reach {{count}} residents.",
-    "empty": "No emergency alerts have been sent."
+    "empty": "No emergency alerts have been sent.",
+    "sent_one": "Alert sent to {{count}} person.",
+    "sent_other": "Alert sent to {{count}} people.",
+    "recipients_one": "This alert will reach {{count}} resident.",
+    "recipients_other": "This alert will reach {{count}} residents.",
+    "sent_few": "Alert sent to {{count}} people.",
+    "recipients_few": "This alert will reach {{count}} residents."
   },
   "apartments": {
     "title": "Apartments",
@@ -975,7 +1007,6 @@
     "shareHint": "Enter the ownership share as a percentage (e.g. 4.8 for 4.8%).",
     "persons": "People",
     "personsShort": "Ppl.",
-    "personsTotal": "{{count}} total",
     "personLinked": "Account linked",
     "personName": "Name",
     "personRole": "Role",
@@ -1042,13 +1073,11 @@
     "deletedSelected_one": "1 apartment deleted.",
     "deletedSelected_few": "{{count}} apartments deleted.",
     "deletedSelected_other": "{{count}} apartments deleted.",
-    "deleteSelected": "Delete selected ({{count}})",
     "selectAll": "Select all",
     "deselectAll": "Deselect all",
     "notFoundTitle": "Apartment not found",
     "notFoundBody": "The apartment you are looking for does not exist or was deleted.",
     "monthlyFund": "Estimated monthly fund at 0.80 lei/m²: {{amount}}",
-    "codesGenerated": "{{count}} codes generated (e.g. {{code}})",
     "generateCodes": "Generate invite codes",
     "generateInvites": "Generate invitations",
     "generateInvitesTitle": "Send invitations",
@@ -1057,7 +1086,6 @@
     "generateInvitesEligible_other": "{{count}} eligible apartments",
     "generateInvitesNone": "No eligible apartments. Make sure residents have a recorded email address and have not already joined.",
     "generateInvitesListTitle": "Will receive an invitation:",
-    "generateInvitesConfirm": "Send {{count}} invitations",
     "generateInvitesSent_one": "Sent 1 invitation",
     "generateInvitesSent_other": "Sent {{count}} invitations",
     "generateInvitesFailed_one": "1 invitation failed to send",
@@ -1081,7 +1109,22 @@
     "importWarningsTitle_other": "{{count}} notices — apartments imported, invites skipped:",
     "empty": "No apartments imported. Use the import step in setup.",
     "conflictError": "An apartment with this entrance and number already exists. Check the registry and try again.",
-    "saveFailed": "Could not save to the database. Your changes are saved locally — please try again later."
+    "saveFailed": "Could not save to the database. Your changes are saved locally — please try again later.",
+    "personsTotal_one": "{{count}} total",
+    "personsTotal_other": "{{count}} total",
+    "deleteSelected_one": "Delete selected ({{count}})",
+    "deleteSelected_other": "Delete selected ({{count}})",
+    "codesGenerated_one": "{{count}} code generated (e.g. {{code}})",
+    "codesGenerated_other": "{{count}} codes generated (e.g. {{code}})",
+    "generateInvitesConfirm_one": "Send {{count}} invitation",
+    "generateInvitesConfirm_other": "Send {{count}} invitations",
+    "generateInvitesEligible_few": "{{count}} eligible apartments",
+    "generateInvitesSent_few": "Sent {{count}} invitations",
+    "generateInvitesFailed_few": "{{count}} invitations failed to send",
+    "personsTotal_few": "{{count}} total",
+    "deleteSelected_few": "Delete selected ({{count}})",
+    "codesGenerated_few": "{{count}} codes generated (e.g. {{code}})",
+    "generateInvitesConfirm_few": "Send {{count}} invitations"
   },
   "building": {
     "title": "Association configuration",
@@ -1222,11 +1265,13 @@
     "ticketSummary": "{{open}} in progress · {{resolved}} resolved",
     "votes": "Votes",
     "votesEmpty": "No votes available.",
-    "votesCast": "You voted on {{count}} of {{total}} proposals.",
     "voted": "Voted",
     "notVoted": "Vote now",
     "payments": "Payment status",
-    "paymentsDisabled": "The finance module is not enabled for this association, so amounts are not shown here."
+    "paymentsDisabled": "The finance module is not enabled for this association, so amounts are not shown here.",
+    "votesCast_one": "You voted on {{count}} of {{total}} proposals.",
+    "votesCast_other": "You voted on {{count}} of {{total}} proposals.",
+    "votesCast_few": "You voted on {{count}} of {{total}} proposals."
   },
   "marketplace": {
     "title": "Internal marketplace",
@@ -1308,9 +1353,11 @@
     "status_active": "Active",
     "status_expiring": "Expiring soon",
     "status_expired": "Expired",
-    "alertSummary": "{{count}} contracts expired or expiring soon.",
     "added": "Supplier added.",
-    "empty": "No suppliers registered. Add the first with the button above."
+    "empty": "No suppliers registered. Add the first with the button above.",
+    "alertSummary_one": "{{count}} contract expired or expiring soon.",
+    "alertSummary_other": "{{count}} contracts expired or expiring soon.",
+    "alertSummary_few": "{{count}} contracts expired or expiring soon."
   },
   "storage": {
     "title": "Storage rooms",
@@ -1603,9 +1650,11 @@
     "reopen": "Reopen",
     "status_nou": "New",
     "status_rezolvat": "Resolved",
-    "pendingBanner": "{{count}} messages are awaiting a committee response.",
     "added": "Message sent anonymously. Thank you.",
-    "empty": "No anonymous messages yet."
+    "empty": "No anonymous messages yet.",
+    "pendingBanner_one": "{{count}} message is awaiting a committee response.",
+    "pendingBanner_other": "{{count}} messages are awaiting a committee response.",
+    "pendingBanner_few": "{{count}} messages are awaiting a committee response."
   },
   "pv": {
     "title": "Meeting minutes",
@@ -1665,7 +1714,6 @@
     "title": "Plants / green spaces",
     "subtitle": "Volunteer schedule for watering plants, mowing the lawn and tending the courtyard. Sign up for a free task.",
     "new": "Add task",
-    "freeBanner": "{{count}} tasks still need a volunteer.",
     "weekOf": "Week of {{date}}",
     "free": "Free",
     "signUp": "Sign up",
@@ -1673,7 +1721,10 @@
     "taskLabel": "Task",
     "week": "Week",
     "added": "Task added.",
-    "empty": "No tasks scheduled."
+    "empty": "No tasks scheduled.",
+    "freeBanner_one": "{{count}} task still needs a volunteer.",
+    "freeBanner_other": "{{count}} tasks still need a volunteer.",
+    "freeBanner_few": "{{count}} tasks still need a volunteer."
   },
   "wiki": {
     "title": "Building wiki",
@@ -1708,18 +1759,19 @@
     "lastUsed": "last used {{date}}",
     "rate": "Rate",
     "ratingLabel": "Rating",
-    "stars": "{{count}} stars",
     "markBusy": "Mark unavailable",
     "markAvailable": "Mark available",
     "added": "Contractor added.",
     "rated": "Rating recorded.",
-    "empty": "No contractors. Add the first with the button above."
+    "empty": "No contractors. Add the first with the button above.",
+    "stars_one": "{{count}} star",
+    "stars_other": "{{count}} stars",
+    "stars_few": "{{count}} stars"
   },
   "alarm": {
     "title": "Alarm system",
     "subtitle": "Status of alarm and detection systems, test schedule and recent activations.",
     "new": "Add system",
-    "attentionBanner": "{{count}} systems need attention (faulty or overdue test).",
     "status_ok": "OK",
     "status_test": "Testing",
     "status_alarma": "Alarm",
@@ -1730,7 +1782,10 @@
     "reportFault": "Report fault",
     "name": "System name",
     "added": "System added.",
-    "empty": "No systems recorded. Add the first with the button above."
+    "empty": "No systems recorded. Add the first with the button above.",
+    "attentionBanner_one": "{{count}} system needs attention (faulty or overdue test).",
+    "attentionBanner_other": "{{count}} systems need attention (faulty or overdue test).",
+    "attentionBanner_few": "{{count}} systems need attention (faulty or overdue test)."
   },
   "discussions": {
     "title": "Discussion channel",
@@ -1738,7 +1793,6 @@
     "newThread": "New thread",
     "threadTitle": "Title",
     "topic": "Tag (optional)",
-    "messageCount": "{{count}} messages",
     "pinned": "Pinned",
     "pin": "Pin",
     "unpin": "Unpin",
@@ -1750,15 +1804,24 @@
     "empty": "No discussion threads yet. Start the first with the button above.",
     "deleteThread": "Delete thread",
     "deleteThreadConfirm": "Are you sure you want to delete this thread and all its messages? This action cannot be undone.",
-    "deleteBulkTitle": "Delete {{count}} threads?",
-    "deleteBulkConfirm": "Permanently delete {{count}} threads and all their messages? This action cannot be undone.",
     "deleteMessageConfirm": "Are you sure you want to delete this message? This action cannot be undone.",
     "threadDeleted": "Thread deleted.",
-    "deleteSelected": "Delete {{count}} selected",
     "selectAll": "Select all",
     "deselectAll": "Deselect all",
     "editMessage": "Edit message",
-    "messageUpdated": "Message updated."
+    "messageUpdated": "Message updated.",
+    "messageCount_one": "{{count}} message",
+    "messageCount_other": "{{count}} messages",
+    "deleteBulkTitle_one": "Delete {{count}} thread?",
+    "deleteBulkTitle_other": "Delete {{count}} threads?",
+    "deleteBulkConfirm_one": "Permanently delete {{count}} thread and all its messages? This action cannot be undone.",
+    "deleteBulkConfirm_other": "Permanently delete {{count}} threads and all their messages? This action cannot be undone.",
+    "deleteSelected_one": "Delete {{count}} selected",
+    "deleteSelected_other": "Delete {{count}} selected",
+    "messageCount_few": "{{count}} messages",
+    "deleteBulkTitle_few": "Delete {{count}} threads?",
+    "deleteBulkConfirm_few": "Permanently delete {{count}} threads and all their messages? This action cannot be undone.",
+    "deleteSelected_few": "Delete {{count}} selected"
   },
   "budget": {
     "title": "Participatory budget",
@@ -1768,11 +1831,13 @@
     "funded": "Funded",
     "vote": "Vote",
     "voted": "Voted",
-    "voteCount": "{{count}} votes",
     "proposalTitle": "Proposal title",
     "cost": "Estimated cost (lei)",
     "added": "Proposal added.",
-    "empty": "No proposals yet. Add the first with the button above."
+    "empty": "No proposals yet. Add the first with the button above.",
+    "voteCount_one": "{{count}} vote",
+    "voteCount_other": "{{count}} votes",
+    "voteCount_few": "{{count}} votes"
   },
   "aga": {
     "title": "Digital general assembly",
@@ -1853,9 +1918,10 @@
     "drag": "Drag to reorder",
     "added": "Project added.",
     "rankingSaved": "Ranking saved.",
-    "turnout": "{{count}} apartment ranked",
     "turnout_other": "{{count}} apartments ranked",
-    "empty": "No projects yet. Add the first with the button above."
+    "empty": "No projects yet. Add the first with the button above.",
+    "turnout_one": "{{count}} apartment ranked",
+    "turnout_few": "{{count}} apartments ranked"
   },
   "laundry": {
     "title": "Laundry booking",
@@ -1919,8 +1985,6 @@
     "adminPrivacyNote": "This conversation is private between you and the chosen owner. Other owners cannot see it.",
     "you": "You",
     "administrator": "Administrator",
-    "messageCount": "{{count}} messages",
-    "waiting": "awaiting reply for {{count}}h",
     "status_open": "Open",
     "status_resolved": "Resolved",
     "markResolved": "Mark resolved",
@@ -1934,12 +1998,24 @@
     "emptyAdmin": "No messages from owners yet. You can start a conversation with the button above.",
     "deleteThread": "Delete conversation",
     "deleteThreadConfirm": "Are you sure you want to delete this conversation? This action cannot be undone.",
-    "deleteBulkTitle": "Delete {{count}} conversations?",
-    "deleteBulkConfirm": "Permanently delete {{count}} conversations? This action cannot be undone.",
     "threadDeleted": "Conversation deleted.",
-    "deleteSelected": "Delete {{count}} selected",
     "selectAll": "Select all",
-    "deselectAll": "Deselect all"
+    "deselectAll": "Deselect all",
+    "messageCount_one": "{{count}} message",
+    "messageCount_other": "{{count}} messages",
+    "waiting_one": "awaiting reply for {{count}}h",
+    "waiting_other": "awaiting reply for {{count}}h",
+    "deleteBulkTitle_one": "Delete {{count}} conversation?",
+    "deleteBulkTitle_other": "Delete {{count}} conversations?",
+    "deleteBulkConfirm_one": "Permanently delete {{count}} conversation? This action cannot be undone.",
+    "deleteBulkConfirm_other": "Permanently delete {{count}} conversations? This action cannot be undone.",
+    "deleteSelected_one": "Delete {{count}} selected",
+    "deleteSelected_other": "Delete {{count}} selected",
+    "messageCount_few": "{{count}} messages",
+    "waiting_few": "awaiting reply for {{count}}h",
+    "deleteBulkTitle_few": "Delete {{count}} conversations?",
+    "deleteBulkConfirm_few": "Permanently delete {{count}} conversations? This action cannot be undone.",
+    "deleteSelected_few": "Delete {{count}} selected"
   },
   "welcomeKit": {
     "title": "Welcome kit",
@@ -1972,7 +2048,6 @@
     "count": "Number of children",
     "bucketLabel": "ages {{range}}",
     "allAges": "All ages",
-    "totalKids": "{{count}} children in the building in total",
     "mine": "My registrations",
     "removeRange": "Remove registration",
     "removeRangeTitle": "Remove registration",
@@ -1996,11 +2071,16 @@
     "note": "Details",
     "noteHint": "What to bring, what we'll do, how we confirm.",
     "organizedBy": "Organized by {{name}}",
-    "going": "{{count}} attending",
     "join": "I'm coming",
     "joined": "Coming",
     "editEvent": "Edit activity",
-    "eventUpdated": "Activity updated."
+    "eventUpdated": "Activity updated.",
+    "totalKids_one": "{{count}} child in the building in total",
+    "totalKids_other": "{{count}} children in the building in total",
+    "going_one": "{{count}} attending",
+    "going_other": "{{count}} attending",
+    "totalKids_few": "{{count}} children in the building in total",
+    "going_few": "{{count}} attending"
   },
   "projects": {
     "title": "Project tracker",
@@ -2089,7 +2169,6 @@
     },
     "petsSection": "Pets in the building",
     "petsHint": "Mark the pets in your apartment so firefighters know where to look during an evacuation.",
-    "petCount": "{{count}} apartments with pets",
     "myMarker": "Your apartment: {{species}}",
     "noMarker": "Your apartment is not marked with pets.",
     "addMarker": "Mark pets",
@@ -2099,7 +2178,10 @@
     "markerSaved": "Marker saved.",
     "markerRemoved": "Marker removed.",
     "speciesLabel": "Pets (short)",
-    "speciesHint": "e.g. 1 cat, 2 dogs"
+    "speciesHint": "e.g. 1 cat, 2 dogs",
+    "petCount_one": "{{count}} apartment with pets",
+    "petCount_other": "{{count}} apartments with pets",
+    "petCount_few": "{{count}} apartments with pets"
   },
   "catalog": {
     "categories": {
@@ -2515,7 +2597,6 @@
     },
     "adminTitle": "Personal-data requests",
     "adminSubtitle": "Action residents' export and deletion requests, with a full audit trail.",
-    "pendingBadge": "{{count}} pending",
     "adminEmpty": "No requests.",
     "noAccessTitle": "Restricted access",
     "noAccessBody": "Only the association's administrator or president can manage personal-data requests.",
@@ -2528,7 +2609,10 @@
     "reject": "Reject",
     "noteLabel": "Note (optional)",
     "notePlaceholder": "e.g. verified, no debts",
-    "actionedBy": "by {{name}}"
+    "actionedBy": "by {{name}}",
+    "pendingBadge_one": "{{count}} pending",
+    "pendingBadge_other": "{{count}} pending",
+    "pendingBadge_few": "{{count}} pending"
   },
   "breach": {
     "title": "Personal-data breaches",
@@ -2612,10 +2696,12 @@
     "deadlineDone": "Notified",
     "deadlineIn": "{{hours}}h to deadline",
     "discovered": "Discovered",
-    "affected": "{{count}} people affected",
     "by": "by {{name}}",
     "authorityNotifiedAt": "ANSPDCP notified at",
-    "subjectsNotifiedAt": "Residents informed at"
+    "subjectsNotifiedAt": "Residents informed at",
+    "affected_one": "{{count}} person affected",
+    "affected_other": "{{count}} people affected",
+    "affected_few": "{{count}} people affected"
   },
   "ropa": {
     "title": "Data processing (DPA and register)",
@@ -2704,7 +2790,6 @@
     "integrityOk": "Chain intact",
     "integrityBroken": "Chain broken at #{{seq}}",
     "hmacSigned": "HMAC-signed chain",
-    "count": "{{count}} entries",
     "filterAction": "Action",
     "filterEntity": "Type",
     "allActions": "All actions",
@@ -2780,7 +2865,10 @@
       "petition": "Petition",
       "impersonation": "Impersonation",
       "broadcast": "Broadcast"
-    }
+    },
+    "count_one": "{{count}} entry",
+    "count_other": "{{count}} entries",
+    "count_few": "{{count}} entries"
   },
   "chrome": {
     "home": "Home",
@@ -2937,21 +3025,33 @@
         "associationsTitle": "Associations",
         "activityTitle": "30-day activity",
         "operationsTitle": "Operations",
-        "activeCount": "{{count}} active",
-        "moderateCount": "{{count}} moderate",
-        "dormantCount": "{{count}} dormant",
-        "suspendedCount": "{{count}} suspended",
         "announcements": "Announcements",
         "tickets": "Issues",
         "votes": "Votes",
         "mrrLabel": "MRR",
-        "overdueSubLabel": "{{count}} overdue",
         "openThreadsLabel": "Open support threads",
-        "unansweredSubLabel": "{{count}} awaiting reply",
         "errorGroupsLabel": "Error groups",
-      "newErrorGroupsSubLabel_one": "{{count}} new in 24 h",
-      "newErrorGroupsSubLabel_few": "{{count}} new in 24 h",
-      "newErrorGroupsSubLabel_other": "{{count}} new in 24 h"
+        "newErrorGroupsSubLabel_one": "{{count}} new in 24 h",
+        "newErrorGroupsSubLabel_few": "{{count}} new in 24 h",
+        "newErrorGroupsSubLabel_other": "{{count}} new in 24 h",
+        "activeCount_one": "{{count}} active",
+        "activeCount_other": "{{count}} active",
+        "moderateCount_one": "{{count}} moderate",
+        "moderateCount_other": "{{count}} moderate",
+        "dormantCount_one": "{{count}} dormant",
+        "dormantCount_other": "{{count}} dormant",
+        "suspendedCount_one": "{{count}} suspended",
+        "suspendedCount_other": "{{count}} suspended",
+        "overdueSubLabel_one": "{{count}} overdue",
+        "overdueSubLabel_other": "{{count}} overdue",
+        "unansweredSubLabel_one": "{{count}} awaiting reply",
+        "unansweredSubLabel_other": "{{count}} awaiting reply",
+        "activeCount_few": "{{count}} active",
+        "moderateCount_few": "{{count}} moderate",
+        "dormantCount_few": "{{count}} dormant",
+        "suspendedCount_few": "{{count}} suspended",
+        "overdueSubLabel_few": "{{count}} overdue",
+        "unansweredSubLabel_few": "{{count}} awaiting reply"
       }
     },
     "sections": {
@@ -3291,11 +3391,6 @@
     "subscriptions": {
       "title": "Subscriptions",
       "subtitle": "Each association's subscription: active plan, status, and invoices.",
-      "activeCount": "{{count}} active",
-      "trialingCount": "{{count}} trialing",
-      "pastDueCount": "{{count}} past due",
-      "unpaidCount": "{{count}} blocked",
-      "canceledCount": "{{count}} canceled",
       "searchPlaceholder": "Search by association or city...",
       "filterStatus": "Filter by status",
       "allStatuses": "All statuses",
@@ -3304,7 +3399,22 @@
       "colPlan": "Plan",
       "colStatus": "Status",
       "colPeriod": "Period",
-      "markPaid": "Mark paid"
+      "markPaid": "Mark paid",
+      "activeCount_one": "{{count}} active",
+      "activeCount_other": "{{count}} active",
+      "trialingCount_one": "{{count}} trialing",
+      "trialingCount_other": "{{count}} trialing",
+      "pastDueCount_one": "{{count}} past due",
+      "pastDueCount_other": "{{count}} past due",
+      "unpaidCount_one": "{{count}} blocked",
+      "unpaidCount_other": "{{count}} blocked",
+      "canceledCount_one": "{{count}} canceled",
+      "canceledCount_other": "{{count}} canceled",
+      "activeCount_few": "{{count}} active",
+      "trialingCount_few": "{{count}} trialing",
+      "pastDueCount_few": "{{count}} past due",
+      "unpaidCount_few": "{{count}} blocked",
+      "canceledCount_few": "{{count}} canceled"
     },
     "messenger": {
       "title": "Admin messenger",
@@ -3317,9 +3427,11 @@
       "status_resolved": "Resolved",
       "markResolved": "Mark resolved",
       "reopen": "Reopen",
-      "messageCount": "{{count}} messages",
       "awaitingReply": "awaiting reply",
-      "empty": "No support threads yet."
+      "empty": "No support threads yet.",
+      "messageCount_one": "{{count}} message",
+      "messageCount_other": "{{count}} messages",
+      "messageCount_few": "{{count}} messages"
     },
     "team": {
       "title": "Platform team",
@@ -3421,9 +3533,11 @@
     "reopen": "Reopen",
     "threadStarted": "Support request sent.",
     "writeFailed": "Message could not be saved. Please try again.",
-    "messageCount": "{{count}} messages",
     "awaitingReply": "reply received",
-    "empty": "No support requests yet. Click the button above to contact the platform."
+    "empty": "No support requests yet. Click the button above to contact the platform.",
+    "messageCount_one": "{{count}} message",
+    "messageCount_other": "{{count}} messages",
+    "messageCount_few": "{{count}} messages"
   },
   "billing": {
     "title": "Subscription",

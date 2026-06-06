@@ -464,7 +464,6 @@
     "preview": "previzualizare",
     "requestsTitle": "Cerute de locatari",
     "requestsSubtitle": "Module pe care locatarii ți-au cerut să le activezi. Activarea unuia șterge cererile aferente.",
-    "requestCount": "{{count}} locatari",
     "requestEnable": "Activează",
     "requestEnabledToast": "{{feature}} a fost activată",
     "requestDismiss": "Respinge",
@@ -477,7 +476,10 @@
     "selectAll": "Activează toate",
     "deselectAll": "Dezactivează toate",
     "masterToggleLabel": "Toate funcționalitățile",
-    "masterToggleDesc": "Activează sau dezactivează toate funcționalitățile simultan"
+    "masterToggleDesc": "Activează sau dezactivează toate funcționalitățile simultan",
+    "requestCount_one": "{{count}} locatar",
+    "requestCount_few": "{{count}} locatari",
+    "requestCount_other": "{{count}} de locatari"
   },
   "announcements": {
     "title": "Anunțuri",
@@ -514,17 +516,25 @@
     "bad_type": "Tip de fișier neacceptat (PDF sau imagine).",
     "preview": "Previzualizare",
     "deleted": "Anunț șters.",
-    "deletedBulk": "{{count}} anunțuri șterse.",
     "deleteOne": "Șterge anunțul",
     "deleteConfirm": "Ești sigur că vrei să ștergi acest anunț? Acțiunea nu poate fi anulată.",
-    "deleteBulkTitle": "Ștergi {{count}} anunțuri?",
-    "deleteBulkConfirm": "Ștergi definitiv {{count}} anunțuri? Acțiunea nu poate fi anulată.",
-    "deleteSelected": "Șterge {{count}} selectate",
     "selectAll": "Selectează toate",
     "deselectAll": "Deselectează toate",
     "edit": "Editează",
     "editTitle": "Editează anunțul",
-    "updated": "Anunț actualizat."
+    "updated": "Anunț actualizat.",
+    "deletedBulk_one": "1 anunț șters.",
+    "deletedBulk_few": "{{count}} anunțuri șterse.",
+    "deletedBulk_other": "{{count}} de anunțuri șterse.",
+    "deleteBulkTitle_one": "Ștergi 1 anunț?",
+    "deleteBulkTitle_few": "Ștergi {{count}} anunțuri?",
+    "deleteBulkTitle_other": "Ștergi {{count}} de anunțuri?",
+    "deleteBulkConfirm_one": "Ștergi definitiv 1 anunț? Acțiunea nu poate fi anulată.",
+    "deleteBulkConfirm_few": "Ștergi definitiv {{count}} anunțuri? Acțiunea nu poate fi anulată.",
+    "deleteBulkConfirm_other": "Ștergi definitiv {{count}} de anunțuri? Acțiunea nu poate fi anulată.",
+    "deleteSelected_one": "Șterge {{count}} selectat",
+    "deleteSelected_few": "Șterge {{count}} selectate",
+    "deleteSelected_other": "Șterge {{count}} de selectate"
   },
   "polls": {
     "title": "Voturi",
@@ -541,18 +551,16 @@
     "empty": "Nu există voturi active. Comitetul va anunța aici următoarele propuneri.",
     "closed": "Vot încheiat",
     "weighted": "Vot ponderat după cota-parte",
-    "votesCount": "{{count}} voturi",
     "quorumMet": "cvorum întrunit",
-    "quorumNotMet": "cvorum neîntrunit"
+    "quorumNotMet": "cvorum neîntrunit",
+    "votesCount_one": "{{count}} vot",
+    "votesCount_few": "{{count}} voturi",
+    "votesCount_other": "{{count}} de voturi"
   },
   "notifications": {
     "empty": "Nu ai notificări noi. Vei primi notificări pentru anunțuri, voturi și sesizări.",
     "markAllRead": "Marchează tot ca citit",
-    "unreadCount": "{{count}} necitite",
     "justNow": "acum",
-    "minutesAgo": "acum {{count}} min",
-    "hoursAgo": "acum {{count}} ore",
-    "daysAgo": "acum {{count}} zile",
     "membershipJoined": "{{name}} s-a alăturat",
     "membershipJoinedBody": "{{name}} ({{role}}) a acceptat invitația.",
     "anonymousMember": "Un locatar",
@@ -599,7 +607,19 @@
     "telegramCopyLink": "Copiază link",
     "telegramCopied": "Link copiat.",
     "telegramNoBotUsername": "Botul nu este configurat. Setează VITE_TELEGRAM_BOT_USERNAME.",
-    "telegramGenerateAnother": "Generează cod nou"
+    "telegramGenerateAnother": "Generează cod nou",
+    "unreadCount_one": "{{count}} necitit",
+    "unreadCount_few": "{{count}} necitite",
+    "unreadCount_other": "{{count}} necitite",
+    "minutesAgo_one": "acum {{count}} min",
+    "minutesAgo_few": "acum {{count}} min",
+    "minutesAgo_other": "acum {{count}} min",
+    "hoursAgo_one": "acum {{count}} oră",
+    "hoursAgo_few": "acum {{count}} ore",
+    "hoursAgo_other": "acum {{count}} de ore",
+    "daysAgo_one": "acum {{count}} zi",
+    "daysAgo_few": "acum {{count}} zile",
+    "daysAgo_other": "acum {{count}} de zile"
   },
   "tickets": {
     "title": "Sesizări",
@@ -650,7 +670,6 @@
     "title": "Calendar evenimente",
     "new": "Eveniment nou",
     "rsvp": "Particip",
-    "rsvpCount": "{{count}} participanți",
     "empty": "Nu sunt evenimente programate. Comitetul va anunța aici următoarea Adunare Generală.",
     "viewToggle": "Mod de vizualizare",
     "viewAgenda": "Agendă",
@@ -658,7 +677,10 @@
     "upcoming": "Următoarele evenimente",
     "noUpcoming": "Niciun eveniment programat momentan.",
     "past": "Evenimente trecute",
-    "exportIcs": "Adaugă în calendar"
+    "exportIcs": "Adaugă în calendar",
+    "rsvpCount_one": "{{count}} participant",
+    "rsvpCount_few": "{{count}} participanți",
+    "rsvpCount_other": "{{count}} de participanți"
   },
   "locator": {
     "title": "Anunțuri vecini",
@@ -671,11 +693,13 @@
     "category_caut": "Caut",
     "category_ofer": "Ofer",
     "category_info": "Informație",
-    "expiresIn": "Expiră în {{count}} zile",
     "posted": "Anunț publicat. Va fi vizibil 14 zile.",
     "empty": "Nu sunt anunțuri active. Poți publica primul cu butonul de mai sus.",
     "editPost": "Editează anunțul",
-    "updated": "Anunț actualizat."
+    "updated": "Anunț actualizat.",
+    "expiresIn_one": "Expiră în {{count}} zi",
+    "expiresIn_few": "Expiră în {{count}} zile",
+    "expiresIn_other": "Expiră în {{count}} de zile"
   },
   "faq": {
     "title": "Întrebări frecvente",
@@ -716,9 +740,11 @@
     "anonymous": "Anonim",
     "closed": "Încheiat",
     "voted": "Răspuns înregistrat. Mulțumim!",
-    "responses": "{{count}} răspunsuri",
     "closesAt": "se închide la {{date}}",
-    "empty": "Niciun sondaj activ momentan."
+    "empty": "Niciun sondaj activ momentan.",
+    "responses_one": "{{count}} răspuns",
+    "responses_few": "{{count}} răspunsuri",
+    "responses_other": "{{count}} de răspunsuri"
   },
   "repairs": {
     "title": "Istoric reparații",
@@ -935,14 +961,16 @@
     "asset": "Echipament",
     "purchasedAt": "Data achiziției",
     "warrantyMonths": "Durata garanției (luni)",
-    "months": "{{count}} luni garanție",
     "expiresOn": "expiră la {{date}}",
     "status_active": "în garanție",
     "status_expiring": "expiră curând",
     "status_expired": "expirată",
     "status_none": "fără garanție",
     "added": "Garanție adăugată.",
-    "empty": "Nicio garanție urmărită. Adaugă prima cu butonul de mai sus."
+    "empty": "Nicio garanție urmărită. Adaugă prima cu butonul de mai sus.",
+    "months_one": "{{count}} lună garanție",
+    "months_few": "{{count}} luni garanție",
+    "months_other": "{{count}} de luni garanție"
   },
   "emergency": {
     "title": "Numere de urgență",
@@ -953,9 +981,13 @@
     "title": "Alerte de bloc",
     "send": "Trimite alertă",
     "confirmSend": "Această alertă va fi trimisă imediat tuturor locatarilor, ignorând orele de liniște. Continui?",
-    "sent": "Alertă trimisă la {{count}} persoane.",
-    "recipients": "Această alertă va ajunge la {{count}} locatari.",
-    "empty": "Nu au fost trimise alerte de urgență."
+    "empty": "Nu au fost trimise alerte de urgență.",
+    "sent_one": "Alertă trimisă la {{count}} persoană.",
+    "sent_few": "Alertă trimisă la {{count}} persoane.",
+    "sent_other": "Alertă trimisă la {{count}} de persoane.",
+    "recipients_one": "Această alertă va ajunge la {{count}} locatar.",
+    "recipients_few": "Această alertă va ajunge la {{count}} locatari.",
+    "recipients_other": "Această alertă va ajunge la {{count}} de locatari."
   },
   "apartments": {
     "title": "Apartamente",
@@ -975,7 +1007,6 @@
     "shareHint": "Cota-parte se introduce ca procent (ex. 4,8 pentru 4,8%).",
     "persons": "Persoane",
     "personsShort": "Pers.",
-    "personsTotal": "{{count}} în total",
     "personLinked": "Cont înregistrat",
     "personName": "Nume",
     "personRole": "Rol",
@@ -1042,13 +1073,11 @@
     "deletedSelected_one": "1 apartament șters.",
     "deletedSelected_few": "{{count}} apartamente șterse.",
     "deletedSelected_other": "{{count}} de apartamente șterse.",
-    "deleteSelected": "Șterge selectate ({{count}})",
     "selectAll": "Selectează tot",
     "deselectAll": "Deselectează tot",
     "notFoundTitle": "Apartament inexistent",
     "notFoundBody": "Apartamentul căutat nu există sau a fost șters.",
     "monthlyFund": "Fond lunar estimat la 0,80 lei/m²: {{amount}}",
-    "codesGenerated": "{{count}} coduri generate (ex: {{code}})",
     "generateCodes": "Generează coduri de invitație",
     "generateInvites": "Generează invitații",
     "generateInvitesTitle": "Trimite invitații",
@@ -1057,7 +1086,6 @@
     "generateInvitesEligible_other": "{{count}} apartamente eligibile",
     "generateInvitesNone": "Niciun apartament eligibil. Asigură-te că locatarii au o adresă de email înregistrată și nu s-au alăturat deja.",
     "generateInvitesListTitle": "Vor primi invitație:",
-    "generateInvitesConfirm": "Trimite {{count}} invitații",
     "generateInvitesSent_one": "Trimisă 1 invitație",
     "generateInvitesSent_other": "Trimise {{count}} invitații",
     "generateInvitesFailed_one": "1 invitație nu s-a putut trimite",
@@ -1081,7 +1109,22 @@
     "importWarningsTitle_other": "{{count}} de notificări — apartamente importate, invitații omise:",
     "empty": "Niciun apartament importat. Folosește pasul de import din configurare.",
     "conflictError": "Există deja un apartament cu aceeași scară și număr. Verifică registrul și încearcă din nou.",
-    "saveFailed": "Nu am putut salva în baza de date. Modificările sunt salvate local — încearcă mai târziu."
+    "saveFailed": "Nu am putut salva în baza de date. Modificările sunt salvate local — încearcă mai târziu.",
+    "personsTotal_one": "{{count}} în total",
+    "personsTotal_few": "{{count}} în total",
+    "personsTotal_other": "{{count}} în total",
+    "deleteSelected_one": "Șterge selectate ({{count}})",
+    "deleteSelected_few": "Șterge selectate ({{count}})",
+    "deleteSelected_other": "Șterge selectate ({{count}})",
+    "codesGenerated_one": "{{count}} cod generat (ex: {{code}})",
+    "codesGenerated_few": "{{count}} coduri generate (ex: {{code}})",
+    "codesGenerated_other": "{{count}} de coduri generate (ex: {{code}})",
+    "generateInvitesConfirm_one": "Trimite {{count}} invitație",
+    "generateInvitesConfirm_few": "Trimite {{count}} invitații",
+    "generateInvitesConfirm_other": "Trimite {{count}} de invitații",
+    "generateInvitesEligible_few": "{{count}} apartamente eligibile",
+    "generateInvitesSent_few": "Trimise {{count}} invitații",
+    "generateInvitesFailed_few": "{{count}} invitații nu s-au putut trimite"
   },
   "building": {
     "title": "Configurarea asociației",
@@ -1222,11 +1265,13 @@
     "ticketSummary": "{{open}} în lucru · {{resolved}} rezolvate",
     "votes": "Voturi",
     "votesEmpty": "Niciun vot disponibil.",
-    "votesCast": "Ai votat la {{count}} din {{total}} propuneri.",
     "voted": "Votat",
     "notVoted": "Votează acum",
     "payments": "Situația plăților",
-    "paymentsDisabled": "Modulul financiar nu este activat pentru această asociație, așa că sumele nu sunt afișate aici."
+    "paymentsDisabled": "Modulul financiar nu este activat pentru această asociație, așa că sumele nu sunt afișate aici.",
+    "votesCast_one": "Ai votat la {{count}} din {{total}} propuneri.",
+    "votesCast_few": "Ai votat la {{count}} din {{total}} propuneri.",
+    "votesCast_other": "Ai votat la {{count}} din {{total}} propuneri."
   },
   "marketplace": {
     "title": "Piață internă",
@@ -1308,9 +1353,11 @@
     "status_active": "Activ",
     "status_expiring": "Expiră curând",
     "status_expired": "Expirat",
-    "alertSummary": "{{count}} contracte expirate sau care expiră în curând.",
     "added": "Furnizor adăugat.",
-    "empty": "Niciun furnizor înregistrat. Adaugă primul cu butonul de mai sus."
+    "empty": "Niciun furnizor înregistrat. Adaugă primul cu butonul de mai sus.",
+    "alertSummary_one": "{{count}} contract expirat sau care expiră în curând.",
+    "alertSummary_few": "{{count}} contracte expirate sau care expiră în curând.",
+    "alertSummary_other": "{{count}} de contracte expirate sau care expiră în curând."
   },
   "storage": {
     "title": "Boxe și dependinți",
@@ -1603,9 +1650,11 @@
     "reopen": "Redeschide",
     "status_nou": "Nou",
     "status_rezolvat": "Rezolvat",
-    "pendingBanner": "{{count}} mesaje așteaptă răspunsul comitetului.",
     "added": "Mesaj trimis anonim. Mulțumim.",
-    "empty": "Niciun mesaj anonim deocamdată."
+    "empty": "Niciun mesaj anonim deocamdată.",
+    "pendingBanner_one": "{{count}} mesaj așteaptă răspunsul comitetului.",
+    "pendingBanner_few": "{{count}} mesaje așteaptă răspunsul comitetului.",
+    "pendingBanner_other": "{{count}} de mesaje așteaptă răspunsul comitetului."
   },
   "pv": {
     "title": "Procese verbale",
@@ -1665,7 +1714,6 @@
     "title": "Plante / spații verzi",
     "subtitle": "Program de voluntariat pentru udat plantele, tuns gazonul și îngrijit curtea blocului. Înscrie-te la o sarcină liberă.",
     "new": "Adaugă sarcină",
-    "freeBanner": "{{count}} sarcini caută încă un voluntar.",
     "weekOf": "Săptămâna {{date}}",
     "free": "Liber",
     "signUp": "Mă înscriu",
@@ -1673,7 +1721,10 @@
     "taskLabel": "Sarcină",
     "week": "Săptămâna",
     "added": "Sarcină adăugată.",
-    "empty": "Nicio sarcină programată."
+    "empty": "Nicio sarcină programată.",
+    "freeBanner_one": "{{count}} sarcină caută încă un voluntar.",
+    "freeBanner_few": "{{count}} sarcini caută încă un voluntar.",
+    "freeBanner_other": "{{count}} de sarcini caută încă un voluntar."
   },
   "wiki": {
     "title": "Wiki bloc",
@@ -1708,18 +1759,19 @@
     "lastUsed": "ultima dată {{date}}",
     "rate": "Evaluează",
     "ratingLabel": "Evaluare",
-    "stars": "{{count}} stele",
     "markBusy": "Marchează indisponibil",
     "markAvailable": "Marchează disponibil",
     "added": "Contractor adăugat.",
     "rated": "Evaluare înregistrată.",
-    "empty": "Niciun contractor. Adaugă primul cu butonul de mai sus."
+    "empty": "Niciun contractor. Adaugă primul cu butonul de mai sus.",
+    "stars_one": "{{count}} stea",
+    "stars_few": "{{count}} stele",
+    "stars_other": "{{count}} de stele"
   },
   "alarm": {
     "title": "Sistem alarmă",
     "subtitle": "Status al sistemelor de alarmă și detecție, programul testelor și activările recente.",
     "new": "Adaugă sistem",
-    "attentionBanner": "{{count}} sisteme necesită atenție (defecte sau test depășit).",
     "status_ok": "În regulă",
     "status_test": "În test",
     "status_alarma": "Alarmă",
@@ -1730,7 +1782,10 @@
     "reportFault": "Semnalează defecțiune",
     "name": "Denumire sistem",
     "added": "Sistem adăugat.",
-    "empty": "Niciun sistem înregistrat. Adaugă primul cu butonul de mai sus."
+    "empty": "Niciun sistem înregistrat. Adaugă primul cu butonul de mai sus.",
+    "attentionBanner_one": "{{count}} sistem necesită atenție (defect sau test depășit).",
+    "attentionBanner_few": "{{count}} sisteme necesită atenție (defecte sau test depășit).",
+    "attentionBanner_other": "{{count}} de sisteme necesită atenție (defecte sau test depășit)."
   },
   "discussions": {
     "title": "Canal de discuții",
@@ -1738,7 +1793,6 @@
     "newThread": "Subiect nou",
     "threadTitle": "Titlu",
     "topic": "Etichetă (opțional)",
-    "messageCount": "{{count}} mesaje",
     "pinned": "Fixat",
     "pin": "Fixează",
     "unpin": "Anulează fixarea",
@@ -1750,15 +1804,24 @@
     "empty": "Niciun subiect de discuție. Pornește primul cu butonul de mai sus.",
     "deleteThread": "Șterge subiectul",
     "deleteThreadConfirm": "Ești sigur că vrei să ștergi acest subiect și toate mesajele din el? Acțiunea nu poate fi anulată.",
-    "deleteBulkTitle": "Ștergi {{count}} subiecte?",
-    "deleteBulkConfirm": "Ștergi definitiv {{count}} subiecte și toate mesajele lor? Acțiunea nu poate fi anulată.",
     "deleteMessageConfirm": "Ești sigur că vrei să ștergi acest mesaj? Acțiunea nu poate fi anulată.",
     "threadDeleted": "Subiect șters.",
-    "deleteSelected": "Șterge {{count}} selectate",
     "selectAll": "Selectează toate",
     "deselectAll": "Deselectează toate",
     "editMessage": "Editează mesajul",
-    "messageUpdated": "Mesaj actualizat."
+    "messageUpdated": "Mesaj actualizat.",
+    "messageCount_one": "{{count}} mesaj",
+    "messageCount_few": "{{count}} mesaje",
+    "messageCount_other": "{{count}} de mesaje",
+    "deleteBulkTitle_one": "Ștergi {{count}} subiect?",
+    "deleteBulkTitle_few": "Ștergi {{count}} subiecte?",
+    "deleteBulkTitle_other": "Ștergi {{count}} de subiecte?",
+    "deleteBulkConfirm_one": "Ștergi definitiv {{count}} subiect și toate mesajele lui? Acțiunea nu poate fi anulată.",
+    "deleteBulkConfirm_few": "Ștergi definitiv {{count}} subiecte și toate mesajele lor? Acțiunea nu poate fi anulată.",
+    "deleteBulkConfirm_other": "Ștergi definitiv {{count}} de subiecte și toate mesajele lor? Acțiunea nu poate fi anulată.",
+    "deleteSelected_one": "Șterge {{count}} selectat",
+    "deleteSelected_few": "Șterge {{count}} selectate",
+    "deleteSelected_other": "Șterge {{count}} de selectate"
   },
   "budget": {
     "title": "Buget participativ",
@@ -1768,11 +1831,13 @@
     "funded": "Finanțat",
     "vote": "Votează",
     "voted": "Votat",
-    "voteCount": "{{count}} voturi",
     "proposalTitle": "Titlu propunere",
     "cost": "Cost estimat (lei)",
     "added": "Propunere adăugată.",
-    "empty": "Nicio propunere încă. Adaugă prima cu butonul de mai sus."
+    "empty": "Nicio propunere încă. Adaugă prima cu butonul de mai sus.",
+    "voteCount_one": "{{count}} vot",
+    "voteCount_few": "{{count}} voturi",
+    "voteCount_other": "{{count}} de voturi"
   },
   "aga": {
     "title": "AGA digitală",
@@ -1853,9 +1918,10 @@
     "drag": "Glisează pentru a reordona",
     "added": "Proiect adăugat.",
     "rankingSaved": "Clasament salvat.",
-    "turnout": "{{count}} apartament a votat",
-    "turnout_other": "{{count}} apartamente au votat",
-    "empty": "Niciun proiect. Adaugă primul cu butonul de mai sus."
+    "turnout_other": "{{count}} de apartamente au votat",
+    "empty": "Niciun proiect. Adaugă primul cu butonul de mai sus.",
+    "turnout_one": "{{count}} apartament a votat",
+    "turnout_few": "{{count}} apartamente au votat"
   },
   "laundry": {
     "title": "Rezervare spălătorie",
@@ -1919,8 +1985,6 @@
     "adminPrivacyNote": "Conversația este privată între tine și proprietarul ales. Ceilalți proprietari nu o pot vedea.",
     "you": "Tu",
     "administrator": "Administrator",
-    "messageCount": "{{count}} mesaje",
-    "waiting": "așteaptă răspuns de {{count}}h",
     "status_open": "Deschis",
     "status_resolved": "Rezolvat",
     "markResolved": "Marchează rezolvat",
@@ -1934,12 +1998,24 @@
     "emptyAdmin": "Niciun mesaj de la proprietari încă. Poți porni tu o conversație cu butonul de mai sus.",
     "deleteThread": "Șterge conversația",
     "deleteThreadConfirm": "Ești sigur că vrei să ștergi această conversație? Acțiunea nu poate fi anulată.",
-    "deleteBulkTitle": "Ștergi {{count}} conversații?",
-    "deleteBulkConfirm": "Ștergi definitiv {{count}} conversații? Acțiunea nu poate fi anulată.",
     "threadDeleted": "Conversație ștearsă.",
-    "deleteSelected": "Șterge {{count}} selectate",
     "selectAll": "Selectează toate",
-    "deselectAll": "Deselectează toate"
+    "deselectAll": "Deselectează toate",
+    "messageCount_one": "{{count}} mesaj",
+    "messageCount_few": "{{count}} mesaje",
+    "messageCount_other": "{{count}} de mesaje",
+    "waiting_one": "așteaptă răspuns de {{count}}h",
+    "waiting_few": "așteaptă răspuns de {{count}}h",
+    "waiting_other": "așteaptă răspuns de {{count}}h",
+    "deleteBulkTitle_one": "Ștergi {{count}} conversație?",
+    "deleteBulkTitle_few": "Ștergi {{count}} conversații?",
+    "deleteBulkTitle_other": "Ștergi {{count}} de conversații?",
+    "deleteBulkConfirm_one": "Ștergi definitiv {{count}} conversație? Acțiunea nu poate fi anulată.",
+    "deleteBulkConfirm_few": "Ștergi definitiv {{count}} conversații? Acțiunea nu poate fi anulată.",
+    "deleteBulkConfirm_other": "Ștergi definitiv {{count}} de conversații? Acțiunea nu poate fi anulată.",
+    "deleteSelected_one": "Șterge {{count}} selectat",
+    "deleteSelected_few": "Șterge {{count}} selectate",
+    "deleteSelected_other": "Șterge {{count}} de selectate"
   },
   "welcomeKit": {
     "title": "Kit de bun-venit",
@@ -1972,7 +2048,6 @@
     "count": "Număr de copii",
     "bucketLabel": "{{range}} ani",
     "allAges": "Toate vârstele",
-    "totalKids": "{{count}} copii în total în bloc",
     "mine": "Înregistrările mele",
     "removeRange": "Șterge înregistrarea",
     "removeRangeTitle": "Șterge înregistrarea",
@@ -1996,11 +2071,16 @@
     "note": "Detalii",
     "noteHint": "Ce aducem, ce facem, cum confirmăm.",
     "organizedBy": "Organizat de {{name}}",
-    "going": "{{count}} participanți",
     "join": "Particip",
     "joined": "Particip",
     "editEvent": "Editează activitatea",
-    "eventUpdated": "Activitate actualizată."
+    "eventUpdated": "Activitate actualizată.",
+    "totalKids_one": "{{count}} copil în total în bloc",
+    "totalKids_few": "{{count}} copii în total în bloc",
+    "totalKids_other": "{{count}} de copii în total în bloc",
+    "going_one": "{{count}} participant",
+    "going_few": "{{count}} participanți",
+    "going_other": "{{count}} de participanți"
   },
   "projects": {
     "title": "Urmărire proiecte",
@@ -2089,7 +2169,6 @@
     },
     "petsSection": "Animale în bloc",
     "petsHint": "Marchează prezența animalelor din apartamentul tău, ca pompierii să știe unde să caute în caz de evacuare.",
-    "petCount": "{{count}} apartamente cu animale",
     "myMarker": "Apartamentul tău: {{species}}",
     "noMarker": "Apartamentul tău nu este marcat cu animale.",
     "addMarker": "Marchează animale",
@@ -2099,7 +2178,10 @@
     "markerSaved": "Marcaj salvat.",
     "markerRemoved": "Marcaj eliminat.",
     "speciesLabel": "Animale (pe scurt)",
-    "speciesHint": "ex: 1 pisică, 2 câini"
+    "speciesHint": "ex: 1 pisică, 2 câini",
+    "petCount_one": "{{count}} apartament cu animale",
+    "petCount_few": "{{count}} apartamente cu animale",
+    "petCount_other": "{{count}} de apartamente cu animale"
   },
   "catalog": {
     "categories": {
@@ -2515,7 +2597,6 @@
     },
     "adminTitle": "Cereri privind datele personale",
     "adminSubtitle": "Acționează cererile de export și de ștergere ale rezidenților, cu trasabilitate completă.",
-    "pendingBadge": "{{count}} în așteptare",
     "adminEmpty": "Nu există cereri.",
     "noAccessTitle": "Acces restricționat",
     "noAccessBody": "Doar administratorul sau președintele asociației pot gestiona cererile privind datele personale.",
@@ -2528,7 +2609,10 @@
     "reject": "Respinge",
     "noteLabel": "Notă (opțional)",
     "notePlaceholder": "ex. verificat, fără datorii",
-    "actionedBy": "de {{name}}"
+    "actionedBy": "de {{name}}",
+    "pendingBadge_one": "{{count}} în așteptare",
+    "pendingBadge_few": "{{count}} în așteptare",
+    "pendingBadge_other": "{{count}} în așteptare"
   },
   "breach": {
     "title": "Incidente de securitate a datelor",
@@ -2612,10 +2696,12 @@
     "deadlineDone": "Notificat",
     "deadlineIn": "{{hours}} h până la termen",
     "discovered": "Descoperit",
-    "affected": "{{count}} persoane afectate",
     "by": "de {{name}}",
     "authorityNotifiedAt": "ANSPDCP notificat la",
-    "subjectsNotifiedAt": "Locatari informați la"
+    "subjectsNotifiedAt": "Locatari informați la",
+    "affected_one": "{{count}} persoană afectată",
+    "affected_few": "{{count}} persoane afectate",
+    "affected_other": "{{count}} de persoane afectate"
   },
   "ropa": {
     "title": "Prelucrarea datelor (DPA și registru)",
@@ -2704,7 +2790,6 @@
     "integrityOk": "Lanț integru",
     "integrityBroken": "Lanț compromis la #{{seq}}",
     "hmacSigned": "Lanț semnat HMAC",
-    "count": "{{count}} înregistrări",
     "filterAction": "Acțiune",
     "filterEntity": "Tip",
     "allActions": "Toate acțiunile",
@@ -2780,7 +2865,10 @@
       "petition": "Petiție",
       "impersonation": "Impersonare",
       "broadcast": "Anunț platformă"
-    }
+    },
+    "count_one": "{{count}} înregistrare",
+    "count_few": "{{count}} înregistrări",
+    "count_other": "{{count}} de înregistrări"
   },
   "chrome": {
     "home": "Acasă",
@@ -2937,21 +3025,33 @@
         "associationsTitle": "Asociații",
         "activityTitle": "Activitate 30 de zile",
         "operationsTitle": "Operațiuni",
-        "activeCount": "{{count}} active",
-        "moderateCount": "{{count}} moderate",
-        "dormantCount": "{{count}} inactive",
-        "suspendedCount": "{{count}} suspendate",
         "announcements": "Anunțuri",
         "tickets": "Sesizări",
         "votes": "Voturi",
         "mrrLabel": "MRR",
-        "overdueSubLabel": "{{count}} restante",
         "openThreadsLabel": "Thread-uri suport deschise",
-        "unansweredSubLabel": "{{count}} fără răspuns",
         "errorGroupsLabel": "Grupuri de erori",
         "newErrorGroupsSubLabel_one": "{{count}} nou in 24 h",
         "newErrorGroupsSubLabel_few": "{{count}} noi in 24 h",
-        "newErrorGroupsSubLabel_other": "{{count}} noi in 24 h"
+        "newErrorGroupsSubLabel_other": "{{count}} noi in 24 h",
+        "activeCount_one": "{{count}} activă",
+        "activeCount_few": "{{count}} active",
+        "activeCount_other": "{{count}} active",
+        "moderateCount_one": "{{count}} moderată",
+        "moderateCount_few": "{{count}} moderate",
+        "moderateCount_other": "{{count}} moderate",
+        "dormantCount_one": "{{count}} inactivă",
+        "dormantCount_few": "{{count}} inactive",
+        "dormantCount_other": "{{count}} inactive",
+        "suspendedCount_one": "{{count}} suspendată",
+        "suspendedCount_few": "{{count}} suspendate",
+        "suspendedCount_other": "{{count}} suspendate",
+        "overdueSubLabel_one": "{{count}} restantă",
+        "overdueSubLabel_few": "{{count}} restante",
+        "overdueSubLabel_other": "{{count}} restante",
+        "unansweredSubLabel_one": "{{count}} fără răspuns",
+        "unansweredSubLabel_few": "{{count}} fără răspuns",
+        "unansweredSubLabel_other": "{{count}} fără răspuns"
       }
     },
     "sections": {
@@ -3291,11 +3391,6 @@
     "subscriptions": {
       "title": "Abonamente",
       "subtitle": "Starea abonamentului fiecărei asociații: planul activ, statutul și facturile.",
-      "activeCount": "{{count}} active",
-      "trialingCount": "{{count}} probă",
-      "pastDueCount": "{{count}} restante",
-      "unpaidCount": "{{count}} blocate",
-      "canceledCount": "{{count}} anulate",
       "searchPlaceholder": "Caută după asociație sau oraș...",
       "filterStatus": "Filtrează după statut",
       "allStatuses": "Toate statutele",
@@ -3304,7 +3399,22 @@
       "colPlan": "Plan",
       "colStatus": "Statut",
       "colPeriod": "Perioadă",
-      "markPaid": "Marchează plătit"
+      "markPaid": "Marchează plătit",
+      "activeCount_one": "{{count}} activă",
+      "activeCount_few": "{{count}} active",
+      "activeCount_other": "{{count}} active",
+      "trialingCount_one": "{{count}} probă",
+      "trialingCount_few": "{{count}} probă",
+      "trialingCount_other": "{{count}} de probă",
+      "pastDueCount_one": "{{count}} restantă",
+      "pastDueCount_few": "{{count}} restante",
+      "pastDueCount_other": "{{count}} restante",
+      "unpaidCount_one": "{{count}} blocată",
+      "unpaidCount_few": "{{count}} blocate",
+      "unpaidCount_other": "{{count}} blocate",
+      "canceledCount_one": "{{count}} anulată",
+      "canceledCount_few": "{{count}} anulate",
+      "canceledCount_other": "{{count}} anulate"
     },
     "messenger": {
       "title": "Mesaje cu administratorii",
@@ -3317,9 +3427,11 @@
       "status_resolved": "Rezolvat",
       "markResolved": "Marchează rezolvat",
       "reopen": "Redeschide",
-      "messageCount": "{{count}} mesaje",
       "awaitingReply": "așteaptă răspuns",
-      "empty": "Nicio conversație de asistență."
+      "empty": "Nicio conversație de asistență.",
+      "messageCount_one": "{{count}} mesaj",
+      "messageCount_few": "{{count}} mesaje",
+      "messageCount_other": "{{count}} de mesaje"
     },
     "team": {
       "title": "Echipa platformei",
@@ -3421,9 +3533,11 @@
     "reopen": "Redeschide",
     "threadStarted": "Cerere de asistență trimisă.",
     "writeFailed": "Mesajul nu a putut fi salvat. Încearcă din nou.",
-    "messageCount": "{{count}} mesaje",
     "awaitingReply": "răspuns primit",
-    "empty": "Nicio cerere de asistență. Apasă butonul de mai sus pentru a contacta platforma."
+    "empty": "Nicio cerere de asistență. Apasă butonul de mai sus pentru a contacta platforma.",
+    "messageCount_one": "{{count}} mesaj",
+    "messageCount_few": "{{count}} mesaje",
+    "messageCount_other": "{{count}} de mesaje"
   },
   "billing": {
     "title": "Abonament",

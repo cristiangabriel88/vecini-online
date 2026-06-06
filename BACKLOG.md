@@ -245,7 +245,7 @@ The document root `lang` is static, so switching the UI to English never updates
 
 `@axe-core/playwright` is available but not run as an explicit gate across representative surfaces. Add axe scans over a key set (dashboard, one feature list page, a form page, an open modal, the login page) in the Playwright suite with a fail-on-serious/critical gate, then fix what it surfaces (likely candidates: icon-only buttons missing `aria-label`, focus order in custom widgets like the DatePicker, any contrast misses). Keep the gate green. Prereq: none.
 
-### ⬜ T272 — [P2] Romanian plural-form correctness
+### ✅ T272 — [P2] Romanian plural-form correctness
 
 Count-bearing strings appear to use single-form keys, but Romanian has three plural categories (one: 1; few: 2-19; many: 20+ which also inserts "de", e.g. "21 de anunțuri"). Audit the locale files for count strings and convert them to i18next plural keys (`key_one` / `key_few` / `key_other`) in both `ro.json` and `en.json`, fixing the grammar at each call site (`t(key, { count })`). Add a test/lint guard that flags new count interpolations not using the plural form. Prereq: none.
 

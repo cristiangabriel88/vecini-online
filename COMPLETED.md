@@ -4,6 +4,14 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T272 ✅ 2026-06-06 -- Romanian plural-form correctness
+
+Audited both locale files; found 56 count-bearing keys without plural variants plus 3 Romanian keys missing `_few`. Converted all 56 to proper i18next plural keys (`_one`/`_few`/`_other` in ro.json, `_one`/`_few`/`_other` in en.json for parity with English `_few` mirroring `_other`) and filled the 3 missing `_few` forms (`generateInvitesEligible`, `generateInvitesSent`, `generateInvitesFailed`). Also fixed the orphaned bare `priorities.turnout` base key that co-existed with `_other`. Romanian grammar: `_one` = singular, `_few` = 2-19 without "de", `_other` = 20+ with "de" before noun. Added `tests/unit/romanianPlurals.test.ts` (9 tests) as a regression gate: it fails if any bare `{{count}}` key exists, if any plural group is missing a required variant, and spot-checks singular/few/other grammar. All 315 test files (3067 tests) green, all 3 builds pass.
+- modified: src/shared/locales/ro.json (56 bare keys replaced with _one/_few/_other; 3 missing _few added)
+- modified: src/shared/locales/en.json (56 bare keys replaced with _one/_few/_other; _few mirrors _other for parity)
+- added: tests/unit/romanianPlurals.test.ts
+- added: scripts/apply-plural-forms.mjs (one-shot transform script, kept for audit trail)
+
 ### T271 ✅ 2026-06-06 -- Automated a11y scan in E2E + fixes
 
 New `tests/e2e/a11y.spec.ts` adds 5 axe-core scans (WCAG 2.0 A/AA, colour-contrast excluded, fail on critical/serious) over the key surfaces: login page, dashboard, announcements list, apartment add form, and the announcement compose modal. Fixed `DatePicker` keyboard navigation gap: when no date is selected all day buttons had `tabIndex={-1}`, making the calendar grid unreachable via keyboard; the first non-disabled non-outside day now gets `tabIndex={0}` as the roving-tabindex entry point. All 314 test files (3058 tests) green, all 3 builds pass.
