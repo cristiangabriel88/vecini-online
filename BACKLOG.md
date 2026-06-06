@@ -181,9 +181,11 @@ Done: installed `rollup-plugin-visualizer@7.0.1`; configured it in `vite.config.
 
 > From the 2026-06-05 deep-analysis pass. The manifest exists with no service worker, heavy libraries ship in shared chunks, images are unoptimized, and the realtime subscription lifecycle is unverified.
 
-### ⬜ T262 — [P1] Audit + fix realtime subscription lifecycle
+### ✅ T262 — [P1] Audit + fix realtime subscription lifecycle
 
 `useRealtimeSync` subscribes to Supabase channels from `AppLayout`. Verify the channels are reliably torn down on unmount and, crucially, on a tenant/persona switch (dev role switcher, impersonation start/stop) so subscriptions cannot leak or bleed events across tenants. Trace the subscribe/unsubscribe path in `src/shared/.../realtime*` and `AppLayout.tsx`; if a leak or cross-tenant bleed is possible, fix it (key the channel by `asociatie_id`, unsubscribe in the effect cleanup) and add a regression test that asserts teardown on tenant change. If already clean, document the guarantee in a test and downgrade the residual to P3. Prereq: none.
+
+Done: audit found the implementation already clean -- `useEffect([asociatieId])` correctly creates channel `rt-{aid}` on mount, removes it on cleanup (unmount or tenant switch), and captures `aid` in closure so late-arriving frames always write to the correct store partition. Demo mode and Pi DEV stage short-circuit with no-op returns. No cross-tenant bleed possible. Added `tests/unit/realtimeSyncLifecycle.test.ts` (7 tests) documenting the lifecycle guarantee. All 306 test files (2975 tests) green, all 3 builds pass.
 
 ### ⬜ T263 — [P2] Service worker / installable PWA
 

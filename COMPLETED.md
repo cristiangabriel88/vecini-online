@@ -4,6 +4,11 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T262 ✅ 2026-06-06 -- Realtime subscription lifecycle audit
+
+Traced `useRealtimeSync` (src/app/useRealtimeSync.ts) + AppLayout.tsx. Implementation already correct: `useEffect([asociatieId])` creates channel `rt-{aid}` on mount, calls `supabase.removeChannel(channel)` in the cleanup on unmount and on every tenant switch. Closure-captured `aid` ensures late-arriving network frames write to the correct store partition with no cross-tenant bleed. Demo mode (isSupabaseConfigured === false) and Pi DEV stage (appStage === 'dev') both return early -- no channels opened. No impersonation mechanism exists. Added `tests/unit/realtimeSyncLifecycle.test.ts` (7 tests) with `vi.hoisted` Supabase mock asserting channel create/teardown on mount, unmount, tenant switch (A → B), and null transitions. All 306 test files (2975 tests) green, all 3 builds pass.
+- new: tests/unit/realtimeSyncLifecycle.test.ts (7 lifecycle regression tests)
+
 ### T261 ✅ 2026-06-06 -- Health-probe alerting + ops runbook
 
 Scheduled Netlify function `health-probe` (`*/5 * * * *`) probes the public health endpoint (5 s timeout) and does a Supabase `asociatii` round-trip; anomalies are inserted into `platform_error_reports` as `HealthProbeFailure` and emailed via Resend to `PLATFORM_ALERT_EMAIL` with a 30-minute in-memory de-dup window. Pure `healthProbeLogic.ts` exposes `evaluateProbeResult`, `shouldAlertProbe`, and `buildHealthAlertEmail` with 19 unit tests. Added `OPS_RUNBOOK.md` covering UptimeRobot/BetterUptime external monitor setup, internal probe env vars, alert thresholds, and escalation steps. Schedule wired in `netlify.toml`. No-op when Supabase is unconfigured. All 305 test files (2968 tests) green, all 3 builds pass.
