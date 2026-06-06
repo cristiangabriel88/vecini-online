@@ -18,6 +18,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
+import { EmptyState } from '@/shared/components/EmptyState';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
@@ -820,7 +821,9 @@ export default function SecurityPage() {
           <Card title={t('auth.audit.title')}>
             <p className="text-sm text-muted">{t('auth.audit.body')}</p>
             {events.length === 0 ? (
-              <p className="mt-3 text-sm text-muted">{t('auth.audit.empty')}</p>
+              <div className="mt-3">
+                <EmptyState icon={<History size={22} />} body={t('auth.audit.empty')} />
+              </div>
             ) : (
               <ul className="mt-3 divide-y divide-[var(--border)]">
                 {events.map((e, i) => (

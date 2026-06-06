@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { ShieldCheck, FileText, Cookie, ScrollText, DatabaseZap, ClipboardList, Siren, Scale } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
+import { EmptyState } from '@/shared/components/EmptyState';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Switch } from '@/shared/components/Switch';
@@ -115,7 +116,7 @@ export default function PrivacySettingsPage() {
 
       <Card title={t('consent.historyTitle')} className="mt-4">
         {history.length === 0 ? (
-          <p className="text-sm text-muted">{t('consent.historyEmpty')}</p>
+          <EmptyState icon={<FileText size={22} />} body={t('consent.historyEmpty')} />
         ) : (
           <ul className="consent-history">
             {[...history].reverse().map((r, i) => (

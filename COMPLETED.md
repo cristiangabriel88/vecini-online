@@ -4,6 +4,11 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T269 ✅ 2026-06-06 -- Empty-state consistency audit
+
+Audited all 83 feature pages; found 2 ad-hoc `<p className="text-sm text-muted">` empty states outside the shared `EmptyState` component. Replaced both with `<EmptyState>`: in `SecurityPage.tsx` (security audit log, History icon) and `PrivacySettingsPage.tsx` (consent change history, FileText icon). The `EntranceField.tsx` early-return on empty entrances is a different-component pattern, not a visual empty state, left as-is. All 313 test files (3055 tests) green, all 3 builds pass.
+- modified: src/features/auth/SecurityPage.tsx, src/features/legal/PrivacySettingsPage.tsx
+
 ### T268 ✅ 2026-06-06 -- Onboarding progress indicator
 
 Extracted pure step logic (`clampStep`, `nextCarouselStep`, `prevCarouselStep`, `isLastCarouselStep`) into `welcomeLogic.ts`; `WelcomeCarousel` now imports them for all navigation and keyboard handling. Added a visible `1 / 3` step counter (`<span class="welcome-step-counter">`) rendered inline after the dot tabs using new `welcome.stepCounter` i18n key (bilingual; language-neutral "{{current}} / {{total}}" format). Made the skip button more prominent: border, `font-weight: 500`, `var(--text-secondary)` base with hover bringing in `var(--text-primary)` + `var(--border-strong)`. CSS for `.welcome-step-counter` (xs text, tabular-nums, muted). 14 unit tests in `tests/unit/welcomeCarouselStep.test.ts` covering `clampStep` clamping, `nextCarouselStep` advancement + boundary, `prevCarouselStep` decrement + boundary, `isLastCarouselStep` all cases including single-slide edge. All 313 test files (3055 tests) green, all 3 builds pass.

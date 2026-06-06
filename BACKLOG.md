@@ -227,9 +227,11 @@ The first-run welcome carousel (`src/features/welcome/`) is a 3-slide flow with 
 
 Done: extracted pure step logic (`clampStep`, `nextCarouselStep`, `prevCarouselStep`, `isLastCarouselStep`) into `welcomeLogic.ts`; `WelcomeCarousel` now imports them for all navigation. Added a visible "1 / 3" step counter (`welcome-step-counter`) inline with the dots. Made the skip button more prominent (border, `font-weight: 500`, `var(--text-secondary)`). Added `welcome.stepCounter` key to both `ro.json` and `en.json`. 14 unit tests in `tests/unit/welcomeCarouselStep.test.ts`. All 313 test files (3055 tests) green, all 3 builds pass.
 
-### ⬜ T269 — [P3] Empty-state consistency audit
+### ✅ T269 — [P3] Empty-state consistency audit
 
 Some pages route empty lists through the shared `EmptyState` component (icon + title + body + optional action); others inline ad-hoc "no results" text. Sweep the feature pages and replace every ad-hoc empty rendering with `EmptyState`, with appropriate bilingual copy and a primary action where one makes sense (e.g. "Add the first announcement"). No logic change. Prereq: none.
+
+Done: audited all 83 feature pages; found 2 ad-hoc `<p className="text-sm text-muted">` empty states. Replaced with `<EmptyState>` in `SecurityPage.tsx` (security audit log, History icon) and `PrivacySettingsPage.tsx` (consent change history, FileText icon). All 313 test files (3055 tests) green, all 3 builds pass.
 
 ### Group G — Accessibility & localization quality
 
