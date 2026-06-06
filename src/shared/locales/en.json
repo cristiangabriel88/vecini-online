@@ -412,6 +412,7 @@
     "start": "Get started",
     "carouselLabel": "Welcome tour",
     "slideOf": "Slide {{current}} of {{total}}",
+    "stepCounter": "{{current}} / {{total}}",
     "slide1Title": "Your whole building, in one calm place",
     "slide1Body": "Announcements, events and neighbourly chat: everything from the association reaches you, without the noise of group chats.",
     "slide2Title": "Decisions made in the open",

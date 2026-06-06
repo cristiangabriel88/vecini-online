@@ -18,6 +18,12 @@ import {
   Wallet,
 } from 'lucide-react';
 import { Button } from '@/shared/components/Button';
+import {
+  clampStep,
+  isLastCarouselStep,
+  nextCarouselStep,
+  prevCarouselStep,
+} from './welcomeLogic';
 
 type Icon = ComponentType<{ className?: string }>;
 
@@ -48,18 +54,18 @@ export function WelcomeCarousel({
 }) {
   const { t } = useTranslation();
   const [step, setStep] = useState(0);
-  const last = SLIDES.length - 1;
+  const total = SLIDES.length;
   const pointerStartX = useRef<number | null>(null);
 
-  const goTo = (next: number) => setStep(Math.max(0, Math.min(last, next)));
-  const next = () => (step === last ? onGetStarted() : goTo(step + 1));
-  const back = () => goTo(step - 1);
+  const goTo = (n: number) => setStep(clampStep(n, total));
+  const next = () => (isLastCarouselStep(step, total) ? onGetStarted() : goTo(nextCarouselStep(step, total)));
+  const back = () => goTo(prevCarouselStep(step, total));
 
   // Arrow-key navigation across the slides.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'ArrowRight') goTo(step + 1);
-      else if (e.key === 'ArrowLeft') goTo(step - 1);
+      if (e.key === 'ArrowRight') goTo(nextCarouselStep(step, total));
+      else if (e.key === 'ArrowLeft') goTo(prevCarouselStep(step, total));
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -85,9 +91,9 @@ export function WelcomeCarousel({
           <span className="welcome__brand-dot" aria-hidden="true" />
           vecini.online
         </span>
-        <button className="welcome__skip" onClick={onSkip}>
+        <button className="welcome__skip" onClick={onSkip} aria-label={t('welcome.skip')}>
           {t('welcome.skip')}
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
 
@@ -143,11 +149,14 @@ export function WelcomeCarousel({
               key={slide.key}
               role="tab"
               aria-selected={i === step}
-              aria-label={t('welcome.slideOf', { current: i + 1, total: SLIDES.length })}
+              aria-label={t('welcome.slideOf', { current: i + 1, total })}
               className={`welcome-dots__dot${i === step ? ' welcome-dots__dot--active' : ''}`}
               onClick={() => goTo(i)}
             />
           ))}
+          <span className="welcome-step-counter" aria-hidden="true">
+            {t('welcome.stepCounter', { current: step + 1, total })}
+          </span>
         </div>
         <div className="welcome-carousel__nav">
           {step > 0 && (
@@ -156,7 +165,7 @@ export function WelcomeCarousel({
             </Button>
           )}
           <Button size="sm" onClick={next}>
-            {step === last ? t('welcome.start') : t('welcome.next')}
+            {isLastCarouselStep(step, total) ? t('welcome.start') : t('welcome.next')}
             <ArrowRight className="h-4 w-4" />
           </Button>
         </div>

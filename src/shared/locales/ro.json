@@ -412,6 +412,7 @@
     "start": "Începe",
     "carouselLabel": "Turul de bun venit",
     "slideOf": "Pasul {{current}} din {{total}}",
+    "stepCounter": "{{current}} / {{total}}",
     "slide1Title": "Tot blocul tău, într-un singur loc",
     "slide1Body": "Anunțuri, evenimente și discuții cu vecinii: tot ce vine de la asociație ajunge la tine, fără zgomotul grupurilor de chat.",
     "slide2Title": "Decizii luate la vedere",

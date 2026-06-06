@@ -45,3 +45,25 @@ export function shouldShowWelcome({
   if (seen) return false;
   return isWelcomeEligibleRole(role);
 }
+
+// ── Carousel step navigation (pure, unit-tested) ──────────────────────────────
+
+/** Clamps a step index to the valid range [0, total - 1]. */
+export function clampStep(step: number, total: number): number {
+  return Math.max(0, Math.min(total - 1, step));
+}
+
+/** Returns the next step, clamped to the last slide. */
+export function nextCarouselStep(step: number, total: number): number {
+  return clampStep(step + 1, total);
+}
+
+/** Returns the previous step, clamped to the first slide. */
+export function prevCarouselStep(step: number, total: number): number {
+  return clampStep(step - 1, total);
+}
+
+/** True when the carousel is on its final slide. */
+export function isLastCarouselStep(step: number, total: number): boolean {
+  return step === total - 1;
+}

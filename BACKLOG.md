@@ -221,9 +221,11 @@ Long create/edit forms (apartment, AGA agenda, RFP/quotes, profile) silently dis
 
 Done: new `src/shared/lib/useUnsavedGuard.ts` exports `isFormDirty<T>(current, initial)` (JSON equality, unit-testable) and `useUnsavedGuard(isDirty)` (React Router `useBlocker` + `beforeunload`); `bypassRef` ensures the post-save programmatic navigate skips the block. New `src/shared/components/UnsavedChangesModal.tsx` renders the bilingual (RO/EN) premium-feel modal via the existing `Modal` component. Adopted in `ApartmentFormPage`: initial refs capture mount-time state; `isDirty` recomputes on every render; `clearDirty()` called before the post-save navigate. Bilingual `common.unsavedChanges.*` keys added to both locales. 16 unit tests in `useUnsavedGuard.test.ts` (pure `isFormDirty` logic). 3 E2E scenarios in `unsavedChanges.spec.ts` (stay, leave, clean-form passes through). All 312 test files (3045 tests) green, all 3 builds pass.
 
-### ⬜ T268 — [P3] Onboarding progress indicator
+### ✅ T268 — [P3] Onboarding progress indicator
 
 The first-run welcome carousel (`src/features/welcome/`) is a 3-slide flow with no step counter, no progress bar, and no obvious skip, so users do not know how far they are. Add a `1 / 3` progress affordance (dots or bar) and a clear "skip" control, premium-feel and bilingual, without changing the seen-per-user persistence. Unit test for the step logic. Prereq: none.
+
+Done: extracted pure step logic (`clampStep`, `nextCarouselStep`, `prevCarouselStep`, `isLastCarouselStep`) into `welcomeLogic.ts`; `WelcomeCarousel` now imports them for all navigation. Added a visible "1 / 3" step counter (`welcome-step-counter`) inline with the dots. Made the skip button more prominent (border, `font-weight: 500`, `var(--text-secondary)`). Added `welcome.stepCounter` key to both `ro.json` and `en.json`. 14 unit tests in `tests/unit/welcomeCarouselStep.test.ts`. All 313 test files (3055 tests) green, all 3 builds pass.
 
 ### ⬜ T269 — [P3] Empty-state consistency audit
 
