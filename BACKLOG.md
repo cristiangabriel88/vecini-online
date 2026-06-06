@@ -265,9 +265,9 @@ There is no catalog of the design system's variants, so contributors reverse-eng
 
 Design drift currently slips through (no screenshot diffing). Add Playwright screenshot snapshots for a few key surfaces (dashboard, a feature page, a modal, login) across light/dark and a couple of palettes, with baselines committed and diffs surfaced on CI. Keep the baseline set small and deterministic (freeze time/animations). Pairs with T274. Prereq: none.
 
-### ⬜ T276 — [P2] Disaster-recovery + key-rotation runbook
+### ✅ T276 — [P2] Disaster-recovery + key-rotation runbook
 
-Backup/restore and secret rotation are undocumented; the audit-HMAC (T87) and token-rotation work explicitly deferred the emergency-revocation and key-rotation procedures. Add a `DR_RUNBOOK.md` covering RTO/RPO targets, a quarterly Supabase restore-from-backup drill (with a step-by-step), and the rotation procedures for `SUPABASE_SERVICE_ROLE_KEY`, `AUDIT_HMAC_SECRET`, `TELEGRAM_BOT_TOKEN`/webhook secret, and `RESEND_API_KEY`, plus the JWT/token emergency-revocation path. Add a scripted restore-smoke if feasible. Docs + checklist; no product change. Prereq: none.
+Done: created `DR_RUNBOOK.md` (RPO/RTO targets, quarterly Supabase restore drill with checklist, rotation procedures for `SUPABASE_SERVICE_ROLE_KEY`, `AUDIT_HMAC_SECRET`, `TELEGRAM_BOT_TOKEN`/webhook secret, `RESEND_API_KEY`/`RESEND_WEBHOOK_SECRET`, JWT/session emergency revocation, uptime monitoring note); created `scripts/restore-smoke.sh` (health endpoint + 5 core table REST checks, exit 0/1). All 317 test files green, all 3 builds pass.
 
 ### ⬜ T277 — [P3] Dependency hygiene gate
 

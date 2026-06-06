@@ -4,6 +4,12 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T276 ✅ 2026-06-06 -- Disaster-recovery + key-rotation runbook
+
+Pure docs task; no product or pipeline change. Created `DR_RUNBOOK.md` with: RPO (24 h) / RTO (4 h) targets; quarterly Supabase restore-from-backup drill (step-by-step checklist including creating a test project, restoring, running the smoke script, and deleting the test project); rotation procedures for `SUPABASE_SERVICE_ROLE_KEY` (JWT secret rotation path + session impact note), `AUDIT_HMAC_SECRET` (generate with `openssl rand -hex 32`, impact on existing signatures documented), `TELEGRAM_BOT_TOKEN` / webhook secret (BotFather `/revoke` + `setWebhook` re-registration), `RESEND_API_KEY` / `RESEND_WEBHOOK_SECRET` (Resend dashboard flow); JWT / session emergency revocation (single-user via Admin API, nuclear JWT-secret rotation, platform-admin emergency removal); escalation contacts; external uptime monitoring target. Created `scripts/restore-smoke.sh`: accepts `HEALTH_URL`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`; probes the health endpoint (HTTP 200 check) and 5 core tables via Supabase REST API (`asociatii`, `memberships`, `audit_log`, `platform_admins`, `platform_error_reports`); exits 0 if all configured checks pass, 1 if any fail. All 317 test files (3121 tests) green, all 3 builds pass.
+- new: DR_RUNBOOK.md
+- new: scripts/restore-smoke.sh
+
 ### T275 ✅ 2026-06-06 -- Visual-regression snapshots
 
 Playwright screenshot snapshots for 5 key surfaces (login, dashboard x2 themes/palettes, announcements list, component gallery) across light/dark and sage/ocean palettes. Each test pre-seeds localStorage (consent accepted, theme, tint, welcome tour seen) via `addInitScript` before navigation, freezes the wall-clock to `2026-06-06T12:00:00Z` via `page.clock.setFixedTime`, and disables CSS animations via an injected style tag so screenshots are bit-stable across runs. `snapshotPathTemplate` strips the `{platform}` suffix from the default so the same PNG baseline is compared on Windows (local) and Linux (CI); a 3% pixel-ratio tolerance covers minor sub-pixel rendering differences between the two OSes. Baseline PNGs committed under `tests/e2e/visual.spec.ts-snapshots/`. New scripts `test:visual` and `test:visual:update` in `package.json`. All 317 test files (3121 tests) green, all 3 builds pass.
