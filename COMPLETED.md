@@ -4,6 +4,17 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T258c ✅ 2026-06-06 -- New-error / spike alerting
+
+Pure alert-trigger logic extracted to `netlify/functions/_shared/errorAlertLogic.ts` (`shouldAlertNewGroup`, `shouldAlertSpike`, `buildAlertEmail`) with 13 unit tests. `error-report.ts` fires a post-insert `checkAndAlert()` call (fire-and-forget within the Lambda) that queries the DB for total group count (new-group detection: count == 1) and recent-hour count (spike detection: count >= 10); de-duplicates per group key via an in-memory `_alertStore` Map (4 h de-dup window, same pattern as rate limiter); emails via `_shared/resend.ts` to `PLATFORM_ALERT_EMAIL` (fallback `RESEND_FROM_EMAIL`); no-op when keys absent. `platformOverviewLogic.ts` gains `newErrorGroupsLast24h` (groups whose `firstAt` is within the last 24 h; accepts optional `nowMs` for testing). Platform homepage ops section shows a `n new in 24 h` warning sub-label on the error-groups stat when > 0. Bilingual RO/EN. 5 new `newErrorGroupsLast24h` tests in `platformOverview.test.ts`. All 304 test files (2945 tests) green, all 3 builds pass.
+- new: netlify/functions/_shared/errorAlertLogic.ts
+- new: tests/unit/errorAlertLogic.test.ts
+- modified: netlify/functions/error-report.ts
+- modified: src/platform/platformOverviewLogic.ts
+- modified: src/platform/PlatformHomePage.tsx
+- modified: src/shared/locales/en.json + ro.json
+- modified: tests/unit/platformOverview.test.ts
+
 ### T258b ✅ 2026-06-06 -- Source-map symbolication for error stacks
 
 `vite.config.ts` refactored to function form using `loadEnv` so `VITE_APP_STAGE` from mode-specific `.env.*` files is available at config-evaluation time; `sourcemap: 'hidden'` emitted for PROD and DEV builds (maps emitted without `//# sourceMappingURL` in JS files), skipped for DEMO. `netlify.toml` gains a force-404 redirect rule for `/assets/*.js.map` to block public CDN access. `stack` column added to `platform_error_reports` via migration `20260606000012_error_reports_stack.sql`; `error-report.ts` body limit raised to 16 KB and `stack` stored. New pure helper `src/shared/lib/sourcemapUtils.ts` (`parseMinifiedFrame`, `extractFilename`, `formatResolvedFrame`, `extractFrameLines`) with 13 unit tests covering Chrome, Firefox, and edge cases. New `netlify/functions/symbolicate-stack.ts`: service-role, verifies `is_super_admin()`, fetches `.js.map` from private Supabase Storage bucket `source-maps/<release>/` using `source-map-js`, returns `ResolvedFrame[]`. `scripts/upload-sourcemaps.mjs` post-build upload script (silently skips when credentials absent). `platformErrorStore.ts`: `PlatformErrorReport` now includes `stack`; `ErrorGroup` gains `stack` and `latestRelease` fields; demo data seeds realistic minified stacks for two groups. `platformApi.ts` hydration includes `stack`. `PlatformErrorsPage.tsx`: expand/collapse raw stack per group, Symbolicate button (calls the function with session token, shows loading/error states), resolved frame display. Bilingual RO/EN. New dep: `source-map-js`. All 303 test files (2919 tests) green, all 3 builds pass.

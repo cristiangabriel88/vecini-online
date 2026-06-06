@@ -23,6 +23,8 @@ export interface PlatformOverview {
   openThreads: number;
   unansweredThreads: number;
   recentErrorGroups: number;
+  /** Number of distinct error groups whose first occurrence is within the last 24 hours. */
+  newErrorGroupsLast24h: number;
 }
 
 export function computeOverview(
@@ -31,8 +33,11 @@ export function computeOverview(
   subscriptionRows: PlatformSubscriptionRow[],
   threads: SupportThread[],
   errorReports: PlatformErrorReport[],
+  nowMs?: number,
 ): PlatformOverview {
   const rollup = computeRollup(metrics);
+  const now = nowMs ?? Date.now();
+  const DAY_MS = 86_400_000;
   const suspendedLifecycle = asociatii.filter((a) => (a.status ?? 'active') === 'suspended').length;
 
   let mrr = 0;
@@ -56,6 +61,9 @@ export function computeOverview(
   }
 
   const recentErrorGroups = groupReports(errorReports).length;
+  const newErrorGroupsLast24h = groupReports(
+    errorReports.filter((r) => r.at > now - DAY_MS),
+  ).length;
 
   let recentAnnouncements = 0;
   let recentTickets = 0;
@@ -82,5 +90,6 @@ export function computeOverview(
     openThreads,
     unansweredThreads,
     recentErrorGroups,
+    newErrorGroupsLast24h,
   };
 }

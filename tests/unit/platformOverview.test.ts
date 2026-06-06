@@ -128,6 +128,7 @@ describe('computeOverview', () => {
     expect(ov.openThreads).toBe(0);
     expect(ov.unansweredThreads).toBe(0);
     expect(ov.recentErrorGroups).toBe(0);
+    expect(ov.newErrorGroupsLast24h).toBe(0);
   });
 
   describe('asociatii breakdown', () => {
@@ -254,6 +255,54 @@ describe('computeOverview', () => {
       ];
       const ov = computeOverview([], [], [], [], reports);
       expect(ov.recentErrorGroups).toBe(2);
+    });
+  });
+
+  describe('newErrorGroupsLast24h', () => {
+    const DAY_MS = 86_400_000;
+    const FIXED_NOW = 1_750_000_000_000;
+
+    it('counts groups whose firstAt is within the last 24 hours', () => {
+      const reports = [
+        { ...makeReport('TypeError', 'logic.parse'), at: FIXED_NOW - 3600_000 },  // 1 h ago
+        { ...makeReport('NetworkError', 'api.load'), at: FIXED_NOW - DAY_MS - 1 }, // 24h+ ago
+      ];
+      const ov = computeOverview([], [], [], [], reports, FIXED_NOW);
+      expect(ov.newErrorGroupsLast24h).toBe(1);
+    });
+
+    it('returns 0 when all groups are older than 24 hours', () => {
+      const reports = [
+        { ...makeReport('RangeError', 'x.parse'), at: FIXED_NOW - DAY_MS - 1_000 },
+        { ...makeReport('Error', 'y.render'), at: FIXED_NOW - 2 * DAY_MS },
+      ];
+      const ov = computeOverview([], [], [], [], reports, FIXED_NOW);
+      expect(ov.newErrorGroupsLast24h).toBe(0);
+    });
+
+    it('returns 0 for empty report list', () => {
+      const ov = computeOverview([], [], [], [], [], FIXED_NOW);
+      expect(ov.newErrorGroupsLast24h).toBe(0);
+    });
+
+    it('only counts distinct groups (not individual reports)', () => {
+      const reports = [
+        { ...makeReport('TypeError', 'logic.parse'), at: FIXED_NOW - 1_000 },
+        { ...makeReport('TypeError', 'logic.parse'), at: FIXED_NOW - 2_000 },
+        { ...makeReport('TypeError', 'logic.parse'), at: FIXED_NOW - 3_000 },
+      ];
+      const ov = computeOverview([], [], [], [], reports, FIXED_NOW);
+      expect(ov.newErrorGroupsLast24h).toBe(1);
+    });
+
+    it('counts all groups when all are within the last 24 hours', () => {
+      const reports = [
+        { ...makeReport('TypeError', 'a'), at: FIXED_NOW - 1_000 },
+        { ...makeReport('NetworkError', 'b'), at: FIXED_NOW - 3600_000 },
+        { ...makeReport('Error', 'c'), at: FIXED_NOW - 7 * 3600_000 },
+      ];
+      const ov = computeOverview([], [], [], [], reports, FIXED_NOW);
+      expect(ov.newErrorGroupsLast24h).toBe(3);
     });
   });
 

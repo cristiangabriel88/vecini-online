@@ -2941,7 +2941,10 @@
         "overdueSubLabel": "{{count}} restante",
         "openThreadsLabel": "Thread-uri suport deschise",
         "unansweredSubLabel": "{{count}} fără răspuns",
-        "errorGroupsLabel": "Grupuri de erori"
+        "errorGroupsLabel": "Grupuri de erori",
+        "newErrorGroupsSubLabel_one": "{{count}} nou in 24 h",
+        "newErrorGroupsSubLabel_few": "{{count}} noi in 24 h",
+        "newErrorGroupsSubLabel_other": "{{count}} noi in 24 h"
       }
     },
     "sections": {

@@ -160,6 +160,13 @@ export default function PlatformHomePage() {
             <span className="platform-stat__icon" aria-hidden="true"><TriangleAlert size={18} /></span>
             <span className="platform-stat__value">{ov.recentErrorGroups}</span>
             <span className="platform-stat__label">{t('platform.home.overview.errorGroupsLabel')}</span>
+            {ov.newErrorGroupsLast24h > 0 && (
+              <ul className="platform-stat__sub">
+                <li className="platform-stat__sub-item platform-stat__sub-item--warn">
+                  {t('platform.home.overview.newErrorGroupsSubLabel', { count: ov.newErrorGroupsLast24h })}
+                </li>
+              </ul>
+            )}
           </Link>
         </div>
       </section>

@@ -2941,7 +2941,10 @@
         "overdueSubLabel": "{{count}} overdue",
         "openThreadsLabel": "Open support threads",
         "unansweredSubLabel": "{{count}} awaiting reply",
-        "errorGroupsLabel": "Error groups"
+        "errorGroupsLabel": "Error groups",
+      "newErrorGroupsSubLabel_one": "{{count}} new in 24 h",
+      "newErrorGroupsSubLabel_few": "{{count}} new in 24 h",
+      "newErrorGroupsSubLabel_other": "{{count}} new in 24 h"
       }
     },
     "sections": {

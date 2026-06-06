@@ -13,13 +13,102 @@
 
 import { checkSlidingWindow } from './_shared/rateLimiter';
 import { isSupabaseAdminConfigured, supabaseAdmin } from './_shared/supabaseAdmin';
+import { isResendConfigured, sendEmail } from './_shared/resend';
+import {
+  buildAlertEmail,
+  shouldAlertNewGroup,
+  shouldAlertSpike,
+} from './_shared/errorAlertLogic';
 
 const _ipStore = new Map<string, { timestamps: number[] }>();
 const IP_WINDOW_MS = 10 * 60 * 1000;
 const IP_MAX = 20;
+
+// Alert de-dup: per group key, tracks the last time an alert was sent.
+// Per-Lambda-instance (in-memory), same pattern as rate limiter.
+const _alertStore = new Map<string, number>();
+const SPIKE_THRESHOLD = 10;
+const SPIKE_WINDOW_MS = 3_600_000;      // 1 hour
+const DEDUP_WINDOW_MS = 4 * 3_600_000; // 4 hours
 // Increased from 4 KB to allow a full scrubbed stack trace alongside the
 // other report fields (T258b).
 const MAX_BODY_BYTES = 16384;
+
+async function checkAndAlert(
+  name: string,
+  source: string | undefined,
+  message: string,
+  stage: string | undefined,
+  release: string | undefined,
+  ref: string,
+  at: number,
+): Promise<void> {
+  if (!isSupabaseAdminConfigured()) return;
+  const alertEmail =
+    process.env.PLATFORM_ALERT_EMAIL ?? process.env.RESEND_FROM_EMAIL;
+  if (!alertEmail) return;
+
+  const groupKey = `${name}:${source ?? ''}`;
+  const lastAlertAt = _alertStore.get(groupKey) ?? null;
+
+  // Count all rows for this group (new-group check)
+  const totalResult = await (source !== undefined
+    ? supabaseAdmin()
+        .from('platform_error_reports')
+        .select('*', { count: 'exact', head: true })
+        .eq('name', name)
+        .eq('source', source)
+    : supabaseAdmin()
+        .from('platform_error_reports')
+        .select('*', { count: 'exact', head: true })
+        .eq('name', name)
+        .is('source', null));
+
+  // Count rows in the last hour (spike check)
+  const recentResult = await (source !== undefined
+    ? supabaseAdmin()
+        .from('platform_error_reports')
+        .select('*', { count: 'exact', head: true })
+        .eq('name', name)
+        .eq('source', source)
+        .gte('at', at - SPIKE_WINDOW_MS)
+    : supabaseAdmin()
+        .from('platform_error_reports')
+        .select('*', { count: 'exact', head: true })
+        .eq('name', name)
+        .is('source', null)
+        .gte('at', at - SPIKE_WINDOW_MS));
+
+  const totalCount = totalResult.count ?? 0;
+  const recentCount = recentResult.count ?? 0;
+  const isNew = totalCount <= 1;
+
+  let trigger: 'new-group' | 'spike' | null = null;
+  if (isNew && shouldAlertNewGroup(lastAlertAt, at, DEDUP_WINDOW_MS)) {
+    trigger = 'new-group';
+  } else if (
+    !isNew &&
+    shouldAlertSpike(recentCount, SPIKE_THRESHOLD, lastAlertAt, at, DEDUP_WINDOW_MS)
+  ) {
+    trigger = 'spike';
+  }
+
+  if (!trigger) return;
+  if (!isResendConfigured()) return;
+
+  _alertStore.set(groupKey, at);
+  const email = buildAlertEmail({
+    trigger,
+    name,
+    source,
+    message,
+    stage,
+    release,
+    ref,
+    recentCount,
+  });
+  await sendEmail({ to: alertEmail, ...email });
+}
 
 export default async (req: Request): Promise<Response> => {
   if (req.method !== 'POST') {
@@ -65,6 +154,15 @@ export default async (req: Request): Promise<Response> => {
           stage: safeStage ?? null,
           stack: safeStack ?? null,
         });
+      await checkAndAlert(
+        safeName,
+        safeSource,
+        safeMessage,
+        safeStage,
+        safeRelease,
+        safeRef,
+        safeAt,
+      ).catch(() => {});
     }
   } catch {
     // malformed body or DB error -- never block the response

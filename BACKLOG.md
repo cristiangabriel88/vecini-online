@@ -159,7 +159,7 @@ Stack frames in `platform_error_reports` point at minified bundle positions and 
 
 Done: `sourcemap: 'hidden'` emitted for PROD/DEV via `loadEnv` in vite.config.ts function form; DEMO skips maps. CDN `.map` access blocked via `netlify.toml` 404 redirect. `stack` column added to `platform_error_reports` (migration + function + store + hydration). Pure `sourcemapUtils.ts` helper (Chrome + Firefox frame parsing, 13 unit tests). `netlify/functions/symbolicate-stack.ts` service-role function (fetches from private Supabase Storage bucket `source-maps/<release>/`, resolves with `source-map-js`). `scripts/upload-sourcemaps.mjs` post-build upload script. Platform errors page: expand/collapse raw stack, Symbolicate button with loading/error states, resolved frame display. Bilingual RO/EN. All 303 test files green, all 3 builds pass.
 
-### ⬜ T258c — [P1] New-error / spike alerting
+### ✅ T258c — [P1] New-error / spike alerting
 
 `platform_error_reports` is passive: nothing notifies the team when a new error group first appears or an existing one spikes. Add an alerting path that emails via the existing `_shared/resend.ts` wrapper and/or raises a flag on the platform overview when a group is first seen or crosses a rate threshold, with de-duplication so an error storm does not spam. In-house only (no new CSP `connect-src` exception); if the in-app store proves insufficient at scale, the documented follow-up is self-hosting a Sentry-compatible collector (GlitchTip) reached only via our own origin. Demo / no-key = no-op. Unit tests for the new-group + spike-trigger logic. Prereq: T258a.
 
