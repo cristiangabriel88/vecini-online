@@ -257,7 +257,7 @@ Count-bearing strings appear to use single-form keys, but Romanian has three plu
 
 The shared primitives (`Button`, `Input`, `Select`, `Textarea`, `Modal`, `Switch`, `Checkbox` in `src/shared/components/`) have no direct component tests; only `*Logic.ts` and stores are covered. Add focused render/interaction/a11y tests (variants render, disabled/loading states, error wiring sets `aria-invalid` + `aria-describedby`, modal focus-trap + Escape, switch/checkbox `role`/`aria-checked`). Raises confidence before the T244/T266 refactors touch shared code. Prereq: none.
 
-### ⬜ T274 — [P3] Visual component gallery
+### ✅ T274 — [P3] Visual component gallery
 
 There is no catalog of the design system's variants, so contributors reverse-engineer them from CSS. Add a lightweight in-app gallery (a `/dev/components` route gated to dev/demo, or Ladle) that renders Button/Input/Card/Badge/Modal/Select variants across themes (light/dark) and the five palettes, so design review and drift-spotting are one click away. Not shipped to PROD users. Prereq: none.
 

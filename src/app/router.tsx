@@ -10,7 +10,7 @@ import { RequireSuperAdmin } from './RequireSuperAdmin';
 import { RequireOnboardingEntry } from './RequireOnboardingEntry';
 import { RouteFallback } from '@/shared/components/RouteFallback';
 import { useAuthStore } from '@/shared/store/authStore';
-import { isDemo } from '@/shared/lib/env';
+import { isDemo, isDev } from '@/shared/lib/env';
 import { readLastDemoRole } from '@/shared/lib/demoRole';
 
 const LoginPage = lazy(() => import('@/features/auth/LoginPage'));
@@ -115,6 +115,7 @@ const NotImplementedPage = lazy(() => import('@/features/home/NotImplementedPage
 const FeatureHubPage = lazy(() =>
   import('@/features/home/FeatureHubPage').then((m) => ({ default: m.FeatureHubPage })),
 );
+const ComponentGalleryPage = lazy(() => import('@/features/dev/ComponentGalleryPage'));
 
 function S({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<RouteFallback />}>{children}</Suspense>;
@@ -292,6 +293,9 @@ export const router = createBrowserRouter([
           { path: 'platforma/asociatii', element: <S><SuperAdminAsociatiiPage /></S> },
         ],
       },
+      ...(isDemo() || isDev()
+        ? [{ path: 'dev/componente', element: <S><ComponentGalleryPage /></S> }]
+        : []),
       { path: '*', element: <S><NotImplementedPage /></S> },
     ],
   },

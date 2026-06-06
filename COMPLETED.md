@@ -4,6 +4,15 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T274 ✅ 2026-06-06 -- Visual component gallery
+
+In-app gallery at `/app/dev/componente` gated to `isDemo() || isDev()` so it never reaches PROD users. Renders all shared primitives (Button, Input, Textarea, Select, Card, Badge, Modal, Switch, Checkbox) across all variants in the current theme/palette, with controls to switch theme (Sun/Moon toggle) and accent palette (5 swatch buttons) directly from the page header. Route registered conditionally in `router.tsx` via spread so no route exists in PROD. Bilingual RO/EN (`gallery.*` keys in both locales). 11 unit tests in `tests/unit/componentGallery.test.tsx` (render, all sections present, palette swatches, aria-pressed state, theme toggle, button variants, modal open/closing state, switch toggle, checkbox toggle, disabled state). All 317 test files (3121 tests) green, all 3 builds + bundle budgets pass.
+- new: src/features/dev/ComponentGalleryPage.tsx
+- new: tests/unit/componentGallery.test.tsx
+- modified: src/app/router.tsx (lazy import + conditional route)
+- modified: src/shared/locales/ro.json (gallery.* keys)
+- modified: src/shared/locales/en.json (gallery.* keys)
+
 ### T273 ✅ 2026-06-06 -- Unit tests for shared UI primitives
 
 43 render/interaction/a11y tests in `tests/unit/sharedPrimitives.test.tsx` covering Button (variants, disabled, loading/aria-busy, onClick), Input (label association, aria-invalid, aria-describedby for error + hint, hint suppression), Textarea (same error/hint pattern), Select (label, aria-invalid, aria-describedby), Modal (role=dialog, aria-modal, aria-labelledby, Escape fires onClose, overlay click, dialog click propagation stop, footer), Switch (role=switch, aria-checked, onChange toggled value, disabled blocks click), Checkbox (native input, checked state, onChange, disabled). All 316 test files (3110 tests) green, all 3 builds pass.
