@@ -193,9 +193,11 @@ Done: audit found the implementation already clean -- `useEffect([asociatieId])`
 
 Done: installed `vite-plugin-pwa@1.3.0`; PROD+DEMO builds generate a full Workbox precache SW (221 entries, ~2.8 MB) via `generateSW` mode; DEV (Pi) build uses `selfDestroying: true` -- the SW unregisters itself + clears all caches on activate so rapid iteration stays cache-free. `injectRegister: null` prevents double-injection in the multi-page build (index.html + platform.html); registration is handled by `<UpdatePrompt>` via `useRegisterSW` from `virtual:pwa-register/react`. New `UpdatePrompt.tsx` component renders a floating pill when `needRefresh` is true, with bilingual RO/EN copy and an "Update now" button that calls `updateServiceWorker(true)`. CSS in shell.css. `devOptions.enabled: false` keeps the dev server fast. CSP `worker-src 'self' blob:` already covered the SW. 9 unit tests in `swRegistration.test.ts`. All 307 test files (2984 tests) green, all 3 builds pass.
 
-### ⬜ T264 — [P2] Lazy-load heavy dependencies
+### ✅ T264 — [P2] Lazy-load heavy dependencies
 
 Heavy libraries such as `xlsx` (and any PDF/render libs used by few features) currently sit in shared/vendor chunks even though only a handful of export/report features need them. Convert those imports to dynamic `import()` at the call sites (behind the existing export buttons) so they leave the initial and common route bundles, load on demand, and show a small loading state while fetching. Confirm the reduction with the T260 analyzer. Prereq: T260 (to measure before/after).
+
+Done: audit confirmed xlsx was already lazy via `await import('xlsx')` in `csv.ts` and `ApartmentsPage.tsx`. Added loading states to both xlsx-triggered paths: `handleDownloadExcel` sets `isDownloadingXlsxTemplate` (spinner + disabled on the dropdown menu item), `handleExportApartmentsExcel` sets `isExportingXlsx` (passed as `loading` prop to the Export button); both wrapped in try/finally so state always resets. Added `Loader2` icon from lucide-react for the dropdown spinner. Added `tests/unit/xlsxLazy.test.ts` (3 tests) documenting the lazy-load contract. Bundle check confirmed: xlsx chunk 419 kB (budget 450 kB), main entry 162 kB -- xlsx contributes 0 to initial load. All 308 test files (2987 tests) green, all 3 builds pass.
 
 ### ⬜ T265a — [P2] Shared `<Photo>` component with lazy/async rendering
 

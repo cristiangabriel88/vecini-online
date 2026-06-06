@@ -4,6 +4,12 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T264 ✅ 2026-06-06 -- Lazy-load heavy dependencies
+
+Audit confirmed xlsx was already lazy via `await import('xlsx')` in `csv.ts` and `ApartmentsPage.tsx`; the named `xlsx` chunk in `manualChunks` gives it a predictable name for the bundle-size budget check without making it eager. Added loading states to both xlsx-triggered paths: `handleDownloadExcel` sets `isDownloadingXlsxTemplate` (spinner icon + `disabled` on the dropdown menu item in both the header and empty-state dropdowns), `handleExportApartmentsExcel` sets `isExportingXlsx` (passed as `loading` prop to the Export List button); both wrapped in try/finally so state always resets. Added `Loader2` from lucide-react for the dropdown spinner. Added `tests/unit/xlsxLazy.test.ts` (3 tests) documenting the lazy-load contract. Bundle check confirmed: xlsx chunk 419 kB (budget 450 kB), main entry 162 kB -- xlsx contributes 0 to initial load. All 308 test files (2987 tests) green, all 3 builds pass.
+- modified: src/features/admin/ApartmentsPage.tsx (Loader2 import; isDownloadingXlsxTemplate + isExportingXlsx state; loading wrappers; spinner on dropdown items; loading prop on Export button)
+- new: tests/unit/xlsxLazy.test.ts (3 tests)
+
 ### T263 ✅ 2026-06-06 -- Service worker / installable PWA
 
 Installed `vite-plugin-pwa@1.3.0`. PROD and DEMO builds generate a full Workbox precache SW (221 entries, ~2.8 MB) via `generateSW` mode with `registerType: 'prompt'` and `injectRegister: null`. DEV (Pi) builds use `selfDestroying: true` -- the generated SW unregisters itself and clears all caches on activate, keeping rapid Pi iteration cache-free. The plugin is always present in the Vite config so `virtual:pwa-register/react` resolves in every build without conditional imports. `devOptions.enabled: false` keeps the Vite dev server fast. The `navigateFallback` (`/index.html`) is denied for `/platform/*` routes, `/.netlify/*` functions, and `*.map` files. CSP `worker-src 'self' blob:` already covered the SW. New `<UpdatePrompt>` component renders a floating pill (`update-prompt` CSS class) when `needRefresh` is true, using `useRegisterSW` hook; bilingual RO/EN copy; "Update now" calls `updateServiceWorker(true)`. Wired into `AppProviders`. 9 unit tests in `swRegistration.test.ts`. All 307 test files (2984 tests) green, all 3 builds pass.

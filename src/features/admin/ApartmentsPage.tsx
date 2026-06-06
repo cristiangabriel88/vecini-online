@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { AlertTriangle, Building2, ChevronDown, ChevronUp, Download, FileSpreadsheet, FileText, Mail, Pencil, Plus, Send, Trash2, Upload, X } from 'lucide-react';
+import { AlertTriangle, Building2, ChevronDown, ChevronUp, Download, FileSpreadsheet, FileText, Loader2, Mail, Pencil, Plus, Send, Trash2, Upload, X } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
@@ -201,6 +201,8 @@ export default function ApartmentsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const downloadDropdownRef = useRef<HTMLDivElement>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [isDownloadingXlsxTemplate, setIsDownloadingXlsxTemplate] = useState(false);
+  const [isExportingXlsx, setIsExportingXlsx] = useState(false);
   const [importErrors, setImportErrors] = useState<string[]>([]);
   const [importWarnings, setImportWarnings] = useState<string[]>([]);
   // Quick-invite modal state: apartment selected from the status-column icon.
@@ -436,62 +438,72 @@ export default function ApartmentsPage() {
   };
 
   const handleDownloadExcel = async () => {
-    const bytes = await generateApartmentsXlsxTemplate();
-    const blob = new Blob([bytes], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'sablon-apartamente.xlsx';
-    a.click();
-    URL.revokeObjectURL(url);
-    setShowDownloadDropdown(false);
+    setIsDownloadingXlsxTemplate(true);
+    try {
+      const bytes = await generateApartmentsXlsxTemplate();
+      const blob = new Blob([bytes], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'sablon-apartamente.xlsx';
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setIsDownloadingXlsxTemplate(false);
+      setShowDownloadDropdown(false);
+    }
   };
 
   const handleExportApartmentsExcel = async () => {
-    const XLSX = await import('xlsx');
-    const headers = [
-      t('apartments.scara'),
-      t('apartments.etaj'),
-      t('apartments.number'),
-      t('apartments.owner'),
-      t('apartments.area'),
-      t('apartments.share'),
-      t('apartments.persons'),
-      t('apartments.statusHeader'),
-    ];
-    const rows = sortedApartments.map((a) => {
-      const joinDate = getJoinDate(a.id, invites);
-      return [
-        a.scara ?? '',
-        a.etaj === 0 ? t('apartments.parter') : (a.etaj ?? ''),
-        a.numar_apartament,
-        a.proprietar_principal_name ?? '',
-        a.suprafata_utila ?? '',
-        a.cota_parte_indiviza != null ? `${(a.cota_parte_indiviza * 100).toFixed(1)}%` : '',
-        a.numar_persoane,
-        joinDate
-          ? t('apartments.joinedOn', { date: joinDate.toLocaleDateString() })
-          : t('apartments.statusNotRegistered'),
+    setIsExportingXlsx(true);
+    try {
+      const XLSX = await import('xlsx');
+      const headers = [
+        t('apartments.scara'),
+        t('apartments.etaj'),
+        t('apartments.number'),
+        t('apartments.owner'),
+        t('apartments.area'),
+        t('apartments.share'),
+        t('apartments.persons'),
+        t('apartments.statusHeader'),
       ];
-    });
-    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, t('apartments.title'));
-    const raw = XLSX.write(wb, { bookType: 'xlsx', type: 'array' }) as ArrayBuffer | Uint8Array | number[];
-    const view = new Uint8Array(raw as ArrayBuffer);
-    const out = new Uint8Array(view.length);
-    out.set(view);
-    const blob = new Blob([out], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'apartamente.xlsx';
-    link.click();
-    URL.revokeObjectURL(url);
+      const rows = sortedApartments.map((a) => {
+        const joinDate = getJoinDate(a.id, invites);
+        return [
+          a.scara ?? '',
+          a.etaj === 0 ? t('apartments.parter') : (a.etaj ?? ''),
+          a.numar_apartament,
+          a.proprietar_principal_name ?? '',
+          a.suprafata_utila ?? '',
+          a.cota_parte_indiviza != null ? `${(a.cota_parte_indiviza * 100).toFixed(1)}%` : '',
+          a.numar_persoane,
+          joinDate
+            ? t('apartments.joinedOn', { date: joinDate.toLocaleDateString() })
+            : t('apartments.statusNotRegistered'),
+        ];
+      });
+      const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, t('apartments.title'));
+      const raw = XLSX.write(wb, { bookType: 'xlsx', type: 'array' }) as ArrayBuffer | Uint8Array | number[];
+      const view = new Uint8Array(raw as ArrayBuffer);
+      const out = new Uint8Array(view.length);
+      out.set(view);
+      const blob = new Blob([out], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'apartamente.xlsx';
+      link.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setIsExportingXlsx(false);
+    }
   };
 
   const handleImportClick = () => {
@@ -628,17 +640,22 @@ export default function ApartmentsPage() {
                     <button
                       role="menuitem"
                       type="button"
-                      className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-sm text-left transition-colors hover:bg-surface-2"
+                      className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-sm text-left transition-colors hover:bg-surface-2 disabled:opacity-50"
                       onClick={handleDownloadExcel}
+                      disabled={isDownloadingXlsxTemplate}
                     >
-                      <FileSpreadsheet className="h-4 w-4 shrink-0 text-muted" />
+                      {isDownloadingXlsxTemplate ? (
+                        <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted" />
+                      ) : (
+                        <FileSpreadsheet className="h-4 w-4 shrink-0 text-muted" />
+                      )}
                       Excel (.xlsx)
                     </button>
                   </div>
                 )}
               </div>
 
-              <Button variant="secondary" onClick={handleExportApartmentsExcel}>
+              <Button variant="secondary" onClick={handleExportApartmentsExcel} loading={isExportingXlsx}>
                 <FileSpreadsheet className="h-4 w-4" /> {t('apartments.exportList')}
               </Button>
 
@@ -781,10 +798,15 @@ export default function ApartmentsPage() {
                     <button
                       role="menuitem"
                       type="button"
-                      className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-sm text-left transition-colors hover:bg-surface-2"
+                      className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-sm text-left transition-colors hover:bg-surface-2 disabled:opacity-50"
                       onClick={handleDownloadExcel}
+                      disabled={isDownloadingXlsxTemplate}
                     >
-                      <FileSpreadsheet className="h-4 w-4 shrink-0 text-muted" />
+                      {isDownloadingXlsxTemplate ? (
+                        <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted" />
+                      ) : (
+                        <FileSpreadsheet className="h-4 w-4 shrink-0 text-muted" />
+                      )}
                       Excel (.xlsx)
                     </button>
                   </div>
