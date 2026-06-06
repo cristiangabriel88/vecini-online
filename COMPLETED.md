@@ -4,6 +4,11 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T273 ✅ 2026-06-06 -- Unit tests for shared UI primitives
+
+43 render/interaction/a11y tests in `tests/unit/sharedPrimitives.test.tsx` covering Button (variants, disabled, loading/aria-busy, onClick), Input (label association, aria-invalid, aria-describedby for error + hint, hint suppression), Textarea (same error/hint pattern), Select (label, aria-invalid, aria-describedby), Modal (role=dialog, aria-modal, aria-labelledby, Escape fires onClose, overlay click, dialog click propagation stop, footer), Switch (role=switch, aria-checked, onChange toggled value, disabled blocks click), Checkbox (native input, checked state, onChange, disabled). All 316 test files (3110 tests) green, all 3 builds pass.
+- added: tests/unit/sharedPrimitives.test.tsx
+
 ### T272 ✅ 2026-06-06 -- Romanian plural-form correctness
 
 Audited both locale files; found 56 count-bearing keys without plural variants plus 3 Romanian keys missing `_few`. Converted all 56 to proper i18next plural keys (`_one`/`_few`/`_other` in ro.json, `_one`/`_few`/`_other` in en.json for parity with English `_few` mirroring `_other`) and filled the 3 missing `_few` forms (`generateInvitesEligible`, `generateInvitesSent`, `generateInvitesFailed`). Also fixed the orphaned bare `priorities.turnout` base key that co-existed with `_other`. Romanian grammar: `_one` = singular, `_few` = 2-19 without "de", `_other` = 20+ with "de" before noun. Added `tests/unit/romanianPlurals.test.ts` (9 tests) as a regression gate: it fails if any bare `{{count}}` key exists, if any plural group is missing a required variant, and spot-checks singular/few/other grammar. All 315 test files (3067 tests) green, all 3 builds pass.

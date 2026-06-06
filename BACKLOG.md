@@ -253,7 +253,7 @@ Count-bearing strings appear to use single-form keys, but Romanian has three plu
 
 > From the 2026-06-05 deep-analysis pass. Shared UI primitives and the design system lack direct tests, a catalog, and drift protection; dependency hygiene is unguarded.
 
-### ⬜ T273 — [P3] Unit tests for shared UI primitives
+### ✅ T273 — [P3] Unit tests for shared UI primitives
 
 The shared primitives (`Button`, `Input`, `Select`, `Textarea`, `Modal`, `Switch`, `Checkbox` in `src/shared/components/`) have no direct component tests; only `*Logic.ts` and stores are covered. Add focused render/interaction/a11y tests (variants render, disabled/loading states, error wiring sets `aria-invalid` + `aria-describedby`, modal focus-trap + Escape, switch/checkbox `role`/`aria-checked`). Raises confidence before the T244/T266 refactors touch shared code. Prereq: none.
 
