@@ -15,6 +15,7 @@ import { formatDateTime } from '@/shared/lib/format';
 import { sanitizeHtml } from '@/shared/lib/sanitize';
 import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import { formatFileSize, readFileAsDataUrl } from '@/shared/lib/file';
+import { downscalePhoto } from '@/shared/lib/imageResize';
 import type { Announcement, AnnouncementAttachment, AnnouncementCategory } from '@/shared/types/domain';
 import { useAuthStore } from '@/shared/store/authStore';
 import { DEMO_CURRENT_USER_ID } from '@/shared/demo/demoData';
@@ -127,10 +128,11 @@ function AnnouncementComposeModal({ open, onClose, asociatieId, authorUserId, ed
         continue;
       }
       try {
-        const dataUrl = isSupabaseConfigured ? null : await readFileAsDataUrl(file);
+        const resized = await downscalePhoto(file);
+        const dataUrl = isSupabaseConfigured ? null : await readFileAsDataUrl(resized);
         setPendingFiles((prev) => [
           ...prev,
-          { name: file.name, size: file.size, type: file.type, dataUrl, file },
+          { name: resized.name, size: resized.size, type: resized.type, dataUrl, file: resized },
         ]);
       } catch {
         setFileError(t('announcements.readFailed'));

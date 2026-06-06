@@ -13,6 +13,7 @@ import { Input, Textarea } from '@/shared/components/Input';
 import { Select } from '@/shared/components/Select';
 import { formatDateTime } from '@/shared/lib/format';
 import { formatFileSize, readFileAsDataUrl } from '@/shared/lib/file';
+import { downscalePhoto } from '@/shared/lib/imageResize';
 import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import type { TicketAttachment, TicketSeverity, TicketStatus } from '@/shared/types/domain';
 import { useAuthStore } from '@/shared/store/authStore';
@@ -139,13 +140,14 @@ export default function TicketsPage() {
       if (!isSupabaseConfigured && pendingFiles.length) {
         for (let i = 0; i < pendingFiles.length; i++) {
           const f = pendingFiles[i];
-          const dataUrl = await readFileAsDataUrl(f.file);
+          const resized = await downscalePhoto(f.file);
+          const dataUrl = await readFileAsDataUrl(resized);
           offlineAttachments.push({
             id: `att-${Date.now()}-${i}`,
             ticket_id: '',
-            file_name: f.name,
-            file_size: f.size,
-            mime_type: f.type,
+            file_name: resized.name,
+            file_size: resized.size,
+            mime_type: resized.type,
             storage_path: null,
             file_data_url: dataUrl,
             created_at: new Date().toISOString(),

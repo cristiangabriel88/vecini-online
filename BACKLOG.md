@@ -203,7 +203,7 @@ Done: audit confirmed xlsx was already lazy via `await import('xlsx')` in `csv.t
 
 User-uploaded photos (tickets, project journal, parking, visitor reports, etc.) render via plain `<img>` with no `loading="lazy"`, no `decoding="async"`, and no width/height hints, causing layout shift and eager network use. Add a shared `<Photo>` image component (`loading="lazy"`, `decoding="async"`, intrinsic width/height, graceful fallback) and migrate the photo render sites onto it. No upload-path change. Keep the demo-stub image paths working. Unit test for the component. Prereq: none. (Split from the original T265.)
 
-### ⬜ T265b — [P2] Client-side image downscale before upload
+### ✅ T265b — [P2] Client-side image downscale before upload
 
 Photos are stored at full camera resolution, inflating Storage cost and bandwidth. Add a client-side downscale + re-encode step (canvas: cap longest edge + target quality) applied before upload at the photo-upload call sites, skipping re-encode for already-small images. Keep the demo-stub upload path working when Storage is absent. Unit test for the resize helper. Prereq: none.
 

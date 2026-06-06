@@ -8,6 +8,7 @@ import {
   newAnnouncement,
 } from './announcementsLogic';
 import { useAnnouncementsStore } from './announcementsStore';
+import { downscalePhoto } from '@/shared/lib/imageResize';
 
 /* Dual-mode announcements repository (F01, T57 + T188). The zustand store is the
    synchronous source of truth the page reads; these functions apply each change
@@ -108,20 +109,21 @@ export async function uploadAnnouncementAttachments(
   const uploaded: AnnouncementAttachment[] = [];
   try {
     for (const file of files) {
+      const uploadFile = await downscalePhoto(file);
       const id = genId();
-      const path = buildAttachmentPath(asociatieId, id, file.name);
+      const path = buildAttachmentPath(asociatieId, id, uploadFile.name);
       const { error } = await supabase.storage
         .from(BUCKET)
-        .upload(path, file, { contentType: file.type, upsert: false });
+        .upload(path, uploadFile, { contentType: uploadFile.type, upsert: false });
       if (error) {
         await rollbackUploads(uploaded);
         return null;
       }
       uploaded.push({
         id,
-        file_name: file.name,
-        file_size: file.size,
-        file_type: file.type,
+        file_name: uploadFile.name,
+        file_size: uploadFile.size,
+        file_type: uploadFile.type,
         storage_path: path,
         file_data_url: null,
       });

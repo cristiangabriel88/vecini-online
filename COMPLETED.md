@@ -4,6 +4,12 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T265b ✅ 2026-06-06 -- Client-side image downscale before upload
+
+New `src/shared/lib/imageResize.ts`: exports `PHOTO_MAX_EDGE` (2048 px), `PHOTO_JPEG_QUALITY` (0.82), `isResizableImage(mime)` (PNG/JPEG/WebP only; GIF/SVG/PDF pass through), `calcResizeDimensions(w, h, maxEdge)` (pure aspect-ratio geometry, returns null when already small), and `downscalePhoto(file, maxEdge?, quality?)` (canvas-based resize returning a new JPEG File, with safe fallback to the original on any decode/canvas failure). Wired into: `ticketsApi.uploadTicketAttachments` (live path), `announcementsApi.uploadAnnouncementAttachments` (live path), `TicketsPage` demo submission path (before readFileAsDataUrl), `AnnouncementsPage` file-selection path (before readFileAsDataUrl). Non-image files and already-small images pass through unchanged in all paths. 23 unit tests in `imageResize.test.ts` covering: constants range, isResizableImage (all accepted/rejected types), calcResizeDimensions (boundary, landscape, portrait, square, custom maxEdge), downscalePhoto (pass-through for non-image/GIF/SVG, fallback contract via Image stub). All 310 test files (3018 tests) green, all 3 builds pass.
+- new: src/shared/lib/imageResize.ts, tests/unit/imageResize.test.ts
+- modified: src/features/tickets/ticketsApi.ts, src/features/announcements/announcementsApi.ts, src/features/tickets/TicketsPage.tsx, src/features/announcements/AnnouncementsPage.tsx
+
 ### T265a ✅ 2026-06-06 -- Shared `<Photo>` component with lazy/async rendering
 
 New `src/shared/components/Photo.tsx`: `memo`-wrapped component accepting `src: string | null | undefined`, `alt`, optional `fallback: ReactNode`, `className`, and any standard img attributes. Renders `<img loading="lazy" decoding="async" ...>` when src is provided; shows `fallback` (or null) when src is absent or an `onError` fires. Migrated the two existing user-photo render sites (`ProfilePage.tsx` avatar, `WelcomeProfile.tsx` avatar) from inline ternaries to `<Photo>` -- no behavior change. 8 unit tests in `Photo.test.tsx` covering: img present, lazy/async attrs, className forwarding, null src, undefined src, onError fallback, no-fallback (renders nothing), width/height forwarding. All 309 test files (2995 tests) green, all 3 builds pass.

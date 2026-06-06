@@ -4,6 +4,7 @@ import { reportError } from '@/shared/lib/errorReporting';
 import { type NewTicketInput, newTicket, ticketsForAsociatie } from './ticketLogic';
 import { useTicketsStore } from './ticketsStore';
 import { genId } from '@/shared/lib/id';
+import { downscalePhoto } from '@/shared/lib/imageResize';
 
 /* Dual-mode sesizări/reclamații repository (F17, T57). The zustand store is the
    synchronous source of truth the page reads; these functions apply each change
@@ -83,11 +84,12 @@ export async function uploadTicketAttachments(
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
     try {
+      const uploadFile = await downscalePhoto(file);
       const id = genId();
-      const path = buildAttachmentPath(asociatieId, ticketId, file.name);
+      const path = buildAttachmentPath(asociatieId, ticketId, uploadFile.name);
       const { error } = await supabase.storage
         .from(BUCKET)
-        .upload(path, file, { contentType: file.type, upsert: false });
+        .upload(path, uploadFile, { contentType: uploadFile.type, upsert: false });
       if (error) {
         reportError(error, { source: 'ticketsApi.uploadAttachment' });
         continue;
@@ -97,17 +99,17 @@ export async function uploadTicketAttachments(
         id,
         ticket_id: ticketId,
         storage_path: path,
-        mime_type: file.type,
-        file_name: file.name,
-        file_size: file.size,
+        mime_type: uploadFile.type,
+        file_name: uploadFile.name,
+        file_size: uploadFile.size,
         created_at: now,
       });
       uploaded.push({
         id,
         ticket_id: ticketId,
-        file_name: file.name,
-        file_size: file.size,
-        mime_type: file.type,
+        file_name: uploadFile.name,
+        file_size: uploadFile.size,
+        mime_type: uploadFile.type,
         storage_path: path,
         file_data_url: null,
         created_at: now,
