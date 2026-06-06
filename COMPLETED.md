@@ -4,6 +4,12 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T266 ✅ 2026-06-06 -- Consolidate hand-rolled form validation + drop unused dep
+
+Created `src/shared/lib/useFormState.ts`: a small `useFormState<TErrors>(errors)` hook that encapsulates the "submitted" gate used by hand-rolled forms. Returns `{ submitted, fieldError, handleSubmit, isValid }` -- `fieldError(key)` returns the raw error code only after `handleSubmit()` is called, ensuring pristine forms never show red text on first paint. `handleSubmit()` sets submitted and returns `isValid` synchronously so save handlers can bail out in one expression. Migrated two representative forms: `ApartmentFormPage.tsx` (replaced `submitted`/`setSubmitted` + fixed 3 fields that incorrectly bypassed the submitted gate) and `BuildingSettingsPage.tsx` (replaced `touched`/`setTouched` + local `fieldError` helper). Removed unused `react-hook-form@^7.54.1` and `@hookform/resolvers@^3.9.1` from `package.json`. Added 11 unit tests in `tests/unit/useFormState.test.ts`. All 311 test files (3029 tests) green, all 3 builds pass.
+- new: src/shared/lib/useFormState.ts, tests/unit/useFormState.test.ts
+- modified: src/features/admin/ApartmentFormPage.tsx, src/features/admin/BuildingSettingsPage.tsx, package.json
+
 ### T265b ✅ 2026-06-06 -- Client-side image downscale before upload
 
 New `src/shared/lib/imageResize.ts`: exports `PHOTO_MAX_EDGE` (2048 px), `PHOTO_JPEG_QUALITY` (0.82), `isResizableImage(mime)` (PNG/JPEG/WebP only; GIF/SVG/PDF pass through), `calcResizeDimensions(w, h, maxEdge)` (pure aspect-ratio geometry, returns null when already small), and `downscalePhoto(file, maxEdge?, quality?)` (canvas-based resize returning a new JPEG File, with safe fallback to the original on any decode/canvas failure). Wired into: `ticketsApi.uploadTicketAttachments` (live path), `announcementsApi.uploadAnnouncementAttachments` (live path), `TicketsPage` demo submission path (before readFileAsDataUrl), `AnnouncementsPage` file-selection path (before readFileAsDataUrl). Non-image files and already-small images pass through unchanged in all paths. 23 unit tests in `imageResize.test.ts` covering: constants range, isResizableImage (all accepted/rejected types), calcResizeDimensions (boundary, landscape, portrait, square, custom maxEdge), downscalePhoto (pass-through for non-image/GIF/SVG, fallback contract via Image stub). All 310 test files (3018 tests) green, all 3 builds pass.

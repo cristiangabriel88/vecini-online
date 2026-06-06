@@ -211,7 +211,7 @@ Photos are stored at full camera resolution, inflating Storage cost and bandwidt
 
 > From the 2026-06-05 deep-analysis pass. Form validation is hand-rolled per page, long forms discard input on navigation, and a few flows lack polish.
 
-### ⬜ T266 — [P2] Consolidate hand-rolled form validation + drop unused dep
+### ✅ T266 — [P2] Consolidate hand-rolled form validation + drop unused dep
 
 Forms are hand-rolled (`validateApartment` + local `useState` in `ApartmentFormPage.tsx`, and similar across feature forms) with slightly different error handling per page; `react-hook-form` is in `package.json` but has zero call sites. Per `DECISIONS.md`, do not introduce a form framework: codify the existing pattern into one small shared helper (a `useFormState` / field-validation utility that drives the existing Input/Select/Textarea `error` + `aria-invalid` props consistently), migrate a few representative forms onto it to prove the seam, and remove the unused `react-hook-form` dependency. No behavior change beyond more consistent error display. Unit tests for the helper. Prereq: none.
 

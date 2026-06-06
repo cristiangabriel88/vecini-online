@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { AlertCircle, ArrowLeft, Check, Link2, Mail, Plus, ShieldCheck, Trash2 } from 'lucide-react';
+import { useFormState } from '@/shared/lib/useFormState';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
@@ -65,9 +66,6 @@ export default function ApartmentFormPage() {
   );
   const [persons, setPersons] = useState<ApartmentPerson[]>(() => apartment?.persons ?? []);
   const active = apartment?.is_active ?? true;
-  // Required-field errors stay silent until the admin actually tries to save,
-  // so a pristine form never greets them with red text.
-  const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
   // Invite-by-email modal state.
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
@@ -75,6 +73,10 @@ export default function ApartmentFormPage() {
   const [customEmail, setCustomEmail] = useState('');
   // Delete-person confirmation: holds the id of the person pending removal.
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  // Hooks must run before any early return.
+  const errors = validateApartment(input);
+  const { fieldError, handleSubmit } = useFormState(errors);
 
   if (isEdit && !apartment) {
     return (
@@ -92,8 +94,6 @@ export default function ApartmentFormPage() {
       </div>
     );
   }
-
-  const errors = validateApartment(input);
   const setField = (key: keyof ApartmentInput, value: string) =>
     setInput((prev) => ({ ...prev, [key]: value }));
 
@@ -120,9 +120,8 @@ export default function ApartmentFormPage() {
   /** Persist the current form (create or update) and return the saved apartment,
    *  or null when the asociație is missing or a field is invalid. */
   const persist = async (): Promise<Apartment | null> => {
-    setSubmitted(true);
     if (!asociatieId) return null;
-    if (Object.keys(errors).length > 0) {
+    if (!handleSubmit()) {
       toast.error(t('apartments.fixErrors'));
       return null;
     }
@@ -287,7 +286,7 @@ export default function ApartmentFormPage() {
               </span>
             }
             value={input.etaj}
-            error={errors.etaj ? t('apartments.invalidField') : undefined}
+            error={fieldError('etaj') ? t('apartments.invalidField') : undefined}
             onChange={(e) => setField('etaj', e.target.value)}
           />
           <Input
@@ -300,14 +299,14 @@ export default function ApartmentFormPage() {
               </span>
             }
             value={input.numar_apartament}
-            error={submitted && errors.numar_apartament ? t('common.required') : undefined}
+            error={fieldError('numar_apartament') ? t('common.required') : undefined}
             onChange={(e) => setField('numar_apartament', e.target.value)}
           />
           <Input
             type="number"
             label={t('apartments.area')}
             value={input.suprafata_utila}
-            error={errors.suprafata_utila ? t('apartments.invalidField') : undefined}
+            error={fieldError('suprafata_utila') ? t('apartments.invalidField') : undefined}
             onChange={(e) => setField('suprafata_utila', e.target.value)}
           />
           <Input
@@ -319,7 +318,7 @@ export default function ApartmentFormPage() {
               </span>
             }
             value={input.cota_parte_indiviza}
-            error={errors.cota_parte_indiviza ? t('apartments.invalidField') : undefined}
+            error={fieldError('cota_parte_indiviza') ? t('apartments.invalidField') : undefined}
             onChange={(e) => setField('cota_parte_indiviza', e.target.value)}
           />
         </div>

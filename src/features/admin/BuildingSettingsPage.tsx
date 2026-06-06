@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useFormState } from '@/shared/lib/useFormState';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Check } from 'lucide-react';
@@ -43,7 +44,6 @@ export default function BuildingSettingsPage() {
   const [mode, setMode] = useState<EntranceMode>(initialEntrances.mode);
   const [first, setFirst] = useState(initialEntrances.first);
   const [last, setLast] = useState(initialEntrances.last);
-  const [touched, setTouched] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -78,14 +78,17 @@ export default function BuildingSettingsPage() {
     () => validateBuildingIdentity(form),
     [form],
   );
+  const { fieldError: rawFieldError, handleSubmit } = useFormState(errors);
 
   const set = (key: keyof typeof form, value: string) => {
     setFormState((prev) => ({ ...prev, [key]: value }));
     setDirty(true);
   };
 
-  const fieldError = (key: keyof BuildingIdentityForm) =>
-    touched && errors[key] ? t(`building.err.${errors[key]}`) : undefined;
+  const fieldError = (key: keyof BuildingIdentityForm): string | undefined => {
+    const code = rawFieldError(key);
+    return code ? t(`building.err.${code}`) : undefined;
+  };
 
   const changeMode = (next: EntranceMode) => {
     setMode(next);
@@ -97,11 +100,11 @@ export default function BuildingSettingsPage() {
 
   const save = async () => {
     if (!asociatieId || !asociatie) return;
-    setTouched(true);
-    if (!validated) {
+    if (!handleSubmit()) {
       toast.error(t('building.fixErrors'));
       return;
     }
+    if (!validated) return;
     setSaving(true);
     const result = await saveAsociatie(asociatieId, {
       name: validated.name,
