@@ -215,9 +215,11 @@ Photos are stored at full camera resolution, inflating Storage cost and bandwidt
 
 Forms are hand-rolled (`validateApartment` + local `useState` in `ApartmentFormPage.tsx`, and similar across feature forms) with slightly different error handling per page; `react-hook-form` is in `package.json` but has zero call sites. Per `DECISIONS.md`, do not introduce a form framework: codify the existing pattern into one small shared helper (a `useFormState` / field-validation utility that drives the existing Input/Select/Textarea `error` + `aria-invalid` props consistently), migrate a few representative forms onto it to prove the seam, and remove the unused `react-hook-form` dependency. No behavior change beyond more consistent error display. Unit tests for the helper. Prereq: none.
 
-### ⬜ T267 — [P2] Unsaved-changes guard
+### ✅ T267 — [P2] Unsaved-changes guard
 
 Long create/edit forms (apartment, AGA agenda, RFP/quotes, profile) silently discard typed input when the user navigates away or closes the tab. Add a shared dirty-state guard: a React Router navigation block + `beforeunload` handler that prompts with a bilingual (RO/EN) confirm when the form is dirty, wired through the T266 form helper so every adopting form gets it for free. Premium-feel modal confirm. Unit test for the dirty-tracking logic, one E2E (edit, navigate, see prompt). Prereq: T266.
+
+Done: new `src/shared/lib/useUnsavedGuard.ts` exports `isFormDirty<T>(current, initial)` (JSON equality, unit-testable) and `useUnsavedGuard(isDirty)` (React Router `useBlocker` + `beforeunload`); `bypassRef` ensures the post-save programmatic navigate skips the block. New `src/shared/components/UnsavedChangesModal.tsx` renders the bilingual (RO/EN) premium-feel modal via the existing `Modal` component. Adopted in `ApartmentFormPage`: initial refs capture mount-time state; `isDirty` recomputes on every render; `clearDirty()` called before the post-save navigate. Bilingual `common.unsavedChanges.*` keys added to both locales. 16 unit tests in `useUnsavedGuard.test.ts` (pure `isFormDirty` logic). 3 E2E scenarios in `unsavedChanges.spec.ts` (stay, leave, clean-form passes through). All 312 test files (3045 tests) green, all 3 builds pass.
 
 ### ⬜ T268 — [P3] Onboarding progress indicator
 

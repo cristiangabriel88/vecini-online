@@ -119,7 +119,13 @@
     "requestFeatureToast": "We have sent your activation request to the admin.",
     "requestFeatureAlreadyToast": "You have already requested this module.",
     "downloadQr": "Download PNG",
-    "qrCodeAlt": "QR code for {{label}}"
+    "qrCodeAlt": "QR code for {{label}}",
+    "unsavedChanges": {
+      "title": "Unsaved changes",
+      "body": "You have unsaved changes that will be lost. Continue?",
+      "stay": "Stay",
+      "leave": "Leave"
+    }
   },
   "auth": {
     "loginTitle": "Administrator login",

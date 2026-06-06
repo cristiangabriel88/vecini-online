@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { AlertCircle, ArrowLeft, Check, Link2, Mail, Plus, ShieldCheck, Trash2 } from 'lucide-react';
 import { useFormState } from '@/shared/lib/useFormState';
+import { isFormDirty, useUnsavedGuard } from '@/shared/lib/useUnsavedGuard';
+import { UnsavedChangesModal } from '@/shared/components/UnsavedChangesModal';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
@@ -77,6 +79,14 @@ export default function ApartmentFormPage() {
   // Hooks must run before any early return.
   const errors = validateApartment(input);
   const { fieldError, handleSubmit } = useFormState(errors);
+  const initialInputRef = useRef<ApartmentInput>(
+    apartment ? { ...apartmentToInput(apartment), numar_persoane: '' } : blankApartmentInput(),
+  );
+  const initialPersonsRef = useRef<ApartmentPerson[]>(apartment?.persons ?? []);
+  const isDirty =
+    isFormDirty(input, initialInputRef.current) ||
+    isFormDirty(persons, initialPersonsRef.current);
+  const { guardModal, clearDirty } = useUnsavedGuard(isDirty);
 
   if (isEdit && !apartment) {
     return (
@@ -142,6 +152,7 @@ export default function ApartmentFormPage() {
       toast.success(
         isEdit ? t('apartments.saved', { label: apartmentShortLabel(saved) }) : t('apartments.created', { count: 1 }),
       );
+      clearDirty();
       navigate('/app/admin/apartamente');
     } finally {
       setSaving(false);
@@ -567,6 +578,8 @@ export default function ApartmentFormPage() {
           </div>
         </Modal>
       )}
+
+      <UnsavedChangesModal {...guardModal} />
     </div>
   );
 }

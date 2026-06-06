@@ -119,7 +119,13 @@
     "requestFeatureToast": "Am trimis administratorului cererea ta de activare.",
     "requestFeatureAlreadyToast": "Ai cerut deja activarea acestui modul.",
     "downloadQr": "Descarcă PNG",
-    "qrCodeAlt": "Cod QR pentru {{label}}"
+    "qrCodeAlt": "Cod QR pentru {{label}}",
+    "unsavedChanges": {
+      "title": "Modificări nesalvate",
+      "body": "Ai modificări nesalvate care vor fi pierdute. Continui?",
+      "stay": "Rămâi",
+      "leave": "Pleacă"
+    }
   },
   "auth": {
     "loginTitle": "Autentificare administrator",
