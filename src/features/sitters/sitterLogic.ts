@@ -27,10 +27,11 @@ export function searchSitters(
 // ── Per-asociatie sitter catalog ─────────────────────────────────────────────
 
 import { DEMO_ASOCIATIE, DEMO_SITTERS } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 export type SittersByAsociatie = Record<string, SitterProfile[]>;
 
-const EMPTY_SITTERS: SitterProfile[] = [];
+const EMPTY_SITTERS = emptyArray<SitterProfile>();
 
 export function sittersForAsociatie(
   map: SittersByAsociatie,

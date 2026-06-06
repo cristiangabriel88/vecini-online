@@ -19,10 +19,11 @@ export function searchOfferings(offerings: SkillOffering[], query = ''): SkillOf
 // ── Per-asociatie barter catalog ─────────────────────────────────────────────
 
 import { DEMO_ASOCIATIE, DEMO_SKILLS } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 export type BarterByAsociatie = Record<string, SkillOffering[]>;
 
-const EMPTY_OFFERINGS: SkillOffering[] = [];
+const EMPTY_OFFERINGS = emptyArray<SkillOffering>();
 
 export function barterForAsociatie(
   map: BarterByAsociatie,

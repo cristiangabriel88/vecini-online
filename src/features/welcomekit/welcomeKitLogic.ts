@@ -38,10 +38,11 @@ export function isComplete(items: WelcomeKitItem[], doneIds: ReadonlySet<string>
 // ── Per-asociatie welcome-kit catalog ─────────────────────────────────────────
 
 import { DEMO_ASOCIATIE, DEMO_WELCOME_KIT } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 export type WelcomeKitsByAsociatie = Record<string, WelcomeKitItem[]>;
 
-const EMPTY_KIT: WelcomeKitItem[] = [];
+const EMPTY_KIT = emptyArray<WelcomeKitItem>();
 
 export function welcomeKitForAsociatie(
   map: WelcomeKitsByAsociatie,

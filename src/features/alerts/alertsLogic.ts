@@ -6,6 +6,7 @@ import {
   type NotifPriority,
   shouldSendEmailNotif,
 } from '@/shared/lib/notifPrefsLogic';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /**
  * Emergency alerts (F03) scoped per asociație (T184).
@@ -42,7 +43,7 @@ export const ALERT_PRIORITY: NotifPriority = 'urgent';
  * keep a constant reference (a fresh `[]` per call would force needless
  * re-renders). Never mutate it; the helpers always build a new array.
  */
-const EMPTY_ALERTS = Object.freeze([] as Alert[]) as Alert[];
+const EMPTY_ALERTS = emptyArray<Alert>();
 
 /**
  * Seed used the first time the store initialises (before any persisted state):

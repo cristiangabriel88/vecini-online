@@ -2,6 +2,7 @@ import type { Role, Ticket, TicketSeverity, TicketStatus } from '@/shared/types/
 import { DEMO_ASOCIATIE, DEMO_TICKETS } from '@/shared/demo/demoData';
 import { type FileValidationError, validateFile } from '@/shared/lib/file';
 import { genId } from '@/shared/lib/id';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 export const TICKET_ATTACHMENT_MAX_BYTES = 5 * 1024 * 1024;
 export const TICKET_ATTACHMENT_MAX_FILES = 5;
@@ -57,7 +58,7 @@ export type TicketsByAsociatie = Record<string, Ticket[]>;
  * keep a constant reference (a fresh `[]` per call would force needless
  * re-renders). Never mutate it; the helpers always build a new array.
  */
-const EMPTY_TICKETS = Object.freeze([] as Ticket[]) as Ticket[];
+const EMPTY_TICKETS = emptyArray<Ticket>();
 
 /**
  * Seed used the first time the store initialises (before any persisted state):

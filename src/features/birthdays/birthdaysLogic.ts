@@ -67,10 +67,11 @@ export function upcomingBirthdays(
 // ── Per-asociatie birthdays catalog ──────────────────────────────────────────
 
 import { DEMO_ASOCIATIE, DEMO_BIRTHDAYS } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 export type BirthdaysByAsociatie = Record<string, BirthdayConsent[]>;
 
-const EMPTY_BIRTHDAYS: BirthdayConsent[] = [];
+const EMPTY_BIRTHDAYS = emptyArray<BirthdayConsent>();
 
 export function birthdaysForAsociatie(
   map: BirthdaysByAsociatie,

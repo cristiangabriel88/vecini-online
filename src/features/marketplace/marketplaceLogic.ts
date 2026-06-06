@@ -49,10 +49,11 @@ export function activeListings(
 // ── Per-asociatie marketplace catalog ───────────────────────────────────────
 
 import { DEMO_ASOCIATIE, DEMO_MARKETPLACE } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 export type MarketplacesByAsociatie = Record<string, MarketplaceListing[]>;
 
-const EMPTY_LISTINGS: MarketplaceListing[] = [];
+const EMPTY_LISTINGS = emptyArray<MarketplaceListing>();
 
 export function marketplaceForAsociatie(
   map: MarketplacesByAsociatie,

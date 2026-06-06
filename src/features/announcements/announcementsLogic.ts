@@ -7,6 +7,7 @@ import { type FileValidationError, validateFile } from '@/shared/lib/file';
 import { DEMO_ANNOUNCEMENTS, DEMO_ASOCIATIE } from '@/shared/demo/demoData';
 import { genId } from '@/shared/lib/id';
 import { isGovernanceRole } from '@/shared/lib/roleUtils';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /**
  * Announcements (F01) scoped per asociație (T47).
@@ -28,7 +29,7 @@ export type AnnouncementsByAsociatie = Record<string, Announcement[]>;
  * keep a constant reference (a fresh `[]` per call would force needless
  * re-renders). Never mutate it; the helpers always build a new array.
  */
-const EMPTY_ANNOUNCEMENTS = Object.freeze([] as Announcement[]) as Announcement[];
+const EMPTY_ANNOUNCEMENTS = emptyArray<Announcement>();
 
 /**
  * Seed used the first time the store initialises (before any persisted state):

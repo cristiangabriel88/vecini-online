@@ -1,6 +1,7 @@
 import type { Supplier } from '@/shared/types/domain';
 import { warrantyStatus, type WarrantyStatus } from '@/features/repairs/repairLogic';
 import { DEMO_ASOCIATIE, DEMO_SUPPLIERS } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /** Contract status reuses the warranty classifier: a contract end date is
  *  `active`, `expiring` (within 30 days) or `expired`; missing dates are `none`. */
@@ -37,7 +38,7 @@ export function countContractAlerts(suppliers: Supplier[], now: Date = new Date(
 
 export type SuppliersByAsociatie = Record<string, Supplier[]>;
 
-const EMPTY_SUPPLIERS: Supplier[] = [];
+const EMPTY_SUPPLIERS = emptyArray<Supplier>();
 
 export function suppliersForAsociatie(
   map: SuppliersByAsociatie,

@@ -1,10 +1,11 @@
 import type { ScheduledMaintenance } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_MAINTENANCE } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /** Per-asociatie maintenance catalog, keyed by asociatie id. */
 export type MaintenancesByAsociatie = Record<string, ScheduledMaintenance[]>;
 
-const EMPTY_MAINT: ScheduledMaintenance[] = [];
+const EMPTY_MAINT = emptyArray<ScheduledMaintenance>();
 
 /** Get the scheduled maintenance list for one asociatie (never null). */
 export function maintenanceForAsociatie(

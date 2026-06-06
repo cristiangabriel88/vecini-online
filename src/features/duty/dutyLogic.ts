@@ -1,5 +1,6 @@
 import type { DutySlot } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_DUTY } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 const DAY = 86_400_000;
 
@@ -43,7 +44,7 @@ export function isMine(slot: DutySlot, userId: string): boolean {
 /** Duty slots keyed by asociatie id. */
 export type DutyByAsociatie = Record<string, DutySlot[]>;
 
-const EMPTY_DUTY_SLOTS: DutySlot[] = [];
+const EMPTY_DUTY_SLOTS = emptyArray<DutySlot>();
 
 export function dutyForAsociatie(
   map: DutyByAsociatie,

@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import { reportError } from '@/shared/lib/errorReporting';
+import { emptyArray } from '@/shared/lib/emptyArray';
 import {
   type AuditEntry,
   type AuditAction,
@@ -22,7 +23,7 @@ import { useAuthStore } from './authStore';
 export type AuditByAsociatie = Record<string, AuditEntry[]>;
 
 /** Shared frozen empty chain so selectors keep a stable reference (no churn). */
-const EMPTY_CHAIN = Object.freeze([] as AuditEntry[]) as AuditEntry[];
+const EMPTY_CHAIN = emptyArray<AuditEntry>();
 
 /** Seed the demo asociație with a small valid chain so the log is populated. */
 function seedAudit(): AuditByAsociatie {

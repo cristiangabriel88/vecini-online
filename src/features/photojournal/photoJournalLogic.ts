@@ -1,5 +1,6 @@
 import type { ProjectPhoto } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_PROJECT_PHOTOS } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /** Gradient swatches cycled through as image stand-ins in demo mode. */
 export const PHOTO_SWATCHES = [
@@ -50,7 +51,7 @@ export function groupByDate(photos: ProjectPhoto[]): { date: string; photos: Pro
 
 export type PhotosByAsociatie = Record<string, ProjectPhoto[]>;
 
-const EMPTY_PHOTOS: ProjectPhoto[] = [];
+const EMPTY_PHOTOS = emptyArray<ProjectPhoto>();
 
 export function photosForAsociatie(
   map: PhotosByAsociatie,

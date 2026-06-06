@@ -1,5 +1,6 @@
 import type { MultiyearPlanItem } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_MULTIYEAR } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /** A plan item needs a plausible year and a short title. */
 export function isValidPlanItem(year: number, title: string): boolean {
@@ -32,7 +33,7 @@ export function groupByYear(items: MultiyearPlanItem[]): { year: number; items: 
 
 export type MultiyearByAsociatie = Record<string, MultiyearPlanItem[]>;
 
-const EMPTY_MULTIYEAR: MultiyearPlanItem[] = [];
+const EMPTY_MULTIYEAR = emptyArray<MultiyearPlanItem>();
 
 export function multiyearForAsociatie(
   map: MultiyearByAsociatie,

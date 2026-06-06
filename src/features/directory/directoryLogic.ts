@@ -1,6 +1,7 @@
 import type { DirectoryEntry } from '@/shared/types/domain';
 import { normalizeSearch } from '@/features/faq/faqLogic';
 import { DEMO_ASOCIATIE, DEMO_DIRECTORY } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /** A neighbour-visible custom field surfaced in the F36 directory card. */
 export interface DirectoryCustomField {
@@ -55,7 +56,7 @@ export function searchDirectory(
 
 export type DirectoryByAsociatie = Record<string, DirectoryEntry[]>;
 
-const EMPTY_DIRECTORY: DirectoryEntry[] = [];
+const EMPTY_DIRECTORY = emptyArray<DirectoryEntry>();
 
 export function directoryForAsociatie(
   map: DirectoryByAsociatie,

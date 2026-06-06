@@ -1,5 +1,6 @@
 import type { ThankYou } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_THANK_YOUS } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /** Minimum message length for a meaningful thank-you note. */
 export const MIN_THANK_YOU_LENGTH = 5;
@@ -21,7 +22,7 @@ export function formatApartmentLabel(input: string): string {
 
 export type ThankYousByAsociatie = Record<string, ThankYou[]>;
 
-const EMPTY_THANKYOUS: ThankYou[] = [];
+const EMPTY_THANKYOUS = emptyArray<ThankYou>();
 
 export function thankYousForAsociatie(
   map: ThankYousByAsociatie,

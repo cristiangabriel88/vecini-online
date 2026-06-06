@@ -29,10 +29,11 @@ export function closedGroupBuys(buys: GroupBuy[], now: Date | string | number = 
 // ── Per-asociatie group buys catalog ─────────────────────────────────────────
 
 import { DEMO_ASOCIATIE, DEMO_GROUP_BUYS } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 export type GroupBuysByAsociatie = Record<string, GroupBuy[]>;
 
-const EMPTY_BUYS: GroupBuy[] = [];
+const EMPTY_BUYS = emptyArray<GroupBuy>();
 
 export function groupBuysForAsociatie(
   map: GroupBuysByAsociatie,

@@ -1,5 +1,6 @@
 import type { AccessCode } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_ACCESS_CODES } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /** Courier codes are valid for 30 minutes (spec F32). */
 export const CODE_TTL_MINUTES = 30;
@@ -35,7 +36,7 @@ export function sortedCodes(codes: AccessCode[]): AccessCode[] {
 
 export type AccessByAsociatie = Record<string, AccessCode[]>;
 
-const EMPTY_CODES: AccessCode[] = [];
+const EMPTY_CODES = emptyArray<AccessCode>();
 
 export function accessForAsociatie(
   map: AccessByAsociatie,

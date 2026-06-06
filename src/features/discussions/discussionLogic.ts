@@ -3,6 +3,7 @@ import type { Role } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_DISCUSSIONS } from '@/shared/demo/demoData';
 import { genId } from '@/shared/lib/id';
 import { isGovernanceRole } from '@/shared/lib/roleUtils';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /** New users are rate-limited to this many messages per hour until vetted. */
 export const NEW_USER_HOURLY_LIMIT = 10;
@@ -82,7 +83,7 @@ export type ThreadsByAsociatie = Record<string, DiscussionThread[]>;
  * keep a constant reference (a fresh `[]` per call would force needless
  * re-renders). Never mutate it; the helpers always build a new array.
  */
-const EMPTY_THREADS = Object.freeze([] as DiscussionThread[]) as DiscussionThread[];
+const EMPTY_THREADS = emptyArray<DiscussionThread>();
 
 /**
  * Seed used the first time the store initialises (before any persisted state):

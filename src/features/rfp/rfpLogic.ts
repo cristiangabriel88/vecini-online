@@ -1,5 +1,6 @@
 import type { Rfp, RfpQuote } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_RFPS } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /** An RFP needs a title. */
 export function isValidRfp(title: string): boolean {
@@ -37,7 +38,7 @@ export function sortRfps(rfps: Rfp[]): Rfp[] {
 /** RFP catalog keyed by asociatie id. */
 export type RfpsByAsociatie = Record<string, Rfp[]>;
 
-const EMPTY_RFPS: Rfp[] = [];
+const EMPTY_RFPS = emptyArray<Rfp>();
 
 export function rfpsForAsociatie(
   map: RfpsByAsociatie,

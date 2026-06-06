@@ -135,7 +135,7 @@ Done: created `src/shared/lib/roleUtils.ts` with `GOVERNANCE_ROLES` (Set), `isGo
 
 The ~72 `*Api.ts` files repeat the same live-hydration shell: guard on `isSupabaseConfigured`, `select().eq('asociatie_id', id).order(...)`, error-check → `reportError` + `store.setFetchError`, map rows snake→camel, then `store.replaceForAsociatie`. Design a `createHydrator<Row, T>({ table, columns, transform, apply })` (or a thin `runHydration` wrapper) that encapsulates the query + error + store-update flow, so each feature supplies only its table name, row transform, and store updater. This one needs care: several hydrators do multi-table joins or JS-side tallying (polls/votes, petitions/signatures, budget) — scope the abstraction to the single-table majority and explicitly leave the join-based hydrators as-is (document which). Migrate a handful first; keep offline no-op behavior and every `*Api.test.ts` green. Prereq: T244 (shares the store-update seam).
 
-### ⬜ T247 — [P3] Shared frozen-empty-array helper
+### ✅ T247 — [P3] Shared frozen-empty-array helper
 
 ~40 `*Logic.ts` files each declare their own `const EMPTY_* = Object.freeze([])` to hand a stable reference to selectors (avoids re-render churn from a fresh `[]` each call). Add one `createEmptyArray<T>()` / `EMPTY_FROZEN` helper in `src/shared/lib/` and replace the per-file duplicates, keeping referential stability identical (the returned reference must stay constant across calls so memoized selectors are unaffected). Smallest-safe-step polish; no behavior change. Prereq: none.
 

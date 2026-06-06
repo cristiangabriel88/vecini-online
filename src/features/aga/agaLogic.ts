@@ -1,5 +1,6 @@
 import type { AgaMeeting } from '@/shared/types/domain';
 import { DEMO_AGAS, DEMO_ASOCIATIE } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /**
  * F10 -- digital General Assembly (AGA) model, per Legea 196/2018.
@@ -36,7 +37,7 @@ export {
 /** All asociații's assemblies, keyed by asociație id. */
 export type AgasByAsociatie = Record<string, AgaMeeting[]>;
 
-const EMPTY_AGAS = Object.freeze([] as AgaMeeting[]) as AgaMeeting[];
+const EMPTY_AGAS = emptyArray<AgaMeeting>();
 
 /** Deep-clone a meeting list so the seed is never mutated through the store. */
 export function cloneAgas(meetings: AgaMeeting[]): AgaMeeting[] {

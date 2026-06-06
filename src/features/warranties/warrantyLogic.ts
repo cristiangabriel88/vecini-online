@@ -1,6 +1,7 @@
 import type { Warranty } from '@/shared/types/domain';
 import { warrantyStatus, type WarrantyStatus } from '@/features/repairs/repairLogic';
 import { DEMO_ASOCIATIE, DEMO_WARRANTIES } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 export { warrantyStatus, WARRANTY_ALERT_DAYS } from '@/features/repairs/repairLogic';
 export type { WarrantyStatus } from '@/features/repairs/repairLogic';
@@ -43,7 +44,7 @@ export function countAlerts(warranties: Warranty[], now: Date = new Date()): num
 
 export type WarrantiesByAsociatie = Record<string, Warranty[]>;
 
-const EMPTY_WARRANTIES: Warranty[] = [];
+const EMPTY_WARRANTIES = emptyArray<Warranty>();
 
 export function warrantiesForAsociatie(map: WarrantiesByAsociatie, asociatieId: string | null): Warranty[] {
   if (!asociatieId) return EMPTY_WARRANTIES;

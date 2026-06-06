@@ -4,6 +4,13 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T247 ✅ 2026-06-06 -- Shared frozen-empty-array helper
+
+New `src/shared/lib/emptyArray.ts` exports `emptyArray<T>()` which always returns the same frozen `never[]` cast to `T[]` -- a single canonical stable reference replacing ~45 per-file `const EMPTY_* = []` / `Object.freeze([])` declarations across feature logic files and `auditStore.ts`. The const declarations in each file were updated from `const EMPTY_X: SomeType[] = []` or `Object.freeze([] as SomeType[]) as SomeType[]` to `const EMPTY_X = emptyArray<SomeType>()`. Referential identity is preserved (same object every call), so memoized selectors see no churn. New `tests/unit/emptyArray.test.ts` (4 tests: empty length, stable identity, cross-generic identity, frozen). All 300 test files (2879 tests) green, all 3 builds pass. No behavior change.
+- new: src/shared/lib/emptyArray.ts
+- new: tests/unit/emptyArray.test.ts
+- modified: 45 feature/store logic files (import + const declaration)
+
 ### T246 ✅ 2026-06-06 -- Shared hydrate() abstraction for feature *Api.ts
 
 New `src/shared/lib/runHydration.ts` provides a `runHydration<Row, T>(asociatieId, opts)` helper that encapsulates the repeated hydration shell: `isSupabaseConfigured` guard, try/catch, `reportError` on failure, `setFetchError('load')` on error, `setFetchError(null)` + `replaceForAsociatie` on success. The caller supplies only `query`, `transform`, `store`, and `source`. Migrated 4 representative single-table hydrators onto the helper: `bikesApi.ts` (standard row mapper), `accessApi.ts` (with `.limit(50)`), `barterApi.ts` (no `.order()`), and `alertsApi.ts` (identity transform). Multi-table join hydrators (alarm, events, projects, budget, polls, tickets) are explicitly left as-is per the task spec and documented in the helper's comment block. New `tests/unit/runHydration.test.ts` (7 tests covering guard/empty-id, success/empty-array/asociatieId-pass-through, error-with-object, error-with-null, exception). All 299 test files (2875 tests) green, all 3 builds pass.

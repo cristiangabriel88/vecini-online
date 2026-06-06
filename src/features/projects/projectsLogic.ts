@@ -1,5 +1,6 @@
 import type { Project, ProjectPhase, ProjectPhaseStatus, ProjectStatus } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_PROJECTS } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /** All project statuses, in the order shown in the status picker. */
 export const PROJECT_STATUSES: ProjectStatus[] = ['planificat', 'in_curs', 'finalizat', 'suspendat'];
@@ -82,7 +83,7 @@ export function sortProjects(projects: Project[]): Project[] {
 
 export type ProjectsByAsociatie = Record<string, Project[]>;
 
-const EMPTY_PROJECTS: Project[] = [];
+const EMPTY_PROJECTS = emptyArray<Project>();
 
 export function projectsForAsociatie(
   map: ProjectsByAsociatie,

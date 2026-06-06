@@ -1,5 +1,6 @@
 import type { GreenTask } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_GREEN_TASKS } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /** A task needs a title and a week. */
 export function isValidTask(title: string, weekStart: string): boolean {
@@ -32,7 +33,7 @@ export function isMine(task: GreenTask, userId: string): boolean {
 
 export type GreenByAsociatie = Record<string, GreenTask[]>;
 
-const EMPTY_TASKS: GreenTask[] = [];
+const EMPTY_TASKS = emptyArray<GreenTask>();
 
 export function greenForAsociatie(
   map: GreenByAsociatie,

@@ -1,6 +1,7 @@
 import type { ParkingSpot } from '@/shared/types/domain';
 import { normalizeSearch } from '@/features/faq/faqLogic';
 import { DEMO_ASOCIATIE, DEMO_PARKING } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /** Pre-fill suggestion for the plate field from the resident's F66 profile. */
 export function residentPlateSuggestion(carPlate: string): string | null {
@@ -45,7 +46,7 @@ export function countFree(spots: ParkingSpot[]): number {
 
 export type ParkingByAsociatie = Record<string, ParkingSpot[]>;
 
-const EMPTY_SPOTS: ParkingSpot[] = [];
+const EMPTY_SPOTS = emptyArray<ParkingSpot>();
 
 export function parkingForAsociatie(
   map: ParkingByAsociatie,

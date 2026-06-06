@@ -1,6 +1,7 @@
 import type { Contractor } from '@/shared/types/domain';
 import { normalizeSearch } from '@/features/faq/faqLogic';
 import { DEMO_ASOCIATIE, DEMO_CONTRACTORS } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /** A contractor needs a name and a specialty. */
 export function isValidContractor(name: string, specialty: string): boolean {
@@ -43,7 +44,7 @@ export function applyRating(
 
 export type ContractorsByAsociatie = Record<string, Contractor[]>;
 
-const EMPTY_CONTRACTORS: Contractor[] = [];
+const EMPTY_CONTRACTORS = emptyArray<Contractor>();
 
 export function contractorsForAsociatie(
   map: ContractorsByAsociatie,

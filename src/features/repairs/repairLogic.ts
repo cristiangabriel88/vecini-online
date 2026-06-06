@@ -2,13 +2,14 @@ import type { RepairRecord, RepairSystem, Role } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_REPAIRS } from '@/shared/demo/demoData';
 import { normalizeSearch } from '@/features/faq/faqLogic';
 import { isGovernanceRole } from '@/shared/lib/roleUtils';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 export type WarrantyStatus = 'none' | 'expired' | 'expiring' | 'active';
 
 /** Per-asociatie repair records catalog, keyed by asociatie id. */
 export type RepairsByAsociatie = Record<string, RepairRecord[]>;
 
-const EMPTY_REPAIRS: RepairRecord[] = [];
+const EMPTY_REPAIRS = emptyArray<RepairRecord>();
 
 /** Get the repair records for one asociatie (never null). */
 export function repairsForAsociatie(

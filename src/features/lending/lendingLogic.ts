@@ -1,6 +1,7 @@
 import type { LendingItem } from '@/shared/types/domain';
 import { normalizeSearch } from '@/features/faq/faqLogic';
 import { DEMO_ASOCIATIE, DEMO_LENDING_ITEMS } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 export type AvailabilityFilter = 'all' | 'available';
 
@@ -34,7 +35,7 @@ export function searchLendingItems(
 /** Lending items keyed by asociatie id. */
 export type LendingByAsociatie = Record<string, LendingItem[]>;
 
-const EMPTY_LENDING: LendingItem[] = [];
+const EMPTY_LENDING = emptyArray<LendingItem>();
 
 export function lendingForAsociatie(
   map: LendingByAsociatie,

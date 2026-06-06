@@ -1,5 +1,6 @@
 import type { Ticket, TicketSeverity } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /* F21 — Sesizări recurente.
    Computed entirely over the existing `tickets` data: no table of its own.
@@ -123,7 +124,7 @@ export function detectRecurring(tickets: Ticket[], now: Date = new Date()): Recu
 /** Acknowledged pattern keys keyed by asociatie id. */
 export type AcknowledgedByAsociatie = Record<string, string[]>;
 
-const EMPTY_ACKS: string[] = [];
+const EMPTY_ACKS = emptyArray<string>();
 
 export function isAcknowledgedIn(
   map: AcknowledgedByAsociatie,

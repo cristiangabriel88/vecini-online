@@ -1,5 +1,6 @@
 import { FEATURES, type FeatureKey } from '@/shared/features/registry';
 import type { FeatureFlags } from '@/shared/features/featureFlagsLogic';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /**
  * F67 — Acasă personalizabil. Pure, backend-free logic for the per-resident home
@@ -41,7 +42,7 @@ export const DEFAULT_VISIBLE_COUNT = 6;
  * a constant reference (a fresh `[]` per call would force needless re-renders).
  * Never mutate it; the ops below always build a new array.
  */
-const EMPTY_LAYOUT: HomeCard[] = Object.freeze([]) as unknown as HomeCard[];
+const EMPTY_LAYOUT = emptyArray<HomeCard>();
 
 /** The storage key for one resident's layout in one asociație. */
 export function layoutStorageKey(residentId: string, asociatieId: string): string {

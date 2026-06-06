@@ -2,6 +2,7 @@ import type { WikiPage } from '@/shared/types/domain';
 import { normalizeSearch } from '@/features/faq/faqLogic';
 import { DEMO_ASOCIATIE, DEMO_WIKI } from '@/shared/demo/demoData';
 import { isGovernanceRole } from '@/shared/lib/roleUtils';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /** A wiki page needs a title and a body. */
 export function isValidPage(title: string, body: string): boolean {
@@ -36,7 +37,7 @@ export function canManageWiki(role: string | null): boolean {
 
 export type WikiByAsociatie = Record<string, WikiPage[]>;
 
-const EMPTY_WIKI: WikiPage[] = [];
+const EMPTY_WIKI = emptyArray<WikiPage>();
 
 export function wikiForAsociatie(
   map: WikiByAsociatie,

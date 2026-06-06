@@ -1,5 +1,6 @@
 import type { Crowdfund } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_CROWDFUNDS } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /** A crowdfund needs a title and a positive target amount. */
 export function isValidCrowdfund(title: string, target: number): boolean {
@@ -43,7 +44,7 @@ export function sortCrowdfunds(funds: Crowdfund[], now: Date = new Date()): Crow
 
 export type CrowdfundsByAsociatie = Record<string, Crowdfund[]>;
 
-const EMPTY_CROWDFUNDS: Crowdfund[] = [];
+const EMPTY_CROWDFUNDS = emptyArray<Crowdfund>();
 
 export function crowdfundsForAsociatie(
   map: CrowdfundsByAsociatie,

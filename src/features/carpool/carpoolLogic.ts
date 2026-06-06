@@ -20,10 +20,11 @@ export function searchProfiles(profiles: CarpoolProfile[], query = ''): CarpoolP
 // ── Per-asociatie carpool catalog ────────────────────────────────────────────
 
 import { DEMO_ASOCIATIE, DEMO_CARPOOL } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 export type CarpoolsByAsociatie = Record<string, CarpoolProfile[]>;
 
-const EMPTY_CARPOOL: CarpoolProfile[] = [];
+const EMPTY_CARPOOL = emptyArray<CarpoolProfile>();
 
 export function carpoolForAsociatie(
   map: CarpoolsByAsociatie,

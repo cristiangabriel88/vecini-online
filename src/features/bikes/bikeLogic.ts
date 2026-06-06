@@ -1,6 +1,7 @@
 import type { Bike } from '@/shared/types/domain';
 import { normalizeSearch } from '@/features/faq/faqLogic';
 import { DEMO_ASOCIATIE, DEMO_BIKES } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 export type BikeFilter = 'all' | 'active' | 'abandoned';
 
@@ -27,7 +28,7 @@ export function searchBikes(bikes: Bike[], query: string, filter: BikeFilter = '
 
 export type BikesByAsociatie = Record<string, Bike[]>;
 
-const EMPTY_BIKES: Bike[] = [];
+const EMPTY_BIKES = emptyArray<Bike>();
 
 export function bikesForAsociatie(
   map: BikesByAsociatie,

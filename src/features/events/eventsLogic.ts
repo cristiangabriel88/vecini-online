@@ -1,5 +1,6 @@
 import type { BuildingEvent } from '@/shared/types/domain';
 import { DEMO_EVENTS, DEMO_EVENT_ATTENDEES, DEMO_ASOCIATIE } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /**
  * Events calendar (F08, T185) scoped per asociație.
@@ -22,7 +23,7 @@ export type EventsByAsociatie = Record<string, BuildingEvent[]>;
  * keep a constant reference (a fresh `[]` per call would force needless
  * re-renders). Never mutate it; the helpers always build a new array.
  */
-const EMPTY_EVENTS = Object.freeze([] as BuildingEvent[]) as BuildingEvent[];
+const EMPTY_EVENTS = emptyArray<BuildingEvent>();
 
 /**
  * Seed used the first time the store initialises (before any persisted state):

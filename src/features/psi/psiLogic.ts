@@ -1,6 +1,7 @@
 import type { PsiAsset } from '@/shared/types/domain';
 import { warrantyStatus, type WarrantyStatus } from '@/features/repairs/repairLogic';
 import { DEMO_ASOCIATIE, DEMO_PSI_ASSETS } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /** PSI check status: overdue (expired), due soon (expiring) or ok (active). */
 export type PsiStatus = 'overdue' | 'due_soon' | 'ok';
@@ -34,7 +35,7 @@ export function countDue(assets: PsiAsset[], now: Date = new Date()): number {
 
 export type PsiByAsociatie = Record<string, PsiAsset[]>;
 
-const EMPTY_PSI: PsiAsset[] = [];
+const EMPTY_PSI = emptyArray<PsiAsset>();
 
 export function psiForAsociatie(map: PsiByAsociatie, asociatieId: string | null): PsiAsset[] {
   if (!asociatieId) return EMPTY_PSI;

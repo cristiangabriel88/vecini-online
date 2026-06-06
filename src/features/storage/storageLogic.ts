@@ -1,6 +1,7 @@
 import type { StorageUnit } from '@/shared/types/domain';
 import { normalizeSearch } from '@/features/faq/faqLogic';
 import { DEMO_ASOCIATIE, DEMO_STORAGE_UNITS } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 export type StorageFilter = 'all' | 'assigned' | 'unassigned';
 
@@ -36,7 +37,7 @@ export function searchStorageUnits(
 
 export type StorageByAsociatie = Record<string, StorageUnit[]>;
 
-const EMPTY_UNITS: StorageUnit[] = [];
+const EMPTY_UNITS = emptyArray<StorageUnit>();
 
 export function storageForAsociatie(
   map: StorageByAsociatie,

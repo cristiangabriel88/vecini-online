@@ -1,5 +1,6 @@
 import type { EnergyRecord } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_ENERGY } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /** Common-area energy consumption categories. */
 export const ENERGY_KINDS = [
@@ -67,7 +68,7 @@ export function totalsByKind(records: EnergyRecord[]): Record<string, { amount: 
 
 export type EnergyByAsociatie = Record<string, EnergyRecord[]>;
 
-const EMPTY_ENERGY: EnergyRecord[] = [];
+const EMPTY_ENERGY = emptyArray<EnergyRecord>();
 
 export function energyForAsociatie(map: EnergyByAsociatie, asociatieId: string | null): EnergyRecord[] {
   if (!asociatieId) return EMPTY_ENERGY;

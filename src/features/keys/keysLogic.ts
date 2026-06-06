@@ -1,6 +1,7 @@
 import type { KeyRecord } from '@/shared/types/domain';
 import { normalizeSearch } from '@/features/faq/faqLogic';
 import { DEMO_ASOCIATIE, DEMO_KEYS } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /** A key record needs a space name and a holder. */
 export function isValidKey(space: string, holder: string): boolean {
@@ -30,7 +31,7 @@ export function sortKeys(keys: KeyRecord[]): KeyRecord[] {
 
 export type KeysByAsociatie = Record<string, KeyRecord[]>;
 
-const EMPTY_KEYS: KeyRecord[] = [];
+const EMPTY_KEYS = emptyArray<KeyRecord>();
 
 export function keysForAsociatie(map: KeysByAsociatie, asociatieId: string | null): KeyRecord[] {
   if (!asociatieId) return EMPTY_KEYS;

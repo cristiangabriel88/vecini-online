@@ -1,5 +1,6 @@
 import type { VisitorReport, VisitorStatus } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_VISITOR_REPORTS } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /** Minimum note length for a useful visitor report. */
 export const MIN_NOTE_LENGTH = 5;
@@ -32,7 +33,7 @@ export function recentReports(reports: VisitorReport[]): VisitorReport[] {
 
 export type VisitorsByAsociatie = Record<string, VisitorReport[]>;
 
-const EMPTY_VISITORS: VisitorReport[] = [];
+const EMPTY_VISITORS = emptyArray<VisitorReport>();
 
 export function visitorsForAsociatie(map: VisitorsByAsociatie, asociatieId: string | null): VisitorReport[] {
   if (!asociatieId) return EMPTY_VISITORS;

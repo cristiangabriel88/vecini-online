@@ -1,6 +1,7 @@
 import type { Pet } from '@/shared/types/domain';
 import { normalizeSearch } from '@/features/faq/faqLogic';
 import { DEMO_ASOCIATIE, DEMO_PETS } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /** Known species used for the add form and filter; `altele` covers the rest. */
 export const PET_SPECIES = ['caine', 'pisica', 'papagal', 'rozator', 'altele'] as const;
@@ -35,7 +36,7 @@ export function searchPets(
 
 export type PetsByAsociatie = Record<string, Pet[]>;
 
-const EMPTY_PETS: Pet[] = [];
+const EMPTY_PETS = emptyArray<Pet>();
 
 export function petsForAsociatie(
   map: PetsByAsociatie,

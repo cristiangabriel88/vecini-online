@@ -1,6 +1,7 @@
 import type { InsurancePolicy } from '@/shared/types/domain';
 import { warrantyStatus, type WarrantyStatus } from '@/features/repairs/repairLogic';
 import { DEMO_ASOCIATIE, DEMO_INSURANCE } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /** Policy status: expired, expiring soon (renewal due) or active. */
 export type PolicyStatus = 'expired' | 'expiring' | 'active';
@@ -36,7 +37,7 @@ export function countExpiring(policies: InsurancePolicy[], now: Date = new Date(
 
 export type InsuranceByAsociatie = Record<string, InsurancePolicy[]>;
 
-const EMPTY_INSURANCE: InsurancePolicy[] = [];
+const EMPTY_INSURANCE = emptyArray<InsurancePolicy>();
 
 export function insuranceForAsociatie(map: InsuranceByAsociatie, asociatieId: string | null): InsurancePolicy[] {
   if (!asociatieId) return EMPTY_INSURANCE;

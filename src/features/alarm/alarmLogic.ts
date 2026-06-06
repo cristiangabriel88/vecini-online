@@ -1,5 +1,6 @@
 import type { AlarmStatus, AlarmSystem } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_ALARM_SYSTEMS } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /** Recommended interval between alarm tests, in days. */
 export const TEST_INTERVAL_DAYS = 90;
@@ -57,7 +58,7 @@ export function sortSystems(systems: AlarmSystem[], todayISO: string): AlarmSyst
 
 export type AlarmByAsociatie = Record<string, AlarmSystem[]>;
 
-const EMPTY_ALARM: AlarmSystem[] = [];
+const EMPTY_ALARM = emptyArray<AlarmSystem>();
 
 export function alarmForAsociatie(map: AlarmByAsociatie, asociatieId: string | null): AlarmSystem[] {
   if (!asociatieId) return EMPTY_ALARM;

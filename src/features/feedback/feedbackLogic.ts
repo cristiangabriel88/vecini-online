@@ -21,10 +21,11 @@ export function sortedFeedback(items: PlatformFeedback[]): PlatformFeedback[] {
 // ── Per-asociatie feedback catalog ────────────────────────────────────────────
 
 import { DEMO_ASOCIATIE, DEMO_FEEDBACK } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 export type FeedbackByAsociatie = Record<string, PlatformFeedback[]>;
 
-const EMPTY_FEEDBACK: PlatformFeedback[] = [];
+const EMPTY_FEEDBACK = emptyArray<PlatformFeedback>();
 
 export function feedbackForAsociatie(
   map: FeedbackByAsociatie,

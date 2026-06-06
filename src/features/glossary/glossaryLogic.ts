@@ -1,6 +1,7 @@
 import type { GlossaryEntry } from '@/shared/types/domain';
 import { normalizeSearch } from '@/features/faq/faqLogic';
 import { DEMO_ASOCIATIE, DEMO_GLOSSARY } from '@/shared/demo/demoData';
+import { emptyArray } from '@/shared/lib/emptyArray';
 
 /** Filter glossary entries by a query over term and definition, then sort
  *  alphabetically by term (Romanian locale). */
@@ -22,7 +23,7 @@ export function findTerm(entries: GlossaryEntry[], term: string): GlossaryEntry 
 
 export type GlossaryByAsociatie = Record<string, GlossaryEntry[]>;
 
-const EMPTY_GLOSSARY: GlossaryEntry[] = [];
+const EMPTY_GLOSSARY = emptyArray<GlossaryEntry>();
 
 export function glossaryForAsociatie(
   map: GlossaryByAsociatie,
