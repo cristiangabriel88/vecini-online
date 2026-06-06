@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Camera, Check } from 'lucide-react';
 import { Button } from '@/shared/components/Button';
+import { Photo } from '@/shared/components/Photo';
 import { Input } from '@/shared/components/Input';
 import { DatePicker } from '@/shared/components/DatePicker';
 import { Select } from '@/shared/components/Select';
@@ -96,17 +97,16 @@ export function WelcomeProfile({ onComplete }: { onComplete: () => void }) {
       </div>
 
       <div className="welcome-profile__avatar-row">
-        {profile.avatarDataUrl ? (
-          <img
-            src={profile.avatarDataUrl}
-            alt={profile.fullName || t('nav.profile')}
-            className="welcome-profile__avatar"
-          />
-        ) : (
-          <div className="welcome-profile__avatar-fallback" aria-hidden="true">
-            {initials(profile.fullName || profile.displayName)}
-          </div>
-        )}
+        <Photo
+          src={profile.avatarDataUrl}
+          alt={profile.fullName || t('nav.profile')}
+          className="welcome-profile__avatar"
+          fallback={
+            <div className="welcome-profile__avatar-fallback" aria-hidden="true">
+              {initials(profile.fullName || profile.displayName)}
+            </div>
+          }
+        />
         <div className="min-w-0 flex-1">
           <div className="welcome-profile__meter-label">
             <span>{t('profile.completeness', { percent: pct })}</span>

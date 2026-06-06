@@ -26,6 +26,7 @@ import { Select } from '@/shared/components/Select';
 import { Switch } from '@/shared/components/Switch';
 import { Modal } from '@/shared/components/Modal';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { Photo } from '@/shared/components/Photo';
 import i18n from '@/shared/lib/i18n';
 import { useAuthStore } from '@/shared/store/authStore';
 import { DEMO_APARTMENTS } from '@/shared/demo/demoData';
@@ -213,20 +214,19 @@ export default function ProfilePage() {
         <Card>
           <div className="flex items-center gap-4">
             <div className="relative shrink-0">
-              {profile.avatarDataUrl ? (
-                <img
-                  src={profile.avatarDataUrl}
-                  alt={profile.fullName || t('nav.profile')}
-                  className="h-20 w-20 rounded-full object-cover"
-                />
-              ) : (
-                <div
-                  aria-hidden
-                  className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/15 text-2xl font-semibold text-primary"
-                >
-                  {initials(profile.fullName || profile.displayName)}
-                </div>
-              )}
+              <Photo
+                src={profile.avatarDataUrl}
+                alt={profile.fullName || t('nav.profile')}
+                className="h-20 w-20 rounded-full object-cover"
+                fallback={
+                  <div
+                    aria-hidden
+                    className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/15 text-2xl font-semibold text-primary"
+                  >
+                    {initials(profile.fullName || profile.displayName)}
+                  </div>
+                }
+              />
             </div>
             <div className="min-w-0 flex-1">
               <div className="mb-1 flex items-center justify-between gap-2">

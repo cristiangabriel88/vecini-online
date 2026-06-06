@@ -4,6 +4,14 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T265a ✅ 2026-06-06 -- Shared `<Photo>` component with lazy/async rendering
+
+New `src/shared/components/Photo.tsx`: `memo`-wrapped component accepting `src: string | null | undefined`, `alt`, optional `fallback: ReactNode`, `className`, and any standard img attributes. Renders `<img loading="lazy" decoding="async" ...>` when src is provided; shows `fallback` (or null) when src is absent or an `onError` fires. Migrated the two existing user-photo render sites (`ProfilePage.tsx` avatar, `WelcomeProfile.tsx` avatar) from inline ternaries to `<Photo>` -- no behavior change. 8 unit tests in `Photo.test.tsx` covering: img present, lazy/async attrs, className forwarding, null src, undefined src, onError fallback, no-fallback (renders nothing), width/height forwarding. All 309 test files (2995 tests) green, all 3 builds pass.
+- new: src/shared/components/Photo.tsx
+- modified: src/features/profile/ProfilePage.tsx (import Photo; replace avatar ternary)
+- modified: src/features/welcome/WelcomeProfile.tsx (import Photo; replace avatar ternary)
+- new: tests/unit/Photo.test.tsx (8 tests)
+
 ### T264 ✅ 2026-06-06 -- Lazy-load heavy dependencies
 
 Audit confirmed xlsx was already lazy via `await import('xlsx')` in `csv.ts` and `ApartmentsPage.tsx`; the named `xlsx` chunk in `manualChunks` gives it a predictable name for the bundle-size budget check without making it eager. Added loading states to both xlsx-triggered paths: `handleDownloadExcel` sets `isDownloadingXlsxTemplate` (spinner icon + `disabled` on the dropdown menu item in both the header and empty-state dropdowns), `handleExportApartmentsExcel` sets `isExportingXlsx` (passed as `loading` prop to the Export List button); both wrapped in try/finally so state always resets. Added `Loader2` from lucide-react for the dropdown spinner. Added `tests/unit/xlsxLazy.test.ts` (3 tests) documenting the lazy-load contract. Bundle check confirmed: xlsx chunk 419 kB (budget 450 kB), main entry 162 kB -- xlsx contributes 0 to initial load. All 308 test files (2987 tests) green, all 3 builds pass.

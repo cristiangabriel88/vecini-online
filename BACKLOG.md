@@ -199,7 +199,7 @@ Heavy libraries such as `xlsx` (and any PDF/render libs used by few features) cu
 
 Done: audit confirmed xlsx was already lazy via `await import('xlsx')` in `csv.ts` and `ApartmentsPage.tsx`. Added loading states to both xlsx-triggered paths: `handleDownloadExcel` sets `isDownloadingXlsxTemplate` (spinner + disabled on the dropdown menu item), `handleExportApartmentsExcel` sets `isExportingXlsx` (passed as `loading` prop to the Export button); both wrapped in try/finally so state always resets. Added `Loader2` icon from lucide-react for the dropdown spinner. Added `tests/unit/xlsxLazy.test.ts` (3 tests) documenting the lazy-load contract. Bundle check confirmed: xlsx chunk 419 kB (budget 450 kB), main entry 162 kB -- xlsx contributes 0 to initial load. All 308 test files (2987 tests) green, all 3 builds pass.
 
-### ⬜ T265a — [P2] Shared `<Photo>` component with lazy/async rendering
+### ✅ T265a — [P2] Shared `<Photo>` component with lazy/async rendering
 
 User-uploaded photos (tickets, project journal, parking, visitor reports, etc.) render via plain `<img>` with no `loading="lazy"`, no `decoding="async"`, and no width/height hints, causing layout shift and eager network use. Add a shared `<Photo>` image component (`loading="lazy"`, `decoding="async"`, intrinsic width/height, graceful fallback) and migrate the photo render sites onto it. No upload-path change. Keep the demo-stub image paths working. Unit test for the component. Prereq: none. (Split from the original T265.)
 
