@@ -4,6 +4,16 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T246 ✅ 2026-06-06 -- Shared hydrate() abstraction for feature *Api.ts
+
+New `src/shared/lib/runHydration.ts` provides a `runHydration<Row, T>(asociatieId, opts)` helper that encapsulates the repeated hydration shell: `isSupabaseConfigured` guard, try/catch, `reportError` on failure, `setFetchError('load')` on error, `setFetchError(null)` + `replaceForAsociatie` on success. The caller supplies only `query`, `transform`, `store`, and `source`. Migrated 4 representative single-table hydrators onto the helper: `bikesApi.ts` (standard row mapper), `accessApi.ts` (with `.limit(50)`), `barterApi.ts` (no `.order()`), and `alertsApi.ts` (identity transform). Multi-table join hydrators (alarm, events, projects, budget, polls, tickets) are explicitly left as-is per the task spec and documented in the helper's comment block. New `tests/unit/runHydration.test.ts` (7 tests covering guard/empty-id, success/empty-array/asociatieId-pass-through, error-with-object, error-with-null, exception). All 299 test files (2875 tests) green, all 3 builds pass.
+- new: src/shared/lib/runHydration.ts
+- new: tests/unit/runHydration.test.ts
+- modified: src/features/bikes/bikesApi.ts
+- modified: src/features/access/accessApi.ts
+- modified: src/features/barter/barterApi.ts
+- modified: src/features/alerts/alertsApi.ts
+
 ### T245 ✅ 2026-06-05 -- Shared role-permission helper (roleUtils)
 
 Created `src/shared/lib/roleUtils.ts` with `GOVERNANCE_ROLES` (Set), `isGovernanceRole()`, `BOARD_ROLES` (Set), and `isBoardRole()`. Rewired all 10 `canManage*` functions (announcements, documents, ideas, petitions, priorities, pv, repairs, surveys, wiki) plus `canModerateDiscussion` to use `isGovernanceRole`, and `canViewAnyProfile` to use `isBoardRole`. Added 16 unit tests in `tests/unit/roleUtils.test.ts`. All 298 test files (2868 tests) green, all 3 builds pass.

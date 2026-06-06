@@ -1,6 +1,7 @@
 import type { AccessCode } from '@/shared/types/domain';
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import { reportError } from '@/shared/lib/errorReporting';
+import { runHydration } from '@/shared/lib/runHydration';
 import { useAccessStore } from './accessStore';
 
 interface AccessRow {
@@ -25,32 +26,19 @@ function rowToCode(row: AccessRow): AccessCode {
   };
 }
 
-/**
- * Hydrate one asociatie's access codes from the backend. The live path reads
- * DB-stamped expires_at so the 30-min window is server-authoritative. Reads
- * the last 50 codes newest first. No-op offline.
- */
 export async function hydrateAccessCodes(asociatieId: string): Promise<void> {
-  if (!isSupabaseConfigured || !asociatieId) return;
-  const store = useAccessStore.getState();
-  try {
-    const { data, error } = await supabase
-      .from('access_codes')
-      .select('id, asociatie_id, generated_by, code, expires_at, used_at, created_at')
-      .eq('asociatie_id', asociatieId)
-      .order('created_at', { ascending: false })
-      .limit(50);
-    if (error || !data) {
-      reportError(error ?? new Error('no data'), { source: 'accessApi.hydrate' });
-      store.setFetchError('load');
-      return;
-    }
-    store.setFetchError(null);
-    store.replaceForAsociatie(asociatieId, (data as AccessRow[]).map(rowToCode));
-  } catch (err) {
-    reportError(err, { source: 'accessApi.hydrate' });
-    store.setFetchError('load');
-  }
+  return runHydration<AccessRow, AccessCode>(asociatieId, {
+    query: () =>
+      supabase
+        .from('access_codes')
+        .select('id, asociatie_id, generated_by, code, expires_at, used_at, created_at')
+        .eq('asociatie_id', asociatieId)
+        .order('created_at', { ascending: false })
+        .limit(50),
+    transform: rowToCode,
+    store: useAccessStore.getState(),
+    source: 'accessApi.hydrate',
+  });
 }
 
 /**

@@ -1,6 +1,7 @@
 import type { SkillOffering } from '@/shared/types/domain';
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import { reportError } from '@/shared/lib/errorReporting';
+import { runHydration } from '@/shared/lib/runHydration';
 import { useBarterStore } from './barterStore';
 
 interface OfferingRow {
@@ -24,24 +25,16 @@ function rowToOffering(row: OfferingRow): SkillOffering {
 }
 
 export async function hydrateBarter(asociatieId: string): Promise<void> {
-  if (!isSupabaseConfigured || !asociatieId) return;
-  const store = useBarterStore.getState();
-  try {
-    const { data, error } = await supabase
-      .from('skill_offerings')
-      .select('id,asociatie_id,user_id,user_name,offers,needs')
-      .eq('asociatie_id', asociatieId);
-    if (error || !data) {
-      reportError(error ?? new Error('no data'), { source: 'barterApi.hydrate' });
-      store.setFetchError('load');
-      return;
-    }
-    store.setFetchError(null);
-    store.replaceForAsociatie(asociatieId, (data as OfferingRow[]).map(rowToOffering));
-  } catch (err) {
-    reportError(err, { source: 'barterApi.hydrate' });
-    store.setFetchError('load');
-  }
+  return runHydration<OfferingRow, SkillOffering>(asociatieId, {
+    query: () =>
+      supabase
+        .from('skill_offerings')
+        .select('id,asociatie_id,user_id,user_name,offers,needs')
+        .eq('asociatie_id', asociatieId),
+    transform: rowToOffering,
+    store: useBarterStore.getState(),
+    source: 'barterApi.hydrate',
+  });
 }
 
 export function saveOffering(asociatieId: string, offering: SkillOffering): void {

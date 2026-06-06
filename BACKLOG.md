@@ -131,7 +131,7 @@ The governance permission check `role === 'admin' || role === 'presedinte' || ro
 
 Done: created `src/shared/lib/roleUtils.ts` with `GOVERNANCE_ROLES` (Set), `isGovernanceRole()`, `BOARD_ROLES` (Set), and `isBoardRole()`; rewired all 10 canManage* functions + canModerateDiscussion to use `isGovernanceRole`, and canViewAnyProfile to use `isBoardRole`; added 16 unit tests in `tests/unit/roleUtils.test.ts`. All 298 test files (2868 tests) green, all 3 builds pass.
 
-### ⬜ T246 — [P3] Shared hydrate() abstraction for feature `*Api.ts`
+### ✅ T246 — [P3] Shared hydrate() abstraction for feature `*Api.ts`
 
 The ~72 `*Api.ts` files repeat the same live-hydration shell: guard on `isSupabaseConfigured`, `select().eq('asociatie_id', id).order(...)`, error-check → `reportError` + `store.setFetchError`, map rows snake→camel, then `store.replaceForAsociatie`. Design a `createHydrator<Row, T>({ table, columns, transform, apply })` (or a thin `runHydration` wrapper) that encapsulates the query + error + store-update flow, so each feature supplies only its table name, row transform, and store updater. This one needs care: several hydrators do multi-table joins or JS-side tallying (polls/votes, petitions/signatures, budget) — scope the abstraction to the single-table majority and explicitly leave the join-based hydrators as-is (document which). Migrate a handful first; keep offline no-op behavior and every `*Api.test.ts` green. Prereq: T244 (shares the store-update seam).
 

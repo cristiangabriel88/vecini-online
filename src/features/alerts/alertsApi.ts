@@ -1,6 +1,7 @@
 import type { Alert } from '@/shared/types/domain';
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import { reportError } from '@/shared/lib/errorReporting';
+import { runHydration } from '@/shared/lib/runHydration';
 import { type NewAlertInput, alertsForAsociatie, newAlert } from './alertsLogic';
 import { useAlertsStore } from './alertsStore';
 
@@ -11,28 +12,18 @@ import { useAlertsStore } from './alertsStore';
 
    The demo/offline store stays the default when Supabase is absent. */
 
-/** Hydrate the alerts for one asociație from the backend, when configured. The
- *  demo store is the source of truth if the read fails or backend is absent. */
 export async function hydrateAlerts(asociatieId: string): Promise<void> {
-  if (!isSupabaseConfigured || !asociatieId) return;
-  const store = useAlertsStore.getState();
-  try {
-    const { data, error } = await supabase
-      .from('alerts')
-      .select('id, asociatie_id, sender_user_id, title, body, kind, recipient_count, sent_at')
-      .eq('asociatie_id', asociatieId)
-      .order('sent_at', { ascending: false });
-    if (error || !data) {
-      reportError(error ?? new Error('no data'), { source: 'alertsApi.hydrate' });
-      store.setFetchError('load');
-      return;
-    }
-    store.setFetchError(null);
-    store.replaceForAsociatie(asociatieId, data as Alert[]);
-  } catch (err) {
-    reportError(err, { source: 'alertsApi.hydrate' });
-    store.setFetchError('load');
-  }
+  return runHydration<Alert, Alert>(asociatieId, {
+    query: () =>
+      supabase
+        .from('alerts')
+        .select('id, asociatie_id, sender_user_id, title, body, kind, recipient_count, sent_at')
+        .eq('asociatie_id', asociatieId)
+        .order('sent_at', { ascending: false }),
+    transform: (row) => row,
+    store: useAlertsStore.getState(),
+    source: 'alertsApi.hydrate',
+  });
 }
 
 /** Send an emergency alert: updates the store synchronously and mirrors to the

@@ -1,6 +1,7 @@
 import type { Bike } from '@/shared/types/domain';
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import { reportError } from '@/shared/lib/errorReporting';
+import { runHydration } from '@/shared/lib/runHydration';
 import { useBikesStore } from './bikesStore';
 
 interface BikeRow {
@@ -29,30 +30,18 @@ function rowToBike(row: BikeRow): Bike {
   };
 }
 
-/**
- * Hydrate one asociatie's bikes from the backend. Reads `bikes` newest first.
- * No-op when the backend is absent or the id is empty.
- */
 export async function hydrateBikes(asociatieId: string): Promise<void> {
-  if (!isSupabaseConfigured || !asociatieId) return;
-  const store = useBikesStore.getState();
-  try {
-    const { data, error } = await supabase
-      .from('bikes')
-      .select('id, asociatie_id, owner_user_id, owner_name, description, serial, photo_path, abandoned, created_at')
-      .eq('asociatie_id', asociatieId)
-      .order('created_at', { ascending: false });
-    if (error || !data) {
-      reportError(error ?? new Error('no data'), { source: 'bikesApi.hydrate' });
-      store.setFetchError('load');
-      return;
-    }
-    store.setFetchError(null);
-    store.replaceForAsociatie(asociatieId, (data as BikeRow[]).map(rowToBike));
-  } catch (err) {
-    reportError(err, { source: 'bikesApi.hydrate' });
-    store.setFetchError('load');
-  }
+  return runHydration<BikeRow, Bike>(asociatieId, {
+    query: () =>
+      supabase
+        .from('bikes')
+        .select('id, asociatie_id, owner_user_id, owner_name, description, serial, photo_path, abandoned, created_at')
+        .eq('asociatie_id', asociatieId)
+        .order('created_at', { ascending: false }),
+    transform: rowToBike,
+    store: useBikesStore.getState(),
+    source: 'bikesApi.hydrate',
+  });
 }
 
 /**
