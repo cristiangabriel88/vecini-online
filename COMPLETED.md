@@ -4,6 +4,12 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T271 ✅ 2026-06-06 -- Automated a11y scan in E2E + fixes
+
+New `tests/e2e/a11y.spec.ts` adds 5 axe-core scans (WCAG 2.0 A/AA, colour-contrast excluded, fail on critical/serious) over the key surfaces: login page, dashboard, announcements list, apartment add form, and the announcement compose modal. Fixed `DatePicker` keyboard navigation gap: when no date is selected all day buttons had `tabIndex={-1}`, making the calendar grid unreachable via keyboard; the first non-disabled non-outside day now gets `tabIndex={0}` as the roving-tabindex entry point. All 314 test files (3058 tests) green, all 3 builds pass.
+- added: tests/e2e/a11y.spec.ts
+- modified: src/shared/components/DatePicker.tsx (firstFocusableIdx fallback tabIndex)
+
 ### T270 ✅ 2026-06-06 -- Sync `<html lang>` to the active locale
 
 Registered a `languageChanged` listener in `src/shared/lib/i18n.ts` before the `init()` call so it catches the startup language detection and all future `changeLanguage()` calls; updates `document.documentElement.lang` automatically. Both apps (main app + platform console) share the same i18n module, so both get the fix for free. Added 3 unit tests in `tests/unit/htmlLang.test.ts`. All 314 test files (3058 tests) green, all 3 builds pass.

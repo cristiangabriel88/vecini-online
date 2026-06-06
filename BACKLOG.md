@@ -241,7 +241,7 @@ Done: audited all 83 feature pages; found 2 ad-hoc `<p className="text-sm text-m
 
 The document root `lang` is static, so switching the UI to English never updates `document.documentElement.lang` and screen readers keep announcing content with Romanian pronunciation rules. Set `lang` from the i18next `languageChanged` handler at app init in both apps (`src/main.tsx`, `src/platform/main.tsx`), initialized to the persisted language on first paint. Small, high-value a11y fix. Unit/integration test asserting the attribute updates on language change. Prereq: none.
 
-### ⬜ T271 — [P2] Automated a11y scan in E2E + fixes
+### ✅ T271 — [P2] Automated a11y scan in E2E + fixes
 
 `@axe-core/playwright` is available but not run as an explicit gate across representative surfaces. Add axe scans over a key set (dashboard, one feature list page, a form page, an open modal, the login page) in the Playwright suite with a fail-on-serious/critical gate, then fix what it surfaces (likely candidates: icon-only buttons missing `aria-label`, focus order in custom widgets like the DatePicker, any contrast misses). Keep the gate green. Prereq: none.
 

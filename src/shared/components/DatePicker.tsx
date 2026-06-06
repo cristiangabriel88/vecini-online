@@ -232,6 +232,12 @@ export function DatePicker({
 
   const displayValue = formatDisplay(value, lang);
 
+  // When no date is selected, the first non-disabled non-outside day gets tabIndex=0
+  // so keyboard users can Tab into the grid and select a date.
+  const firstFocusableIdx = !value
+    ? days.findIndex((d) => !isDayDisabled(d) && !isOutside(d))
+    : -1;
+
   const calendarContent = (
     <>
       <div className="dp-header">
@@ -284,7 +290,7 @@ export function DatePicker({
                 disab && 'dp-day--disabled',
               )}
               onClick={() => !disab && selectDay(d)}
-              tabIndex={isSelected ? 0 : -1}
+              tabIndex={isSelected || i === firstFocusableIdx ? 0 : -1}
             >
               {d.getDate()}
             </button>
