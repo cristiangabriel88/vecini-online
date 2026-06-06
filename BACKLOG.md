@@ -167,9 +167,11 @@ Done: `sourcemap: 'hidden'` emitted for PROD/DEV via `loadEnv` in vite.config.ts
 
 There is no coverage measurement today (2,747 unit tests, but no line/branch metrics). Add the vitest v8 coverage provider, an `npm run test:coverage` script, an HTML report artifact in CI (`.github/workflows/ci.yml`), and a global threshold gate seeded at the current baseline so it can only ratchet upward. Exclude generated/demo-seed files from the denominator and surface a per-feature summary so thin spots are visible. No product change. Prereq: none.
 
-### ⬜ T260 — [P2] Bundle-size budget + analyzer
+### ✅ T260 — [P2] Bundle-size budget + analyzer
 
 Nothing guards bundle growth today. Wire `rollup-plugin-visualizer` into the Vite build to emit a treemap artifact, and add a `size-limit` (or `bundlesize`) gate in CI for the main entry + the largest route chunks so a careless import cannot silently bloat the initial payload. Record current sizes as the baseline in the config and document them. Pairs with T264. Prereq: none.
+
+Done: installed `rollup-plugin-visualizer@7.0.1`; configured it in `vite.config.ts` to emit `dist/stats.html` (gzip-annotated treemap) on every build. Wrote `scripts/check-bundle-size.mjs` with 7 pattern-matched budgets set at the 2026-06-06 baseline (main 200 kB, react-vendor 230 kB, supabase 230 kB, xlsx 450 kB, legal 475 kB, i18n 70 kB, apartmentsStore 75 kB). Added `bundle:check` and `build:analyze` scripts to `package.json`. Updated `.github/workflows/ci.yml` to run `bundle:check` after build and upload `dist/stats.html` as a `bundle-stats` artifact (30-day retention). All 304 test files (2945 tests) green, all 3 builds pass.
 
 ### ⬜ T261 — [P2] Health-probe alerting + ops runbook
 

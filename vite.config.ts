@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitest/config';
 import { loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
+import { visualizer } from 'rollup-plugin-visualizer';
 import { fileURLToPath, URL } from 'node:url';
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -34,7 +35,12 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
 
   return {
-    plugins: [react(), cspHeadersPlugin()],
+    plugins: [
+      react(),
+      cspHeadersPlugin(),
+      // Emit dist/stats.html treemap on every build; uploaded as a CI artifact (T260).
+      visualizer({ filename: 'dist/stats.html', gzipSize: true, open: false }) as Plugin,
+    ],
     define: {
       'import.meta.env.VITE_APP_RELEASE': JSON.stringify(resolveReleaseId()),
     },

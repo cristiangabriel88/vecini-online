@@ -4,6 +4,14 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T260 ✅ 2026-06-06 -- Bundle-size budget + analyzer
+
+Installed `rollup-plugin-visualizer@7.0.1`; configured it in `vite.config.ts` to emit `dist/stats.html` (gzip-annotated treemap) on every build. Wrote `scripts/check-bundle-size.mjs` with 7 pattern-matched budgets at the 2026-06-06 baseline (main 200 kB, react-vendor 230 kB, supabase 230 kB, xlsx 450 kB, legal 475 kB, i18n 70 kB, apartmentsStore 75 kB) -- exits 1 if any budget is blown. Added `bundle:check` and `build:analyze` npm scripts. Updated CI to run `bundle:check` after build and upload `dist/stats.html` as a `bundle-stats` artifact (30-day retention). All 304 test files (2945 tests) green, all 3 builds pass.
+- modified: vite.config.ts (visualizer plugin)
+- modified: package.json (rollup-plugin-visualizer devDep, bundle:check + build:analyze scripts)
+- created: scripts/check-bundle-size.mjs
+- modified: .github/workflows/ci.yml (bundle:check step + bundle-stats artifact upload)
+
 ### T259 ✅ 2026-06-06 -- Test-coverage tooling + threshold gate
 
 Added `@vitest/coverage-v8@3.2.4` (+ `@testing-library/dom` peer dep that was missing) to devDependencies. Added `"test:coverage": "vitest run --coverage"` script. Configured `test.coverage` block in `vite.config.ts`: provider `v8`; reporters `text-summary`, `html`, `json-summary`; include `src/**/*.{ts,tsx}`; exclude `src/shared/demo/**`, `*.d.ts`, `vite-env.d.ts`, `main.tsx`, `platform/main.tsx`, `i18n.ts`; global thresholds seeded at the 2026-06-06 baseline (lines 30, branches 80, functions 68, statements 30) to ratchet upward only. CI (`.github/workflows/ci.yml`): replaced `npm test` with `npm run test:coverage` and added an `actions/upload-artifact@v4` step (always, 30-day retention) that uploads the `coverage/` HTML report as `coverage-report`. The HTML report gives per-feature drill-down; the terminal `text-summary` prints totals on every run. All 304 test files (2945 tests) green, all 3 builds pass.
