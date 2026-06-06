@@ -4,6 +4,15 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T261 ✅ 2026-06-06 -- Health-probe alerting + ops runbook
+
+Scheduled Netlify function `health-probe` (`*/5 * * * *`) probes the public health endpoint (5 s timeout) and does a Supabase `asociatii` round-trip; anomalies are inserted into `platform_error_reports` as `HealthProbeFailure` and emailed via Resend to `PLATFORM_ALERT_EMAIL` with a 30-minute in-memory de-dup window. Pure `healthProbeLogic.ts` exposes `evaluateProbeResult`, `shouldAlertProbe`, and `buildHealthAlertEmail` with 19 unit tests. Added `OPS_RUNBOOK.md` covering UptimeRobot/BetterUptime external monitor setup, internal probe env vars, alert thresholds, and escalation steps. Schedule wired in `netlify.toml`. No-op when Supabase is unconfigured. All 305 test files (2968 tests) green, all 3 builds pass.
+- new: netlify/functions/health-probe.ts (scheduled function)
+- new: netlify/functions/_shared/healthProbeLogic.ts (pure logic)
+- new: tests/unit/healthProbeLogic.test.ts (19 tests)
+- new: OPS_RUNBOOK.md
+- modified: netlify.toml (schedule entry for health-probe)
+
 ### T260 ✅ 2026-06-06 -- Bundle-size budget + analyzer
 
 Installed `rollup-plugin-visualizer@7.0.1`; configured it in `vite.config.ts` to emit `dist/stats.html` (gzip-annotated treemap) on every build. Wrote `scripts/check-bundle-size.mjs` with 7 pattern-matched budgets at the 2026-06-06 baseline (main 200 kB, react-vendor 230 kB, supabase 230 kB, xlsx 450 kB, legal 475 kB, i18n 70 kB, apartmentsStore 75 kB) -- exits 1 if any budget is blown. Added `bundle:check` and `build:analyze` npm scripts. Updated CI to run `bundle:check` after build and upload `dist/stats.html` as a `bundle-stats` artifact (30-day retention). All 304 test files (2945 tests) green, all 3 builds pass.

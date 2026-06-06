@@ -25,6 +25,9 @@
 [functions]
   node_bundler = "esbuild"
 
+[functions."health-probe"]
+  schedule = "*/5 * * * *"
+
 [[headers]]
   for = "/*"
   [headers.values]

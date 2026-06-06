@@ -173,7 +173,7 @@ Nothing guards bundle growth today. Wire `rollup-plugin-visualizer` into the Vit
 
 Done: installed `rollup-plugin-visualizer@7.0.1`; configured it in `vite.config.ts` to emit `dist/stats.html` (gzip-annotated treemap) on every build. Wrote `scripts/check-bundle-size.mjs` with 7 pattern-matched budgets set at the 2026-06-06 baseline (main 200 kB, react-vendor 230 kB, supabase 230 kB, xlsx 450 kB, legal 475 kB, i18n 70 kB, apartmentsStore 75 kB). Added `bundle:check` and `build:analyze` scripts to `package.json`. Updated `.github/workflows/ci.yml` to run `bundle:check` after build and upload `dist/stats.html` as a `bundle-stats` artifact (30-day retention). All 304 test files (2945 tests) green, all 3 builds pass.
 
-### ⬜ T261 — [P2] Health-probe alerting + ops runbook
+### ✅ T261 — [P2] Health-probe alerting + ops runbook
 
 `netlify/functions/health.ts` exists but nothing watches it, so an outage is invisible until a resident complains. Add a scheduled Netlify function (e.g. `@every 5m`) that probes `health` plus one lightweight Supabase round-trip and records anomalies to the platform error stream (and emails via `_shared/resend.ts` when configured), and add an `OPS_RUNBOOK.md` documenting external uptime monitoring (UptimeRobot/BetterUptime on the public health URL), the alert thresholds, and an escalation/on-call note. Demo = no-op. Unit test for the probe-evaluation logic. Prereq: none.
 
