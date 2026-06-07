@@ -5,6 +5,12 @@ Compact, machine-readable log of non-trivial choices. Newest first. Format:
 
 ## 2026-06-07
 
+### T287: initial-route budget ceiling values
+- choice: initial JS ceiling 720 kB, initial CSS ceiling 200 kB (raw, before gzip).
+- why: measured baseline 2026-06-07 is 654 kB JS + 166 kB CSS = 820 kB raw (~246 kB gzip). Ceilings give ~10% headroom without being so loose that a large accidental import passes unnoticed. All feature pages are already lazy-loaded; the critical path (react-vendor, supabase, main, i18n, query) is genuinely needed at startup and cannot be further deferred without a significant auth/i18n rework. The `legal` CSS chunk (151 kB) is render-blocking because it contains consent-banner styles (needed before first paint) plus the Tailwind output for legal pages -- this is correct Vite behavior and not a regression.
+- alternatives rejected: (a) set JS ceiling at current baseline + 1 kB -- too tight, any shared utility change would fail; (b) defer Supabase init -- breaks the auth-before-render guarantee, major feature change; (c) split consent-banner CSS out of the legal chunk -- requires moving ConsentBanner out of `@/features/legal/` to change Rollup's chunk assignment, scope creep.
+- blast radius: `scripts/check-bundle-size.mjs` only.
+
 ### T281: email retry -- retry constants and failure recorder placement
 - choice: retry logic is inlined in `resend.ts` (3 attempts, 1s/2s exponential backoff) rather than reusing `src/shared/lib/retry.ts`. Failure recording lives in a new `emailFailureReporter.ts` (separate from `resend.ts`) and is called fire-and-forget by each caller.
 - why: `resend.ts` is documented as "intentionally dependency-free" (no Supabase imports). Keeping the retry self-contained avoids a dependency on the client-side `retry.ts`, and the failure reporter requires Supabase which would break that contract if inlined. Callers already gate the send on `isResendConfigured()`, so the reporter never fires in demo/offline mode.

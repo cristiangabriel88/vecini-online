@@ -5,7 +5,7 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-07
-- last_task: T286 Low-end-device auto-detect -> lite mode -- detectLowEnd() pure helper (deviceMemory/hardwareConcurrency/saveData/effectiveType); resolvePerf() extended with lowEnd param; PerfSuggestion.tsx one-time dismissible bilingual banner; autoSuggested persisted in store; 13 new unit tests; 325 test files / 3323 tests; all 3 builds green
+- last_task: T287 Cold-load budget on throttled connection -- extended check-bundle-size.mjs with query chunk budget (35 kB), initial JS blocking total (720 kB ceiling, baseline 654 kB), initial CSS render-blocking total (200 kB ceiling, baseline 166 kB); documented cold-load baseline in header comment; 325 test files / 3323 tests; all 3 builds green
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
 - counts: 325 test files / 3323 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task. DEV now matches PROD exactly (no role switcher; switcher is DEMO-only)

@@ -146,7 +146,7 @@ A freshly-provisioned building is empty, and a new admin sees blank lists with n
 
 The perf-lite tier (T257) is opt-in or stage-derived; a resident on a cheap phone never gets it unless they find the toggle. Detect low-end signals at boot (`navigator.deviceMemory`, `hardwareConcurrency`, the Save-Data header / `connection.saveData`, slow `effectiveType`) and either auto-apply lite mode or show a one-time, dismissible bilingual prompt suggesting it, always leaving the explicit user toggle authoritative (an explicit choice is never overridden). Keep PROD/DEMO visually unchanged for capable devices. Unit tests for the pure detection/resolution helper. Prereq: T257.
 
-### ⬜ T287 — [P2] Cold-load budget on a throttled connection
+### ✅ T287 — [P2] Cold-load budget on a throttled connection
 
 A first visit on slow 3G has never been measured against a target. Measure the cold-load first-paint payload under throttling, trim what is reasonable (defer/lazy any non-critical initial import the T260 analyzer flags), and codify a critical-path budget so a regression is caught -- extend the existing `scripts/check-bundle-size.mjs` budgets with an explicit "initial route" ceiling and document the measured cold-load number. No feature change. Prereq: T260.
 
