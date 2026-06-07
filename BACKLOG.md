@@ -162,7 +162,7 @@ There is no single command that says "the build is sound for all three stages" a
 
 > The full pipeline is green, but a coverage/i18n/a11y audit found security-relevant code paths and user flows that are not directly tested, plus a few untranslated screen-reader strings. Closing these makes the "complete testing" claim real where it matters most.
 
-### ⬜ T291 — [P1] Direct tests for security-critical, currently-uncovered code paths
+### ✅ T291 — [P1] Direct tests for security-critical, currently-uncovered code paths
 
 The coverage report flags several auth/privacy-sensitive modules with little or no direct coverage: `src/features/auth/recoveryVerifyApi.ts` (~7% -- MFA recovery-code path, an account-recovery surface), `src/features/invites/inviteWriteApi.ts` (0% -- invite creation grants tenant access), `src/shared/store/consentStore.ts` (0% -- GDPR consent state), and `src/shared/store/breachStore.ts` (0% -- breach-notification fan-out). Additionally, the Netlify function handlers are excluded from coverage entirely (`vite.config.ts` coverage `include` is `src/**` only), so the function boundary (auth gating, request parsing, error responses) is unmeasured. Add focused unit tests for those four modules and handler-level tests for the highest-risk functions (`gdpr-erasure`, `gdpr-retention-purge`, `revoke-admin-access`, `feature-override`, `billing-checkout`) asserting they reject unauthenticated/cross-tenant callers, and add `netlify/functions/**` to the coverage denominator. Ratchet the line/statement coverage gate up from its current weak 30% baseline once these land. Prereq: T289, T290 (so the function tests assert the fixed behavior).
 

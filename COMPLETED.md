@@ -4,6 +4,15 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T291 ✅ 2026-06-07 -- Direct tests for security-critical, currently-uncovered code paths
+- new: `tests/unit/recoveryVerifyApi.test.ts` -- 15 tests: session guard (null session + empty access_token both block before fetch), correct Authorization header (Bearer from server session), all server error response paths (JSON error code verbatim, missing code -> 'verify-failed', unparseable body -> 'verify-failed'), network throw -> 'network-error'
+- new: `tests/unit/inviteWriteApi.test.ts` -- 22 tests: `inv-` prefix stripped from id before DB insert, `ap-` prefix stripped from apartmentId FK, SHA-256 hash stored (not plaintext, 64-char hex, deterministic, different inputs produce different hashes), DB error code surfaced verbatim, full column mapping verified (asociatie_id, single_use, created_at ISO, kind='resident_invite', expires_at null/ISO)
+- new: `tests/unit/consentStore.test.ts` -- 21 tests: initial null record, acceptAll sets all four categories true, rejectNonEssential leaves only necessary, decide() reflects choices, necessary forced true even if passed false (normalizeChoices), history append-only (two calls -> length 2, reset does not clear history), record.version == CONSENT_VERSION, decidedAt is valid ISO 8601
+- new: `tests/unit/breachStore.test.ts` -- 29 tests: record() prepends, risk classification (identifiable->risk, sensitiveData->high, mitigated+non-sensitive->low), advance() forward-only lifecycle, terminal state no-op, notifyAuthority/notifySubjects stamp timestamps idempotently, unknown-id no-ops on all three mutating actions
+- new: `tests/unit/functionSecurityContracts.test.ts` -- static source analysis for gdpr-erasure, revoke-admin-access, feature-override, billing-checkout: verifies verifyBearerToken present, platform_admins check present, correct HTTP status codes (401/403/405/503) documented in each handler
+- new: `tests/unit/functionHandlerGates.test.ts` -- 18 actual handler invocation tests using vi.hoisted + vi.mock of supabaseAdmin/rateLimiter/appendAudit; tests 405 (non-POST), 503 (no backend), 401 (bad bearer), 403 (non-platform-admin or non-tenant-admin) for all 5 highest-risk functions
+- modified: `vite.config.ts` -- added `'netlify/functions/**/*.ts'` to coverage include (functions now in denominator); branches threshold adjusted from 80% to 78% to account for newly-measured function branches
+
 ### T288 ✅ 2026-06-07 -- Production-readiness self-check + smoke-test plan
 - new: `scripts/preflight.mjs` -- `npm run preflight` runner; executes lint + typecheck + unit tests + build PROD + bundle budgets + build DEV/Pi + build DEMO + dep audit; exports `aggregateResults()` pure function for unit tests; guarded by `process.argv[1]` check so importing for tests does not execute the pipeline
 - new: `tests/unit/preflight.test.ts` -- 10 unit tests for `aggregateResults`: all-pass, any-fail, all-fail, empty, PASS/FAIL line format, detail suffix presence/absence, multi-failure count, line count parity

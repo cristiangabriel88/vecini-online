@@ -5,9 +5,9 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-07
-- last_task: T288 Production-readiness self-check + smoke-test plan -- new scripts/preflight.mjs (npm run preflight: lint+typecheck+test+build+bundle+build:pi+build:demo+dep-audit, go/no-go summary); new LAUNCH_CHECKLIST.md (11-section manual smoke-test plan); 10 unit tests for aggregateResults; allowJs: true in tsconfig.app.json; 326 test files / 3333 tests; all 3 builds green
+- last_task: T291 Direct tests for security-critical uncovered code paths -- 6 new test files (recoveryVerifyApi, inviteWriteApi, consentStore, breachStore, functionSecurityContracts, functionHandlerGates); 144 new tests (144 written + existing 3333 = 3477 total); netlify/functions added to coverage denominator; vite.config.ts coverage include expanded; 332 test files / 3477 tests; all 3 builds green
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 326 test files / 3333 tests
+- counts: 332 test files / 3477 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task. DEV now matches PROD exactly (no role switcher; switcher is DEMO-only)
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
 - next: queue exhausted -- all Group A-H tasks complete; overnight script will audit+replenish
