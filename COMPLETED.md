@@ -4,6 +4,13 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T288 ✅ 2026-06-07 -- Production-readiness self-check + smoke-test plan
+- new: `scripts/preflight.mjs` -- `npm run preflight` runner; executes lint + typecheck + unit tests + build PROD + bundle budgets + build DEV/Pi + build DEMO + dep audit; exports `aggregateResults()` pure function for unit tests; guarded by `process.argv[1]` check so importing for tests does not execute the pipeline
+- new: `tests/unit/preflight.test.ts` -- 10 unit tests for `aggregateResults`: all-pass, any-fail, all-fail, empty, PASS/FAIL line format, detail suffix presence/absence, multi-failure count, line count parity
+- new: `LAUNCH_CHECKLIST.md` -- manual smoke-test plan with 11 sections (preflight gate, auth, onboard, announcements, vote/AGA, GDPR export, language switching, PWA install, tenant isolation, performance, platform console) and a sign-off table
+- modified: `package.json` -- added `"preflight"` script (`node scripts/preflight.mjs`)
+- modified: `tsconfig.app.json` -- added `"allowJs": true` so TypeScript resolves the `.mjs` import in the test file
+
 ### T287 ✅ 2026-06-07 -- Cold-load budget on a throttled connection
 - modified: `scripts/check-bundle-size.mjs` -- added `query` chunk budget (35 kB); added T287 initial-route-total section: initial JS blocking total (5 critical-path chunks, limit 720 kB) and initial CSS render-blocking total (main + legal CSS chunks, limit 200 kB); documented cold-load baseline in header comment (654 kB JS + 166 kB CSS raw; ~246 kB gzip; ~5 s slow-3G first-interactive)
 - modified: `DECISIONS.md` -- T287 ceiling choice rationale

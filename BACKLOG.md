@@ -154,7 +154,7 @@ A first visit on slow 3G has never been measured against a target. Measure the c
 
 > "Code-ready" should mean verified code-ready. This is a repeatable check and a written test plan, with no accounts and no deployment.
 
-### ⬜ T288 — [P1] Production-readiness self-check + smoke-test plan
+### ✅ T288 — [P1] Production-readiness self-check + smoke-test plan
 
 There is no single command that says "the build is sound for all three stages" and no written pre-launch test script. Add a code-side `scripts/preflight.mjs` (npm `preflight`) that runs the full verification (lint, typecheck, test, build, build:pi, build:demo), checks each stage's artifacts exist and the config shape is valid (reusing the T282 validator with placeholder env), confirms the bundle and dep gates pass, and prints a clear go/no-go summary -- no network, no secrets, no deploy. Pair it with a `LAUNCH_CHECKLIST.md` manual smoke-test plan (log in, onboard a building, post an announcement, run a vote, export GDPR data, switch language, install the PWA) to run before flipping live. Unit test for the preflight result-aggregation logic. Prereq: none.
 

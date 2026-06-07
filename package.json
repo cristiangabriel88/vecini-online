@@ -33,7 +33,8 @@
     "pi:migrate": "bash scripts/pi.sh migrate",
     "pi:seed": "bash scripts/pi.sh seed",
     "dep:check": "depcheck",
-    "dep:audit": "npm audit --audit-level=high"
+    "dep:audit": "npm audit --audit-level=high",
+    "preflight": "node scripts/preflight.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
