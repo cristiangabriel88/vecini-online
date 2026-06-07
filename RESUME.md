@@ -5,9 +5,9 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-07
-- last_task: T280 Abuse/spam guards on resident-generated content -- new src/shared/lib/contentGuard.ts (all limit constants + 5 pure helpers), updated marketplaceLogic/adminChatLogic/ideaLogic with max-length validators, added postTimestamps+recordPost to marketplaceStore/ideasStore/adminChatStore, UI char-counter affordances + rate-limit toasts in MarketplacePage/IdeasPage/AdminChatPage/DiscussionsPage, bilingual contentGuard locale keys (ro+en), 29 new unit tests; all 321 test files / 3239 tests green; all 3 builds pass
+- last_task: T281 Email delivery robustness -- sendEmail() retries 3x with exponential backoff on 5xx/network errors; new emailFailureReporter.ts records permanent failures to platform_error_reports (non-PII); 5 callers updated (invite-email, provision-asociatie, provision-additional-admin, admin-invite-action, mfa-otp-request); 10 new unit tests in emailRetry.test.ts; inviteDeliveryWebhook static-analysis test updated; all 322 test files / 3249 tests green; all 3 builds pass
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 321 test files / 3239 tests
+- counts: 322 test files / 3249 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task. DEV now matches PROD exactly (no role switcher; switcher is DEMO-only)
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
 - next: queue exhausted -- all Group A-H tasks complete; overnight script will audit+replenish

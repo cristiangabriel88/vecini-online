@@ -4,6 +4,13 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T281 ✅ 2026-06-07 -- Email delivery robustness (retry + visible failure)
+- modified: `netlify/functions/_shared/resend.ts` -- added `attempts: number` to `SendEmailResult`; added `MAX_EMAIL_ATTEMPTS=3` and `EMAIL_RETRY_BASE_DELAY_MS=1000` constants; added `isTransientStatus()` and `retryDelay()` helpers; `sendEmail()` now retries up to 3 times with exponential backoff (1s/2s) on 5xx and network errors, returns immediately on 4xx permanent failures; `attempts=0` when not configured
+- new: `netlify/functions/_shared/emailFailureReporter.ts` -- `reportEmailFailure(template, recipientClass, reason, attempts)` writes a non-PII row to `platform_error_reports` on permanent send failure; no-op in demo/offline mode
+- modified: `invite-email.ts`, `provision-asociatie.ts`, `provision-additional-admin.ts`, `admin-invite-action.ts`, `mfa-otp-request.ts` -- import `reportEmailFailure`, call it (fire-and-forget, catch swallowed) after `!result.ok`
+- modified: `tests/unit/inviteDeliveryWebhook.test.ts` -- updated static-analysis assertion for new `resend.ts` loop structure (structural property preserved: `res.json` only reached on success)
+- new: `tests/unit/emailRetry.test.ts` -- 10 tests: retry on 5xx / no-retry on 4xx / network-error retry / exponential backoff delays / not-configured=0 attempts / exhausts max attempts; `reportEmailFailure` inserts non-PII row / no-op without Supabase / never leaks email address
+
 ### T280 ✅ 2026-06-07 -- Abuse / spam guards on resident-generated content
 - new: `src/shared/lib/contentGuard.ts` -- all limit constants (LISTING_TITLE_MAX=100, LISTING_DESC_MAX=1000, LISTING_RATE_LIMIT=5/hr; PRIVATE_SUBJECT_MAX=150, PRIVATE_BODY_MAX=2000, PRIVATE_RATE_LIMIT=20/hr; IDEA_TITLE_MAX=150, IDEA_BODY_MAX=3000, IDEA_RATE_LIMIT=3/hr; DISCUSSION_MSG_MAX=2000) + pure helpers: `charsRemaining`, `isOverLength`, `pruneTimestamps`, `canPostNow`, `recordTimestamp`
 - modified: `marketplaceLogic.ts` -- re-exports guard constants; `isValidListing` now enforces max title length; new `isValidListingDesc` for description cap

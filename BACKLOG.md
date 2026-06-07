@@ -114,7 +114,7 @@ The high-volume resident-writable surfaces (discussion messages, neighbor classi
 
 > The worst failures are the quiet ones: an email that never arrives, a half-configured setting that silently breaks a feature in production, or a dropped connection that loses what a resident just typed. This group makes failures loud and recoverable. With a pilot there is no ops team watching dashboards, so the app must announce its own problems.
 
-### ⬜ T281 — [P1] Email delivery robustness (retry + visible failure)
+### ✅ T281 — [P1] Email delivery robustness (retry + visible failure)
 
 `netlify/functions/_shared/resend.ts` sends transactional mail (invites, OTP, provisioning, health, breach notices) but a transient Resend failure is effectively dropped, and `MAIL_MODE` misconfiguration fails as a silent `not-configured`. Add bounded retry with backoff for transient/5xx failures, and on permanent failure record the event to the platform error stream (the T258a durable path) tagged with the template + recipient class (never the raw PII) and surface a visible signal to the relevant admin (e.g. "invite email failed to send -- retry"). Distinguish disabled/log mode (expected no-op) from a real send failure (alertable). Unit tests for the retry branch + the failure-recording branch. Prereq: none.
 

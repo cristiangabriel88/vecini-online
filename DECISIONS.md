@@ -5,6 +5,12 @@ Compact, machine-readable log of non-trivial choices. Newest first. Format:
 
 ## 2026-06-07
 
+### T281: email retry -- retry constants and failure recorder placement
+- choice: retry logic is inlined in `resend.ts` (3 attempts, 1s/2s exponential backoff) rather than reusing `src/shared/lib/retry.ts`. Failure recording lives in a new `emailFailureReporter.ts` (separate from `resend.ts`) and is called fire-and-forget by each caller.
+- why: `resend.ts` is documented as "intentionally dependency-free" (no Supabase imports). Keeping the retry self-contained avoids a dependency on the client-side `retry.ts`, and the failure reporter requires Supabase which would break that contract if inlined. Callers already gate the send on `isResendConfigured()`, so the reporter never fires in demo/offline mode.
+- alternatives rejected: (a) pass an `onFailure` callback into `sendEmail` -- couples transport to persistence, harder to test; (b) use `src/shared/lib/retry.ts` from `resend.ts` -- adds a cross-boundary import to a file designed to be boundary-free.
+- blast radius: `netlify/functions/_shared/resend.ts`, new `emailFailureReporter.ts`, 5 caller functions, `tests/unit/emailRetry.test.ts` (new), `tests/unit/inviteDeliveryWebhook.test.ts` (updated assertion).
+
 ### T289: gdpr-retention-purge auth gate -- scheduled vs. manual distinction
 - choice: `isScheduledInvocation(req)` returns true when BOTH `Authorization` and `x-forwarded-for` headers are absent. Netlify's CDN sets `x-forwarded-for` on every public request, so an absent header reliably marks an internal scheduler call. Manual POSTs (from any external caller) will have at least one of these headers. The gate: absent both = allow (scheduled); anything else = require bearer + `platform_admins` check (mirrors `impersonate.ts`).
 - why: The function hard-deletes from `auth_audit_events` and `tickets`. An unauthenticated POST from any IP with a rotating source (bypassing the per-IP rate limit) could purge the auth trail and closed tickets off-schedule, destroying an accountability record.

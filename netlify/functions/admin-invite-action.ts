@@ -28,6 +28,7 @@ import { checkProvisionRateLimit } from './_shared/rateLimiter';
 import { buildOnboardingLink, generateInviteCode } from '../../src/shared/lib/inviteCode';
 import { buildAdminInviteEmail } from '../../src/shared/lib/inviteEmail';
 import { isResendConfigured, sendEmail } from './_shared/resend';
+import { reportEmailFailure } from './_shared/emailFailureReporter';
 import {
   isSupabaseAdminConfigured,
   supabaseAdmin,
@@ -158,6 +159,9 @@ export default async (req: Request): Promise<Response> => {
       html: email.html,
     });
     emailSent = result.ok;
+    if (!result.ok) {
+      void reportEmailFailure('admin-invite', 'admin', result.reason ?? 'send-failed', result.attempts).catch(() => {});
+    }
   }
 
   return json(200, { ok: true, action: 'resend', emailSent });

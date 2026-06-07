@@ -30,6 +30,7 @@ import {
   OTP_RESEND_COOLDOWN_MS,
 } from '../../src/features/auth/otpChannelLogic';
 import { sendEmail, getMailMode, isResendConfigured } from './_shared/resend';
+import { reportEmailFailure } from './_shared/emailFailureReporter';
 import { isSupabaseAdminConfigured, supabaseAdmin } from './_shared/supabaseAdmin';
 import { checkMfaRequestRateLimit } from './_shared/rateLimiter';
 
@@ -210,6 +211,9 @@ export default async (req: Request): Promise<Response> => {
     html: emailContent.html,
   });
 
-  if (!result.ok) return json(502, { error: 'send-failed' });
+  if (!result.ok) {
+    void reportEmailFailure('otp', 'resident', result.reason ?? 'send-failed', result.attempts).catch(() => {});
+    return json(502, { error: 'send-failed' });
+  }
   return json(200, { ok: true });
 };

@@ -206,9 +206,13 @@ describe('resend.ts — SendEmailResult carries messageId', () => {
       resolve(process.cwd(), 'netlify/functions/_shared/resend.ts'),
       'utf8',
     );
-    // Body is parsed after the !res.ok early return, so it never runs on failure.
-    expect(src).toMatch(/if.*!res\.ok.*return/);
+    // The failure branch (if !res.ok) must appear and must precede the res.json call
+    // so the body is only read on success.
+    expect(src).toMatch(/if\s*\(!res\.ok\)/);
     expect(src).toMatch(/res\.json/);
+    const failureIdx = src.indexOf('if (!res.ok)');
+    const jsonIdx = src.lastIndexOf('res.json');
+    expect(jsonIdx).toBeGreaterThan(failureIdx);
   });
 });
 

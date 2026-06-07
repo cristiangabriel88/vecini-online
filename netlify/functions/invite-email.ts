@@ -29,6 +29,7 @@ import QRCode from 'qrcode';
 import { buildAdminInviteEmail, buildInviteEmail } from '../../src/shared/lib/inviteEmail';
 import { buildOnboardingLink } from '../../src/shared/lib/inviteCode';
 import { getMailMode, isResendConfigured, sendEmail } from './_shared/resend';
+import { reportEmailFailure } from './_shared/emailFailureReporter';
 import {
   isSupabaseAdminConfigured,
   supabaseAdmin,
@@ -194,7 +195,15 @@ export default async (req: Request): Promise<Response> => {
     html: email.html,
   });
 
-  if (!result.ok) return json(502, { error: 'send-failed' });
+  if (!result.ok) {
+    void reportEmailFailure(
+      isAdminKind ? 'admin-invite' : 'invite',
+      isAdminKind ? 'admin' : 'resident',
+      result.reason ?? 'send-failed',
+      result.attempts,
+    ).catch(() => {});
+    return json(502, { error: 'send-failed' });
+  }
 
   // Stamp the sent timestamp and provider message id for the delivery webhook
   // (T149). Non-fatal: the invite is still valid for link-based redemption.
