@@ -1,5 +1,8 @@
 import type { MarketplaceListing } from '@/shared/types/domain';
 import { normalizeSearch } from '@/features/faq/faqLogic';
+import { LISTING_TITLE_MAX, LISTING_DESC_MAX } from '@/shared/lib/contentGuard';
+
+export { LISTING_TITLE_MAX, LISTING_DESC_MAX };
 
 /** Listing categories offered in the compose form / filter. */
 export const MARKETPLACE_CATEGORIES = [
@@ -14,9 +17,15 @@ export const MARKETPLACE_CATEGORIES = [
 /** Listings auto-expire 14 days after posting (spec F57). */
 export const LISTING_TTL_DAYS = 14;
 
-/** A listing needs at least a short title. */
+/** A listing needs a short but non-blank title within the allowed length. */
 export function isValidListing(title: string): boolean {
-  return title.trim().length >= 3;
+  const t = title.trim();
+  return t.length >= 3 && t.length <= LISTING_TITLE_MAX;
+}
+
+/** A description must not exceed the allowed length (blank is fine). */
+export function isValidListingDesc(description: string): boolean {
+  return description.length <= LISTING_DESC_MAX;
 }
 
 /** Expiry timestamp for a listing created at `from`. */

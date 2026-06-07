@@ -106,7 +106,7 @@ The shared limiter (`netlify/functions/_shared/rateLimiter.ts`) is applied to so
 
 The isolation guarantee is already tested narrowly (`tests/unit/rlsTenantIsolation.test.ts`, `tests/unit/rlsPolicyCoverage.test.ts`, `tests/e2e/isolation.spec.ts`), but the coverage does not span every live-wired table, and the write path is under-tested. Build a representative-table list (one per feature domain) and extend the existing suites to assert, for both **read and write**, that a member of building A cannot select, insert, update, or delete building B's rows -- including the trickier surfaces (anonymous messages, private threads, votes/signatures after lock, storage objects). Add a structural guard test that fails if a new table ships without an `asociatie_id`-scoped RLS policy, so the gate ratchets. No product change; this is a permanent safety net. Prereq: none.
 
-### ⬜ T280 — [P1] Abuse / spam guards on resident-generated content
+### ✅ T280 — [P1] Abuse / spam guards on resident-generated content
 
 The high-volume resident-writable surfaces (discussion messages, neighbor classifieds, private messages, ideas, FAQ questions, comments) have no per-user posting-rate cap or hard content-length limit, so a single resident can flood a channel. Add a shared, configurable guard: a per-user/per-feature posting-rate cap and a max-length check, enforced client-side (disabled submit + bilingual helper text + remaining-characters affordance) and re-checked server-side / in the RLS-facing write path so the client cannot bypass it. Keep the limits generous enough not to annoy normal use, and make them constants in one place. Demo enforces the same caps offline. Unit tests for the rate/length logic. Prereq: none.
 

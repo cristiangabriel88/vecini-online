@@ -14,9 +14,18 @@ import { Modal } from '@/shared/components/Modal';
 import { formatLei, formatDate } from '@/shared/lib/format';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useMyIdentity, useProfileStore } from '@/features/profile/profileStore';
+import { canPostNow, charsRemaining, isOverLength, LISTING_RATE_LIMIT } from '@/shared/lib/contentGuard';
 import { useMarketplaceStore, useAsociatieMarketplace } from './marketplaceStore';
 import { hydrateListings, addListingLive } from './marketplaceApi';
-import { activeListings, isValidListing, MARKETPLACE_CATEGORIES, expiryFrom } from './marketplaceLogic';
+import {
+  activeListings,
+  isValidListing,
+  isValidListingDesc,
+  MARKETPLACE_CATEGORIES,
+  LISTING_TITLE_MAX,
+  LISTING_DESC_MAX,
+  expiryFrom,
+} from './marketplaceLogic';
 
 function MarketplaceComposeModal({
   open,
@@ -30,23 +39,35 @@ function MarketplaceComposeModal({
   const { t } = useTranslation();
   const { userId } = useMyIdentity();
   const profileGet = useProfileStore((s) => s.get);
+  const postTimestamps = useMarketplaceStore((s) => s.postTimestamps);
+  const recordPost = useMarketplaceStore((s) => s.recordPost);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [newCategory, setNewCategory] = useState<string>(MARKETPLACE_CATEGORIES[0]);
   const [price, setPrice] = useState('');
 
-  const valid = isValidListing(title);
+  const titleOver = isOverLength(title, LISTING_TITLE_MAX);
+  const descOver = isOverLength(description, LISTING_DESC_MAX);
+  const titleLeft = charsRemaining(title, LISTING_TITLE_MAX);
+  const descLeft = charsRemaining(description, LISTING_DESC_MAX);
+
+  const valid = isValidListing(title) && isValidListingDesc(description);
 
   const submit = () => {
     if (!valid) return;
-    const profile = profileGet(userId ?? '', '');
+    const uid = userId ?? 'u-res';
+    if (!canPostNow(postTimestamps[`${asociatieId}:${uid}`] ?? [], LISTING_RATE_LIMIT)) {
+      toast.error(t('contentGuard.rateLimited', { limit: LISTING_RATE_LIMIT }));
+      return;
+    }
+    const profile = profileGet(uid, '');
     const sellerName = profile.fullName || profile.displayName || 'Rezident';
     const parsed = price.trim() === '' ? null : Math.max(0, Number(price.replace(',', '.')) || 0);
     const now = new Date().toISOString();
     const item = {
       id: `ml-${Date.now()}`,
       asociatie_id: asociatieId,
-      seller_user_id: userId ?? 'u-res',
+      seller_user_id: uid,
       seller_name: sellerName,
       category: newCategory,
       title: title.trim(),
@@ -57,6 +78,7 @@ function MarketplaceComposeModal({
       created_at: now,
     };
     addListingLive(asociatieId, item);
+    recordPost(asociatieId, uid);
     toast.success(t('marketplace.added'));
     setTitle('');
     setDescription('');
@@ -64,6 +86,9 @@ function MarketplaceComposeModal({
     setNewCategory(MARKETPLACE_CATEGORIES[0]);
     onClose();
   };
+
+  const titleHint = titleLeft <= 20 ? t('contentGuard.charsLeft', { count: Math.max(0, titleLeft) }) : undefined;
+  const descHint = descLeft <= 100 ? t('contentGuard.charsLeft', { count: Math.max(0, descLeft) }) : undefined;
 
   return (
     <Modal
@@ -82,11 +107,21 @@ function MarketplaceComposeModal({
       }
     >
       <div className="space-y-4">
-        <Input label={t('marketplace.titleLabel')} value={title} onChange={(e) => setTitle(e.target.value)} />
+        <Input
+          label={t('marketplace.titleLabel')}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          maxLength={LISTING_TITLE_MAX + 10}
+          error={titleOver ? t('contentGuard.tooLong', { max: LISTING_TITLE_MAX }) : undefined}
+          hint={!titleOver ? titleHint : undefined}
+        />
         <Textarea
           label={t('marketplace.description')}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          maxLength={LISTING_DESC_MAX + 10}
+          error={descOver ? t('contentGuard.tooLong', { max: LISTING_DESC_MAX }) : undefined}
+          hint={!descOver ? descHint : undefined}
         />
         <Select
           label={t('marketplace.category')}

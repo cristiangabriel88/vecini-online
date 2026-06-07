@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import type { PrivateMessage, PrivateSender, PrivateThread } from '@/shared/types/domain';
 import { DEMO_PRIVATE_THREADS } from '@/shared/demo/demoData';
 import { useAuthStore } from '@/shared/store/authStore';
+import { recordTimestamp, pruneTimestamps } from '@/shared/lib/contentGuard';
 import { counterpartOf, toggledStatus } from './adminChatLogic';
 
 export type ThreadsByAsociatie = Record<string, PrivateThread[]>;
@@ -38,6 +39,8 @@ export interface NewThreadInput {
 interface AdminChatState {
   /** Private threads per asociație, keyed by asociație id. */
   byAsociatie: ThreadsByAsociatie;
+  /** Per-user message timestamps keyed by `${asociatieId}:${userId}`. Not persisted. */
+  postTimestamps: Record<string, number[]>;
   /** Replace the whole list for an asociație (used to hydrate from the backend). */
   replaceAll: (asociatieId: string, threads: PrivateThread[]) => void;
   /** Remove threads by id from one asociație's list. */
@@ -56,6 +59,8 @@ interface AdminChatState {
   markRead: (asociatieId: string, threadId: string, viewer: PrivateSender) => void;
   toggleStatus: (asociatieId: string, threadId: string) => void;
   forAsociatie: (asociatieId: string | null) => PrivateThread[];
+  /** Record a message send for rate-limit accounting. */
+  recordPost: (asociatieId: string, userId: string, now?: number) => void;
 }
 
 function mapThread(
@@ -83,6 +88,7 @@ export const useAdminChatStore = create<AdminChatState>()(
   persist(
     (set, get) => ({
       byAsociatie: seedThreads(),
+      postTimestamps: {},
       replaceAll: (asociatieId, threads) =>
         set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: threads } })),
       removeThreads: (asociatieId, ids) =>
@@ -158,10 +164,32 @@ export const useAdminChatStore = create<AdminChatState>()(
           })),
         })),
       forAsociatie: (asociatieId) => listFor(get().byAsociatie, asociatieId),
+
+      recordPost: (asociatieId, userId, now = Date.now()) =>
+        set((s) => {
+          const key = `${asociatieId}:${userId}`;
+          return {
+            postTimestamps: {
+              ...s.postTimestamps,
+              [key]: recordTimestamp(s.postTimestamps[key] ?? [], now),
+            },
+          };
+        }),
     }),
     { name: 'vecini.adminchat', version: 1 },
   ),
 );
+
+/** Recent message count for one user (pruned to the sliding window). */
+export function recentMessageCount(
+  postTimestamps: Record<string, number[]>,
+  asociatieId: string,
+  userId: string,
+  now = Date.now(),
+): number {
+  const key = `${asociatieId}:${userId}`;
+  return pruneTimestamps(postTimestamps[key] ?? [], now).length;
+}
 
 /** Hook: the private threads for the currently active asociație (stable empty). */
 export function useAsociatieThreads(): PrivateThread[] {

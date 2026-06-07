@@ -1,4 +1,7 @@
 import type { PrivateSender, PrivateThread, PrivateThreadStatus } from '@/shared/types/domain';
+import { PRIVATE_SUBJECT_MAX, PRIVATE_BODY_MAX } from '@/shared/lib/contentGuard';
+
+export { PRIVATE_SUBJECT_MAX, PRIVATE_BODY_MAX };
 
 /** A subject needs to be short but meaningful. */
 export const MIN_SUBJECT_LENGTH = 3;
@@ -6,11 +9,13 @@ export const MIN_SUBJECT_LENGTH = 3;
 export const MIN_BODY_LENGTH = 2;
 
 export function isValidSubject(subject: string): boolean {
-  return subject.trim().length >= MIN_SUBJECT_LENGTH;
+  const t = subject.trim();
+  return t.length >= MIN_SUBJECT_LENGTH && t.length <= PRIVATE_SUBJECT_MAX;
 }
 
 export function isValidMessage(body: string): boolean {
-  return body.trim().length >= MIN_BODY_LENGTH;
+  const t = body.trim();
+  return t.length >= MIN_BODY_LENGTH && t.length <= PRIVATE_BODY_MAX;
 }
 
 /** The other party to a viewer: the administrator reads the resident's messages

@@ -1,4 +1,11 @@
 {
+  "contentGuard": {
+    "tooLong": "Too long (max {{max}} characters).",
+    "rateLimited": "Too many posts. You can send at most {{limit}} per hour.",
+    "charsLeft_one": "{{count}} character left",
+    "charsLeft_few": "{{count}} characters left",
+    "charsLeft_other": "{{count}} characters left"
+  },
   "assistant": {
     "fab": "Help",
     "title": "vecini.online Assistant",

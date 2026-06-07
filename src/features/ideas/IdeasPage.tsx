@@ -15,10 +15,20 @@ import { useAuthStore } from '@/shared/store/authStore';
 import { DEMO_CURRENT_USER_ID } from '@/shared/demo/demoData';
 import { useAsociatieApartments } from '@/features/admin/apartmentsStore';
 import { findVoterApartmentId } from '@/features/polls/pollLogic';
+import { canPostNow, charsRemaining, isOverLength, IDEA_RATE_LIMIT } from '@/shared/lib/contentGuard';
 import type { IdeaStatus } from '@/shared/types/domain';
 import { useIdeasStore, useAsociatieIdeas } from './ideasStore';
 import { hydrateIdeas, submitIdea, castIdeaVote } from './ideasApi';
-import { rankIdeas, IDEA_STATUS_TONE, isPromoted, newIdea } from './ideaLogic';
+import {
+  rankIdeas,
+  IDEA_STATUS_TONE,
+  isPromoted,
+  newIdea,
+  isValidIdeaTitle,
+  isValidIdeaBody,
+  IDEA_TITLE_MAX,
+  IDEA_BODY_MAX,
+} from './ideaLogic';
 
 function IdeaComposeModal({
   open,
@@ -34,11 +44,24 @@ function IdeaComposeModal({
   authorName: string;
 }) {
   const { t } = useTranslation();
+  const postTimestamps = useIdeasStore((s) => s.postTimestamps);
+  const recordPost = useIdeasStore((s) => s.recordPost);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
 
+  const titleOver = isOverLength(title, IDEA_TITLE_MAX);
+  const bodyOver = isOverLength(body, IDEA_BODY_MAX);
+  const titleLeft = charsRemaining(title, IDEA_TITLE_MAX);
+  const bodyLeft = charsRemaining(body, IDEA_BODY_MAX);
+
+  const valid = isValidIdeaTitle(title) && isValidIdeaBody(body);
+
   const submit = () => {
-    if (!title.trim() || !body.trim()) return;
+    if (!valid) return;
+    if (!canPostNow(postTimestamps[`${asociatieId}:${authorUserId}`] ?? [], IDEA_RATE_LIMIT)) {
+      toast.error(t('contentGuard.rateLimited', { limit: IDEA_RATE_LIMIT }));
+      return;
+    }
     const idea = newIdea(
       { title: title.trim(), body: body.trim() },
       asociatieId,
@@ -46,11 +69,15 @@ function IdeaComposeModal({
       authorName,
     );
     submitIdea(asociatieId, idea, authorUserId);
+    recordPost(asociatieId, authorUserId);
     toast.success(t('ideas.submitted'));
     setTitle('');
     setBody('');
     onClose();
   };
+
+  const titleHint = titleLeft <= 20 ? t('contentGuard.charsLeft', { count: Math.max(0, titleLeft) }) : undefined;
+  const bodyHint = bodyLeft <= 100 ? t('contentGuard.charsLeft', { count: Math.max(0, bodyLeft) }) : undefined;
 
   return (
     <Modal
@@ -62,7 +89,7 @@ function IdeaComposeModal({
           <Button variant="ghost" onClick={onClose}>
             {t('common.cancel')}
           </Button>
-          <Button onClick={submit} disabled={!title.trim() || !body.trim()}>
+          <Button onClick={submit} disabled={!valid}>
             {t('common.create')}
           </Button>
         </>
@@ -73,11 +100,17 @@ function IdeaComposeModal({
           label={t('ideas.ideaTitle')}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          maxLength={IDEA_TITLE_MAX + 10}
+          error={titleOver ? t('contentGuard.tooLong', { max: IDEA_TITLE_MAX }) : undefined}
+          hint={!titleOver ? titleHint : undefined}
         />
         <Textarea
           label={t('ideas.body')}
           value={body}
           onChange={(e) => setBody(e.target.value)}
+          maxLength={IDEA_BODY_MAX + 10}
+          error={bodyOver ? t('contentGuard.tooLong', { max: IDEA_BODY_MAX }) : undefined}
+          hint={!bodyOver ? bodyHint : undefined}
         />
       </div>
     </Modal>

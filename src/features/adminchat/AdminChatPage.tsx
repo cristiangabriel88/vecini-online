@@ -17,8 +17,9 @@ import { apartmentShortLabel } from '@/features/apartment/apartmentLogic';
 import { apartmentHasLinkedResident, pickAdminThreadResident } from '@/features/admin/apartmentsLogic';
 import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import { DEMO_CURRENT_USER_ID, DEMO_CURRENT_USER_NAME } from '@/shared/demo/demoData';
+import { canPostNow, charsRemaining, isOverLength, PRIVATE_RATE_LIMIT } from '@/shared/lib/contentGuard';
 import type { PrivateMessage, PrivateSender } from '@/shared/types/domain';
-import { useAsociatieThreads } from './adminChatStore';
+import { useAdminChatStore, useAsociatieThreads } from './adminChatStore';
 import { deleteThreads, markRead, reply, startThread, toggleStatus, hydrateThreads } from './adminChatApi';
 import {
   awaitingReply,
@@ -28,6 +29,8 @@ import {
   threadParticipantLabel,
   unreadFor,
   waitingHours,
+  PRIVATE_SUBJECT_MAX,
+  PRIVATE_BODY_MAX,
 } from './adminChatLogic';
 
 /**
@@ -57,6 +60,8 @@ export default function AdminChatPage() {
 
   const allThreads = useAsociatieThreads();
   const apartments = useAsociatieApartments();
+  const postTimestamps = useAdminChatStore((s) => s.postTimestamps);
+  const recordPost = useAdminChatStore((s) => s.recordPost);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [replyBody, setReplyBody] = useState('');
@@ -110,7 +115,12 @@ export default function AdminChatPage() {
 
   const send = (threadId: string) => {
     if (!currentAsociatieId || !isValidMessage(replyBody)) return;
+    if (!canPostNow(postTimestamps[`${currentAsociatieId}:${userId}`] ?? [], PRIVATE_RATE_LIMIT)) {
+      toast.error(t('contentGuard.rateLimited', { limit: PRIVATE_RATE_LIMIT }));
+      return;
+    }
     reply(currentAsociatieId, threadId, viewer, viewer === 'admin' ? adminLabel : userName, replyBody, onWriteError);
+    recordPost(currentAsociatieId, userId);
     setReplyBody('');
   };
 
@@ -131,6 +141,11 @@ export default function AdminChatPage() {
 
   const submitThread = () => {
     if (!currentAsociatieId || !newValid) return;
+    if (!canPostNow(postTimestamps[`${currentAsociatieId}:${userId}`] ?? [], PRIVATE_RATE_LIMIT)) {
+      toast.error(t('contentGuard.rateLimited', { limit: PRIVATE_RATE_LIMIT }));
+      closeNew();
+      return;
+    }
     if (isAdminView) {
       if (!pickedApartment || !pickedResident) return;
       if (pickedRequiresLink) {
@@ -156,6 +171,7 @@ export default function AdminChatPage() {
       toast.success(t('adminChat.threadStarted'));
       setSelectedId(created.id);
     }
+    recordPost(currentAsociatieId, userId);
     closeNew();
   };
 
@@ -396,12 +412,18 @@ export default function AdminChatPage() {
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             placeholder={t('adminChat.subjectHint')}
+            maxLength={PRIVATE_SUBJECT_MAX + 10}
+            error={isOverLength(subject, PRIVATE_SUBJECT_MAX) ? t('contentGuard.tooLong', { max: PRIVATE_SUBJECT_MAX }) : undefined}
+            hint={!isOverLength(subject, PRIVATE_SUBJECT_MAX) && charsRemaining(subject, PRIVATE_SUBJECT_MAX) <= 20 ? t('contentGuard.charsLeft', { count: Math.max(0, charsRemaining(subject, PRIVATE_SUBJECT_MAX)) }) : undefined}
           />
           <Textarea
             label={t('adminChat.message')}
             value={firstBody}
             onChange={(e) => setFirstBody(e.target.value)}
             placeholder={isAdminView ? t('adminChat.messageHintAdmin') : t('adminChat.messageHint')}
+            maxLength={PRIVATE_BODY_MAX + 10}
+            error={isOverLength(firstBody, PRIVATE_BODY_MAX) ? t('contentGuard.tooLong', { max: PRIVATE_BODY_MAX }) : undefined}
+            hint={!isOverLength(firstBody, PRIVATE_BODY_MAX) && charsRemaining(firstBody, PRIVATE_BODY_MAX) <= 100 ? t('contentGuard.charsLeft', { count: Math.max(0, charsRemaining(firstBody, PRIVATE_BODY_MAX)) }) : undefined}
           />
         </div>
       </Modal>
@@ -488,6 +510,8 @@ function ConversationView({
           onChange={(e) => onReplyChange(e.target.value)}
           placeholder={t('adminChat.replyPlaceholder')}
           aria-label={t('adminChat.replyPlaceholder')}
+          maxLength={PRIVATE_BODY_MAX + 10}
+          error={isOverLength(replyBody, PRIVATE_BODY_MAX) ? t('contentGuard.tooLong', { max: PRIVATE_BODY_MAX }) : undefined}
         />
         <Button onClick={onSend} disabled={!isValidMessage(replyBody)}>
           <Send className="h-4 w-4" />

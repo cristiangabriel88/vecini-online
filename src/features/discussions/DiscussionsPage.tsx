@@ -13,6 +13,7 @@ import { Modal } from '@/shared/components/Modal';
 import { formatDateTime } from '@/shared/lib/format';
 import { useAuthStore } from '@/shared/store/authStore';
 import { DEMO_CURRENT_USER_ID, DEMO_CURRENT_USER_NAME } from '@/shared/demo/demoData';
+import { charsRemaining, isOverLength, DISCUSSION_MSG_MAX } from '@/shared/lib/contentGuard';
 import { useAsociatieThreads, useDiscussionStore } from './discussionStore';
 import {
   NEW_USER_HOURLY_LIMIT,
@@ -323,6 +324,9 @@ export default function DiscussionsPage() {
                           onChange={(e) => setReply(e.target.value)}
                           placeholder={t('discussions.replyPlaceholder')}
                           aria-label={t('discussions.replyPlaceholder')}
+                          maxLength={DISCUSSION_MSG_MAX + 10}
+                          error={isOverLength(reply, DISCUSSION_MSG_MAX) ? t('contentGuard.tooLong', { max: DISCUSSION_MSG_MAX }) : undefined}
+                          hint={!isOverLength(reply, DISCUSSION_MSG_MAX) && charsRemaining(reply, DISCUSSION_MSG_MAX) <= 100 ? t('contentGuard.charsLeft', { count: Math.max(0, charsRemaining(reply, DISCUSSION_MSG_MAX)) }) : undefined}
                         />
                         <Button
                           onClick={() => send(th.id)}

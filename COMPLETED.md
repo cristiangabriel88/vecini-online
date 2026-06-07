@@ -4,6 +4,21 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T280 ✅ 2026-06-07 -- Abuse / spam guards on resident-generated content
+- new: `src/shared/lib/contentGuard.ts` -- all limit constants (LISTING_TITLE_MAX=100, LISTING_DESC_MAX=1000, LISTING_RATE_LIMIT=5/hr; PRIVATE_SUBJECT_MAX=150, PRIVATE_BODY_MAX=2000, PRIVATE_RATE_LIMIT=20/hr; IDEA_TITLE_MAX=150, IDEA_BODY_MAX=3000, IDEA_RATE_LIMIT=3/hr; DISCUSSION_MSG_MAX=2000) + pure helpers: `charsRemaining`, `isOverLength`, `pruneTimestamps`, `canPostNow`, `recordTimestamp`
+- modified: `marketplaceLogic.ts` -- re-exports guard constants; `isValidListing` now enforces max title length; new `isValidListingDesc` for description cap
+- modified: `adminChatLogic.ts` -- re-exports guard constants; `isValidSubject`/`isValidMessage` now enforce max lengths
+- modified: `ideaLogic.ts` -- re-exports guard constants; new `isValidIdeaTitle`/`isValidIdeaBody` with length caps
+- modified: `marketplaceStore.ts` -- added `postTimestamps`, `recordPost`, exported `recentListingCount`
+- modified: `ideasStore.ts` -- added `postTimestamps`, `recordPost`, exported `recentIdeaCount`
+- modified: `adminChatStore.ts` -- added `postTimestamps`, `recordPost`, exported `recentMessageCount`
+- modified: `MarketplacePage.tsx` -- char-counter hints on title (<=20 left) and desc (<=100 left), error on over-length, rate-limit toast on submit
+- modified: `IdeasPage.tsx` -- char-counter hints on title/body, error on over-length, rate-limit toast using IDEA_RATE_LIMIT
+- modified: `AdminChatPage.tsx` -- char-counter hints on subject/firstBody, error on reply over-length, rate-limit toast on send+submitThread
+- modified: `DiscussionsPage.tsx` -- char-counter hint + error on reply input when approaching/exceeding DISCUSSION_MSG_MAX
+- modified: `src/shared/locales/ro.json` + `en.json` -- added `contentGuard.{tooLong, rateLimited, charsLeft_one/few/other}` keys
+- new: `tests/unit/contentGuard.test.ts` -- 29 tests covering all helpers + integration scenarios for marketplace/ideas/private-messages
+
 ### T279 ✅ 2026-06-07 -- Cross-tenant isolation regression sweep
 - new: `tests/unit/rlsCrosstenantSweep.test.ts` (42 tests) -- structural guard + per-domain read + member write + tricky surfaces
 - structural guard: `parseTablesWithAsociatieId` (paren-depth extraction, handles schema-qualified names) verifies every table with `asociatie_id` column has `apply_standard_rls`, explicit scoped policy, or is documented in `INTENTIONALLY_USER_SCOPED` (`notifications`, `safety_codes`)

@@ -1,4 +1,11 @@
 {
+  "contentGuard": {
+    "tooLong": "Prea lung (maxim {{max}} caractere).",
+    "rateLimited": "Prea multe postări. Poți trimite cel mult {{limit}} pe oră.",
+    "charsLeft_one": "{{count}} caracter rămas",
+    "charsLeft_few": "{{count}} caractere rămase",
+    "charsLeft_other": "{{count}} de caractere rămase"
+  },
   "assistant": {
     "fab": "Ajutor",
     "title": "Asistent vecini.online",

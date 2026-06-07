@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Idea } from '@/shared/types/domain';
 import { useAuthStore } from '@/shared/store/authStore';
+import { recordTimestamp, pruneTimestamps } from '@/shared/lib/contentGuard';
 import {
   type IdeaCatalog,
   type IdeasByAsociatie,
@@ -17,6 +18,8 @@ interface IdeasState {
   myVotes: Record<string, boolean>;
   /** Non-null when the last live fetch failed; null in demo/offline or after success. */
   fetchError: string | null;
+  /** Per-user submission timestamps keyed by `${asociatieId}:${userId}`. Not persisted. */
+  postTimestamps: Record<string, number[]>;
   /** Prepend a new idea to one asociație's catalog (also marks it as voted). */
   addIdea: (asociatieId: string, idea: Idea) => void;
   /** Toggle this device's vote on an idea (optimistic, idempotent). */
@@ -27,6 +30,8 @@ interface IdeasState {
   setFetchError: (msg: string | null) => void;
   /** The idea catalog for one asociație (stable reference). */
   forAsociatie: (asociatieId: string | null) => IdeaCatalog;
+  /** Record a submission for rate-limit accounting. */
+  recordPost: (asociatieId: string, userId: string, now?: number) => void;
 }
 
 /**
@@ -42,6 +47,7 @@ export const useIdeasStore = create<IdeasState>()(
       byAsociatie: seedIdeas(),
       myVotes: {},
       fetchError: null,
+      postTimestamps: {},
 
       addIdea: (asociatieId, idea) =>
         set((s) => {
@@ -78,6 +84,17 @@ export const useIdeasStore = create<IdeasState>()(
       setFetchError: (msg) => set({ fetchError: msg }),
 
       forAsociatie: (asociatieId) => ideasForAsociatie(get().byAsociatie, asociatieId),
+
+      recordPost: (asociatieId, userId, now = Date.now()) =>
+        set((s) => {
+          const key = `${asociatieId}:${userId}`;
+          return {
+            postTimestamps: {
+              ...s.postTimestamps,
+              [key]: recordTimestamp(s.postTimestamps[key] ?? [], now),
+            },
+          };
+        }),
     }),
     {
       name: 'vecini.ideas',
@@ -87,6 +104,17 @@ export const useIdeasStore = create<IdeasState>()(
     },
   ),
 );
+
+/** Recent idea submission count for one user (pruned to the sliding window). */
+export function recentIdeaCount(
+  postTimestamps: Record<string, number[]>,
+  asociatieId: string,
+  userId: string,
+  now = Date.now(),
+): number {
+  const key = `${asociatieId}:${userId}`;
+  return pruneTimestamps(postTimestamps[key] ?? [], now).length;
+}
 
 /** Hook: the idea catalog for the currently active asociație. */
 export function useAsociatieIdeas(): IdeaCatalog {

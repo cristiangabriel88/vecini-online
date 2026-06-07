@@ -1,9 +1,24 @@
 import type { Idea, IdeaStatus, Role } from '@/shared/types/domain';
 import { DEMO_ASOCIATIE, DEMO_IDEAS } from '@/shared/demo/demoData';
 import { isGovernanceRole } from '@/shared/lib/roleUtils';
+import { IDEA_TITLE_MAX, IDEA_BODY_MAX } from '@/shared/lib/contentGuard';
+
+export { IDEA_TITLE_MAX, IDEA_BODY_MAX };
 
 /** Default number of top ideas promoted to the committee agenda each quarter. */
 export const PROMOTION_COUNT = 10;
+
+/** A valid idea title: non-blank and within the length cap. */
+export function isValidIdeaTitle(title: string): boolean {
+  const t = title.trim();
+  return t.length > 0 && t.length <= IDEA_TITLE_MAX;
+}
+
+/** A valid idea body: non-blank and within the length cap. */
+export function isValidIdeaBody(body: string): boolean {
+  const t = body.trim();
+  return t.length > 0 && t.length <= IDEA_BODY_MAX;
+}
 
 /** Ideas still open for discussion, ranked by votes (desc), then recency. */
 export function rankIdeas(ideas: Idea[]): Idea[] {
