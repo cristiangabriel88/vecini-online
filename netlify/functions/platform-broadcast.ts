@@ -26,6 +26,7 @@ import {
   supabaseAdmin,
   verifyBearerToken,
 } from './_shared/supabaseAdmin';
+import { appendAudit } from './_shared/appendAudit';
 
 const VALID_SEVERITIES = ['info', 'warning', 'critical'] as const;
 const VALID_TARGETS = ['all', 'admin'] as const;
@@ -109,21 +110,8 @@ export default async (req: Request): Promise<Response> => {
 
     const broadcastId = (data as { id: string }).id;
 
-    // Audit via the platform audit stream (seq 0 = platform-scoped; no asociatie_id).
-    const { data: lastEntry } = await db
-      .from('audit_log')
-      .select('seq, hash')
-      .is('asociatie_id', null)
-      .order('seq', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    const prevSeq = (lastEntry as { seq: number } | null)?.seq ?? 0;
-    const prevHash = (lastEntry as { hash: string } | null)?.hash ?? 'GENESIS';
-
-    await db.from('audit_log').insert({
-      id: crypto.randomUUID(),
-      seq: prevSeq + 1,
+    // Audit via the platform audit stream (platform-scoped; no asociatie_id).
+    const auditErr = await appendAudit(db, {
       asociatie_id: null,
       actor_user_id: userId,
       actor_name: null,
@@ -132,9 +120,8 @@ export default async (req: Request): Promise<Response> => {
       entity_label: title.slice(0, 80),
       before_value: null,
       after_value: severity,
-      prev_hash: prevHash,
-      hash: prevHash,
     });
+    if (auditErr.error) return json(502, { error: 'audit-error' });
 
     return json(200, { ok: true, id: broadcastId });
   }
@@ -158,20 +145,7 @@ export default async (req: Request): Promise<Response> => {
     .eq('id', id);
   if (updateErr) return json(502, { error: 'db-error' });
 
-  const { data: lastEntry2 } = await db
-    .from('audit_log')
-    .select('seq, hash')
-    .is('asociatie_id', null)
-    .order('seq', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  const prevSeq2 = (lastEntry2 as { seq: number } | null)?.seq ?? 0;
-  const prevHash2 = (lastEntry2 as { hash: string } | null)?.hash ?? 'GENESIS';
-
-  await db.from('audit_log').insert({
-    id: crypto.randomUUID(),
-    seq: prevSeq2 + 1,
+  const auditErr2 = await appendAudit(db, {
     asociatie_id: null,
     actor_user_id: userId,
     actor_name: null,
@@ -180,9 +154,8 @@ export default async (req: Request): Promise<Response> => {
     entity_label: ((existing as { title: string }).title ?? '').slice(0, 80),
     before_value: 'active',
     after_value: 'expired',
-    prev_hash: prevHash2,
-    hash: prevHash2,
   });
+  if (auditErr2.error) return json(502, { error: 'audit-error' });
 
   return json(200, { ok: true, id, expiredAt: now });
 };

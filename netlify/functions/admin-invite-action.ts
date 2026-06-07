@@ -33,6 +33,7 @@ import {
   supabaseAdmin,
   verifyBearerToken,
 } from './_shared/supabaseAdmin';
+import { appendAudit } from './_shared/appendAudit';
 
 /** 24-hour invite validity window, in milliseconds. */
 const INVITE_TTL_MS = 24 * 60 * 60 * 1000;
@@ -109,18 +110,7 @@ export default async (req: Request): Promise<Response> => {
 
     // Append to the asociatie's audit chain.
     const assocId = (invite as { asociatie_id: string }).asociatie_id;
-    const { data: lastEntry } = await db
-      .from('audit_log')
-      .select('seq, hash')
-      .eq('asociatie_id', assocId)
-      .order('seq', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    const prevSeq = (lastEntry as { seq: number } | null)?.seq ?? 0;
-    const prevHash = (lastEntry as { hash: string } | null)?.hash ?? 'GENESIS';
-    await db.from('audit_log').insert({
-      id: crypto.randomUUID(),
-      seq: prevSeq + 1,
+    const auditErr = await appendAudit(db, {
       asociatie_id: assocId,
       actor_user_id: userId,
       actor_name: null,
@@ -129,9 +119,8 @@ export default async (req: Request): Promise<Response> => {
       entity_label: (invite as { invitee_email: string }).invitee_email,
       before_value: null,
       after_value: 'revoked',
-      prev_hash: prevHash,
-      hash: prevHash,
     });
+    if (auditErr.error) return json(502, { error: 'audit-error' });
 
     return json(200, { ok: true, action: 'revoke' });
   }

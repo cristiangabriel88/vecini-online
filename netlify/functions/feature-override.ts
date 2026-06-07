@@ -26,6 +26,7 @@ import {
   supabaseAdmin,
   verifyBearerToken,
 } from './_shared/supabaseAdmin';
+import { appendAudit } from './_shared/appendAudit';
 
 interface OverridePayload {
   asociatieId?: unknown;
@@ -111,20 +112,7 @@ export default async (req: Request): Promise<Response> => {
       ? 'feature.override_enabled'
       : 'feature.override_disabled';
 
-  const { data: lastEntry } = await db
-    .from('audit_log')
-    .select('seq, hash')
-    .eq('asociatie_id', asociatieId)
-    .order('seq', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  const prevSeq = (lastEntry as { seq: number } | null)?.seq ?? 0;
-  const prevHash = (lastEntry as { hash: string } | null)?.hash ?? 'GENESIS';
-
-  await db.from('audit_log').insert({
-    id: crypto.randomUUID(),
-    seq: prevSeq + 1,
+  const auditErr = await appendAudit(db, {
     asociatie_id: asociatieId,
     actor_user_id: userId,
     actor_name: null,
@@ -133,9 +121,8 @@ export default async (req: Request): Promise<Response> => {
     entity_label: featureKey,
     before_value: null,
     after_value: overrideEnabled === null ? 'cleared' : String(overrideEnabled),
-    prev_hash: prevHash,
-    hash: prevHash,
   });
+  if (auditErr.error) return json(502, { error: 'audit-error' });
 
   return json(200, { ok: true });
 };

@@ -4,6 +4,13 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T290 ✅ 2026-06-07 -- Tamper-evident audit chain fixed across 6 platform functions
+- new: `netlify/functions/_shared/appendAudit.ts` -- shared helper: reads chain tail, computes real cyrb53 hash with correct `AUDIT_GENESIS_HASH = '0000000000000000'` (not `'GENESIS'`), inserts with error-check, retries up to 3x on `23505` unique-violation for concurrent-safe seq allocation
+- modified: `netlify/functions/admin-invite-action.ts`, `asociatie-lifecycle.ts`, `feature-override.ts`, `platform-broadcast.ts`, `provision-additional-admin.ts`, `revoke-admin-access.ts` -- replaced broken inline audit blocks (hash: prevHash, wrong sentinel) with `appendAudit()`; insert errors now propagate as 502 instead of being silently swallowed
+- modified: `netlify/functions/impersonate.ts` -- removed duplicated inline hash code (60 lines); routed through `appendAudit()` (the 7th function)
+- new: `supabase/migrations/20260607000001_audit_log_platform_scope.sql` -- drops NOT NULL on `audit_log.asociatie_id` so platform-level broadcast entries can insert; adds partial unique index for null-scope chain; fixes trigger to use `IS NOT DISTINCT FROM` for null-aware seq assignment
+- new: `tests/unit/appendAudit.test.ts` -- 15 tests covering genesis sentinel, computeAuditHash determinism and non-equality-to-prevHash, chain self-consistency, error propagation, genesis-hash vs prevHash discrimination
+
 ### T289 ✅ 2026-06-07 -- Unauthenticated destructive endpoint fixed: gdpr-retention-purge
 - modified: `netlify/functions/gdpr-retention-purge.ts` -- exported `isScheduledInvocation()` helper; added `verifyBearerToken` + `platform_admins` auth gate for manual POST paths; audit manual purge runs to `auth_audit_events` with `event_type = 'platform.gdpr_purge'`; updated security-model header comment
 - new: `tests/unit/gdprRetentionPurge.test.ts` -- 12 tests: `isScheduledInvocation` (5 behavioural), static source contract (7: verifyBearerToken present, platform_admins check, 401/403 responses, isScheduledInvocation usage, audit event type, auth_audit_events insert)

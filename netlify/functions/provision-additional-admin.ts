@@ -35,6 +35,7 @@ import {
   supabaseAdmin,
   verifyBearerToken,
 } from './_shared/supabaseAdmin';
+import { appendAudit } from './_shared/appendAudit';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const INVITE_TTL_MS = 24 * 60 * 60 * 1000;
@@ -139,18 +140,7 @@ export default async (req: Request): Promise<Response> => {
   const inviteId = (invite as { id: string }).id;
 
   // Append to the asociatie's audit chain.
-  const { data: lastEntry } = await db
-    .from('audit_log')
-    .select('seq, hash')
-    .eq('asociatie_id', asociatieId)
-    .order('seq', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  const prevSeq = (lastEntry as { seq: number } | null)?.seq ?? 0;
-  const prevHash = (lastEntry as { hash: string } | null)?.hash ?? 'GENESIS';
-  await db.from('audit_log').insert({
-    id: crypto.randomUUID(),
-    seq: prevSeq + 1,
+  const auditErr = await appendAudit(db, {
     asociatie_id: asociatieId,
     actor_user_id: userId,
     actor_name: null,
@@ -159,9 +149,8 @@ export default async (req: Request): Promise<Response> => {
     entity_label: adminEmail,
     before_value: null,
     after_value: 'admin',
-    prev_hash: prevHash,
-    hash: prevHash,
   });
+  if (auditErr.error) return json(502, { error: 'audit-error' });
 
   let emailSent = false;
   if (isResendConfigured()) {

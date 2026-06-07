@@ -5,9 +5,9 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-07
-- last_task: T289 Unauthenticated destructive endpoint fixed -- gdpr-retention-purge auth gate: isScheduledInvocation() + verifyBearerToken + platform_admins check; manual purge audited to auth_audit_events; 12 new tests; all 318 test files / 3133 tests green; all 3 builds pass
+- last_task: T290 Tamper-evident audit chain fixed -- shared appendAudit() helper (correct hash + genesis sentinel + error-check + retry); 6 broken platform functions + impersonate.ts routed through it; DB migration allows null asociatie_id for platform-scoped entries; 15 new tests; all 319 test files / 3148 tests green; all 3 builds pass
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 318 test files / 3133 tests
+- counts: 319 test files / 3148 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task. DEV now matches PROD exactly (no role switcher; switcher is DEMO-only)
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
 - next: queue exhausted -- all Group A-H tasks complete; overnight script will audit+replenish
