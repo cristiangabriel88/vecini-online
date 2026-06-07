@@ -4,6 +4,14 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T286 ✅ 2026-06-07 -- Low-end-device auto-detect -> lite mode
+- extended: `src/shared/store/perfStore.ts` -- added `detectLowEnd(overrides?)` pure function (reads `deviceMemory`, `hardwareConcurrency`, `connection.saveData`, `connection.effectiveType`); extended `resolvePerf()` with optional `lowEnd` param (auto-applies lite when pref is null + device is low-end); added `lowEndDetected` (runtime), `autoSuggested` (persisted) state, and `markSuggested()` action; `apply()` now calls `detectLowEnd()` and threads the result through resolution
+- new: `src/shared/components/PerfSuggestion.tsx` -- one-time, dismissible bilingual banner shown when low-end auto-activates lite mode; "Switch to Full" sets pref explicitly; dismiss marks suggestion as seen; never shown again once dismissed or pref is set
+- updated: `src/app/providers.tsx` -- renders `<PerfSuggestion />` alongside ConsentBanner and UpdatePrompt
+- updated: `src/styles/shell.css` -- `.perf-suggestion` CSS block (fixed-bottom banner, neutral surface colors, Zap icon, action + dismiss buttons)
+- updated: `en.json` / `ro.json` -- `perfSuggestTitle`, `perfSuggestBody`, `perfSuggestSwitch`, `perfSuggestDismiss` keys
+- tests: `tests/unit/perfStore.test.ts` -- 13 new tests: 4 for extended `resolvePerf()` + 9 for `detectLowEnd()` with injected signals; all 325 files / 3323 tests green
+
 ### T285 ✅ 2026-06-07 -- First-run "get started" checklist for an empty building
 - new: `src/features/home/getStartedLogic.ts` -- pure `computeGetStarted()` and `shouldShowChecklist()` functions; 4 steps (apartments, invites, announcements, features) auto-detected from store snapshots
 - new: `src/features/home/getStartedStore.ts` -- Zustand+persist store (`vecini.getStarted`); dismiss state keyed by `${userId}_${asociatieId}` so dismissal is per admin per building

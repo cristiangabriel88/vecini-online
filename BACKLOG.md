@@ -142,7 +142,7 @@ A freshly-provisioned building is empty, and a new admin sees blank lists with n
 
 > Many residents will be on old Android phones and weak connections. The "lite" rendering tier (T257) and the image/bundle work (T260/T264/T265) already exist; this group auto-applies them where they help and verifies a fast cold load on a throttled connection.
 
-### ⬜ T286 — [P2] Low-end-device auto-detect -> lite mode
+### ✅ T286 — [P2] Low-end-device auto-detect -> lite mode
 
 The perf-lite tier (T257) is opt-in or stage-derived; a resident on a cheap phone never gets it unless they find the toggle. Detect low-end signals at boot (`navigator.deviceMemory`, `hardwareConcurrency`, the Save-Data header / `connection.saveData`, slow `effectiveType`) and either auto-apply lite mode or show a one-time, dismissible bilingual prompt suggesting it, always leaving the explicit user toggle authoritative (an explicit choice is never overridden). Keep PROD/DEMO visually unchanged for capable devices. Unit tests for the pure detection/resolution helper. Prereq: T257.
 
