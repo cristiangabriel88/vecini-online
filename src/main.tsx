@@ -7,6 +7,7 @@ import { useAuthStore } from '@/shared/store/authStore';
 import { usePerfStore } from '@/shared/store/perfStore';
 import { installGlobalErrorHandlers } from '@/shared/lib/errorReporting';
 import { initErrorSink } from '@/shared/lib/errorSink';
+import { assertClientConfig } from '@/shared/lib/clientConfigValidator';
 import '@/styles/globals.css';
 import '@/styles/tokens.css';
 import '@/styles/primitives.css';
@@ -23,6 +24,7 @@ usePerfStore.getState().apply();
 
 installGlobalErrorHandlers();
 initErrorSink();
+assertClientConfig();
 void useAuthStore.getState().init();
 
 createRoot(document.getElementById('root')!).render(

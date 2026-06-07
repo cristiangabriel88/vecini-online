@@ -8,6 +8,13 @@
 // Privacy: this module never logs user ids, tokens, or email addresses.
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { assertServerConfig } from './configValidator';
+
+// Run once per Lambda cold-start. Logs any misconfigured or missing required
+// env vars so they surface in function logs rather than as silent failures.
+if (!process.env.VITEST) {
+  assertServerConfig();
+}
 
 /** True when the service-role key and Supabase URL are both present. */
 export function isSupabaseAdminConfigured(): boolean {

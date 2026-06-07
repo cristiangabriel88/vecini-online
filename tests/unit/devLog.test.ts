@@ -3,13 +3,15 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 // Files allowed to contain raw console.* calls:
-//   devLog.ts          -- the logger implementation (uses console.*.bind)
-//   errorReporting.ts  -- T07 hook; already guarded by import.meta.env.DEV
-//   telegramWebhook.ts -- server-side Node process, never shipped to the browser
+//   devLog.ts                -- the logger implementation (uses console.*.bind)
+//   errorReporting.ts        -- T07 hook; already guarded by import.meta.env.DEV
+//   telegramWebhook.ts       -- server-side Node process, never shipped to the browser
+//   clientConfigValidator.ts -- T282 startup validator; must fire in PROD (devLog is no-op there)
 const ALLOWLIST = new Set([
   'src/shared/lib/devLog.ts',
   'src/shared/lib/errorReporting.ts',
   'src/shared/server/telegramWebhook.ts',
+  'src/shared/lib/clientConfigValidator.ts',
 ]);
 
 // Matches a direct console call: console.log(, console.warn(, etc.

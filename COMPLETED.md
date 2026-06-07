@@ -4,6 +4,15 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T282 ✅ 2026-06-07 -- Startup config validation (fail loud, not silent)
+- new: `netlify/functions/_shared/configValidator.ts` -- `validateServerConfig(env)` pure validator; `assertServerConfig()` cold-start hook; `SERVER_VARS` auditable list (10 vars: Supabase URL+key, AUDIT_HMAC_SECRET, APP_URL, Resend triplet, MAIL_MODE, Telegram pair); demo mode detection (returns `{demo:true}` when Supabase creds absent, stays quiet); shape checks: URL format, JWT eyJ prefix, re_ prefix, 32-char minimums, enum values; never prints values
+- new: `src/shared/lib/clientConfigValidator.ts` -- `validateClientConfig(env)` pure validator; `assertClientConfig()` boot hook; `CLIENT_VARS` list (8 VITE_* vars); same demo-mode detection; added to devLog console allowlist
+- modified: `netlify/functions/_shared/supabaseAdmin.ts` -- calls `assertServerConfig()` at module cold-start, guarded by `!process.env.VITEST`
+- modified: `src/main.tsx` -- calls `assertClientConfig()` at app boot
+- modified: `tests/unit/devLog.test.ts` -- added `clientConfigValidator.ts` to allowlist (must use raw console.error so it fires in PROD where devLog is a no-op)
+- new: `tests/unit/configValidator.test.ts` -- 38 tests: demo mode (3), live-valid (4), missing vars (7), malformed vars (8), assertServerConfig side-effects (3), SERVER_VARS coverage (1), client demo (2), client valid (2), client missing (1), client malformed (7), CLIENT_VARS coverage (1)
+- counts: 323 test files / 3287 tests; all 3 builds green
+
 ### T281 ✅ 2026-06-07 -- Email delivery robustness (retry + visible failure)
 - modified: `netlify/functions/_shared/resend.ts` -- added `attempts: number` to `SendEmailResult`; added `MAX_EMAIL_ATTEMPTS=3` and `EMAIL_RETRY_BASE_DELAY_MS=1000` constants; added `isTransientStatus()` and `retryDelay()` helpers; `sendEmail()` now retries up to 3 times with exponential backoff (1s/2s) on 5xx and network errors, returns immediately on 4xx permanent failures; `attempts=0` when not configured
 - new: `netlify/functions/_shared/emailFailureReporter.ts` -- `reportEmailFailure(template, recipientClass, reason, attempts)` writes a non-PII row to `platform_error_reports` on permanent send failure; no-op in demo/offline mode

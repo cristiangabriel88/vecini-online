@@ -118,7 +118,7 @@ The high-volume resident-writable surfaces (discussion messages, neighbor classi
 
 `netlify/functions/_shared/resend.ts` sends transactional mail (invites, OTP, provisioning, health, breach notices) but a transient Resend failure is effectively dropped, and `MAIL_MODE` misconfiguration fails as a silent `not-configured`. Add bounded retry with backoff for transient/5xx failures, and on permanent failure record the event to the platform error stream (the T258a durable path) tagged with the template + recipient class (never the raw PII) and surface a visible signal to the relevant admin (e.g. "invite email failed to send -- retry"). Distinguish disabled/log mode (expected no-op) from a real send failure (alertable). Unit tests for the retry branch + the failure-recording branch. Prereq: none.
 
-### ⬜ T282 — [P1] Startup config validation (fail loud, not silent)
+### ✅ T282 — [P1] Startup config validation (fail loud, not silent)
 
 Today a missing or malformed env var (`SUPABASE_SERVICE_ROLE_KEY`, `AUDIT_HMAC_SECRET`, `RESEND_*`, `TELEGRAM_*`, `APP_URL`, etc.) degrades silently at runtime -- a function half-works or a feature quietly no-ops in PROD. Add one shared validator that, at function cold-start and at app boot, checks every required variable for presence and basic shape (URL is a URL, key has the expected prefix/length) and fails loud with a clear, **non-secret** message naming what is missing -- never printing the value. Centralize the required-variable list in one documented place so the set is auditable. In demo / no-key mode the validator recognizes the intentional offline posture and stays quiet. Unit test for the validator across present/missing/malformed cases. Prereq: none.
 
