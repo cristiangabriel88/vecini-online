@@ -4,6 +4,13 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T279 ✅ 2026-06-07 -- Cross-tenant isolation regression sweep
+- new: `tests/unit/rlsCrosstenantSweep.test.ts` (42 tests) -- structural guard + per-domain read + member write + tricky surfaces
+- structural guard: `parseTablesWithAsociatieId` (paren-depth extraction, handles schema-qualified names) verifies every table with `asociatie_id` column has `apply_standard_rls`, explicit scoped policy, or is documented in `INTENTIONALLY_USER_SCOPED` (`notifications`, `safety_codes`)
+- read isolation: 14 feature-domain tables verified against `apply_standard_rls`; `apartments` and `invite_codes` verified against explicit `is_member`/`has_role` policies; `petition_signatures`, `idea_votes`, `budget_votes`, `ticket_attachments` verified via parent-scoped EXISTS subquery
+- write isolation: `meter_readings`, `rfp_quotes`, `duty_schedule`, `lending_items` member INSERT/UPDATE checked for `is_member(asociatie_id)` in WITH CHECK/USING; `visitor_reports`, `survey_responses` via `apply_member_insert_rls`; `ticket_attachments` reporter INSERT scoped through parent; junction-table INSERT for all three vote/sig tables
+- tricky surfaces: anonymous_messages "members read" drop verified; `anonymous_messages_for_comitet` SECURITY DEFINER scoping verified; vote/sig tables confirmed to have no UPDATE/DELETE/ALL policy (post-lock immutability); `apply_governance_owner_rls` body verified for 3x `is_member(asociatie_id)`; `apply_owner_rls` T45 tightening verified; `apply_member_insert_rls` gating verified
+
 ### T278 ✅ 2026-06-07 -- Brute-force / rate-limit guard on all auth-sensitive MFA endpoints
 - modified: `netlify/functions/_shared/rateLimiter.ts` -- added `checkMfaVerifyRateLimit` (10/5 min per userId:ip, shared by otp-verify + recovery-verify) and `checkMfaRequestRateLimit` (5/15 min per userId:ip)
 - modified: `netlify/functions/mfa-otp-verify.ts` -- extracts client IP; checks `checkMfaVerifyRateLimit(userId:ip)` after auth; on limit: inserts `rateLimited` event to `auth_audit_events` via service role, returns 429 with `Retry-After: 300`
