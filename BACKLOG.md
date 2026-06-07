@@ -86,7 +86,7 @@ When two tasks share a priority: prerequisites first, then smallest-safe-step.
 
 > Found during a top-to-bottom verification (full pipeline green: 317 files / 3121 tests, all 3 builds, bundle budgets, E2E). These are confirmed, file-cited bugs in shipped code that the existing tests do not catch -- they outrank the planned hardening below because they break a security/accountability control and expose a destructive endpoint.
 
-### ⬜ T289 — [P0] Unauthenticated destructive endpoint: `gdpr-retention-purge.ts`
+### ✅ T289 — [P0] Unauthenticated destructive endpoint: `gdpr-retention-purge.ts`
 
 `netlify/functions/gdpr-retention-purge.ts` hard-`delete()`s rows from `auth_audit_events` and `tickets` (lines 74-86). Its own header (lines 11-15) documents that "Manual POST invocations require a valid bearer token from an admin," but the handler performs **no** caller verification -- the only gates are `isSupabaseAdminConfigured()` and a per-IP sliding-window rate limit (5/hr). Because the per-IP limit is trivially bypassed by rotating source IPs, an unauthenticated caller who reaches the function URL can purge the auth audit trail and resolved tickets off-schedule. Fix: gate the manual POST path behind `verifyBearerToken` + a platform-admin (`is_super_admin()`) check exactly as the header promises, while still allowing the Netlify scheduled (`@monthly`) invocation that carries no bearer (distinguish the scheduled invocation from a manual HTTP POST). Audit each purge run into the tamper-evident chain. Unit tests: rejects an unauthenticated POST (401/403), accepts the scheduled invocation, accepts an authenticated platform admin. Prereq: none.
 

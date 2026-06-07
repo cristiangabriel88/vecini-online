@@ -3,6 +3,15 @@
 Compact, machine-readable log of non-trivial choices. Newest first. Format:
 - choice / why / alternatives rejected (when non-obvious) / blast radius.
 
+## 2026-06-07
+
+### T289: gdpr-retention-purge auth gate -- scheduled vs. manual distinction
+- choice: `isScheduledInvocation(req)` returns true when BOTH `Authorization` and `x-forwarded-for` headers are absent. Netlify's CDN sets `x-forwarded-for` on every public request, so an absent header reliably marks an internal scheduler call. Manual POSTs (from any external caller) will have at least one of these headers. The gate: absent both = allow (scheduled); anything else = require bearer + `platform_admins` check (mirrors `impersonate.ts`).
+- why: The function hard-deletes from `auth_audit_events` and `tickets`. An unauthenticated POST from any IP with a rotating source (bypassing the per-IP rate limit) could purge the auth trail and closed tickets off-schedule, destroying an accountability record.
+- alternatives rejected: (a) CRON_SECRET env var -- requires a deployment/secrets task (out of scope for the production-readiness wave which is code-only); (b) require auth for ALL calls including scheduled -- Netlify's scheduler sends no bearer; (c) `x-nf-deploy-context` / `x-netlify-event` headers as scheduled signal -- not reliably present for scheduled function invocations in all Netlify environments.
+- audit decision: manual runs are audited to `auth_audit_events` (tamper-evident by append-only RLS; `event_type = 'platform.gdpr_purge'`, `asociatie_id = null`). Scheduled runs have no actor `user_id` (FK is NOT NULL) so DB audit is not possible; the result counts appear in the function's return body captured by Netlify's function log.
+- blast radius: `netlify/functions/gdpr-retention-purge.ts`, `tests/unit/gdprRetentionPurge.test.ts` (new).
+
 ## 2026-06-06
 
 ### T263: PWA service worker strategy

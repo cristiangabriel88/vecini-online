@@ -4,6 +4,11 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T289 ✅ 2026-06-07 -- Unauthenticated destructive endpoint fixed: gdpr-retention-purge
+- modified: `netlify/functions/gdpr-retention-purge.ts` -- exported `isScheduledInvocation()` helper; added `verifyBearerToken` + `platform_admins` auth gate for manual POST paths; audit manual purge runs to `auth_audit_events` with `event_type = 'platform.gdpr_purge'`; updated security-model header comment
+- new: `tests/unit/gdprRetentionPurge.test.ts` -- 12 tests: `isScheduledInvocation` (5 behavioural), static source contract (7: verifyBearerToken present, platform_admins check, 401/403 responses, isScheduledInvocation usage, audit event type, auth_audit_events insert)
+- modified: `DECISIONS.md` -- recorded scheduled-vs-manual detection approach and audit-table choice
+
 ### T277 ✅ 2026-06-06 -- Dependency hygiene gate
 - new: `.depcheckrc` (ignores tool-only packages and virtual:pwa-register Vite module)
 - new: `DEPS.md` (triage policy: upgrade vs. override vs. accept ladder)

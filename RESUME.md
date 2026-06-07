@@ -4,10 +4,10 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 
 ## 0. Current status
 
-- date: 2026-06-06
-- last_task: T277 Dependency hygiene gate -- depcheck@1.4.7 + .depcheckrc; removed unused recharts; dep:check + dep:audit scripts; advisory CI steps; DEPS.md triage policy; all 317 test files / 3121 tests green; all 3 builds pass
+- date: 2026-06-07
+- last_task: T289 Unauthenticated destructive endpoint fixed -- gdpr-retention-purge auth gate: isScheduledInvocation() + verifyBearerToken + platform_admins check; manual purge audited to auth_audit_events; 12 new tests; all 318 test files / 3133 tests green; all 3 builds pass
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 317 test files / 3121 tests
+- counts: 318 test files / 3133 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task. DEV now matches PROD exactly (no role switcher; switcher is DEMO-only)
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
 - next: queue exhausted -- all Group A-H tasks complete; overnight script will audit+replenish
