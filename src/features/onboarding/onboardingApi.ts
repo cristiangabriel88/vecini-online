@@ -73,6 +73,7 @@ export async function resolveTokenLive(
       asociatieId: result.asociatie_id,
       asociatieName: result.asociatie_name ?? null,
       role: (result.role ?? 'proprietar') as Role,
+      inviteeEmail: result.invitee_email ?? null,
     };
   } catch {
     return null;

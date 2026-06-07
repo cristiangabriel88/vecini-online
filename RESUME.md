@@ -5,7 +5,7 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-07
-- last_task: T283 Graceful network-failure recovery -- new useWriteRetry hook (run/pending/error/clearError); postMessage + addThread + publishAnnouncement + updateAnnouncement converted from fire-and-forget void to async Promise<void> throwing on DB error; DiscussionsPage send/submitThread async + error alert + input preserved on failure; AnnouncementComposeModal awaits writes + stays open on failure + writeError alert; common.writeError i18n (RO+EN); 10 new unit tests; 324 test files / 3297 tests; all 3 builds green
+- last_task: T284 Onboarding polish + E2E -- AccountSetupPage inputs disabled during RPC resolve; email pre-filled from resolved.inviteeEmail; OnboardingWizard touch-tracked inline errors on name/address + finishing double-submit guard; onboarding.nameRequired/addressRequired i18n (RO+EN); T284 E2E drives full admin-setup -> wizard -> invite resident -> resident-joins chain; 324 test files / 3297 tests; all 3 builds green
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
 - counts: 324 test files / 3297 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task. DEV now matches PROD exactly (no role switcher; switcher is DEMO-only)

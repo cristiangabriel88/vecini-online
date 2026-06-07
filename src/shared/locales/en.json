@@ -411,6 +411,8 @@
     "primaryColor": "Primary color",
     "welcomeMessage": "Welcome message",
     "finishHint": "Association configured. You can now import your apartment list and send invite emails.",
+    "nameRequired": "Enter the association name.",
+    "addressRequired": "Enter the association address.",
     "haveCode": "Got an invite code?",
     "joinLink": "Join an existing association"
   },

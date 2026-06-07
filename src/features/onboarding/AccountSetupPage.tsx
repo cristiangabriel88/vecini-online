@@ -65,6 +65,9 @@ export default function AccountSetupPage() {
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  // Track whether the email was pre-filled from the resolved token so we do not
+  // overwrite user edits on subsequent renders.
+  const [emailPrefilled, setEmailPrefilled] = useState(false);
 
   // Live path: resolved state from the resolve_onboarding_token RPC.
   const [liveResolved, setLiveResolved] = useState<ResolvedOnboarding | null>(null);
@@ -129,6 +132,14 @@ export default function AccountSetupPage() {
       cancelled = true;
     };
   }, [tokenParam]);
+
+  // Pre-fill email from the live-resolved token when the field is still empty.
+  useEffect(() => {
+    if (!emailPrefilled && resolved?.status === 'ok' && resolved.inviteeEmail) {
+      setEmail(resolved.inviteeEmail);
+      setEmailPrefilled(true);
+    }
+  }, [resolved, emailPrefilled]);
 
   const form = useMemo(
     () => evaluateAccountForm({ name, email, password, confirm }),
@@ -319,6 +330,7 @@ export default function AccountSetupPage() {
             onChange={(e) => setName(e.target.value)}
             hint={t('setup.nameHint')}
             error={form.nameInvalid ? t('setup.err_name') : undefined}
+            disabled={isSupabaseConfigured && resolving}
             required
           />
           <Input
@@ -328,6 +340,7 @@ export default function AccountSetupPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             error={form.emailInvalid ? t('setup.err_email') : undefined}
+            disabled={isSupabaseConfigured && resolving}
             required
           />
           <Input
@@ -337,6 +350,7 @@ export default function AccountSetupPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             hint={t('auth.passwordHint')}
+            disabled={isSupabaseConfigured && resolving}
             required
           />
           {password.length > 0 && <PasswordStrengthMeter assessment={form.assessment} />}
@@ -347,6 +361,7 @@ export default function AccountSetupPage() {
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
             error={form.mismatch ? t('auth.err.passwordMismatch') : undefined}
+            disabled={isSupabaseConfigured && resolving}
             required
           />
           <Button type="submit" disabled={!canSubmit} loading={submitting} className="w-full">

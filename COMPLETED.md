@@ -4,6 +4,14 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T284 ✅ 2026-06-07 -- End-to-end onboarding polish + E2E
+- modified: `src/features/onboarding/accountSetupLogic.ts` -- added `inviteeEmail?: string | null` to `ResolvedOnboarding` so the live RPC result can pre-fill the form field
+- modified: `src/features/onboarding/onboardingApi.ts` -- `resolveTokenLive` now populates `inviteeEmail` from the RPC `invitee_email` field
+- modified: `src/features/onboarding/AccountSetupPage.tsx` -- form inputs disabled during RPC resolve (eliminates UX race); email pre-filled from `resolved.inviteeEmail` via a one-shot `useEffect` (never overwrites user edits)
+- modified: `src/features/onboarding/OnboardingWizard.tsx` -- `touched` state for name/address fields surfaces inline required errors on blur; `handleNext()` triggers errors on click when fields are empty; `finishing` flag prevents double-submit on Finish
+- modified: `src/shared/locales/ro.json` + `en.json` -- added `onboarding.nameRequired` and `onboarding.addressRequired` keys (bilingual RO/EN)
+- modified: `tests/e2e/smoke.spec.ts` -- T284 E2E drives the full chain: seeds an AdminProvisionRecord, opens the setup link, creates the account, completes the wizard (including inline error on blank name blur), issues a resident invite, resident redeems it, lands in the app
+
 ### T283 ✅ 2026-06-07 -- Graceful network-failure recovery in the live app
 - new: `src/shared/lib/useWriteRetry.ts` -- `useWriteRetry(source)` hook: wraps async write fn, reports via `reportError`, exposes `{ run, pending, error, clearError }`; composes with `useUnsavedGuard` (call `clearDirty()` only when `run()` returns true)
 - modified: `src/features/discussions/discussionApi.ts` -- `postMessage` and `addThread` changed from fire-and-forget `void` to `async Promise<void>` that throws on DB error; callers can now await and surface failures

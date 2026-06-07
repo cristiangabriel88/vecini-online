@@ -797,6 +797,97 @@ test('T88: admin uploads a document file; resident sees download but not upload'
   await expect(page.getByText('Regulament parcare E2E')).toBeHidden();
 });
 
+test('T284: full onboarding chain -- admin setup -> wizard -> invite resident -> resident joins', async ({ page }) => {
+  // A deterministic 64-char hex token (valid shape for normalizeInviteToken).
+  const setupToken = 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2';
+  const asocId = 'test-asoc-t284';
+
+  // Seed a valid AdminProvisionRecord in the platform store before entering demo.
+  await page.goto('/');
+  await dismissConsent(page);
+  await page.evaluate(({ token, id }) => {
+    const key = 'vecini.platform.asociatii';
+    const raw = localStorage.getItem(key);
+    const data: { state: Record<string, unknown>; version: number } = raw
+      ? JSON.parse(raw) as { state: Record<string, unknown>; version: number }
+      : { state: {}, version: 6 };
+    data.state.provisions = (data.state.provisions as Record<string, unknown>) ?? {};
+    data.state.pendingInvites = (data.state.pendingInvites as unknown[]) ?? [];
+    data.state.revokedInviteIds = (data.state.revokedInviteIds as unknown[]) ?? [];
+    data.state.additionalAdmins = (data.state.additionalAdmins as Record<string, unknown>) ?? {};
+    data.state.listFilter = (data.state.listFilter as string) ?? 'all';
+    data.state.asociatii = (data.state.asociatii as unknown[]) ?? [];
+    (data.state.provisions as Record<string, unknown>)[id] = {
+      asociatieId: id,
+      name: 'Admin Test T284',
+      email: 'admin-t284@example.com',
+      setupCode: 'T284CODE',
+      setupToken: token,
+      expiresAt: Date.now() + 86400000,
+      redeemedAt: null,
+      provisionedAt: new Date().toISOString(),
+      revokedAt: null,
+    };
+    data.version = 6;
+    localStorage.setItem(key, JSON.stringify(data));
+  }, { token: setupToken, id: asocId });
+
+  // Step 1: Navigate to the account-setup page with the admin setup token.
+  // The offline resolver finds the seeded provision and shows the context card.
+  await page.goto(`/configurare-cont?token=${setupToken}`);
+  await expect(page.getByText(/Vei deveni administrator|You will become the administrator/i)).toBeVisible();
+
+  // Step 2: Fill in the account-creation form and submit.
+  await page.getByLabel(/Nume complet|Full name/i).fill('Administrator T284');
+  await page.getByLabel(/Email/i).fill('admin-t284@example.com');
+  await page.getByLabel(/^Parolă$|^Password$/i).fill('Munte-Albastru-91');
+  await page.getByLabel(/Confirmă parola|Confirm password/i).fill('Munte-Albastru-91');
+  await page.getByRole('button', { name: /Creează contul|Create account/i }).click();
+
+  // The setup token redirects to the onboarding wizard.
+  await expect(page).toHaveURL(/\/onboarding/);
+
+  // Step 3: Wizard -- Profile step. Inline errors appear when required fields are blurred empty.
+  await expect(page.getByRole('heading', { name: /Configurarea asociației|Association setup/i })).toBeVisible();
+  // Blur the name field while empty to trigger the inline error.
+  const nameInput = page.getByLabel(/Numele asociației|Association name/i);
+  await nameInput.focus();
+  await nameInput.blur();
+  await expect(page.getByText(/Introdu numele asociației|Enter the association name/i)).toBeVisible();
+  // Fill both required fields and proceed.
+  await nameInput.fill('Asociația T284');
+  await page.getByLabel(/^Adresa$|^Address$/i).fill('Str. Testului nr. 284');
+  await page.getByRole('button', { name: /^Înainte$|^Next$/i }).click();
+
+  // Step 4: Features step -- finish with the recommended defaults.
+  await page.getByRole('button', { name: /Finalizează|Finish/i }).click();
+
+  // After the wizard the admin lands on the Apartments page.
+  await expect(page).toHaveURL(/\/app\/admin\/apartamente/);
+
+  // Step 5: Issue a resident invite from the Invites admin page.
+  await page.goto('/app/admin/invitatii');
+  await page.getByRole('button', { name: /Generează codul/i }).click();
+  const inviteLink = (await page.locator('p.break-all').first().innerText()).trim();
+  expect(inviteLink).toContain('/configurare-cont?token=');
+  const inviteTarget = new URL(inviteLink).pathname + new URL(inviteLink).search;
+
+  // Step 6: Resident redeems the invite.
+  await page.goto(inviteTarget);
+  await expect(page.getByText(/invitație validă|valid invitation/i)).toBeVisible();
+  await page.getByLabel(/Nume complet|Full name/i).fill('Locatar T284');
+  await page.getByLabel(/Email/i).fill('locatar-t284@example.com');
+  await page.getByLabel(/^Parolă$|^Password$/i).fill('Munte-Albastru-91');
+  await page.getByLabel(/Confirmă parola|Confirm password/i).fill('Munte-Albastru-91');
+  await page.getByRole('button', { name: /Creează contul|Create account/i }).click();
+
+  // The resident lands on the welcome tour or the app home.
+  if (page.url().includes('bun-venit')) {
+    await page.getByRole('button', { name: /Sari peste/i }).click();
+  }
+  await expect(page).toHaveURL(/\/app/);
+});
+
 test('home page has no critical accessibility violations', async ({ page }) => {
   await enterDemo(page);
   const results = await new AxeBuilder({ page })

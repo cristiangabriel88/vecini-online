@@ -130,7 +130,7 @@ When a Supabase read or write fails mid-session (network blip, transient 5xx), t
 
 > For a pilot, onboarding is the first impression. The full path from "I signed up" to "my residents are inside" must be smooth and dead-end-free, and a brand-new empty building should tell its admin what to do first instead of showing blank screens.
 
-### ⬜ T284 — [P1] End-to-end onboarding polish + E2E
+### ✅ T284 — [P1] End-to-end onboarding polish + E2E
 
 Walk the complete new-building chain (provision building -> first admin sets password + MFA -> admin invites residents -> resident redeems the invite -> lands in the app) and remove any dead ends: every step has a clear next action, a visible error state on failure, and a way back. Tighten the rough edges found along the way (expired/invalid invite messaging, double-submit protection, post-setup redirect) without changing the security model. Add or extend one E2E that drives the whole chain in demo mode so the happy path is locked. Bilingual, premium-feel. Prereq: none.
 

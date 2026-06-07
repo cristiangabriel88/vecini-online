@@ -411,6 +411,8 @@
     "primaryColor": "Culoare principală",
     "welcomeMessage": "Mesaj de bun-venit",
     "finishHint": "Asociația a fost configurată. Puteți importa lista de apartamente și trimite invitații.",
+    "nameRequired": "Introdu numele asociației.",
+    "addressRequired": "Introdu adresa asociației.",
     "haveCode": "Ai primit un cod de invitație?",
     "joinLink": "Alătură-te unei asociații existente"
   },

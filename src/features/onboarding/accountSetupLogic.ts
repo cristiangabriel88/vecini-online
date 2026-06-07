@@ -59,6 +59,8 @@ export interface ResolvedOnboarding {
   asociatieName: string | null;
   /** Role the invitee gets: the code's role for an invite, `admin` for a setup link. */
   role: Role;
+  /** The email the invite was addressed to, when returned by the live RPC. Pre-fills the form. */
+  inviteeEmail?: string | null;
 }
 
 /**

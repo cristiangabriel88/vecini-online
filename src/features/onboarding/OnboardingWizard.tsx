@@ -51,7 +51,31 @@ export default function OnboardingWizard() {
   const [selected, setSelected] = useState<Record<string, boolean>>(
     Object.fromEntries(RECOMMENDED_FEATURES.map((k) => [k, true])),
   );
+  const [touched, setTouched] = useState<{ name: boolean; address: boolean }>({
+    name: false,
+    address: false,
+  });
+  const [finishing, setFinishing] = useState(false);
+
+  const nameError =
+    touched.name && !profile.name.trim() ? t('onboarding.nameRequired') : undefined;
+  const addressError =
+    touched.address && !profile.address.trim() ? t('onboarding.addressRequired') : undefined;
+
+  const canNext =
+    step === 0 ? profile.name.trim().length > 0 && profile.address.trim().length > 0 : true;
+
+  const handleNext = () => {
+    if (!canNext) {
+      setTouched({ name: true, address: true });
+      return;
+    }
+    setStep((s) => s + 1);
+  };
+
   const finish = () => {
+    if (finishing) return;
+    setFinishing(true);
     // Create the asociatie locally (founder becomes its admin and it is selected
     // as active), so the user clears the RequireAsociatie gate and lands in a
     // real tenant context. Live persistence is a separate activation step (T55).
@@ -63,9 +87,6 @@ export default function OnboardingWizard() {
     // apartment list and send invite emails without extra navigation.
     navigate('/app/admin/apartamente');
   };
-
-  const canNext =
-    step === 0 ? profile.name.trim().length > 0 && profile.address.trim().length > 0 : true;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
@@ -90,11 +111,17 @@ export default function OnboardingWizard() {
               label={t('onboarding.name')}
               value={profile.name}
               onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+              onBlur={() => setTouched((p) => ({ ...p, name: true }))}
+              error={nameError}
+              required
             />
             <Input
               label={t('onboarding.address')}
               value={profile.address}
               onChange={(e) => setProfile({ ...profile, address: e.target.value })}
+              onBlur={() => setTouched((p) => ({ ...p, address: true }))}
+              error={addressError}
+              required
             />
             <div className="grid gap-4 sm:grid-cols-2">
               <Input
@@ -146,11 +173,11 @@ export default function OnboardingWizard() {
             {t('common.back')}
           </Button>
           {step < STEPS.length - 1 ? (
-            <Button disabled={!canNext} onClick={() => setStep((s) => s + 1)}>
+            <Button onClick={handleNext}>
               {t('common.next')}
             </Button>
           ) : (
-            <Button onClick={finish}>
+            <Button onClick={finish} disabled={finishing}>
               <Check className="h-4 w-4" /> {t('common.finish')}
             </Button>
           )}
