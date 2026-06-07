@@ -5,9 +5,9 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-07
-- last_task: T284 Onboarding polish + E2E -- AccountSetupPage inputs disabled during RPC resolve; email pre-filled from resolved.inviteeEmail; OnboardingWizard touch-tracked inline errors on name/address + finishing double-submit guard; onboarding.nameRequired/addressRequired i18n (RO+EN); T284 E2E drives full admin-setup -> wizard -> invite resident -> resident-joins chain; 324 test files / 3297 tests; all 3 builds green
+- last_task: T285 First-run get-started checklist -- getStartedLogic.ts (pure step detection), getStartedStore.ts (dismiss state per admin+building), GetStartedChecklist.tsx (dismissible card, progress bar, bilingual); rendered in HomePage for admin roles; 13 unit tests; 325 test files / 3310 tests; all 3 builds green
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 324 test files / 3297 tests
+- counts: 325 test files / 3310 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task. DEV now matches PROD exactly (no role switcher; switcher is DEMO-only)
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
 - next: queue exhausted -- all Group A-H tasks complete; overnight script will audit+replenish

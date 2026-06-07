@@ -4,6 +4,14 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T285 ✅ 2026-06-07 -- First-run "get started" checklist for an empty building
+- new: `src/features/home/getStartedLogic.ts` -- pure `computeGetStarted()` and `shouldShowChecklist()` functions; 4 steps (apartments, invites, announcements, features) auto-detected from store snapshots
+- new: `src/features/home/getStartedStore.ts` -- Zustand+persist store (`vecini.getStarted`); dismiss state keyed by `${userId}_${asociatieId}` so dismissal is per admin per building
+- new: `src/features/home/GetStartedChecklist.tsx` -- dismissible card with progress bar, step list (checked/unchecked with navigation links), and dismiss button; bilingual, premium-feel
+- modified: `src/features/home/HomePage.tsx` -- checklist rendered for admin roles above the feature grid; hidden once all steps done or dismissed
+- modified: `src/shared/locales/en.json` + `ro.json` -- added `getStarted.*` keys (title, progress, dismiss, 4 step labels; RO with real diacritics)
+- new: `tests/unit/getStartedLogic.test.ts` -- 13 unit tests covering per-step detection, allDone/doneCount, path correctness, and shouldShowChecklist visibility rules
+
 ### T284 ✅ 2026-06-07 -- End-to-end onboarding polish + E2E
 - modified: `src/features/onboarding/accountSetupLogic.ts` -- added `inviteeEmail?: string | null` to `ResolvedOnboarding` so the live RPC result can pre-fill the form field
 - modified: `src/features/onboarding/onboardingApi.ts` -- `resolveTokenLive` now populates `inviteeEmail` from the RPC `invitee_email` field

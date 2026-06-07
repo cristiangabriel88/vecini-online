@@ -372,6 +372,17 @@
     "vote": "New vote",
     "empty": "No quick actions available."
   },
+  "getStarted": {
+    "title": "Set up your building",
+    "progress": "{{done}} of {{total}} steps completed",
+    "dismiss": "Dismiss",
+    "step": {
+      "apartments": "Add apartments",
+      "invites": "Invite residents",
+      "announcements": "Publish the first announcement",
+      "features": "Choose which features are on"
+    }
+  },
   "home": {
     "customize": "Customize",
     "done": "Done",

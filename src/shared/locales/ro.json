@@ -372,6 +372,17 @@
     "vote": "Vot nou",
     "empty": "Nicio acțiune rapidă disponibilă."
   },
+  "getStarted": {
+    "title": "Configurează clădirea ta",
+    "progress": "{{done}} din {{total}} pași completați",
+    "dismiss": "Închide",
+    "step": {
+      "apartments": "Adaugă apartamentele",
+      "invites": "Invită locatarii",
+      "announcements": "Publică primul anunț",
+      "features": "Alege funcționalitățile active"
+    }
+  },
   "home": {
     "customize": "Personalizează",
     "done": "Gata",

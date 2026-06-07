@@ -29,6 +29,9 @@ import { useAsociatieAnnouncements } from '@/features/announcements/announcement
 import { useAsociatiePolls } from '@/features/polls/pollsStore';
 import { useAsociatieTickets } from '@/features/tickets/ticketsStore';
 import { useAsociatieEvents } from '@/features/events/eventsStore';
+import { useAsociatieApartments } from '@/features/admin/apartmentsStore';
+import { useInviteStore } from '@/shared/store/inviteStore';
+import { isAdminRole } from '@/features/auth/hydrationLogic';
 import { formatDate, formatDateTime } from '@/shared/lib/format';
 import { cn } from '@/shared/lib/cn';
 import { type WidgetData, widgetForFeature } from './homeWidgets';
@@ -45,6 +48,9 @@ import {
 import { useHomeLayoutKey, useHomeLayoutStore } from './homeLayoutStore';
 import { deleteHomeLayout, hydrateHomeLayout, persistHomeLayout } from './homeLayoutApi';
 import { useHomeReorder } from './useHomeReorder';
+import { computeGetStarted, shouldShowChecklist } from './getStartedLogic';
+import { useGetStartedStore } from './getStartedStore';
+import { GetStartedChecklist } from './GetStartedChecklist';
 
 /** Renders live at-a-glance state for one feature inside an expanded card. */
 function WidgetContent({ data }: { data: WidgetData }) {
@@ -234,6 +240,26 @@ export default function HomePage() {
   const { userId } = useMyIdentity();
   const asociatieId = useAuthStore((s) => s.currentAsociatieId);
   const asociatie = useCurrentAsociatie();
+  const role = useAuthStore((s) => s.activeRole)();
+
+  const apartments = useAsociatieApartments();
+  const invites = useInviteStore((s) =>
+    asociatieId ? s.forAsociatie(asociatieId) : [],
+  );
+  const isDismissed = useGetStartedStore((s) => s.isDismissed);
+  const dismiss = useGetStartedStore((s) => s.dismiss);
+
+  const getStarted = useMemo(
+    () => computeGetStarted(apartments, invites, announcements, flags),
+    [apartments, invites, announcements, flags],
+  );
+  const showChecklist =
+    isAdminRole(role) &&
+    asociatieId !== null &&
+    shouldShowChecklist(
+      getStarted.allDone,
+      isDismissed(userId, asociatieId ?? ''),
+    );
 
   const nowIso = useMemo(() => new Date().toISOString(), []);
   const widgets = useMemo<Partial<Record<FeatureKey, WidgetData | null>>>(() => {
@@ -315,6 +341,16 @@ export default function HomePage() {
           ) : undefined
         }
       />
+
+      {showChecklist && (
+        <GetStartedChecklist
+          steps={getStarted.steps}
+          doneCount={getStarted.doneCount}
+          onDismiss={() => {
+            if (asociatieId) dismiss(userId, asociatieId);
+          }}
+        />
+      )}
 
       {editing && (
         <p className="mb-3 text-sm text-muted">{t('home.editHint')}</p>
