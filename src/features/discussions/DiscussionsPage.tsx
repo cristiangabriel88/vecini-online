@@ -35,6 +35,7 @@ import {
   updateMessage,
 } from './discussionApi';
 import { emitDiscussionReply } from '@/features/notifications/notificationFanout';
+import { useWriteRetry } from '@/shared/lib/useWriteRetry';
 
 export default function DiscussionsPage() {
   const { t } = useTranslation();
@@ -61,6 +62,8 @@ export default function DiscussionsPage() {
   const [editingBody, setEditingBody] = useState('');
 
   const canModerate = canModerateDiscussion(role);
+  const sendRetry = useWriteRetry('discussions.send');
+  const threadRetry = useWriteRetry('discussions.addThread');
 
   // Bulk selection state (moderator only)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -89,27 +92,29 @@ export default function DiscussionsPage() {
     return prunePostTimestamps(postTimestamps[key] ?? [], Date.now()).length;
   };
 
-  const send = (threadId: string) => {
-    if (!asociatieId || !isValidMessage(reply)) return;
+  const send = async (threadId: string) => {
+    if (!asociatieId || !isValidMessage(reply) || sendRetry.pending) return;
     if (!canPost(recentCount(), vetted)) {
       toast.error(t('discussions.rateLimited', { limit: NEW_USER_HOURLY_LIMIT }));
       return;
     }
-    const thread = threads.find((t) => t.id === threadId);
-    postMessage(asociatieId, threadId, reply, author);
+    const thread = threads.find((th) => th.id === threadId);
+    const ok = await sendRetry.run(() => postMessage(asociatieId, threadId, reply, author));
+    if (!ok) return;
     recordPost(asociatieId, author.id);
     if (thread) emitDiscussionReply(thread, author.id, author.name);
     setReply('');
   };
 
-  const submitThread = () => {
+  const submitThread = async () => {
     if (!asociatieId || !isValidThread(title)) return;
     if (!canPost(recentCount(), vetted)) {
       toast.error(t('discussions.rateLimited', { limit: NEW_USER_HOURLY_LIMIT }));
       setNewOpen(false);
       return;
     }
-    addThread(asociatieId, { title, topic });
+    const ok = await threadRetry.run(() => addThread(asociatieId, { title, topic }));
+    if (!ok) return;
     recordPost(asociatieId, author.id);
     toast.success(t('discussions.threadAdded'));
     setNewOpen(false);
@@ -318,23 +323,30 @@ export default function DiscussionsPage() {
                           </div>
                         );
                       })}
-                      <div className="flex gap-2">
-                        <Input
-                          value={reply}
-                          onChange={(e) => setReply(e.target.value)}
-                          placeholder={t('discussions.replyPlaceholder')}
-                          aria-label={t('discussions.replyPlaceholder')}
-                          maxLength={DISCUSSION_MSG_MAX + 10}
-                          error={isOverLength(reply, DISCUSSION_MSG_MAX) ? t('contentGuard.tooLong', { max: DISCUSSION_MSG_MAX }) : undefined}
-                          hint={!isOverLength(reply, DISCUSSION_MSG_MAX) && charsRemaining(reply, DISCUSSION_MSG_MAX) <= 100 ? t('contentGuard.charsLeft', { count: Math.max(0, charsRemaining(reply, DISCUSSION_MSG_MAX)) }) : undefined}
-                        />
-                        <Button
-                          onClick={() => send(th.id)}
-                          disabled={!asociatieId || !isValidMessage(reply)}
-                          aria-label={t('discussions.send')}
-                        >
-                          <Send className="h-4 w-4" />
-                        </Button>
+                      <div>
+                        <div className="flex gap-2">
+                          <Input
+                            value={reply}
+                            onChange={(e) => { setReply(e.target.value); sendRetry.clearError(); }}
+                            placeholder={t('discussions.replyPlaceholder')}
+                            aria-label={t('discussions.replyPlaceholder')}
+                            maxLength={DISCUSSION_MSG_MAX + 10}
+                            error={isOverLength(reply, DISCUSSION_MSG_MAX) ? t('contentGuard.tooLong', { max: DISCUSSION_MSG_MAX }) : undefined}
+                            hint={!isOverLength(reply, DISCUSSION_MSG_MAX) && charsRemaining(reply, DISCUSSION_MSG_MAX) <= 100 ? t('contentGuard.charsLeft', { count: Math.max(0, charsRemaining(reply, DISCUSSION_MSG_MAX)) }) : undefined}
+                          />
+                          <Button
+                            onClick={() => void send(th.id)}
+                            disabled={!asociatieId || !isValidMessage(reply) || sendRetry.pending}
+                            aria-label={t('discussions.send')}
+                          >
+                            <Send className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        {sendRetry.error && (
+                          <p role="alert" className="mt-1 text-xs text-destructive" data-testid="send-error">
+                            {t('common.writeError')}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -347,27 +359,32 @@ export default function DiscussionsPage() {
 
       <Modal
         open={newOpen}
-        onClose={() => setNewOpen(false)}
+        onClose={() => { setNewOpen(false); threadRetry.clearError(); }}
         title={t('discussions.newThread')}
         footer={
           <>
-            <Button variant="ghost" onClick={() => setNewOpen(false)}>
+            <Button variant="ghost" onClick={() => { setNewOpen(false); threadRetry.clearError(); }}>
               {t('common.cancel')}
             </Button>
-            <Button onClick={submitThread} disabled={!asociatieId || !isValidThread(title)}>
+            <Button onClick={() => void submitThread()} disabled={!asociatieId || !isValidThread(title) || threadRetry.pending}>
               {t('common.save')}
             </Button>
           </>
         }
       >
         <div className="space-y-3">
-          <Input label={t('discussions.threadTitle')} value={title} onChange={(e) => setTitle(e.target.value)} />
+          <Input label={t('discussions.threadTitle')} value={title} onChange={(e) => { setTitle(e.target.value); threadRetry.clearError(); }} />
           <Input
             label={t('discussions.topic')}
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
             placeholder="#parcare"
           />
+          {threadRetry.error && (
+            <p role="alert" className="text-xs text-destructive" data-testid="thread-error">
+              {t('common.writeError')}
+            </p>
+          )}
         </div>
       </Modal>
 

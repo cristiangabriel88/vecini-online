@@ -115,6 +115,7 @@
     "errorBody": "Try again or contact your administrator.",
     "errorRef": "Reference code",
     "loadError": "The data could not be loaded. Check your connection and try again.",
+    "writeError": "Couldn't send. Please try again.",
     "retry": "Try again",
     "notImplemented": "This feature is registered but its page is not available in this build.",
     "featureDisabled": "This feature is not enabled for your association.",

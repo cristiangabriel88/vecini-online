@@ -115,6 +115,7 @@
     "errorBody": "Reîncearcă sau contactează administratorul.",
     "errorRef": "Cod de referință",
     "loadError": "Datele nu au putut fi încărcate. Verifică conexiunea și reîncearcă.",
+    "writeError": "Nu s-a putut trimite. Încearcă din nou.",
     "retry": "Reîncearcă",
     "notImplemented": "Această funcționalitate este înregistrată, dar pagina nu este încă disponibilă în această versiune.",
     "featureDisabled": "Această funcționalitate nu este activată pentru asociația ta.",

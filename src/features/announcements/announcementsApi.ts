@@ -147,52 +147,48 @@ async function rollbackUploads(uploaded: AnnouncementAttachment[]): Promise<void
 }
 
 /** Publish (or schedule) an announcement: updates the store synchronously and
- *  mirrors the row + attachment rows to the backend when configured. */
-export function publishAnnouncement(
+ *  mirrors the row + attachment rows to the backend when configured.
+ *  Throws if the backend write fails so callers can surface the error. */
+export async function publishAnnouncement(
   asociatieId: string,
   authorUserId: string,
   input: NewAnnouncementInput,
-): void {
+): Promise<void> {
   const item = newAnnouncement(input, asociatieId, authorUserId);
   const state = useAnnouncementsStore.getState();
   const current = announcementsForAsociatie(state.byAsociatie, asociatieId);
   state.replaceForAsociatie(asociatieId, [item, ...current]);
-  if (isSupabaseConfigured) {
-    void (async () => {
-      try {
-        await supabase.from('announcements').insert({
-          id: item.id,
-          asociatie_id: item.asociatie_id,
-          author_user_id: item.author_user_id,
-          title: item.title,
-          body_html: item.body_html,
-          category: item.category,
-          audience: item.audience,
-          scheduled_at: item.scheduled_at,
-          published_at: item.published_at,
-          created_at: item.created_at,
-          updated_at: item.updated_at,
-        });
-        const attachments = item.attachments ?? [];
-        if (attachments.length) {
-          await supabase.from('attachments').insert(
-            attachments.map((att) => ({
-              id: att.id,
-              asociatie_id: item.asociatie_id,
-              related_type: 'announcement',
-              related_id: item.id,
-              filename: att.file_name,
-              mime_type: att.file_type,
-              size_bytes: att.file_size,
-              storage_path: att.storage_path,
-              uploaded_by: authorUserId,
-            })),
-          );
-        }
-      } catch (err) {
-        reportError(err, { source: 'announcementsApi.publish' });
-      }
-    })();
+  if (!isSupabaseConfigured) return;
+  const { error: rowError } = await supabase.from('announcements').insert({
+    id: item.id,
+    asociatie_id: item.asociatie_id,
+    author_user_id: item.author_user_id,
+    title: item.title,
+    body_html: item.body_html,
+    category: item.category,
+    audience: item.audience,
+    scheduled_at: item.scheduled_at,
+    published_at: item.published_at,
+    created_at: item.created_at,
+    updated_at: item.updated_at,
+  });
+  if (rowError) throw rowError;
+  const attachments = item.attachments ?? [];
+  if (attachments.length) {
+    const { error: attError } = await supabase.from('attachments').insert(
+      attachments.map((att) => ({
+        id: att.id,
+        asociatie_id: item.asociatie_id,
+        related_type: 'announcement',
+        related_id: item.id,
+        filename: att.file_name,
+        mime_type: att.file_type,
+        size_bytes: att.file_size,
+        storage_path: att.storage_path,
+        uploaded_by: authorUserId,
+      })),
+    );
+    if (attError) throw attError;
   }
 }
 
@@ -212,24 +208,20 @@ export function deleteAnnouncements(asociatieId: string, ids: string[]): void {
 }
 
 /** Update mutable fields of one announcement; updates the store and mirrors to the backend. */
-export function updateAnnouncement(
+/** Update an announcement's fields; updates the store synchronously and mirrors to the backend.
+ *  Throws if the backend write fails so callers can surface the error. */
+export async function updateAnnouncement(
   asociatieId: string,
   id: string,
   patch: { title?: string; body_html?: string; category?: AnnouncementCategory },
-): void {
+): Promise<void> {
   useAnnouncementsStore.getState().update(asociatieId, id, patch);
-  if (isSupabaseConfigured) {
-    void (async () => {
-      try {
-        await supabase
-          .from('announcements')
-          .update({ ...patch, updated_at: new Date().toISOString() })
-          .eq('id', id);
-      } catch (err) {
-        reportError(err, { source: 'announcementsApi.update' });
-      }
-    })();
-  }
+  if (!isSupabaseConfigured) return;
+  const { error } = await supabase
+    .from('announcements')
+    .update({ ...patch, updated_at: new Date().toISOString() })
+    .eq('id', id);
+  if (error) throw error;
 }
 
 /** Return a short-lived signed URL for an announcement attachment, or null. */

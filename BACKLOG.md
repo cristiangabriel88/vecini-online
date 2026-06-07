@@ -122,7 +122,7 @@ The high-volume resident-writable surfaces (discussion messages, neighbor classi
 
 Today a missing or malformed env var (`SUPABASE_SERVICE_ROLE_KEY`, `AUDIT_HMAC_SECRET`, `RESEND_*`, `TELEGRAM_*`, `APP_URL`, etc.) degrades silently at runtime -- a function half-works or a feature quietly no-ops in PROD. Add one shared validator that, at function cold-start and at app boot, checks every required variable for presence and basic shape (URL is a URL, key has the expected prefix/length) and fails loud with a clear, **non-secret** message naming what is missing -- never printing the value. Centralize the required-variable list in one documented place so the set is auditable. In demo / no-key mode the validator recognizes the intentional offline posture and stays quiet. Unit test for the validator across present/missing/malformed cases. Prereq: none.
 
-### ⬜ T283 — [P1] Graceful network-failure recovery in the live app
+### ✅ T283 — [P1] Graceful network-failure recovery in the live app
 
 When a Supabase read or write fails mid-session (network blip, transient 5xx), the app can fail quietly and a resident can lose what they just typed. Add a consistent recovery affordance: failed reads show a bilingual "couldn't load -- retry" state instead of an empty or stuck view, and failed writes keep the user's input and offer a retry rather than discarding it (compose with the existing `useUnsavedGuard` so a dirty form is never silently lost). Use the existing `reportError` + store `setFetchError` seam; do not introduce a new data layer. Demo (no network) is unaffected. Unit tests for the retry/error-surfacing logic + one E2E that simulates an offline blip on a write and asserts the input survives. Prereq: none.
 

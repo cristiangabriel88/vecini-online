@@ -5,9 +5,9 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-07
-- last_task: T282 Startup config validation -- new configValidator.ts (server) + clientConfigValidator.ts (client) with pure validateServerConfig/validateClientConfig; SERVER_VARS + CLIENT_VARS auditable lists; assertServerConfig() hooked at Lambda cold-start in supabaseAdmin.ts; assertClientConfig() hooked in main.tsx; demo mode stays quiet; shape checks: URL, JWT prefix, key lengths, enum values; 38 new unit tests; 323 test files / 3287 tests; all 3 builds green
+- last_task: T283 Graceful network-failure recovery -- new useWriteRetry hook (run/pending/error/clearError); postMessage + addThread + publishAnnouncement + updateAnnouncement converted from fire-and-forget void to async Promise<void> throwing on DB error; DiscussionsPage send/submitThread async + error alert + input preserved on failure; AnnouncementComposeModal awaits writes + stays open on failure + writeError alert; common.writeError i18n (RO+EN); 10 new unit tests; 324 test files / 3297 tests; all 3 builds green
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 323 test files / 3287 tests
+- counts: 324 test files / 3297 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task. DEV now matches PROD exactly (no role switcher; switcher is DEMO-only)
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
 - next: queue exhausted -- all Group A-H tasks complete; overnight script will audit+replenish

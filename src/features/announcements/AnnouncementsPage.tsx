@@ -20,6 +20,7 @@ import type { Announcement, AnnouncementAttachment, AnnouncementCategory } from 
 import { useAuthStore } from '@/shared/store/authStore';
 import { DEMO_CURRENT_USER_ID } from '@/shared/demo/demoData';
 import { recordAudit } from '@/shared/store/auditStore';
+import { useWriteRetry } from '@/shared/lib/useWriteRetry';
 import { useAnnouncementsStore, useAsociatieAnnouncements } from './announcementsStore';
 import {
   hydrateAnnouncements,
@@ -84,6 +85,7 @@ function AnnouncementComposeModal({ open, onClose, asociatieId, authorUserId, ed
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const writeRetry = useWriteRetry('announcements.write');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -114,6 +116,7 @@ function AnnouncementComposeModal({ open, onClose, asociatieId, authorUserId, ed
     setSchedule('');
     setPendingFiles([]);
     setFileError(null);
+    writeRetry.clearError();
     onClose();
   };
 
@@ -145,11 +148,14 @@ function AnnouncementComposeModal({ open, onClose, asociatieId, authorUserId, ed
     setSaving(true);
     try {
       if (editTarget) {
-        updateAnnouncement(asociatieId, editTarget.id, {
-          title: title.trim(),
-          body_html: `<p>${body.trim()}</p>`,
-          category,
-        });
+        const ok = await writeRetry.run(() =>
+          updateAnnouncement(asociatieId, editTarget.id, {
+            title: title.trim(),
+            body_html: `<p>${body.trim()}</p>`,
+            category,
+          }),
+        );
+        if (!ok) return;
         recordAudit({
           action: 'announcement.published',
           entity: 'announcement',
@@ -183,13 +189,16 @@ function AnnouncementComposeModal({ open, onClose, asociatieId, authorUserId, ed
           file_data_url: p.dataUrl,
         }));
       }
-      publishAnnouncement(asociatieId, authorUserId, {
-        title: title.trim(),
-        body_html: `<p>${body.trim()}</p>`,
-        category,
-        scheduled_at: scheduledIso,
-        attachments,
-      });
+      const ok = await writeRetry.run(() =>
+        publishAnnouncement(asociatieId, authorUserId, {
+          title: title.trim(),
+          body_html: `<p>${body.trim()}</p>`,
+          category,
+          scheduled_at: scheduledIso,
+          attachments,
+        }),
+      );
+      if (!ok) return;
       recordAudit({
         action: 'announcement.published',
         entity: 'announcement',
@@ -217,7 +226,7 @@ function AnnouncementComposeModal({ open, onClose, asociatieId, authorUserId, ed
           </Button>
           <Button
             onClick={() => void submit()}
-            disabled={!asociatieId || !title.trim() || !body.trim() || saving}
+            disabled={!asociatieId || !title.trim() || !body.trim() || saving || writeRetry.pending}
           >
             {saving
               ? t('announcements.uploading')
@@ -300,6 +309,11 @@ function AnnouncementComposeModal({ open, onClose, asociatieId, authorUserId, ed
             <p className="mt-1 text-xs text-muted">{t('announcements.attachmentsHint')}</p>
           )}
         </div>
+        {writeRetry.error && (
+          <p role="alert" className="text-xs text-destructive" data-testid="publish-error">
+            {t('common.writeError')}
+          </p>
+        )}
       </div>
     </Modal>
   );

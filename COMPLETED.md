@@ -4,6 +4,17 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T283 ✅ 2026-06-07 -- Graceful network-failure recovery in the live app
+- new: `src/shared/lib/useWriteRetry.ts` -- `useWriteRetry(source)` hook: wraps async write fn, reports via `reportError`, exposes `{ run, pending, error, clearError }`; composes with `useUnsavedGuard` (call `clearDirty()` only when `run()` returns true)
+- modified: `src/features/discussions/discussionApi.ts` -- `postMessage` and `addThread` changed from fire-and-forget `void` to `async Promise<void>` that throws on DB error; callers can now await and surface failures
+- modified: `src/features/discussions/DiscussionsPage.tsx` -- `send()` and `submitThread()` now async; use `useWriteRetry`; reply text preserved on failure; `sendError` / `threadError` inline alerts (role="alert", data-testid); send button disabled while pending
+- modified: `src/features/announcements/announcementsApi.ts` -- `publishAnnouncement` and `updateAnnouncement` changed to `async Promise<void>` that throws on DB error
+- modified: `src/features/announcements/AnnouncementsPage.tsx` -- `AnnouncementComposeModal.submit()` awaits writes via `useWriteRetry`; modal stays open on failure; `writeError` alert displayed; `recordAudit` called only on success; `clearError` on close
+- modified: `src/shared/locales/en.json` + `ro.json` -- added `common.writeError`
+- new: `tests/unit/useWriteRetry.test.ts` -- 10 unit tests covering success, failure, non-Error throw, clearError, re-run clears error, pending lifecycle, concurrent-run guard, source string
+- new: `tests/e2e/writeRetry.spec.ts` -- demo-mode happy path (send message, input clears, message appears) + structural absence test for error element
+- pipeline: 324 test files / 3297 tests; all 3 builds green
+
 ### T282 ✅ 2026-06-07 -- Startup config validation (fail loud, not silent)
 - new: `netlify/functions/_shared/configValidator.ts` -- `validateServerConfig(env)` pure validator; `assertServerConfig()` cold-start hook; `SERVER_VARS` auditable list (10 vars: Supabase URL+key, AUDIT_HMAC_SECRET, APP_URL, Resend triplet, MAIL_MODE, Telegram pair); demo mode detection (returns `{demo:true}` when Supabase creds absent, stays quiet); shape checks: URL format, JWT eyJ prefix, re_ prefix, 32-char minimums, enum values; never prints values
 - new: `src/shared/lib/clientConfigValidator.ts` -- `validateClientConfig(env)` pure validator; `assertClientConfig()` boot hook; `CLIENT_VARS` list (8 VITE_* vars); same demo-mode detection; added to devLog console allowlist

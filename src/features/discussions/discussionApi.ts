@@ -121,60 +121,50 @@ export async function hydrateThreads(asociatieId: string): Promise<void> {
   }
 }
 
-/** Open a new thread; updates the store synchronously and mirrors to the backend. */
-export function addThread(asociatieId: string, input: NewThreadInput): void {
+/** Open a new thread; updates the store synchronously and mirrors to the backend.
+ *  Throws if the backend write fails so callers can surface the error. */
+export async function addThread(asociatieId: string, input: NewThreadInput): Promise<void> {
   const thread = newThread(input, asociatieId);
   const state = useDiscussionStore.getState();
   state.replaceForAsociatie(asociatieId, [
     thread,
     ...threadsForAsociatie(state.byAsociatie, asociatieId),
   ]);
-  if (isSupabaseConfigured) {
-    void (async () => {
-      try {
-        await supabase.from('discussion_threads').insert({
-          id: thread.id,
-          asociatie_id: thread.asociatie_id,
-          topic: thread.topic,
-          title: thread.title,
-          pinned: thread.pinned,
-          created_at: thread.created_at,
-        });
-      } catch (err) {
-        reportError(err, { source: 'discussionApi.addThread' });
-      }
-    })();
-  }
+  if (!isSupabaseConfigured) return;
+  const { error } = await supabase.from('discussion_threads').insert({
+    id: thread.id,
+    asociatie_id: thread.asociatie_id,
+    topic: thread.topic,
+    title: thread.title,
+    pinned: thread.pinned,
+    created_at: thread.created_at,
+  });
+  if (error) throw error;
 }
 
-/** Post a message to a thread; updates the store synchronously and mirrors to the backend. */
-export function postMessage(
+/** Post a message to a thread; updates the store synchronously and mirrors to the backend.
+ *  Throws if the backend write fails so callers can surface the error. */
+export async function postMessage(
   asociatieId: string,
   threadId: string,
   body: string,
   author: MessageAuthor,
-): void {
+): Promise<void> {
   const msg = newMessage(threadId, body, author);
   const state = useDiscussionStore.getState();
   const updated = addMessageIn(state.byAsociatie, asociatieId, threadId, msg);
   state.replaceForAsociatie(asociatieId, updated[asociatieId] ?? []);
-  if (isSupabaseConfigured) {
-    void (async () => {
-      try {
-        await supabase.from('discussion_messages').insert({
-          id: msg.id,
-          asociatie_id: asociatieId,
-          thread_id: msg.thread_id,
-          author_user_id: msg.author_user_id,
-          author_name: msg.author_name,
-          body: msg.body,
-          created_at: msg.created_at,
-        });
-      } catch (err) {
-        reportError(err, { source: 'discussionApi.postMessage' });
-      }
-    })();
-  }
+  if (!isSupabaseConfigured) return;
+  const { error } = await supabase.from('discussion_messages').insert({
+    id: msg.id,
+    asociatie_id: asociatieId,
+    thread_id: msg.thread_id,
+    author_user_id: msg.author_user_id,
+    author_name: msg.author_name,
+    body: msg.body,
+    created_at: msg.created_at,
+  });
+  if (error) throw error;
 }
 
 /** Toggle a thread's pinned state; updates the store and mirrors to the backend. */
