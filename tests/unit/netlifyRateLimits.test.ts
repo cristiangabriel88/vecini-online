@@ -6,6 +6,8 @@ import {
   checkNotifyEmailRateLimit,
   checkPvPdfRateLimit,
   checkProvisionRateLimit,
+  checkMfaVerifyRateLimit,
+  checkMfaRequestRateLimit,
 } from '../../netlify/functions/_shared/rateLimiter';
 
 // ── Named rate-limiter helpers (T197) ─────────────────────────────────────────
@@ -180,5 +182,141 @@ describe('provision-asociatie.ts rate-limit wiring', () => {
   it('returns 429 with Retry-After when rate-limited', () => {
     expect(src).toContain('status: 429');
     expect(src).toContain("'Retry-After'");
+  });
+});
+
+// ── MFA verify rate-limit helper (T278) ──────────────────────────────────────
+
+describe('checkMfaVerifyRateLimit', () => {
+  it('allows up to 10 attempts per 5 minutes', () => {
+    const t = 50_000_000;
+    for (let i = 0; i < 10; i++) {
+      expect(checkMfaVerifyRateLimit(`mfav-a:1.2.3.4`, t + i * 100)).toBe(true);
+    }
+  });
+
+  it('blocks the 11th attempt in the same window', () => {
+    const t = 51_000_000;
+    for (let i = 0; i < 10; i++) checkMfaVerifyRateLimit(`mfav-b:1.2.3.4`, t + i * 100);
+    expect(checkMfaVerifyRateLimit(`mfav-b:1.2.3.4`, t + 1_000)).toBe(false);
+  });
+
+  it('recovers after the 5-minute window', () => {
+    const t = 52_000_000;
+    for (let i = 0; i < 10; i++) checkMfaVerifyRateLimit(`mfav-c:1.2.3.4`, t + i * 100);
+    expect(checkMfaVerifyRateLimit(`mfav-c:1.2.3.4`, t + 5 * 60_000 + 1)).toBe(true);
+  });
+
+  it('tracks separate keys independently', () => {
+    const t = 53_000_000;
+    for (let i = 0; i < 10; i++) checkMfaVerifyRateLimit(`mfav-d:1.2.3.4`, t + i);
+    expect(checkMfaVerifyRateLimit(`mfav-d:5.6.7.8`, t + 10)).toBe(true);
+  });
+});
+
+// ── MFA request rate-limit helper (T278) ─────────────────────────────────────
+
+describe('checkMfaRequestRateLimit', () => {
+  it('allows up to 5 requests per 15 minutes', () => {
+    const t = 60_000_000;
+    for (let i = 0; i < 5; i++) {
+      expect(checkMfaRequestRateLimit(`mfar-a:1.2.3.4`, t + i * 1000)).toBe(true);
+    }
+  });
+
+  it('blocks the 6th request in the same window', () => {
+    const t = 61_000_000;
+    for (let i = 0; i < 5; i++) checkMfaRequestRateLimit(`mfar-b:1.2.3.4`, t + i * 1000);
+    expect(checkMfaRequestRateLimit(`mfar-b:1.2.3.4`, t + 5_000)).toBe(false);
+  });
+
+  it('recovers after the 15-minute window', () => {
+    const t = 62_000_000;
+    for (let i = 0; i < 5; i++) checkMfaRequestRateLimit(`mfar-c:1.2.3.4`, t + i * 1000);
+    expect(checkMfaRequestRateLimit(`mfar-c:1.2.3.4`, t + 15 * 60_000 + 1)).toBe(true);
+  });
+});
+
+// ── MFA function rate-limit wiring guards (T278) ─────────────────────────────
+
+describe('mfa-otp-verify.ts rate-limit wiring', () => {
+  const src = readFileSync(join(process.cwd(), 'netlify/functions/mfa-otp-verify.ts'), 'utf8');
+
+  it('imports checkMfaVerifyRateLimit', () => {
+    expect(src).toContain('checkMfaVerifyRateLimit');
+  });
+
+  it('extracts client IP', () => {
+    expect(src).toContain('x-forwarded-for');
+  });
+
+  it('applies rate limit after auth', () => {
+    const authPos = src.indexOf('auth.getUser');
+    const rlPos = src.indexOf('checkMfaVerifyRateLimit');
+    expect(authPos).toBeGreaterThan(0);
+    expect(rlPos).toBeGreaterThan(0);
+    expect(rlPos).toBeGreaterThan(authPos);
+  });
+
+  it('returns 429 with Retry-After when rate-limited', () => {
+    expect(src).toContain('status: 429');
+    expect(src).toContain("'Retry-After'");
+  });
+
+  it('audits a rateLimited event on throttle', () => {
+    expect(src).toContain("event_type: 'rateLimited'");
+  });
+});
+
+describe('mfa-otp-request.ts rate-limit wiring', () => {
+  const src = readFileSync(join(process.cwd(), 'netlify/functions/mfa-otp-request.ts'), 'utf8');
+
+  it('imports checkMfaRequestRateLimit', () => {
+    expect(src).toContain('checkMfaRequestRateLimit');
+  });
+
+  it('applies rate limit after auth', () => {
+    const authPos = src.indexOf('auth.getUser');
+    const rlPos = src.indexOf('checkMfaRequestRateLimit');
+    expect(authPos).toBeGreaterThan(0);
+    expect(rlPos).toBeGreaterThan(0);
+    expect(rlPos).toBeGreaterThan(authPos);
+  });
+
+  it('returns 429 with Retry-After when rate-limited', () => {
+    expect(src).toContain('status: 429');
+    expect(src).toContain("'Retry-After'");
+  });
+
+  it('audits a rateLimited event on throttle', () => {
+    expect(src).toContain("event_type: 'rateLimited'");
+  });
+});
+
+describe('mfa-recovery-verify.ts rate-limit wiring', () => {
+  const src = readFileSync(
+    join(process.cwd(), 'netlify/functions/mfa-recovery-verify.ts'),
+    'utf8',
+  );
+
+  it('imports checkMfaVerifyRateLimit', () => {
+    expect(src).toContain('checkMfaVerifyRateLimit');
+  });
+
+  it('applies rate limit after auth', () => {
+    const authPos = src.indexOf('auth.getUser');
+    const rlPos = src.indexOf('checkMfaVerifyRateLimit');
+    expect(authPos).toBeGreaterThan(0);
+    expect(rlPos).toBeGreaterThan(0);
+    expect(rlPos).toBeGreaterThan(authPos);
+  });
+
+  it('returns 429 with Retry-After when rate-limited', () => {
+    expect(src).toContain('status: 429');
+    expect(src).toContain("'Retry-After'");
+  });
+
+  it('audits a rateLimited event on throttle', () => {
+    expect(src).toContain("event_type: 'rateLimited'");
   });
 });

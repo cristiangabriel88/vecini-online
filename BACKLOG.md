@@ -98,7 +98,7 @@ The integrity verifier `verifyChain` (`src/features/audit/auditLogic.ts:256-268`
 
 > Pilot = real residents and real personal data, so the fundamentals must be airtight: no one can brute-force a login or one-time code, no building can ever read or touch another building's data, and the shared surfaces cannot be spammed. The isolation rules already exist and are tested; this wave re-proves them across every table and adds the missing brute-force and abuse limits.
 
-### ⬜ T278 — [P0] Brute-force / rate-limit guard on all auth-sensitive endpoints
+### ✅ T278 — [P0] Brute-force / rate-limit guard on all auth-sensitive endpoints
 
 The shared limiter (`netlify/functions/_shared/rateLimiter.ts`) is applied to some endpoints but not all: `mfa-otp-verify.ts` (and the request/recovery siblings) currently have no rate-limit guard, so a one-time code or recovery code can be brute-forced. Audit every auth-sensitive path -- `mfa-otp-request`, `mfa-otp-verify`, `mfa-recovery-verify`, the login submission, and invite/setup-code redemption -- and apply the existing limiter everywhere it is missing, keyed by identifier + IP, plus a short temporary lockout after N consecutive failures. Every lockout/throttle event is audited (extend `AUDIT_ACTIONS` with an `auth.rate_limited` / `auth.locked_out` action where appropriate) and emits a bilingual, non-leaky error ("too many attempts, try again in N minutes") that never reveals whether the account/code exists. Reuse `auth_audit_events` for the failed-attempt counter. Demo / no-key = no-op. Unit tests for the limiter + lockout logic and a test asserting `mfa-otp-verify` is throttled after the threshold. Prereq: none.
 

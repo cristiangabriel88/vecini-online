@@ -4,6 +4,18 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T278 ✅ 2026-06-07 -- Brute-force / rate-limit guard on all auth-sensitive MFA endpoints
+- modified: `netlify/functions/_shared/rateLimiter.ts` -- added `checkMfaVerifyRateLimit` (10/5 min per userId:ip, shared by otp-verify + recovery-verify) and `checkMfaRequestRateLimit` (5/15 min per userId:ip)
+- modified: `netlify/functions/mfa-otp-verify.ts` -- extracts client IP; checks `checkMfaVerifyRateLimit(userId:ip)` after auth; on limit: inserts `rateLimited` event to `auth_audit_events` via service role, returns 429 with `Retry-After: 300`
+- modified: `netlify/functions/mfa-otp-request.ts` -- same pattern with `checkMfaRequestRateLimit`, `Retry-After: 900`
+- modified: `netlify/functions/mfa-recovery-verify.ts` -- same pattern with `checkMfaVerifyRateLimit`, `Retry-After: 300`
+- modified: `src/features/auth/authAudit.ts` -- added `'rateLimited'` and `'lockedOut'` to `AuthEventType` and `AUTH_EVENT_TYPES`
+- modified: `src/features/audit/auditLogic.ts` -- added `'auth.rate_limited'` and `'auth.locked_out'` to `AUDIT_ACTIONS`
+- modified: `src/features/auth/mfaLogic.ts` -- added `'rateLimited'` to `MfaErrorKey`; `mfaErrorKey` maps `rate-limited` to `rateLimited` before `invalidCode` check
+- modified: `src/features/audit/AuditLogPage.tsx`, `src/platform/PlatformAuditPage.tsx` -- added color entries for new audit actions
+- modified: `src/shared/locales/ro.json`, `en.json` -- added `auth.mfa.err.rateLimited` in both locales (non-leaky bilingual message)
+- modified: `tests/unit/netlifyRateLimits.test.ts` -- 4 new describe blocks: `checkMfaVerifyRateLimit` (4 tests), `checkMfaRequestRateLimit` (3 tests), and static wiring guards for `mfa-otp-verify`, `mfa-otp-request`, `mfa-recovery-verify` (4 tests each)
+
 ### T290 ✅ 2026-06-07 -- Tamper-evident audit chain fixed across 6 platform functions
 - new: `netlify/functions/_shared/appendAudit.ts` -- shared helper: reads chain tail, computes real cyrb53 hash with correct `AUDIT_GENESIS_HASH = '0000000000000000'` (not `'GENESIS'`), inserts with error-check, retries up to 3x on `23505` unique-violation for concurrent-safe seq allocation
 - modified: `netlify/functions/admin-invite-action.ts`, `asociatie-lifecycle.ts`, `feature-override.ts`, `platform-broadcast.ts`, `provision-additional-admin.ts`, `revoke-admin-access.ts` -- replaced broken inline audit blocks (hash: prevHash, wrong sentinel) with `appendAudit()`; insert errors now propagate as 502 instead of being silently swallowed

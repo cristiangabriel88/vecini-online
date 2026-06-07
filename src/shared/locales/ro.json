@@ -292,6 +292,7 @@
         "noChannel": "Acest canal nu este activat. Activează-l din setările de Securitate.",
         "deliveryFailed": "Codul nu a putut fi livrat. Încearcă din nou.",
         "channelLocked": "Canalul este blocat temporar după prea multe încercări.",
+        "rateLimited": "Prea multe încercări. Încearcă din nou după câteva minute.",
         "generic": "A apărut o eroare. Încearcă din nou."
       },
       "channels": {

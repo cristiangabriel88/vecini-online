@@ -80,6 +80,8 @@ const ACTION_TONE: Record<AuditAction, 'success' | 'danger' | 'warning' | 'neutr
   'broadcast.expired': 'neutral',
   'feature.override_enabled': 'success',
   'feature.override_disabled': 'warning',
+  'auth.rate_limited': 'warning',
+  'auth.locked_out': 'danger',
 };
 
 function downloadText(filename: string, content: string, mime: string): void {

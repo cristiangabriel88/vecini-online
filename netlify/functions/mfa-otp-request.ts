@@ -31,6 +31,7 @@ import {
 } from '../../src/features/auth/otpChannelLogic';
 import { sendEmail, getMailMode, isResendConfigured } from './_shared/resend';
 import { isSupabaseAdminConfigured, supabaseAdmin } from './_shared/supabaseAdmin';
+import { checkMfaRequestRateLimit } from './_shared/rateLimiter';
 
 const EMAIL_CHANNEL = 'email';
 const MAX_ISSUE_PER_HOUR = 10;
@@ -81,6 +82,8 @@ export default async (req: Request): Promise<Response> => {
   }
   if (!isSupabaseAdminConfigured()) return json(503, { error: 'backend-not-configured' });
 
+  const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '';
+
   // ── Auth: resolve the caller from the bearer token ───────────────────────
   const rawToken = extractBearerToken(req.headers.get('Authorization'));
   if (!rawToken) return json(401, { error: 'missing-authorization' });
@@ -94,6 +97,18 @@ export default async (req: Request): Promise<Response> => {
 
   const sessionId = extractSessionId(rawToken);
   if (!sessionId) return json(422, { error: 'no-session' });
+
+  // ── IP + identity rate limit (T278) ──────────────────────────────────────
+  const rlKey = `${userId}:${clientIp}`;
+  if (!checkMfaRequestRateLimit(rlKey)) {
+    void supabaseAdmin()
+      .from('auth_audit_events')
+      .insert({ user_id: userId, asociatie_id: null, event_type: 'rateLimited', email_mask: null });
+    return new Response(JSON.stringify({ error: 'rate-limited' }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json', 'Retry-After': '900' },
+    });
+  }
 
   // ── Parse and validate body ───────────────────────────────────────────────
   let body: RequestBody;

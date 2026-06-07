@@ -116,3 +116,25 @@ const PROVISION_MAX = 20;
 export function checkProvisionRateLimit(ip: string, now: number = Date.now()): boolean {
   return checkSlidingWindow(_provisionStore, ip, now, PROVISION_WINDOW_MS, PROVISION_MAX);
 }
+
+// Per-uid:ip store for mfa-otp-verify + mfa-recovery-verify (10 attempts / 5 min).
+const _mfaVerifyStore = new Map<string, Entry>();
+const MFA_VERIFY_WINDOW_MS = 5 * 60_000;
+const MFA_VERIFY_MAX = 10;
+
+/** Record one MFA verify attempt for `key` (userId:ip) and return whether it is
+ *  within the limit (10 per 5 min). Applies to both OTP verify and recovery verify. */
+export function checkMfaVerifyRateLimit(key: string, now: number = Date.now()): boolean {
+  return checkSlidingWindow(_mfaVerifyStore, key, now, MFA_VERIFY_WINDOW_MS, MFA_VERIFY_MAX);
+}
+
+// Per-uid:ip store for mfa-otp-request (5 requests / 15 min).
+const _mfaRequestStore = new Map<string, Entry>();
+const MFA_REQUEST_WINDOW_MS = 15 * 60_000;
+const MFA_REQUEST_MAX = 5;
+
+/** Record one MFA OTP request for `key` (userId:ip) and return whether it is
+ *  within the limit (5 per 15 min). */
+export function checkMfaRequestRateLimit(key: string, now: number = Date.now()): boolean {
+  return checkSlidingWindow(_mfaRequestStore, key, now, MFA_REQUEST_WINDOW_MS, MFA_REQUEST_MAX);
+}

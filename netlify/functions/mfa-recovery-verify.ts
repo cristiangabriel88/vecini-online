@@ -22,6 +22,7 @@
 import { timingSafeEqualHex } from '../../src/features/auth/otpChannelLogic';
 import { extractSessionId } from './mfa-otp-request';
 import { isSupabaseAdminConfigured, supabaseAdmin } from './_shared/supabaseAdmin';
+import { checkMfaVerifyRateLimit } from './_shared/rateLimiter';
 
 // Maximum wrong-code attempts per session before recovery is locked.
 const MAX_ATTEMPTS = 5;
@@ -80,6 +81,8 @@ export default async (req: Request): Promise<Response> => {
   if (req.method !== 'POST') return json(405, { error: 'method-not-allowed' });
   if (!isSupabaseAdminConfigured()) return json(503, { error: 'backend-not-configured' });
 
+  const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '';
+
   // ── Auth: resolve caller from bearer token ────────────────────────────────
   const rawToken = extractBearerToken(req.headers.get('Authorization'));
   if (!rawToken) return json(401, { error: 'missing-authorization' });
@@ -90,6 +93,18 @@ export default async (req: Request): Promise<Response> => {
   const userId = authData.user.id;
   const sessionId = extractSessionId(rawToken);
   if (!sessionId) return json(422, { error: 'no-session' });
+
+  // ── IP + identity rate limit (T278) ──────────────────────────────────────
+  const rlKey = `${userId}:${clientIp}`;
+  if (!checkMfaVerifyRateLimit(rlKey)) {
+    void supabaseAdmin()
+      .from('auth_audit_events')
+      .insert({ user_id: userId, asociatie_id: null, event_type: 'rateLimited', email_mask: null });
+    return new Response(JSON.stringify({ error: 'rate-limited' }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json', 'Retry-After': '300' },
+    });
+  }
 
   // ── DB-backed per-session attempt limit (T81) ─────────────────────────────
   // Reads the persisted wrong-attempt counter from `mfa_recovery_attempt_counts`

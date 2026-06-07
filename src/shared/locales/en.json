@@ -292,6 +292,7 @@
         "noChannel": "This channel is not enabled. Enable it from Security settings.",
         "deliveryFailed": "The code could not be delivered. Please try again.",
         "channelLocked": "This channel is temporarily locked after too many attempts.",
+        "rateLimited": "Too many attempts. Please try again in a few minutes.",
         "generic": "Something went wrong. Please try again."
       },
       "channels": {

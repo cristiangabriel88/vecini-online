@@ -71,6 +71,8 @@ export const AUDIT_ACTIONS = [
   'broadcast.expired',
   'feature.override_enabled',
   'feature.override_disabled',
+  'auth.rate_limited',
+  'auth.locked_out',
 ] as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];

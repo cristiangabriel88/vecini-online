@@ -342,6 +342,7 @@ export type MfaErrorKey =
   | 'noChannel'
   | 'deliveryFailed'
   | 'channelLocked'
+  | 'rateLimited'
   | 'generic';
 
 /**
@@ -351,7 +352,8 @@ export type MfaErrorKey =
  * The delivered-code channels (email/Telegram, T139+) add: `expired-code` (the
  * one-time code's window lapsed), `no-channel` (the channel is not enabled, e.g.
  * Telegram is not linked), `delivery-failed` (the email/Telegram send did not go
- * through), and `channel-locked` (too many wrong codes on this channel).
+ * through), `channel-locked` (too many wrong codes on this channel), and
+ * `rate-limited` (too many attempts from this IP+identity within a short window).
  */
 export function mfaErrorKey(error: string | null | undefined): MfaErrorKey {
   if (!error) return 'generic';
@@ -361,6 +363,7 @@ export function mfaErrorKey(error: string | null | undefined): MfaErrorKey {
   if (e.includes('no-channel')) return 'noChannel';
   if (e.includes('delivery')) return 'deliveryFailed';
   if (e.includes('channel-locked')) return 'channelLocked';
+  if (e.includes('rate-limited') || e.includes('rate_limited')) return 'rateLimited';
   if (e.includes('invalid')) return 'invalidCode';
   return 'generic';
 }
