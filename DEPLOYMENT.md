@@ -2,6 +2,25 @@
 
 This guide is for the human deploying vecini.online. It covers Supabase, Netlify, and the Telegram bot. Estimated time: 30-45 minutes if everything goes smoothly.
 
+> ## Production is TWO Netlify sites — deploy both
+>
+> "Deploy to prod" means deploying **two separate Netlify sites from this one repo**:
+>
+> | Site | Origin | Config file | Build command | Publish dir |
+> |---|---|---|---|---|
+> | Resident/admin app | `vecini.online` | `netlify.toml` (default) | `npm run build` | `dist` |
+> | **Superadmin console (hub)** | `hub.vecini.online` | `netlify-platform.toml` | `npm run build:platform` | `dist-platform` |
+>
+> They are deliberately separate origins (an XSS in the resident app cannot reach a
+> superadmin session token). **Both sites must be set to continuous deploy from `main`**,
+> so a single push refreshes both. If the hub site is *not* connected to continuous
+> deploy (or its auto-publish is off), it silently freezes at its last manual deploy
+> while the resident app keeps shipping — which presents as the console showing stale
+> "Coming soon" sections for features that are actually built and tested.
+>
+> After any prod deploy, verify the hub is current, not just the main app. Full
+> two-site setup + env table: `RUNBOOK-MVP.md` § 3 (Netlify).
+
 ## Prerequisites
 
 - A GitHub account
@@ -174,8 +193,12 @@ Schedule this in a GitHub Action or cron job.
 
 1. Pull latest code, review CHANGELOG.md
 2. Run new migrations: `npx supabase db push`
-3. Push to GitHub → Netlify auto-deploys
-4. Verify with smoke test
+3. Push to GitHub → Netlify auto-deploys **both sites** (resident app + superadmin hub).
+   If the hub site is not wired to continuous deploy from `main`, push alone will not
+   refresh it — trigger that site's deploy explicitly (Netlify dashboard → the
+   `hub.vecini.online` site → Deploys → Trigger deploy → Deploy site).
+4. Verify with smoke test — and open `hub.vecini.online` to confirm the console is
+   current, not just the resident app.
 
 Always test upgrades on a staging Supabase project + Netlify preview before touching production.
 

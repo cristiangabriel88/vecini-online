@@ -26,9 +26,11 @@ import { ImpersonationBanner } from './ImpersonationBanner';
 import { PlatformCommandPalette } from './PlatformCommandPalette';
 
 /**
- * The console sections this shell hosts. Only the overview ships in T93; the rest
- * are the console pages queued as T94-T99 and shown here as upcoming entries so
- * the shell visibly anticipates them without offering dead links.
+ * The console sections this shell hosts. All sections are live (overview T93,
+ * asociatii T94, audit T95, errors T96, usage T97, impersonation T98, messenger
+ * T99, subscriptions T19, team T251, broadcasts T253); every entry routes to a
+ * built page. The `ready` flag and the `planned` ("Coming soon") chip remain so a
+ * future section can be added to the nav before its page exists without a dead link.
  */
 const SECTIONS = [
   { key: 'overview', path: '/consola', icon: LayoutDashboard, ready: true },
