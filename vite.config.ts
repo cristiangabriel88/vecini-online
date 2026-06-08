@@ -19,12 +19,12 @@ function resolveReleaseId(): string {
   }
 }
 
-function cspHeadersPlugin(): Plugin {
+function cspHeadersPlugin(appStage: string | undefined): Plugin {
   return {
     name: 'csp-headers',
     apply: 'build',
     closeBundle() {
-      const content = buildHeadersFileContent(process.env.VITE_SUPABASE_URL);
+      const content = buildHeadersFileContent(process.env.VITE_SUPABASE_URL, appStage);
       writeFileSync(resolve('dist', '_headers'), content, 'utf-8');
     },
   };
@@ -42,7 +42,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       react(),
-      cspHeadersPlugin(),
+      cspHeadersPlugin(env.VITE_APP_STAGE),
       // Emit dist/stats.html treemap on every build; uploaded as a CI artifact (T260).
       visualizer({ filename: 'dist/stats.html', gzipSize: true, open: false }) as Plugin,
       // PWA plugin is always included so `virtual:pwa-register/react` resolves in

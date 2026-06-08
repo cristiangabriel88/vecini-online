@@ -69,6 +69,7 @@ describe('security headers (netlify.toml) (T04)', () => {
 
 describe('buildCsp (T39)', () => {
   const FAKE_URL = 'https://abcxyzproject.supabase.co';
+  const PROD_URL = 'https://zylfndjluunbtudtawzq.supabase.co';
 
   it('uses exact HTTPS + WSS origins when supabaseUrl is provided', () => {
     const csp = buildCsp(FAKE_URL);
@@ -81,6 +82,12 @@ describe('buildCsp (T39)', () => {
   it('does not include any wildcard supabase origin when supabaseUrl is provided', () => {
     const csp = buildCsp(FAKE_URL);
     expect(csp).not.toContain('*.supabase.co');
+  });
+
+  it('falls back to the hosted production Supabase origin when a private Pi URL is used on prod builds', () => {
+    const csp = buildCsp('http://100.92.246.15:54321', 'prod');
+    expect(csp).toMatch(new RegExp(`connect-src[^;]*${PROD_URL.replaceAll('.', '\\.')}`));
+    expect(csp).not.toContain('100.92.246.15');
   });
 
   it('restricts connect-src to self only when no supabaseUrl (demo mode)', () => {

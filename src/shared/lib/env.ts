@@ -1,4 +1,5 @@
 import { parseSecurityEnforcement, type SecurityEnforcement } from '@/features/auth/mfaLogic';
+import { resolveSupabaseUrl } from './supabaseUrl';
 
 /** Deployment stage. PROD = cloud Supabase + Resend. DEV = local Pi Supabase.
  *  DEMO = frontend-only, no backend, offline seed. */
@@ -76,7 +77,7 @@ const appUrl =
 export const isSupabaseConfigured = Boolean(rawUrl && rawKey);
 
 export const env: ClientEnv = {
-  supabaseUrl: rawUrl,
+  supabaseUrl: resolveSupabaseUrl(rawUrl, import.meta.env.VITE_APP_STAGE as string | undefined),
   supabaseAnonKey: rawKey,
   defaultLocale: import.meta.env.VITE_DEFAULT_LOCALE ?? 'ro',
   appUrl,

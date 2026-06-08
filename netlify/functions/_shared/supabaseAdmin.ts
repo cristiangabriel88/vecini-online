@@ -9,6 +9,7 @@
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { assertServerConfig } from './configValidator';
+import { resolveSupabaseUrl } from '../../../src/shared/lib/supabaseUrl';
 
 // Run once per Lambda cold-start. Logs any misconfigured or missing required
 // env vars so they surface in function logs rather than as silent failures.
@@ -18,7 +19,10 @@ if (!process.env.VITEST) {
 
 /** True when the service-role key and Supabase URL are both present. */
 export function isSupabaseAdminConfigured(): boolean {
-  return Boolean(process.env.VITE_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+  return Boolean(
+    resolveSupabaseUrl(process.env.VITE_SUPABASE_URL, process.env.VITE_APP_STAGE) &&
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+  );
 }
 
 let _client: SupabaseClient | null = null;
@@ -30,7 +34,7 @@ let _client: SupabaseClient | null = null;
 export function supabaseAdmin(): SupabaseClient {
   if (_client) return _client;
   _client = createClient(
-    process.env.VITE_SUPABASE_URL ?? '',
+    resolveSupabaseUrl(process.env.VITE_SUPABASE_URL, process.env.VITE_APP_STAGE),
     process.env.SUPABASE_SERVICE_ROLE_KEY ?? '',
     { auth: { persistSession: false, autoRefreshToken: false } },
   );

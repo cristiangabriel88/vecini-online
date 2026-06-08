@@ -1,3 +1,5 @@
+import { resolveSupabaseUrl } from '../src/shared/lib/supabaseUrl';
+
 export const CSP_REPORT_PATH = '/.netlify/functions/csp-report';
 
 /**
@@ -7,12 +9,16 @@ export const CSP_REPORT_PATH = '/.netlify/functions/csp-report';
  * *.supabase.co wildcard so only the real project can receive connections.
  * When absent (demo / no backend) connect-src is restricted to 'self' only.
  */
-export function buildCsp(supabaseUrl: string | undefined): string {
+export function buildCsp(
+  supabaseUrl: string | undefined,
+  appStage?: string | undefined,
+): string {
   let httpOrigin = '';
   let wsOrigin = '';
 
-  if (supabaseUrl) {
-    const origin = new URL(supabaseUrl).origin;
+  const resolvedSupabaseUrl = resolveSupabaseUrl(supabaseUrl, appStage);
+  if (resolvedSupabaseUrl) {
+    const origin = new URL(resolvedSupabaseUrl).origin;
     httpOrigin = ` ${origin}`;
     wsOrigin = ` ${origin.replace(/^https:/, 'wss:')}`;
   }
@@ -38,8 +44,11 @@ export function buildCsp(supabaseUrl: string | undefined): string {
 }
 
 /** Build the full contents of a Netlify _headers file for the dist/ directory. */
-export function buildHeadersFileContent(supabaseUrl: string | undefined): string {
-  const csp = buildCsp(supabaseUrl);
+export function buildHeadersFileContent(
+  supabaseUrl: string | undefined,
+  appStage?: string | undefined,
+): string {
+  const csp = buildCsp(supabaseUrl, appStage);
   const reportTo = JSON.stringify({
     group: 'csp-endpoint',
     max_age: 86400,
