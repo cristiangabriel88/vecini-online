@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { Globe, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, Globe, ShieldCheck } from 'lucide-react';
 import { Atmosphere } from '@/shared/components/Atmosphere';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
@@ -64,6 +64,7 @@ export default function PlatformLoginPage() {
   // against the locally-stored demo TOTP secret.
   const [pendingMfa, setPendingMfa] = useState<'demo' | 'live' | null>(null);
   const [mfaCode, setMfaCode] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const enterDemoConsole = async () => {
     if (await challengeRequired()) {
@@ -199,11 +200,22 @@ export default function PlatformLoginPage() {
             />
             <Input
               label={t('auth.password')}
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              suffix={
+                <button
+                  type="button"
+                  aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="flex items-center cursor-pointer"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              }
             />
             <Button type="submit" className="w-full" loading={loading} disabled={!isValidEmail(email) || !password}>
               {t('platform.login.signIn')}
