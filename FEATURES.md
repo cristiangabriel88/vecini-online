@@ -715,7 +715,11 @@ Status legend (two axes — built, and wired live):
   verifies codes from a standard authenticator app offline; the live path
   delegates challenge/verify to Supabase MFA. Privileged roles are steered to the
   security page until they enrol. Recovery codes are stored only as SHA-256
-  hashes and consumed single-use. Bilingual RO/EN, accessible.
+  hashes and consumed single-use. The login challenge hydrates the factor/channel
+  state before drawing the method picker, and the live path always offers the
+  authenticator option (a live challenge implies a verified factor), so the
+  screen can never render an option-less picker that strands the user (T294).
+  Bilingual RO/EN, accessible.
 - **Files:** `src/features/auth/{mfaLogic,SecurityPage}.tsx/.ts` (+ login
   challenge in `LoginPage.tsx`), `src/shared/store/mfaStore.ts`, enforcement in
   `src/app/AppLayout.tsx`, route `/app/securitate`, `auth.mfa.*` locale keys

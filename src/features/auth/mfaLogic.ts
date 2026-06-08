@@ -15,6 +15,7 @@
  * and recovery codes.
  */
 import type { Role } from '@/shared/types/domain';
+import type { MfaChannel } from './otpChannelLogic';
 
 /** TOTP time step, in seconds (the authenticator-app standard). */
 export const TOTP_PERIOD = 30;
@@ -378,4 +379,27 @@ export type Aal = 'aal1' | 'aal2' | null;
  */
 export function challengeNeeded(current: Aal, next: Aal): boolean {
   return current === 'aal1' && next === 'aal2';
+}
+
+/**
+ * The second-factor channels to offer on a login challenge screen, given the
+ * channels the client believes are enabled (`base`).
+ *
+ * A live challenge is only ever raised when the backend reports a pending native
+ * AAL2 step-up, which by definition means a verified authenticator factor
+ * exists. So on the live path the authenticator (TOTP / recovery-code) option is
+ * guaranteed valid and is always included, even when the client failed to load
+ * its factor list (a fresh login that never hydrated the store). This is what
+ * stops the challenge screen from rendering an option-less picker that strands
+ * the user with nothing but a "back" link. Any delivered channels in `base`
+ * (email / Telegram) are kept as additional options. The demo path passes `base`
+ * through unchanged, since the demo store reports its enrolled channels
+ * accurately.
+ */
+export function challengeChannels(
+  pending: 'demo' | 'live',
+  base: readonly MfaChannel[],
+): MfaChannel[] {
+  if (pending === 'live') return Array.from(new Set<MfaChannel>(['totp', ...base]));
+  return [...base];
 }

@@ -5,6 +5,7 @@ import {
   base32Decode,
   base32Encode,
   buildOtpAuthUri,
+  challengeChannels,
   challengeNeeded,
   consumeRecoveryCode,
   generateRecoveryCodes,
@@ -157,6 +158,25 @@ describe('challengeNeeded', () => {
     expect(challengeNeeded('aal1', 'aal1')).toBe(false);
     expect(challengeNeeded('aal2', 'aal2')).toBe(false);
     expect(challengeNeeded(null, null)).toBe(false);
+  });
+});
+
+describe('challengeChannels', () => {
+  it('always offers the authenticator on the live path, even with no loaded channels', () => {
+    // Regression: a fresh live login that never hydrated the factor list used to
+    // render an option-less picker, trapping the user. TOTP must always appear.
+    expect(challengeChannels('live', [])).toEqual(['totp']);
+  });
+
+  it('keeps loaded delivered channels alongside the authenticator and dedupes', () => {
+    expect(challengeChannels('live', ['totp', 'email'])).toEqual(['totp', 'email']);
+    expect(challengeChannels('live', ['email', 'telegram'])).toEqual(['totp', 'email', 'telegram']);
+  });
+
+  it('passes the demo path through unchanged (no forced authenticator)', () => {
+    expect(challengeChannels('demo', [])).toEqual([]);
+    expect(challengeChannels('demo', ['email'])).toEqual(['email']);
+    expect(challengeChannels('demo', ['totp', 'telegram'])).toEqual(['totp', 'telegram']);
   });
 });
 

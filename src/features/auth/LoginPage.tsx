@@ -15,7 +15,7 @@ import { useAuthStore } from '@/shared/store/authStore';
 import { useMfaStore } from '@/shared/store/mfaStore';
 import { useThemeStore } from '@/shared/store/themeStore';
 import { isSupabaseConfigured } from '@/shared/lib/supabase';
-import { mfaErrorKey } from './mfaLogic';
+import { challengeChannels, mfaErrorKey } from './mfaLogic';
 import { type AuthMode, canSubmit, isValidEmail, mapAuthError } from './authLogic';
 import {
   COOLDOWN_MS,
@@ -113,6 +113,8 @@ export default function LoginPage() {
   const challengeRequired = useMfaStore((s) => s.challengeRequired);
   const verifyChallenge = useMfaStore((s) => s.verifyChallenge);
   const enabledChannels = useMfaStore((s) => s.enabledChannels);
+  const loadMfa = useMfaStore((s) => s.load);
+  const loadChannels = useMfaStore((s) => s.loadChannels);
   const requestOtp = useMfaStore((s) => s.requestOtp);
   const verifyOtp = useMfaStore((s) => s.verifyOtp);
   const setPendingDemoRole = useMfaStore((s) => s.setPendingDemoRole);
@@ -205,12 +207,20 @@ export default function LoginPage() {
     if (remaining > 0) startResetTimer(remaining);
   }, [mode, email, startResetTimer]);
 
+  // The channels offered on the challenge screen. The TOTP-always-present
+  // guarantee for the live path (so the picker is never option-less) lives in
+  // the pure, unit-tested challengeChannels() helper.
+  const challengeChannelsFor = useCallback(
+    (pending: 'demo' | 'live'): MfaChannel[] => challengeChannels(pending, enabledChannels()),
+    [enabledChannels],
+  );
+
   // When the channel picker is shown, auto-select the channel if only one is available.
   useEffect(() => {
     if (!pendingMfa || selectedChannel !== null) return;
-    const channels = enabledChannels();
+    const channels = challengeChannelsFor(pendingMfa);
     if (channels.length === 1) setSelectedChannel(channels[0]);
-  }, [pendingMfa, selectedChannel, enabledChannels]);
+  }, [pendingMfa, selectedChannel, challengeChannelsFor]);
 
   const values = { email, password, confirmPassword };
   // Sign-up surfaces the full strength/breach policy via a live meter; sign-in
@@ -258,8 +268,21 @@ export default function LoginPage() {
           toast.error(t(`auth.err.${mapAuthError(error)}`));
           return;
         }
-        if (await challengeRequired()) setPendingMfa('live');
-        else navigate('/app');
+        if (await challengeRequired()) {
+          // Hydrate the real factor/channel state before drawing the picker.
+          // Without this the challenge screen reads the store's empty defaults
+          // (`enrolled` false, no live channels) and renders an option-less
+          // picker that traps the user. load() resolves the enrolled TOTP flag,
+          // loadChannels() the delivered email/Telegram channels.
+          await Promise.all([loadMfa(), loadChannels()]);
+          setPendingMfa('live');
+        } else {
+          // No second factor owed. A privileged but not-yet-enrolled user is
+          // steered to the security page by useMfaEnforcement once inside the
+          // shell, so first-time admins are guided to set up 2FA rather than
+          // stranded here.
+          navigate('/app');
+        }
       } else if (mode === 'signUp') {
         const { error, needsVerification } = await signUp(email, password);
         if (error) {
@@ -492,7 +515,7 @@ export default function LoginPage() {
                 <p className="text-center text-xs font-medium uppercase tracking-wide text-muted">
                   {t('auth.mfa.channels.choosePicker')}
                 </p>
-                {enabledChannels().map((ch) => (
+                {challengeChannelsFor(pendingMfa).map((ch) => (
                   <button
                     key={ch}
                     type="button"
@@ -611,7 +634,7 @@ export default function LoginPage() {
             )}
 
             {/* "Use a different channel" back link when a channel is already selected. */}
-            {selectedChannel && enabledChannels().length > 1 && (
+            {selectedChannel && challengeChannelsFor(pendingMfa).length > 1 && (
               <button
                 type="button"
                 className="auth-link block w-full text-center text-sm"

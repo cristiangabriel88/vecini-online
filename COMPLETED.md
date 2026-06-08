@@ -4,6 +4,14 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T294 ✅ 2026-06-08 -- Fix: login 2FA challenge could render an option-less picker (admin locked out)
+- bug: on PROD, an admin whose account has a verified TOTP factor server-side hit the "Verificare în doi pași" screen with the "Alege cum primești codul" heading but ZERO selectable options -- only "Înapoi la autentificare" worked, an unbreakable loop. Root cause: `LoginPage` set `pendingMfa='live'` straight after `challengeRequired()` without ever hydrating the MFA store, so `enabledChannels()` read its empty defaults (`enrolled=false`, no `liveEnabledChannels`) and the picker mapped an empty array.
+- modified: `src/features/auth/LoginPage.tsx` -- wired `load`/`loadChannels` selectors; the live sign-in branch now `await Promise.all([loadMfa(), loadChannels()])` before showing the challenge so the picker reflects real server state; the no-factor branch documents that `useMfaEnforcement` steers the user to setup
+- new (safety net): `challengeChannels(pending, base)` pure helper in `src/features/auth/mfaLogic.ts` -- a live challenge is only ever raised on a pending native AAL2 step-up (a verified TOTP factor by definition), so the authenticator (TOTP/recovery) option is ALWAYS included on the live path even if a load call failed; demo path passes through unchanged. `LoginPage` routes its auto-select effect, picker map, and change-channel guard through this helper.
+- new tests: `tests/unit/mfaLogic.test.ts` -- `challengeChannels` block (live always offers totp incl. with empty base; dedupes loaded channels; demo unchanged)
+- both real situations covered: factor exists -> authenticator/recovery field always reachable (recovery codes cover the lost-phone case); no factor -> `mfaEnforcementRedirect` already routes a privileged, not-enrolled user to `/app/securitate` to set up 2FA
+- verified: lint + typecheck + 3480 tests + build + build:pi + build:demo all green
+
 ### T291 ✅ 2026-06-07 -- Direct tests for security-critical, currently-uncovered code paths
 - new: `tests/unit/recoveryVerifyApi.test.ts` -- 15 tests: session guard (null session + empty access_token both block before fetch), correct Authorization header (Bearer from server session), all server error response paths (JSON error code verbatim, missing code -> 'verify-failed', unparseable body -> 'verify-failed'), network throw -> 'network-error'
 - new: `tests/unit/inviteWriteApi.test.ts` -- 22 tests: `inv-` prefix stripped from id before DB insert, `ap-` prefix stripped from apartmentId FK, SHA-256 hash stored (not plaintext, 64-char hex, deterministic, different inputs produce different hashes), DB error code surfaced verbatim, full column mapping verified (asociatie_id, single_use, created_at ISO, kind='resident_invite', expires_at null/ISO)

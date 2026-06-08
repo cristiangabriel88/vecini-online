@@ -4,10 +4,10 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 
 ## 0. Current status
 
-- date: 2026-06-07
-- last_task: T291 Direct tests for security-critical uncovered code paths -- 6 new test files (recoveryVerifyApi, inviteWriteApi, consentStore, breachStore, functionSecurityContracts, functionHandlerGates); 144 new tests (144 written + existing 3333 = 3477 total); netlify/functions added to coverage denominator; vite.config.ts coverage include expanded; 332 test files / 3477 tests; all 3 builds green
+- date: 2026-06-08
+- last_task: T294 Fix login 2FA challenge rendering an option-less picker (admin locked out on PROD) -- LoginPage now hydrates the MFA store (load + loadChannels) before showing the challenge; new pure `challengeChannels()` helper guarantees the authenticator option is always offered on the live path (a live challenge implies a verified factor); 3 new helper tests; no-factor users still routed to setup by mfaEnforcementRedirect; 332 test files / 3480 tests; all 3 builds green
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 332 test files / 3477 tests
+- counts: 332 test files / 3480 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task. DEV now matches PROD exactly (no role switcher; switcher is DEMO-only)
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
 - next: queue exhausted -- all Group A-H tasks complete; overnight script will audit+replenish
