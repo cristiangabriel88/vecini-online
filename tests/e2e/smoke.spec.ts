@@ -642,6 +642,17 @@ test('T06: resident files an erasure request and an admin actions it', async ({ 
   await expect(page.locator('main').getByText('Finalizată').first()).toBeVisible();
 });
 
+test('T06-export: resident downloads personal data (subject-access export)', async ({ page }) => {
+  await enterDemo(page);
+  await page.goto('/app/datele-mele');
+  await expect(page.getByRole('heading', { name: 'Datele mele personale' })).toBeVisible();
+  // Download JSON copy; logExport() immediately auto-completes the request.
+  await page.getByRole('button', { name: /Descarcă JSON/i }).click();
+  await expect(page.getByText('Copia datelor tale a fost descărcată')).toBeVisible();
+  // The completed request appears in the "Cererile mele" history section.
+  await expect(page.locator('main').getByText('Export de date').first()).toBeVisible();
+});
+
 test('T11 (F66): resident edits their profile and adds a custom field', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/profil');

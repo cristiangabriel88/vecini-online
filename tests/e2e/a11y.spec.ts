@@ -71,4 +71,64 @@ test.describe('a11y — axe serious/critical gate', () => {
     const v = await scanForSerious(page);
     expect(v, describe(v)).toHaveLength(0);
   });
+
+  test('AGA page (governance, complex layout)', async ({ page }) => {
+    await enterDemo(page);
+    await page.evaluate(() => {
+      localStorage.setItem('iv.demo.role', 'proprietar');
+      const raw = localStorage.getItem('vecini.welcome');
+      const data = raw
+        ? (JSON.parse(raw) as { state: { seenByUser: Record<string, string> }; version: number })
+        : { state: { seenByUser: {} }, version: 0 };
+      data.state.seenByUser['u-res'] = new Date().toISOString();
+      localStorage.setItem('vecini.welcome', JSON.stringify(data));
+    });
+    await page.goto('/app/aga');
+    await expect(page.getByRole('heading', { name: /AGA digitală/i })).toBeVisible();
+    const v = await scanForSerious(page);
+    expect(v, describe(v)).toHaveLength(0);
+  });
+
+  test('my data page (GDPR subject-access)', async ({ page }) => {
+    await enterDemo(page);
+    await page.goto('/app/datele-mele');
+    await expect(page.getByRole('heading', { name: /Datele mele personale/i })).toBeVisible();
+    const v = await scanForSerious(page);
+    expect(v, describe(v)).toHaveLength(0);
+  });
+
+  test('profile page', async ({ page }) => {
+    await enterDemo(page);
+    await page.goto('/app/profil');
+    await expect(page.getByRole('heading', { name: /Profil/i })).toBeVisible();
+    const v = await scanForSerious(page);
+    expect(v, describe(v)).toHaveLength(0);
+  });
+
+  test('discussions page', async ({ page }) => {
+    await enterDemo(page);
+    await page.goto('/app/discutii');
+    await expect(page.getByRole('heading', { name: /Discuții/i })).toBeVisible();
+    const v = await scanForSerious(page);
+    expect(v, describe(v)).toHaveLength(0);
+  });
+
+  test('admin features page', async ({ page }) => {
+    await enterDemo(page);
+    await page.goto('/app/admin/functionalitati');
+    await expect(page.getByRole('heading', { name: /Funcționalități/i })).toBeVisible();
+    const v = await scanForSerious(page);
+    expect(v, describe(v)).toHaveLength(0);
+  });
+
+  // Color-contrast improvements are tracked as a design-token task; the rule is
+  // disabled in all tests above until the palette is updated. This fixme test
+  // makes the tracked item explicit: once the palette lands it will start
+  // passing, at which point the disableRules calls above can be removed.
+  test.fixme('color-contrast gate (design-token task, not yet resolved)', async ({ page }) => {
+    await enterDemo(page);
+    const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
+    const vs = results.violations.filter((v) => v.id === 'color-contrast');
+    expect(vs, describe(vs)).toHaveLength(0);
+  });
 });

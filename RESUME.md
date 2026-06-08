@@ -5,7 +5,7 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-08
-- last_task: T294 Fix login 2FA challenge rendering an option-less picker (admin locked out on PROD) -- LoginPage now hydrates the MFA store (load + loadChannels) before showing the challenge; new pure `challengeChannels()` helper guarantees the authenticator option is always offered on the live path (a live challenge implies a verified factor); 3 new helper tests; no-factor users still routed to setup by mfaEnforcementRedirect; 332 test files / 3480 tests; all 3 builds green
+- last_task: T292 E2E for required flows with no prior spec -- new aga.spec.ts (full AGA lifecycle: convocare + agenda + RSVP + open + vote + quorum + close + PV); GDPR data-export test added to smoke.spec.ts; a11y.spec.ts widened from 5 to 10 axe surfaces + color-contrast fixme; 332 test files / 3480 tests; all 3 builds green
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
 - counts: 332 test files / 3480 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task. DEV now matches PROD exactly (no role switcher; switcher is DEMO-only)
