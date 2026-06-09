@@ -539,6 +539,8 @@
     "schedule": "Schedule",
     "scheduleLabel": "Schedule for later (optional)",
     "scheduleHint": "Leave empty to publish now.",
+    "scheduleTimeLabel": "Time (optional)",
+    "clearSchedule": "Clear schedule",
     "scheduledBadge": "Scheduled",
     "scheduledFor": "Scheduled for {{date}}",
     "attachmentsLabel": "Attachments (optional)",

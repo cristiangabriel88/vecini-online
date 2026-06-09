@@ -11,6 +11,7 @@ import { ErrorState } from '@/shared/components/ErrorState';
 import { Modal } from '@/shared/components/Modal';
 import { Input, Textarea } from '@/shared/components/Input';
 import { Select } from '@/shared/components/Select';
+import { DatePicker } from '@/shared/components/DatePicker';
 import { formatDateTime } from '@/shared/lib/format';
 import { sanitizeHtml } from '@/shared/lib/sanitize';
 import { isSupabaseConfigured } from '@/shared/lib/supabase';
@@ -81,7 +82,8 @@ function AnnouncementComposeModal({ open, onClose, asociatieId, authorUserId, ed
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [category, setCategory] = useState<AnnouncementCategory>('informativ');
-  const [schedule, setSchedule] = useState('');
+  const [scheduleDate, setScheduleDate] = useState('');
+  const [scheduleTime, setScheduleTime] = useState('');
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -94,16 +96,20 @@ function AnnouncementComposeModal({ open, onClose, asociatieId, authorUserId, ed
       setTitle(editTarget.title);
       setBody(editTarget.body_html.replace(/^<p>/, '').replace(/<\/p>$/, ''));
       setCategory(editTarget.category);
-      setSchedule(
-        editTarget.scheduled_at
-          ? new Date(editTarget.scheduled_at).toISOString().slice(0, 16)
-          : '',
-      );
+      if (editTarget.scheduled_at) {
+        const iso = new Date(editTarget.scheduled_at).toISOString().slice(0, 16);
+        setScheduleDate(iso.slice(0, 10));
+        setScheduleTime(iso.slice(11));
+      } else {
+        setScheduleDate('');
+        setScheduleTime('');
+      }
     } else {
       setTitle('');
       setBody('');
       setCategory('informativ');
-      setSchedule('');
+      setScheduleDate('');
+      setScheduleTime('');
     }
     setPendingFiles([]);
     setFileError(null);
@@ -113,7 +119,8 @@ function AnnouncementComposeModal({ open, onClose, asociatieId, authorUserId, ed
     setTitle('');
     setBody('');
     setCategory('informativ');
-    setSchedule('');
+    setScheduleDate('');
+    setScheduleTime('');
     setPendingFiles([]);
     setFileError(null);
     writeRetry.clearError();
@@ -167,7 +174,9 @@ function AnnouncementComposeModal({ open, onClose, asociatieId, authorUserId, ed
         handleClose();
         return;
       }
-      const scheduledIso = schedule ? new Date(schedule).toISOString() : null;
+      const scheduledIso = scheduleDate
+        ? new Date(`${scheduleDate}T${scheduleTime || '00:00'}:00`).toISOString()
+        : null;
       let attachments: AnnouncementAttachment[] = [];
       if (isSupabaseConfigured && pendingFiles.length) {
         const uploaded = await uploadAnnouncementAttachments(
@@ -232,7 +241,7 @@ function AnnouncementComposeModal({ open, onClose, asociatieId, authorUserId, ed
               ? t('announcements.uploading')
               : editTarget
                 ? t('common.save')
-                : schedule
+                : scheduleDate
                   ? t('announcements.schedule')
                   : t('common.publish')}
           </Button>
@@ -260,13 +269,33 @@ function AnnouncementComposeModal({ open, onClose, asociatieId, authorUserId, ed
           value={body}
           onChange={(e) => setBody(e.target.value)}
         />
-        <Input
-          type="datetime-local"
+        <DatePicker
           label={t('announcements.scheduleLabel')}
-          hint={t('announcements.scheduleHint')}
-          value={schedule}
-          onChange={(e) => setSchedule(e.target.value)}
+          hint={scheduleDate ? undefined : t('announcements.scheduleHint')}
+          value={scheduleDate}
+          onChange={setScheduleDate}
         />
+        {scheduleDate && (
+          <div className="flex items-end gap-3">
+            <div className="flex-1">
+              <Input
+                type="time"
+                label={t('announcements.scheduleTimeLabel')}
+                value={scheduleTime}
+                onChange={(e) => setScheduleTime(e.target.value)}
+              />
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => { setScheduleDate(''); setScheduleTime(''); }}
+              aria-label={t('announcements.clearSchedule')}
+            >
+              <X className="h-4 w-4" />
+              {t('announcements.clearSchedule')}
+            </Button>
+          </div>
+        )}
         <div>
           <p className="mb-1.5 text-sm font-medium">{t('announcements.attachmentsLabel')}</p>
           <input

@@ -539,6 +539,8 @@
     "schedule": "Programează",
     "scheduleLabel": "Programează pentru mai târziu (opțional)",
     "scheduleHint": "Lasă gol pentru publicare imediată.",
+    "scheduleTimeLabel": "Ora (opțional)",
+    "clearSchedule": "Anulează programarea",
     "scheduledBadge": "Programat",
     "scheduledFor": "Programat pentru {{date}}",
     "attachmentsLabel": "Atașamente (opțional)",
