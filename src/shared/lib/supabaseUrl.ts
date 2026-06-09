@@ -32,6 +32,11 @@ function isPrivateSupabaseCandidate(rawUrl: string): boolean {
   }
 }
 
+function isPublicRuntimeHost(hostname: string | undefined): boolean {
+  if (!hostname) return false;
+  return !isLocalOrPrivateHost(hostname);
+}
+
 /**
  * Resolve the Supabase URL for a deployment. Production-like builds must not
  * point at private Pi/local addresses; if they do, fall back to the hosted
@@ -40,9 +45,17 @@ function isPrivateSupabaseCandidate(rawUrl: string): boolean {
 export function resolveSupabaseUrl(
   rawUrl: string | undefined,
   appStage?: string | undefined,
+  runtimeHostname?: string | undefined,
 ): string {
   const trimmed = rawUrl?.trim() ?? '';
   if (!trimmed) return '';
+
+  // Public deployments must never talk to a private Pi/local Supabase URL.
+  // If the build stage is misconfigured, the public runtime host still forces
+  // the hosted production project so login stays reachable.
+  if (isPrivateSupabaseCandidate(trimmed) && isPublicRuntimeHost(runtimeHostname)) {
+    return PRODUCTION_SUPABASE_URL;
+  }
 
   const stage = appStage?.trim();
   if (stage === 'dev' || stage === 'demo') return trimmed;

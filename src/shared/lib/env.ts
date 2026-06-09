@@ -77,7 +77,11 @@ const appUrl =
 export const isSupabaseConfigured = Boolean(rawUrl && rawKey);
 
 export const env: ClientEnv = {
-  supabaseUrl: resolveSupabaseUrl(rawUrl, import.meta.env.VITE_APP_STAGE as string | undefined),
+  supabaseUrl: resolveSupabaseUrl(
+    rawUrl,
+    import.meta.env.VITE_APP_STAGE as string | undefined,
+    typeof window !== 'undefined' ? window.location.hostname : undefined,
+  ),
   supabaseAnonKey: rawKey,
   defaultLocale: import.meta.env.VITE_DEFAULT_LOCALE ?? 'ro',
   appUrl,
