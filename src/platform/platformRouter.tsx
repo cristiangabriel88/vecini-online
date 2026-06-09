@@ -18,6 +18,7 @@ const PlatformMessengerPage = lazy(() => import('./PlatformMessengerPage'));
 const PlatformSubscriptionsPage = lazy(() => import('./PlatformSubscriptionsPage'));
 const PlatformTeamPage = lazy(() => import('./PlatformTeamPage'));
 const PlatformBroadcastsPage = lazy(() => import('./PlatformBroadcastsPage'));
+const PlatformSupportPage = lazy(() => import('./PlatformSupportPage'));
 
 function S({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<RouteFallback />}>{children}</Suspense>;
@@ -45,6 +46,7 @@ export const platformRouter = createBrowserRouter([
       { path: 'abonamente', element: <S><PlatformSubscriptionsPage /></S> },
       { path: 'echipa', element: <S><PlatformTeamPage /></S> },
       { path: 'anunturi-platforma', element: <S><PlatformBroadcastsPage /></S> },
+      { path: 'suport', element: <S><PlatformSupportPage /></S> },
     ],
   },
   // Any unknown path returns to the overview rather than a dead end.

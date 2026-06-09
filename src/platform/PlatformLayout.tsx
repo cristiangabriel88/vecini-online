@@ -6,6 +6,7 @@ import {
   CreditCard,
   Globe,
   LayoutDashboard,
+  LifeBuoy,
   LogOut,
   Megaphone,
   MessagesSquare,
@@ -43,6 +44,7 @@ const SECTIONS = [
   { key: 'subscriptions', path: '/consola/abonamente', icon: CreditCard, ready: true },
   { key: 'team', path: '/consola/echipa', icon: Users, ready: true },
   { key: 'broadcasts', path: '/consola/anunturi-platforma', icon: Megaphone, ready: true },
+  { key: 'support', path: '/consola/suport', icon: LifeBuoy, ready: true },
 ] as const;
 
 function Header({ onSearchOpen }: { onSearchOpen: () => void }) {

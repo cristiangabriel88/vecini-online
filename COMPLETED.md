@@ -4,6 +4,19 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T297 ✅ 2026-06-09 -- Platform-admin "reset a user's 2FA" support action (total-lockout fallback)
+- new: `netlify/functions/platform-reset-user-mfa.ts` -- POST-only service-role function: verifies bearer token, re-checks `platform_admins`, rate-limits (5/hr per operator), looks up user by exact email via GoTrue admin REST API, deletes all TOTP factors via `auth.admin.mfa.deleteFactor`, then deletes `mfa_channels`, `mfa_recovery_codes`, and `session_elevations` rows by user_id, audits via `appendAudit` with `platform.mfa_reset` action and masked email; returns 401/403/404/429/502/200.
+- new: `src/platform/platformSupportStore.ts` -- Zustand store with `resetUserMfa(email)` action; demo mode simulates success; live mode posts to the Netlify function with the operator's bearer token.
+- new: `src/platform/PlatformSupportPage.tsx` -- bilingual RO/EN support-actions page hosted at `/consola/suport`; two-step flow (email input + confirmation card showing exactly what will be cleared) before committing; shows success/error feedback; warning card explains last-resort intent.
+- new: `tests/unit/platformMfaReset.test.ts` -- 19 tests: source security-contract checks (405/401/403/429/404/maskEmail/appendAudit/deleteFactor/mfa_channels/mfa_recovery_codes/session_elevations), rate-limiter window logic (allow/reject/expire/independent buckets), and AUDIT_ACTIONS registration.
+- modified: `netlify/functions/_shared/rateLimiter.ts` -- added `checkMfaResetRateLimit` (5/60min per operator).
+- modified: `src/features/audit/auditLogic.ts` -- added `'platform.mfa_reset'` to `AUDIT_ACTIONS`.
+- modified: `src/features/audit/AuditLogPage.tsx` + `src/platform/PlatformAuditPage.tsx` -- added tone `'warning'` for the new action.
+- modified: `src/platform/platformRouter.tsx` -- added `/consola/suport` route.
+- modified: `src/platform/PlatformLayout.tsx` -- added `support` nav entry with `LifeBuoy` icon.
+- modified: `src/shared/locales/ro.json` + `en.json` -- added `platform.sections.support` nav label and full `platform.support.mfaReset.*` key tree (bilingual).
+- verified: lint + typecheck + 3517 unit tests + build + build:pi + build:demo all green.
+
 ### T296 ✅ 2026-06-09 -- E2E for self-service 2FA recovery + email-method enable (T295 follow-up)
 - new: `tests/e2e/mfa-recovery.spec.ts` -- two flows: (T296a) enrol TOTP, sign out, sign in via form, open "Lost access to your authenticator?" disclosure, request account-email code (demo shows it on screen), verify code, reach app, click "Reset authenticator", assert fresh enrolment form shows; (T296b) enable email channel via setup-confirm code in Security, sign out, sign in via form, email challenge auto-selected, request OTP, verify code, reach app.
 - both tests skip gracefully in the demo build (no login page); use `[aria-label="Cod de unică folosință demo"]` to read the on-screen demo code; `signOutViaMenu` helper opens the UserMenu and clicks "Deconectare".

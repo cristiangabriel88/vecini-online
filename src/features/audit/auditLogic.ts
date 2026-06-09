@@ -73,6 +73,7 @@ export const AUDIT_ACTIONS = [
   'feature.override_disabled',
   'auth.rate_limited',
   'auth.locked_out',
+  'platform.mfa_reset',
 ] as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];

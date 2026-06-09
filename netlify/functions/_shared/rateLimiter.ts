@@ -138,3 +138,14 @@ const MFA_REQUEST_MAX = 5;
 export function checkMfaRequestRateLimit(key: string, now: number = Date.now()): boolean {
   return checkSlidingWindow(_mfaRequestStore, key, now, MFA_REQUEST_WINDOW_MS, MFA_REQUEST_MAX);
 }
+
+// Per-operator store for platform-reset-user-mfa (5 resets / 60 min).
+const _mfaResetStore = new Map<string, Entry>();
+const MFA_RESET_WINDOW_MS = 60 * 60_000;
+const MFA_RESET_MAX = 5;
+
+/** Record one platform MFA-reset action for `operatorUserId` and return whether
+ *  it is within the limit (5 per 60 min). Prevents bulk-reset abuse. */
+export function checkMfaResetRateLimit(operatorUserId: string, now: number = Date.now()): boolean {
+  return checkSlidingWindow(_mfaResetStore, operatorUserId, now, MFA_RESET_WINDOW_MS, MFA_RESET_MAX);
+}

@@ -5,9 +5,9 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-09
-- last_task: T296 E2E for self-service 2FA recovery + email-method enable -- new tests/e2e/mfa-recovery.spec.ts with two flows: (T296a) TOTP enrol -> sign out -> form sign-in -> lost-authenticator recovery via email demo code -> reach app -> reset authenticator; (T296b) email channel enable -> sign out -> form sign-in -> email challenge auto-selected -> demo code -> reach app; all 3 builds green
+- last_task: T297 Platform-admin "reset a user's 2FA" support action -- new platform-reset-user-mfa.ts function (bearer+platform_admins gate, rate-limited 5/hr, GoTrue user lookup, clears TOTP factors + mfa_channels + mfa_recovery_codes + session_elevations, appendAudit platform.mfa_reset); new PlatformSupportPage + platformSupportStore; bilingual RO/EN, two-step UI with confirmation; 19 new unit tests; all 3 builds green
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 333 test files / 3498 tests
+- counts: 334 test files / 3517 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task. DEV now matches PROD exactly (no role switcher; switcher is DEMO-only)
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
 - next: queue exhausted -- all Group A-H tasks complete; overnight script will audit+replenish

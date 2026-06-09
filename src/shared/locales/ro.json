@@ -3131,6 +3131,10 @@
       "broadcasts": {
         "title": "Anunțuri platformă",
         "desc": "Publică anunțuri de mentenanță sau incidente la nivelul întregii platforme, vizibile tuturor chiriașilor."
+      },
+      "support": {
+        "title": "Acțiuni suport",
+        "desc": "Acțiuni de asistență rezervate superadminilor: resetare 2FA pentru utilizatori blocați total."
       }
     },
     "asociatii": {
@@ -3548,6 +3552,35 @@
       "err": {
         "required": "Câmp obligatoriu",
         "tooShort": "Prea scurt (minimum 4 caractere)"
+      }
+    },
+    "support": {
+      "title": "Acțiuni suport",
+      "subtitle": "Acțiuni de asistență rezervate superadminilor pentru cazuri de urgență.",
+      "mfaReset": {
+        "sectionTitle": "Resetare 2FA utilizator",
+        "warningTitle": "Utilizare exclusiv ca ultimă soluție",
+        "warningBody": "Această acțiune șterge toți factorii TOTP, canalele email/Telegram, codurile de recuperare și sesiunile elevate ale utilizatorului. Utilizează-o doar dacă utilizatorul și-a pierdut atât autentificatorul, cât și accesul la email-ul de recuperare.",
+        "emailLabel": "Adresa de email a utilizatorului",
+        "emailPlaceholder": "utilizator@exemplu.ro",
+        "emailHint": "Introduce adresa de email exactă asociată contului blocat.",
+        "submitBtn": "Resetează 2FA",
+        "confirmTitle": "Confirmi resetarea 2FA?",
+        "confirmBody": "Vei șterge toți factorii 2FA pentru {{email}}.",
+        "confirmClearsNote": "Se șterg: factori TOTP, canale email/Telegram, coduri de recuperare și sesiuni elevate active.",
+        "confirmBtn": "Da, resetează",
+        "cancelBtn": "Anulează",
+        "successMsg": "2FA resetat cu succes. Utilizatorul poate reîncărca pagina și se poate autentifica cu parola, apoi să re-înroleze 2FA.",
+        "resetAgain": "Resetează alt utilizator",
+        "err": {
+          "invalidEmail": "Adresă de email invalidă.",
+          "not-found": "Nu există niciun cont cu această adresă de email.",
+          "rate-limited": "Prea multe resetări. Încearcă din nou peste o oră.",
+          "unauthorized": "Sesiunea a expirat. Autentifică-te din nou.",
+          "forbidden": "Acces refuzat. Numai superadminii platformei pot efectua această acțiune.",
+          "backend-not-configured": "Backend-ul nu este configurat.",
+          "failed": "Resetarea a eșuat. Încearcă din nou."
+        }
       }
     }
   },

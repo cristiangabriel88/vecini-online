@@ -82,6 +82,7 @@ const ACTION_TONE: Record<AuditAction, 'success' | 'danger' | 'warning' | 'neutr
   'feature.override_disabled': 'warning',
   'auth.rate_limited': 'warning',
   'auth.locked_out': 'danger',
+  'platform.mfa_reset': 'warning',
 };
 
 function downloadText(filename: string, content: string, mime: string): void {

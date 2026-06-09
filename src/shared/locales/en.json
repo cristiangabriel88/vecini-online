@@ -3131,6 +3131,10 @@
       "broadcasts": {
         "title": "Broadcasts",
         "desc": "Publish platform-wide maintenance notices and incident alerts to all tenants."
+      },
+      "support": {
+        "title": "Support actions",
+        "desc": "Superadmin-only support actions: 2FA reset for totally locked-out users."
       }
     },
     "asociatii": {
@@ -3548,6 +3552,35 @@
       "err": {
         "required": "Required field",
         "tooShort": "Too short (minimum 4 characters)"
+      }
+    },
+    "support": {
+      "title": "Support actions",
+      "subtitle": "Superadmin-only emergency support actions.",
+      "mfaReset": {
+        "sectionTitle": "Reset user 2FA",
+        "warningTitle": "Use only as a last resort",
+        "warningBody": "This action deletes all TOTP factors, email/Telegram channels, recovery codes, and active elevated sessions for the user. Use it only if the user has lost both their authenticator and access to their recovery email.",
+        "emailLabel": "User email address",
+        "emailPlaceholder": "user@example.com",
+        "emailHint": "Enter the exact email address associated with the locked-out account.",
+        "submitBtn": "Reset 2FA",
+        "confirmTitle": "Confirm 2FA reset?",
+        "confirmBody": "You are about to delete all 2FA factors for {{email}}.",
+        "confirmClearsNote": "Clears: TOTP factors, email/Telegram channels, recovery codes, and active elevated sessions.",
+        "confirmBtn": "Yes, reset",
+        "cancelBtn": "Cancel",
+        "successMsg": "2FA reset successfully. The user can reload the page and sign in with their password, then re-enrol 2FA.",
+        "resetAgain": "Reset another user",
+        "err": {
+          "invalidEmail": "Invalid email address.",
+          "not-found": "No account found with that email address.",
+          "rate-limited": "Too many resets. Try again in an hour.",
+          "unauthorized": "Session expired. Please sign in again.",
+          "forbidden": "Access denied. Only platform superadmins can perform this action.",
+          "backend-not-configured": "Backend is not configured.",
+          "failed": "Reset failed. Please try again."
+        }
       }
     }
   },
