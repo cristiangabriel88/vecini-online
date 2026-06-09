@@ -5,6 +5,7 @@ import { ArrowLeft, CheckCircle, Mail, Send } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
+import { isDev, isDemo } from '@/shared/lib/env';
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import { getStage } from '@/shared/lib/env';
 import {
@@ -45,6 +46,8 @@ export default function PlatformAddAsociatiePage() {
   const [sentTo, setSentTo] = useState<string | null>(null);
   /** Error message surfaced when the live provisioning call fails. */
   const [liveError, setLiveError] = useState<string | null>(null);
+  /** True when we had to fall back to the local demo store because the backend was unavailable. */
+  const [usedLocalFallback, setUsedLocalFallback] = useState(false);
   /**
    * Whether the real invite email was dispatched by the server (live mode only).
    * False when Resend is not configured or the send failed (invite still created).
@@ -67,6 +70,7 @@ export default function PlatformAddAsociatiePage() {
     if (!value) return;
     setSubmitting(true);
     setLiveError(null);
+    setUsedLocalFallback(false);
     try {
       const mode = resolveAddAsociatieMode(isSupabaseConfigured, getStage());
       if (mode === 'unconfigured') {
@@ -98,6 +102,17 @@ export default function PlatformAddAsociatiePage() {
           }),
         });
         if (res.status === 503) {
+          if (isDev() || isDemo()) {
+            // DEV and demo should keep moving even when the privileged live
+            // function is unavailable. Fall back to the local store so the
+            // console stays usable instead of hard-stopping on provisioning.
+            const invite = inviteAdmin(value.adminName, value.adminEmail);
+            markAdminEmailSent(invite.id);
+            setUsedLocalFallback(true);
+            setEmailSentLive(false);
+            setSentTo(value.adminEmail);
+            return;
+          }
           setLiveError(t('platform.addAsociatie.err.notConfigured'));
           return;
         }
@@ -138,6 +153,7 @@ export default function PlatformAddAsociatiePage() {
     setTouched(false);
     setSentTo(null);
     setLiveError(null);
+    setUsedLocalFallback(false);
     setEmailSentLive(false);
   };
 
@@ -146,11 +162,11 @@ export default function PlatformAddAsociatiePage() {
     //  - live + email sent -> sentNoteLive
     //  - live + email not sent -> sentNoteLiveNoEmail (Resend not configured)
     //  - offline/demo -> sentNoteDemo
-    const successNote = isSupabaseConfigured
-      ? emailSentLive
+    const successNote = usedLocalFallback || !isSupabaseConfigured
+      ? t('platform.addAsociatie.sentNoteDemo')
+      : emailSentLive
         ? t('platform.addAsociatie.sentNoteLive')
-        : t('platform.addAsociatie.sentNoteLiveNoEmail')
-      : t('platform.addAsociatie.sentNoteDemo');
+        : t('platform.addAsociatie.sentNoteLiveNoEmail');
 
     return (
       <div className="platform-add-asoc">

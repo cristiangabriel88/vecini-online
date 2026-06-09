@@ -87,8 +87,9 @@ export default function PlatformAsociatiiPage() {
 
   useEffect(() => {
     // Clear any stale fetch error left over from a previous session/visit before
-    // we hydrate. A persisted error must never block this session's list from
-    // rendering; a fresh failure (if any) is re-set by hydrateAsociatiiList.
+    // deciding whether we should hydrate live data. A persisted error must never
+    // block this session's list from rendering, and offline/demo mode should
+    // still show the seeded store instead of surfacing an old live failure.
     setFetchError(null);
     if (!isSupabaseConfigured) return;
     setIsHydrating(true);

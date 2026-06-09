@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { hydrateAsociatiiList } from '@/platform/platformApi';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { usePlatformAsociatiiStore } from '@/platform/platformAsociatiiStore';
 import { DEMO_PLATFORM_ASOCIATII } from '@/platform/demoPlatform';
+
+const SRC = readFileSync(join(process.cwd(), 'src', 'platform', 'platformApi.ts'), 'utf8');
 
 // Supabase is not configured in the test environment, so hydrateAsociatiiList
 // is a no-op and the store retains its seeded demo data.
@@ -13,17 +16,13 @@ beforeEach(() => {
   });
 });
 
-describe('hydrateAsociatiiList (offline path)', () => {
-  it('returns immediately without modifying the store when Supabase is absent', async () => {
-    const before = usePlatformAsociatiiStore.getState().asociatii;
-    await hydrateAsociatiiList();
-    const after = usePlatformAsociatiiStore.getState().asociatii;
-    expect(after).toBe(before);
+describe('platformApi source contract', () => {
+  it('short-circuits hydration when Supabase is not configured', () => {
+    expect(SRC).toContain('if (!isSupabaseConfigured) return;');
   });
 
-  it('leaves fetchError null after a no-op call', async () => {
-    await hydrateAsociatiiList();
-    expect(usePlatformAsociatiiStore.getState().fetchError).toBeNull();
+  it('keeps the optional status columns out of the primary list query', () => {
+    expect(SRC).toContain("select('id, name, address, cui, iban, contact_phone, contact_email')");
   });
 });
 

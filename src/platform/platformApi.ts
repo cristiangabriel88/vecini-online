@@ -91,7 +91,7 @@ export async function hydrateAsociatiiList(): Promise<void> {
     ] = await Promise.all([
       supabase
         .from('asociatii')
-        .select('id, name, address, cui, iban, contact_phone, contact_email, status, status_reason, status_changed_at')
+        .select('id, name, address, cui, iban, contact_phone, contact_email')
         .is('deleted_at', null)
         .order('name'),
       supabase
@@ -117,26 +117,49 @@ export async function hydrateAsociatiiList(): Promise<void> {
       return;
     }
 
+    let statusRows: Array<{
+      id: string;
+      status: string | null;
+      status_reason: string | null;
+      status_changed_at: string | null;
+    }> = [];
+    try {
+      const { data, error } = await supabase
+        .from('asociatii')
+        .select('id, status, status_reason, status_changed_at')
+        .is('deleted_at', null);
+      if (!error) statusRows = (data ?? []) as typeof statusRows;
+    } catch {
+      // Optional lifecycle columns: when an older backend schema does not have
+      // them yet, keep the list usable and fall back to active badges.
+    }
+    const statusById = Object.fromEntries(
+      statusRows.map((row) => [row.id, row]),
+    );
+
     const memberCounts = groupCount((memberRows ?? []) as RowWithAsoc[]);
     const aptCounts = groupCount((aptRows ?? []) as RowWithAsoc[]);
     const lastSignIn = groupLatest((signInRows ?? []) as SignInRow[]);
 
-    const rows: PlatformAsociatieSummary[] = (asocRows ?? []).map((a) => ({
-      id: a.id as string,
-      name: a.name as string,
-      city: '',
-      members: memberCounts[a.id as string] ?? 0,
-      apartments: aptCounts[a.id as string] ?? 0,
-      lastAdminSignInAt: lastSignIn[a.id as string] ?? null,
-      address: (a.address as string | null) ?? undefined,
-      cui: (a.cui as string | null) ?? undefined,
-      iban: (a.iban as string | null) ?? undefined,
-      contactPhone: (a.contact_phone as string | null) ?? undefined,
-      contactEmail: (a.contact_email as string | null) ?? undefined,
-      status: ((a.status as string | null) ?? 'active') as import('./demoPlatform').AsociatieStatus,
-      statusReason: (a.status_reason as string | null) ?? undefined,
-      statusChangedAt: (a.status_changed_at as string | null) ?? undefined,
-    }));
+    const rows: PlatformAsociatieSummary[] = (asocRows ?? []).map((a) => {
+      const statusRow = statusById[a.id as string];
+      return {
+        id: a.id as string,
+        name: a.name as string,
+        city: '',
+        members: memberCounts[a.id as string] ?? 0,
+        apartments: aptCounts[a.id as string] ?? 0,
+        lastAdminSignInAt: lastSignIn[a.id as string] ?? null,
+        address: (a.address as string | null) ?? undefined,
+        cui: (a.cui as string | null) ?? undefined,
+        iban: (a.iban as string | null) ?? undefined,
+        contactPhone: (a.contact_phone as string | null) ?? undefined,
+        contactEmail: (a.contact_email as string | null) ?? undefined,
+        status: ((statusRow?.status as string | null) ?? 'active') as import('./demoPlatform').AsociatieStatus,
+        statusReason: (statusRow?.status_reason as string | null) ?? undefined,
+        statusChangedAt: (statusRow?.status_changed_at as string | null) ?? undefined,
+      };
+    });
 
     usePlatformAsociatiiStore.getState().replaceAsociatii(rows);
   } catch (err) {

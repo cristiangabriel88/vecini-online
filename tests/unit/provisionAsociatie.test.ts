@@ -190,8 +190,11 @@ describe('PlatformAddAsociatiePage live branch (T92)', () => {
     expect(src).toContain('markAdminEmailSent');
   });
 
-  it('surfaces a user-facing error on 503 (backend not configured)', () => {
-    expect(src).toContain('err.notConfigured');
+  it('falls back to the local demo store when the backend is unavailable in DEV/demo', () => {
+    expect(src).toContain('isDev()');
+    expect(src).toContain('isDemo()');
+    expect(src).toContain('setUsedLocalFallback(true)');
+    expect(src).toContain('sentNoteDemo');
   });
 
   it('surfaces a user-facing error on 403 (not superadmin)', () => {
