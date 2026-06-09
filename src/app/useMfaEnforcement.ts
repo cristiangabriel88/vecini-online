@@ -30,11 +30,19 @@ export function useMfaEnforcement(): void {
   const loaded = useMfaStore((s) => s.loaded);
   const enrolled = useMfaStore((s) => s.enrolled);
   const load = useMfaStore((s) => s.load);
+  const loadChannels = useMfaStore((s) => s.loadChannels);
+  const liveEnabledChannels = useMfaStore((s) => s.liveEnabledChannels);
   const challengeRequired = useMfaStore((s) => s.challengeRequired);
+
+  // An email-only second factor reports `enrolled = false` (that flag tracks the
+  // native TOTP factor only), so the gate must also know about delivered
+  // channels to avoid trapping an email-only privileged user (T295).
+  const deliveredFactorEnrolled = Boolean(liveEnabledChannels['email']);
 
   useEffect(() => {
     void load();
-  }, [load]);
+    void loadChannels();
+  }, [load, loadChannels]);
 
   useEffect(() => {
     let active = true;
@@ -50,7 +58,13 @@ export function useMfaEnforcement(): void {
       let app2faSatisfied: boolean | undefined;
       // The AAL probe only matters for strict enforcement; relaxed mode never
       // forces a redirect, so skip the network round-trip entirely.
-      if (enforcement !== 'relaxed' && isSupabaseConfigured && loaded && enrolled && requiresMfa(role)) {
+      if (
+        enforcement !== 'relaxed' &&
+        isSupabaseConfigured &&
+        loaded &&
+        (enrolled || deliveredFactorEnrolled) &&
+        requiresMfa(role)
+      ) {
         // Decode the app_2fa_at claim for the app-managed elevation axis (T143).
         const {
           data: { session },
@@ -68,6 +82,7 @@ export function useMfaEnforcement(): void {
         loaded,
         role,
         enrolled,
+        deliveredFactorEnrolled,
         aalSatisfied,
         app2faSatisfied,
         pathname,
@@ -78,5 +93,5 @@ export function useMfaEnforcement(): void {
     return () => {
       active = false;
     };
-  }, [loaded, enrolled, role, pathname, search, challengeRequired, navigate]);
+  }, [loaded, enrolled, deliveredFactorEnrolled, role, pathname, search, challengeRequired, navigate]);
 }

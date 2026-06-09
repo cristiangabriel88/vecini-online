@@ -293,6 +293,14 @@
       "stepUpTitle": "Confirm your identity to continue",
       "stepUpBody": "This session hasn't passed two-step verification yet. Enter a code to reach the rest of the app.",
       "stepUpDone": "Identity confirmed. You can continue.",
+      "resetAuthenticator": "Reset authenticator",
+      "recovery": {
+        "title": "Lost your authenticator?",
+        "body": "We'll email a one-time code to {{hint}} so you can sign in and set up a new authenticator.",
+        "send": "Email me a code",
+        "lostLink": "Lost access to your authenticator?",
+        "useAuthenticator": "Use my authenticator instead"
+      },
       "err": {
         "invalidCode": "Incorrect code. Please try again.",
         "notEnrolled": "Two-factor authentication is not enabled.",
@@ -330,7 +338,10 @@
         "resend": "Resend code",
         "resendIn": "Resend in {{seconds}}s",
         "resent": "A new code has been sent.",
-        "changeChannel": "Use a different method"
+        "changeChannel": "Use a different method",
+        "emailSetupHint": "Get sign-in codes at your account email.",
+        "setupConfirmBody": "Enter the code we sent to {{hint}} to turn on email codes.",
+        "confirmEnable": "Confirm and enable"
       },
       "confirm2fa": {
         "verifying": "Verifying...",

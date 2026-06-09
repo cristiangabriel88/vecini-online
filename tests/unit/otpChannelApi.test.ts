@@ -124,6 +124,25 @@ describe('requestOtpLive', () => {
     const body = JSON.parse((init as RequestInit).body as string) as Record<string, unknown>;
     expect(body.channel).toBe('email');
   });
+
+  it('omits the recovery flag by default (T295)', async () => {
+    const mockFetch = vi.mocked(fetch);
+    mockFetch.mockResolvedValueOnce(new Response('{"ok":true}', { status: 200 }));
+    await requestOtpLive('email');
+    const [, init] = mockFetch.mock.calls[0];
+    const body = JSON.parse((init as RequestInit).body as string) as Record<string, unknown>;
+    expect(body.recovery).toBeUndefined();
+  });
+
+  it('sends recovery:true when the recovery option is set (T295)', async () => {
+    const mockFetch = vi.mocked(fetch);
+    mockFetch.mockResolvedValueOnce(new Response('{"ok":true}', { status: 200 }));
+    await requestOtpLive('email', { recovery: true });
+    const [, init] = mockFetch.mock.calls[0];
+    const body = JSON.parse((init as RequestInit).body as string) as Record<string, unknown>;
+    expect(body.recovery).toBe(true);
+    expect(body.channel).toBe('email');
+  });
 });
 
 // ── verifyOtpLive ─────────────────────────────────────────────────────────────

@@ -269,6 +269,37 @@ describe('otpResendCooldownMs', () => {
   });
 });
 
+describe('requestRecoveryOtp / verifyRecoveryOtp (lost authenticator, T295)', () => {
+  it('mints a code with no email channel enabled', async () => {
+    // The lockout case: only TOTP was ever set up, the email channel is OFF.
+    expect(useMfaStore.getState().demoEnabledChannels['email']).toBeUndefined();
+    const r = await useMfaStore.getState().requestRecoveryOtp(EPOCH);
+    expect(r.error).toBeNull();
+    expect(r.demoCode).toMatch(/^\d{6}$/);
+    expect(useMfaStore.getState().demoOtpChallenges['email']).toBeDefined();
+  });
+
+  it('verifies the recovery code and lets the user through', async () => {
+    const { demoCode } = await useMfaStore.getState().requestRecoveryOtp(EPOCH);
+    const r = await useMfaStore.getState().verifyRecoveryOtp(demoCode!, EPOCH + 1_000);
+    expect(r.error).toBeNull();
+    expect(r.lockedMs).toBe(0);
+    expect(useMfaStore.getState().demoOtpChallenges['email']?.consumed).toBe(true);
+  });
+
+  it('rejects a wrong recovery code', async () => {
+    await useMfaStore.getState().requestRecoveryOtp(EPOCH);
+    const r = await useMfaStore.getState().verifyRecoveryOtp('000000', EPOCH + 1_000);
+    expect(r.error).toBe('invalid-code');
+  });
+
+  it('rejects an expired recovery code', async () => {
+    const { demoCode } = await useMfaStore.getState().requestRecoveryOtp(EPOCH);
+    const r = await useMfaStore.getState().verifyRecoveryOtp(demoCode!, EPOCH + OTP_TTL_MS + 1);
+    expect(r.error).toBe('expired-code');
+  });
+});
+
 describe('challengeRequired with delivered channels', () => {
   it('returns true when an email channel is enabled (no TOTP)', async () => {
     useMfaStore.setState({ demoSecret: null });

@@ -26,6 +26,9 @@ vi.mock('@/shared/lib/supabase', () => ({
         }),
       },
     },
+    // loadChannels() (T295) reads mfa_channels; an empty result keeps these
+    // tests on the TOTP-only path (no delivered second factor).
+    from: () => ({ select: async () => ({ data: [] }) }),
   },
 }));
 
@@ -95,6 +98,48 @@ describe('mfaEnforcementRedirect (pure decision)', () => {
     expect(mfaEnforcementRedirect(input({ enrolled: false, aalSatisfied: false }))).toBe(
       MFA_SECURITY_PATH,
     );
+  });
+
+  it('treats an email-only second factor as enrolled (T295)', () => {
+    // `enrolled` tracks only the native TOTP factor; a user whose sole second
+    // factor is the email channel reports enrolled=false but must not be steered
+    // to set up an authenticator they deliberately skipped.
+    expect(
+      mfaEnforcementRedirect(input({ enrolled: false, deliveredFactorEnrolled: true })),
+    ).toBeNull();
+    for (const role of ['super_admin', 'admin', 'presedinte', 'comitet', 'cenzor'] as const) {
+      expect(
+        mfaEnforcementRedirect(input({ role, enrolled: false, deliveredFactorEnrolled: true })),
+      ).toBeNull();
+    }
+  });
+
+  it('re-gates an email-only session that has not passed its factor this session (T295)', () => {
+    // Has a delivered factor but neither native AAL2 nor app-2fa satisfied yet.
+    expect(
+      mfaEnforcementRedirect(
+        input({ enrolled: false, deliveredFactorEnrolled: true, aalSatisfied: false }),
+      ),
+    ).toBe(MFA_SECURITY_PATH);
+  });
+
+  it('allows an email-only session once the app-2fa factor is satisfied (T295)', () => {
+    expect(
+      mfaEnforcementRedirect(
+        input({
+          enrolled: false,
+          deliveredFactorEnrolled: true,
+          aalSatisfied: false,
+          app2faSatisfied: true,
+        }),
+      ),
+    ).toBeNull();
+  });
+
+  it('still gates a session with no factor of any kind (T295)', () => {
+    expect(
+      mfaEnforcementRedirect(input({ enrolled: false, deliveredFactorEnrolled: false })),
+    ).toBe(MFA_SECURITY_PATH);
   });
 
   it('does not loop on the security page even when AAL is unsatisfied', () => {

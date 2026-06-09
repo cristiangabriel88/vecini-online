@@ -3,6 +3,15 @@
 Compact, machine-readable log of non-trivial choices. Newest first. Format:
 - choice / why / alternatives rejected (when non-obvious) / blast radius.
 
+## 2026-06-09
+
+### T295: email-code 2FA stands alone + self-service authenticator recovery
+- choice: (1) email-code is now a first-class second factor that satisfies the mandatory-2FA requirement on its own (no TOTP needed); (2) any signed-in (aal1) session can request a one-time code to its own verified account email as a lost-authenticator escape hatch, even when the email channel was never enabled (`recovery` mode on `mfa-otp-request`); (3) enabling email 2FA in Security requires a setup-confirm code; (4) a "Reset authenticator" button drops the old TOTP factor and starts a fresh enrolment.
+- why: a user (the prod owner) enrolled TOTP then deleted the authenticator with no saved recovery codes -- the only escape was admin surgery on `auth.mfa_factors`. This is a lockout class that would hit ordinary residents too. The owner chose "email or TOTP, either is fine" and "confirm a code at setup". Email recovery reduces a privileged login to "password + control of the account inbox" -- the same trust level as a password reset -- which is the accepted, explicit tradeoff. TOTP remains the recommended stronger option and recovery codes are unchanged.
+- mechanics: native Supabase AAL only raises a challenge when a verified TOTP factor exists, so an email-only user is now challenged via `challengeRequired()` reading `liveEnabledChannels`, and the enforcement gate gained a `deliveredFactorEnrolled` axis so email-only privileged users are not trapped on the security page. `challengeChannels(pending, base, hasTotp)` only offers the authenticator when a TOTP factor actually exists (keeps the T294 option-less-picker guard via a fallback). Recovery reuses the existing `email` challenge rows, so `mfa-otp-verify` and the `app_2fa_at` session-elevation hook need no change; the client-side channel-enabled guard was removed from `verifyConfirmToken` (the server already binds by user+channel+session).
+- alternatives rejected: (a) admin-only MFA reset function -- doesn't solve the ordinary-resident lockout and needs a second admin; (b) a separate `email-recovery` channel string -- would force a special case in verify + the hook; reusing `email` is simpler and equally safe; (c) keeping TOTP mandatory for privileged roles -- rejected by the owner's "either is fine" choice.
+- blast radius: `netlify/functions/mfa-otp-request.ts`, `src/features/auth/{mfaLogic,otpChannelApi,LoginPage,SecurityPage}.tsx?`, `src/shared/store/mfaStore.ts`, `src/app/useMfaEnforcement.ts`, RO/EN locales, and the four affected unit-test files. No migration (reuses `mfa_channels`/`mfa_otp_challenges`/`session_elevations`).
+
 ## 2026-06-07
 
 ### T287: initial-route budget ceiling values

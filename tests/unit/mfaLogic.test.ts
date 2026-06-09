@@ -178,6 +178,22 @@ describe('challengeChannels', () => {
     expect(challengeChannels('demo', ['email'])).toEqual(['email']);
     expect(challengeChannels('demo', ['totp', 'telegram'])).toEqual(['totp', 'telegram']);
   });
+
+  it('omits the authenticator for an email-only user (T295)', () => {
+    // hasTotp=false means no verified TOTP factor exists, so the user must not
+    // be offered an authenticator they never enrolled.
+    expect(challengeChannels('live', ['email'], false)).toEqual(['email']);
+    expect(challengeChannels('live', ['email', 'telegram'], false)).toEqual(['email', 'telegram']);
+  });
+
+  it('keeps the authenticator first when a TOTP factor exists (T295)', () => {
+    expect(challengeChannels('live', ['email'], true)).toEqual(['totp', 'email']);
+    expect(challengeChannels('live', ['totp', 'email'], true)).toEqual(['totp', 'email']);
+  });
+
+  it('never yields an option-less live picker even when email-only base is empty', () => {
+    expect(challengeChannels('live', [], false)).toEqual(['totp']);
+  });
 });
 
 describe('mfaErrorKey', () => {

@@ -232,6 +232,24 @@ interface MfaState {
     token: string,
     now?: number,
   ) => Promise<ChallengeResult>;
+  /**
+   * Lost-authenticator recovery (T295): request a one-time code to the account
+   * email even when the email channel is NOT enabled. Live mode calls the
+   * recovery branch of the OTP request function; demo mints a local challenge.
+   * Same return shape as `requestOtp`.
+   */
+  requestRecoveryOtp: (now?: number) => Promise<{
+    error: string | null;
+    demoCode?: string;
+    demoConfirmToken?: string;
+    cooldownMs: number;
+  }>;
+  /**
+   * Verify a lost-authenticator recovery code (T295). Elevates the session via
+   * the same app_2fa_at path as `verifyOtp`, so the user is let in and can then
+   * reset their authenticator. Same return shape as `verifyOtp`.
+   */
+  verifyRecoveryOtp: (code: string, now?: number) => Promise<ChallengeResult>;
   /** Remaining resend cooldown in ms for a delivered channel (0 when a request may be sent). */
   otpResendCooldownMs: (channel: MfaChannel, now?: number) => number;
   /**
@@ -460,12 +478,19 @@ export const useMfaStore = create<MfaState>()(
           data: { session },
         } = await supabase.auth.getSession();
         if (hasAppElevation(session?.access_token)) return false;
-        // Fall back to native Supabase TOTP AAL check.
+        // Native Supabase TOTP AAL check.
         const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-        return challengeNeeded(
-          (data?.currentLevel as Aal) ?? null,
-          (data?.nextLevel as Aal) ?? null,
-        );
+        const current = (data?.currentLevel as Aal) ?? null;
+        const next = (data?.nextLevel as Aal) ?? null;
+        // A native factor (TOTP) was already satisfied this session.
+        if (current === 'aal2') return false;
+        // TOTP is enrolled but this session has not yet satisfied it.
+        if (challengeNeeded(current, next)) return true;
+        // No native step-up is owed (no verified TOTP factor). An email-only
+        // account still owes its email second factor (T295): raise the challenge
+        // when the email channel is enabled but the session is not yet elevated.
+        if (!get().liveEnabledChannels['email']) await get().loadChannels();
+        return Boolean(get().liveEnabledChannels['email']);
       },
 
       verifyChallenge: async (code) => {
@@ -554,15 +579,21 @@ export const useMfaStore = create<MfaState>()(
 
       loadChannels: async () => {
         if (!isSupabaseConfigured) return; // Demo: channels already in persisted state.
-        const { data } = await supabase
-          .from('mfa_channels')
-          .select('channel, target_hint');
-        if (!data) return;
-        const channels: Partial<Record<string, OtpChannelInfo>> = {};
-        for (const row of data as Array<{ channel: string; target_hint: string }>) {
-          channels[row.channel] = { targetHint: row.target_hint };
+        // Best-effort: a transient read failure must never reject (callers like
+        // challengeRequired() and the enforcement gate await this).
+        try {
+          const { data } = await supabase
+            .from('mfa_channels')
+            .select('channel, target_hint');
+          if (!data) return;
+          const channels: Partial<Record<string, OtpChannelInfo>> = {};
+          for (const row of data as Array<{ channel: string; target_hint: string }>) {
+            channels[row.channel] = { targetHint: row.target_hint };
+          }
+          set({ liveEnabledChannels: channels });
+        } catch {
+          /* leave the last-known channel set in place */
         }
-        set({ liveEnabledChannels: channels });
       },
 
       enableChannel: async (channel, targetHint) => {
@@ -731,7 +762,10 @@ export const useMfaStore = create<MfaState>()(
       verifyConfirmToken: async (channel, token, now = Date.now()) => {
         // Live path: email channel via Netlify function. Telegram deferred to T15.
         if (isSupabaseConfigured && channel === 'email') {
-          if (!get().liveEnabledChannels[channel]) return { error: 'no-channel', lockedMs: 0 };
+          // No client-side channel-enabled guard here: the recovery escape hatch
+          // (T295) mints a challenge without an mfa_channels row, and the server
+          // verify already binds by user+channel+session, so the guard would only
+          // block a valid recovery confirm-link without adding any protection.
           const result = await verifyOtpLive(channel, undefined, token);
           if (!result.ok) {
             const error = result.error ?? 'invalid-code';
@@ -760,6 +794,96 @@ export const useMfaStore = create<MfaState>()(
           return { error: null, lockedMs: 0 };
         }
         return { error: 'invalid-code', lockedMs: 0 };
+      },
+
+      requestRecoveryOtp: async (now = Date.now()) => {
+        const channel: MfaChannel = 'email';
+        // Live: deliver to the verified account email via the recovery branch of
+        // the request function; no mfa_channels row is required (T295).
+        if (isSupabaseConfigured) {
+          const lastSent = get().demoResendAt[channel] ?? 0;
+          const cooldownMs = resendCooldownRemainingMs(lastSent, now);
+          if (cooldownMs > 0) return { error: null, cooldownMs };
+          const result = await requestOtpLive(channel, { recovery: true });
+          if (result.error === 'resend-cooldown') {
+            set((s) => ({ demoResendAt: { ...s.demoResendAt, [channel]: now } }));
+            return { error: null, cooldownMs: OTP_RESEND_COOLDOWN_MS };
+          }
+          if (!result.ok) return { error: result.error ?? 'request-failed', cooldownMs: 0 };
+          set((s) => ({ demoResendAt: { ...s.demoResendAt, [channel]: now } }));
+          return { error: null, cooldownMs: 0 };
+        }
+        // Demo: mint a challenge regardless of whether the email channel is on.
+        const lastSent = get().demoResendAt[channel] ?? 0;
+        const cooldownMs = resendCooldownRemainingMs(lastSent, now);
+        if (cooldownMs > 0) return { error: null, cooldownMs };
+        const code = generateNumericOtp();
+        const salt = generateOtpSalt();
+        const codeHash = await hashOtp(code, salt);
+        const confirmToken = generateConfirmToken();
+        const confirmTokenHash = await hashConfirmToken(confirmToken);
+        const expiresAtMs = otpExpiresAt(now, OTP_TTL_MS);
+        set((s) => ({
+          demoOtpChallenges: {
+            ...s.demoOtpChallenges,
+            [channel]: { codeHash, salt, expiresAtMs, confirmTokenHash, consumed: false },
+          },
+          demoResendAt: { ...s.demoResendAt, [channel]: now },
+        }));
+        return { error: null, demoCode: code, demoConfirmToken: confirmToken, cooldownMs: 0 };
+      },
+
+      verifyRecoveryOtp: async (code, now = Date.now()) => {
+        const channel: MfaChannel = 'email';
+        const sec = useSecurityStore.getState();
+        const throttle = getOtpThrottle(get().otpThrottles, channel);
+        const preLock = remainingLockMs(throttle, now);
+        if (preLock > 0) {
+          sec.log('mfaChallengeLocked');
+          return { error: 'channel-locked', lockedMs: preLock };
+        }
+        // Live: verify via the function, which matches on user+channel+session
+        // and elevates the session (app_2fa_at) on success -- the recovery code
+        // was stored under the same 'email' channel, so no special case is needed.
+        if (isSupabaseConfigured) {
+          const result = await verifyOtpLive(channel, code);
+          if (!result.ok) {
+            const error = result.error ?? 'invalid-code';
+            if (error === 'challenge-locked') {
+              sec.log('mfaChallengeLocked');
+              return { error: 'channel-locked', lockedMs: 15 * 60_000 };
+            }
+            if (error === 'invalid-code' || error === 'invalid-format') {
+              const nextT = throttleFail(throttle, now);
+              set((s) => ({ otpThrottles: { ...s.otpThrottles, [channel]: nextT } }));
+              const lockedMs = remainingLockMs(nextT, now);
+              sec.log(lockedMs > 0 ? 'mfaChallengeLocked' : 'mfaChallengeFailed');
+              return { error: 'invalid-code', lockedMs };
+            }
+            return { error, lockedMs: 0 };
+          }
+          await supabase.auth.refreshSession();
+          set((s) => ({ otpThrottles: { ...s.otpThrottles, [channel]: throttleOk() } }));
+          return { error: null, lockedMs: 0 };
+        }
+        // Demo: verify against the locally minted recovery challenge.
+        const challenge = get().demoOtpChallenges[channel];
+        if (!challenge) return { error: 'no-channel', lockedMs: 0 };
+        if (challenge.consumed) return { error: 'no-channel', lockedMs: 0 };
+        if (otpChallengeExpired(challenge.expiresAtMs, now)) return { error: 'expired-code', lockedMs: 0 };
+        const matched = await verifyOtpHash(challenge.codeHash, challenge.salt, code);
+        if (matched) {
+          set((s) => ({
+            demoOtpChallenges: { ...s.demoOtpChallenges, [channel]: { ...challenge, consumed: true } },
+            otpThrottles: { ...s.otpThrottles, [channel]: throttleOk() },
+          }));
+          return { error: null, lockedMs: 0 };
+        }
+        const nextT = throttleFail(throttle, now);
+        set((s) => ({ otpThrottles: { ...s.otpThrottles, [channel]: nextT } }));
+        const lockedMs = remainingLockMs(nextT, now);
+        sec.log(lockedMs > 0 ? 'mfaChallengeLocked' : 'mfaChallengeFailed');
+        return { error: 'invalid-code', lockedMs };
       },
 
       otpResendCooldownMs: (channel, now = Date.now()) => {

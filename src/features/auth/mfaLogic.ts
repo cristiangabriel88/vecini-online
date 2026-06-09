@@ -284,6 +284,16 @@ export interface MfaEnforcementInput {
    * trapped on the security page. Optional: omitted leaves the axis inert.
    */
   app2faSatisfied?: boolean;
+  /**
+   * Whether a delivered-code second factor (email) is registered for the account
+   * (T295). Native Supabase `enrolled` only tracks the TOTP factor, so a user
+   * whose *only* second factor is the email channel reports `enrolled = false`.
+   * Without this axis the gate would treat them as having no factor and trap
+   * them on the security page forever. A `true` here means the account has a
+   * valid second factor even when TOTP is absent, so the "not enrolled" branch
+   * is satisfied. Optional: omitted leaves the axis inert (TOTP-only behaviour).
+   */
+  deliveredFactorEnrolled?: boolean;
   /** The current in-app location. */
   pathname: string;
   /** Where to steer to; defaults to the security page. */
@@ -326,7 +336,11 @@ export function mfaEnforcementRedirect(input: MfaEnforcementInput): string | nul
   if (!requiresMfa(input.role)) return null;
   if (input.pathname === securityPath) return null;
   // Not enrolled at all: must set up a second factor before reaching the shell.
-  if (!input.enrolled) return securityPath;
+  // A second factor counts as either a verified TOTP authenticator (`enrolled`)
+  // or a registered email channel (`deliveredFactorEnrolled`, T295), so an
+  // email-only user satisfies the requirement without an authenticator app.
+  const hasSecondFactor = input.enrolled || input.deliveredFactorEnrolled === true;
+  if (!hasSecondFactor) return securityPath;
   // Enrolled but this session has passed no second factor: re-gate it. A session
   // counts as having passed when either the native AAL2 challenge is satisfied
   // (TOTP/phone) or an app-defined channel was verified (email/Telegram). Only a
@@ -385,21 +399,35 @@ export function challengeNeeded(current: Aal, next: Aal): boolean {
  * The second-factor channels to offer on a login challenge screen, given the
  * channels the client believes are enabled (`base`).
  *
- * A live challenge is only ever raised when the backend reports a pending native
- * AAL2 step-up, which by definition means a verified authenticator factor
- * exists. So on the live path the authenticator (TOTP / recovery-code) option is
- * guaranteed valid and is always included, even when the client failed to load
- * its factor list (a fresh login that never hydrated the store). This is what
- * stops the challenge screen from rendering an option-less picker that strands
- * the user with nothing but a "back" link. Any delivered channels in `base`
- * (email / Telegram) are kept as additional options. The demo path passes `base`
- * through unchanged, since the demo store reports its enrolled channels
- * accurately.
+ * Since email can now stand alone as a second factor (T295), a live challenge is
+ * no longer guaranteed to mean a TOTP authenticator exists: an email-only user
+ * is challenged with no authenticator at all. `hasTotp` lets the caller state
+ * whether a verified TOTP factor actually exists:
+ *
+ * - `hasTotp === true` (or omitted): the authenticator (TOTP / recovery-code)
+ *   option is included even when the client failed to load its factor list, so
+ *   the picker is never option-less for a TOTP user (the original T294 guard).
+ * - `hasTotp === false`: the TOTP option is removed, so an email-only user is
+ *   not offered an authenticator they never enrolled.
+ *
+ * As a final safety net, an otherwise empty live result falls back to TOTP so
+ * the challenge screen never renders with nothing to pick. Any delivered
+ * channels in `base` (email / Telegram) are kept as options. The demo path
+ * passes `base` through unchanged, since the demo store reports accurately.
  */
 export function challengeChannels(
   pending: 'demo' | 'live',
   base: readonly MfaChannel[],
+  hasTotp?: boolean,
 ): MfaChannel[] {
-  if (pending === 'live') return Array.from(new Set<MfaChannel>(['totp', ...base]));
-  return [...base];
+  if (pending !== 'live') return [...base];
+  const includeTotp = hasTotp === undefined || hasTotp;
+  const rest = base.filter((c) => c !== 'totp');
+  // Authenticator first (the primary factor), then any delivered channels.
+  const ordered: MfaChannel[] = includeTotp ? ['totp', ...rest] : [...rest];
+  const seen = new Set<MfaChannel>();
+  const deduped = ordered.filter((c) => (seen.has(c) ? false : (seen.add(c), true)));
+  // Safety net: never return an option-less picker on the live path.
+  if (deduped.length === 0) deduped.push('totp');
+  return deduped;
 }

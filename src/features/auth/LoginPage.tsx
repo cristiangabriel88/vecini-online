@@ -26,7 +26,7 @@ import {
 import { consumeForcedSignoutReason } from './sessionExpiry';
 import { evaluatePassword } from './passwordPolicy';
 import { PasswordStrengthMeter } from './PasswordStrengthMeter';
-import { type MfaChannel, isValidOtpFormat } from './otpChannelLogic';
+import { type MfaChannel, isValidOtpFormat, maskEmail } from './otpChannelLogic';
 
 /** Round a remaining-lockout duration up to whole minutes for the message. */
 function lockoutMinutes(ms: number): number {
@@ -113,10 +113,13 @@ export default function LoginPage() {
   const challengeRequired = useMfaStore((s) => s.challengeRequired);
   const verifyChallenge = useMfaStore((s) => s.verifyChallenge);
   const enabledChannels = useMfaStore((s) => s.enabledChannels);
+  const enrolled = useMfaStore((s) => s.enrolled);
   const loadMfa = useMfaStore((s) => s.load);
   const loadChannels = useMfaStore((s) => s.loadChannels);
   const requestOtp = useMfaStore((s) => s.requestOtp);
   const verifyOtp = useMfaStore((s) => s.verifyOtp);
+  const requestRecoveryOtp = useMfaStore((s) => s.requestRecoveryOtp);
+  const verifyRecoveryOtp = useMfaStore((s) => s.verifyRecoveryOtp);
   const setPendingDemoRole = useMfaStore((s) => s.setPendingDemoRole);
   const demoEnabledChannels = useMfaStore((s) => s.demoEnabledChannels);
 
@@ -140,6 +143,10 @@ export default function LoginPage() {
   // demo TOTP challenge so the right experience opens once the code clears.
   const [demoRole, setDemoRole] = useState<Role>('admin');
 
+  // Lost-authenticator recovery sub-flow (T295): emails a one-time code to the
+  // account address even when no email channel is enabled, so a user who lost
+  // their authenticator can get back in and reset it.
+  const [recovery, setRecovery] = useState(false);
   // OTP channel challenge state (T140).
   // `selectedChannel` is the channel the user chose; null = picker shown.
   const [selectedChannel, setSelectedChannel] = useState<MfaChannel | null>(null);
@@ -207,12 +214,14 @@ export default function LoginPage() {
     if (remaining > 0) startResetTimer(remaining);
   }, [mode, email, startResetTimer]);
 
-  // The channels offered on the challenge screen. The TOTP-always-present
-  // guarantee for the live path (so the picker is never option-less) lives in
-  // the pure, unit-tested challengeChannels() helper.
+  // The channels offered on the challenge screen. `enrolled` tells the pure,
+  // unit-tested challengeChannels() helper whether a verified TOTP factor
+  // actually exists, so an email-only user is not offered an authenticator they
+  // never set up, while a TOTP user never sees an option-less picker (T294/T295).
   const challengeChannelsFor = useCallback(
-    (pending: 'demo' | 'live'): MfaChannel[] => challengeChannels(pending, enabledChannels()),
-    [enabledChannels],
+    (pending: 'demo' | 'live'): MfaChannel[] =>
+      challengeChannels(pending, enabledChannels(), pending === 'live' ? enrolled : undefined),
+    [enabledChannels, enrolled],
   );
 
   // When the channel picker is shown, auto-select the channel if only one is available.
@@ -340,6 +349,7 @@ export default function LoginPage() {
     setMfaCode('');
     setPendingMfa(null);
     setSelectedChannel(null);
+    setRecovery(false);
     setOtpSent(false);
     setDemoCode(null);
     setDemoConfirmToken(null);
@@ -352,6 +362,22 @@ export default function LoginPage() {
     if (!mfaCode.trim()) return;
     setLoading(true);
     try {
+      // Lost-authenticator recovery: verify the account-email code (T295).
+      if (recovery) {
+        const { error, lockedMs } = await verifyRecoveryOtp(mfaCode);
+        if (lockedMs > 0) {
+          toast.error(t('auth.mfaLockout', { minutes: lockoutMinutes(lockedMs) }));
+          setMfaCode('');
+          return;
+        }
+        if (error) {
+          toast.error(t(`auth.mfa.err.${mfaErrorKey(error)}`));
+          return;
+        }
+        setPendingDemoRole(null);
+        completeChallenge(demoRole);
+        return;
+      }
       // For delivered-code channels (email / telegram) use verifyOtp;
       // for TOTP / recovery codes use verifyChallenge.
       const channel = selectedChannel;
@@ -434,6 +460,52 @@ export default function LoginPage() {
     }
   };
 
+  // Lost-authenticator recovery: email a one-time code to the account address.
+  // Used both for the initial send and for resends (the cooldown is enforced by
+  // the store + server). `isResend` only gates the resend countdown.
+  const sendRecoveryCode = async (isResend: boolean) => {
+    if (isResend && resendCountdown > 0) return;
+    setLoading(true);
+    try {
+      const result = await requestRecoveryOtp();
+      if (result.cooldownMs > 0) {
+        startResendTimer(result.cooldownMs);
+        return;
+      }
+      if (result.error) {
+        toast.error(t(`auth.mfa.err.${mfaErrorKey(result.error)}`));
+        return;
+      }
+      setOtpSent(true);
+      setDemoCode(result.demoCode ?? null);
+      setDemoConfirmToken(result.demoConfirmToken ?? null);
+      startResendTimer(60_000); // OTP_RESEND_COOLDOWN_MS
+      if (isResend) toast.success(t('auth.mfa.channels.resent'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Enter / leave the recovery sub-flow from the TOTP challenge, resetting the
+  // shared code/otp state so neither path leaks into the other.
+  const beginRecovery = () => {
+    setRecovery(true);
+    setMfaCode('');
+    setOtpSent(false);
+    setDemoCode(null);
+    setDemoConfirmToken(null);
+    if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+  };
+
+  const leaveRecovery = () => {
+    setRecovery(false);
+    setMfaCode('');
+    setOtpSent(false);
+    setDemoCode(null);
+    setDemoConfirmToken(null);
+    if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+  };
+
   const enterDemoAs = async (role: Role) => {
     setRemembered(remember);
     setDemoRole(role);
@@ -452,6 +524,7 @@ export default function LoginPage() {
     setMfaCode('');
     setPassword('');
     setSelectedChannel(null);
+    setRecovery(false);
     setOtpSent(false);
     setDemoCode(null);
     setDemoConfirmToken(null);
@@ -495,22 +568,89 @@ export default function LoginPage() {
               <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <ShieldCheck className="h-6 w-6" />
               </div>
-              <h2 className="text-lg font-semibold">{t('auth.mfa.challengeTitle')}</h2>
+              <h2 className="text-lg font-semibold">
+                {recovery ? t('auth.mfa.recovery.title') : t('auth.mfa.challengeTitle')}
+              </h2>
               <p className="mt-1 text-sm text-muted">
-                {selectedChannel === 'email'
-                  ? t('auth.mfa.channels.emailChallengeBody', {
-                      hint: demoEnabledChannels['email']?.targetHint ?? '',
-                    })
-                  : selectedChannel === 'telegram'
-                    ? t('auth.mfa.channels.telegramChallengeBody', {
-                        hint: demoEnabledChannels['telegram']?.targetHint ?? '',
+                {recovery
+                  ? t('auth.mfa.recovery.body', { hint: maskEmail(email) })
+                  : selectedChannel === 'email'
+                    ? t('auth.mfa.channels.emailChallengeBody', {
+                        hint: demoEnabledChannels['email']?.targetHint ?? '',
                       })
-                    : t('auth.mfa.challengeBody')}
+                    : selectedChannel === 'telegram'
+                      ? t('auth.mfa.channels.telegramChallengeBody', {
+                          hint: demoEnabledChannels['telegram']?.targetHint ?? '',
+                        })
+                      : t('auth.mfa.challengeBody')}
               </p>
             </div>
 
+            {/* Lost-authenticator recovery sub-flow (T295). */}
+            {recovery && (
+              <div className="space-y-3">
+                {!otpSent ? (
+                  <Button className="w-full" loading={loading} onClick={() => void sendRecoveryCode(false)}>
+                    <Mail className="h-4 w-4" /> {t('auth.mfa.recovery.send')}
+                  </Button>
+                ) : (
+                  <form onSubmit={submitChallenge} className="space-y-3">
+                    {demoCode && (
+                      <div className="rounded-lg border border-warning/30 bg-warning/8 px-4 py-3">
+                        <p className="text-xs font-medium text-warning">{t('auth.mfa.channels.demoNotice')}</p>
+                        <p
+                          className="iv-mono mt-1 text-center text-2xl font-bold tracking-[0.3em] text-text"
+                          aria-label={t('auth.mfa.channels.demoCodeAriaLabel')}
+                        >
+                          {demoCode}
+                        </p>
+                        {demoConfirmToken && (
+                          <p className="mt-2 text-center text-xs text-muted">
+                            {t('auth.mfa.channels.orClickLink')}{' '}
+                            <Link
+                              to={`/confirma-2fa?token=${encodeURIComponent(demoConfirmToken)}&channel=email`}
+                              className="auth-link text-xs"
+                            >
+                              {t('auth.mfa.channels.confirmLinkLabel')}
+                            </Link>
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    <Input
+                      label={t('auth.mfa.channels.otpLabel')}
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      autoFocus
+                      value={mfaCode}
+                      maxLength={6}
+                      onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
+                      hint={t('auth.mfa.channels.otpHint')}
+                      required
+                    />
+                    <Button type="submit" className="w-full" loading={loading} disabled={!isValidOtpFormat(mfaCode)}>
+                      {t('auth.mfa.verify')}
+                    </Button>
+                    <button
+                      type="button"
+                      className="auth-link block w-full text-center text-sm"
+                      disabled={resendCountdown > 0 || loading}
+                      onClick={() => void sendRecoveryCode(true)}
+                    >
+                      {resendCountdown > 0
+                        ? t('auth.mfa.channels.resendIn', { seconds: resendCountdown })
+                        : t('auth.mfa.channels.resend')}
+                    </button>
+                  </form>
+                )}
+                <button type="button" className="auth-link block w-full text-center text-sm" onClick={leaveRecovery}>
+                  {t('auth.mfa.recovery.useAuthenticator')}
+                </button>
+              </div>
+            )}
+
             {/* Channel picker: shown when multiple channels available and none chosen. */}
-            {!selectedChannel && (
+            {!recovery && !selectedChannel && (
               <div className="space-y-2">
                 <p className="text-center text-xs font-medium uppercase tracking-wide text-muted">
                   {t('auth.mfa.channels.choosePicker')}
@@ -544,7 +684,7 @@ export default function LoginPage() {
             )}
 
             {/* TOTP / recovery-code input (existing flow). */}
-            {selectedChannel === 'totp' && (
+            {!recovery && selectedChannel === 'totp' && (
               <form onSubmit={submitChallenge} className="space-y-3">
                 <Input
                   label={t('auth.mfa.codeLabel')}
@@ -559,11 +699,19 @@ export default function LoginPage() {
                 <Button type="submit" className="w-full" loading={loading} disabled={!mfaCode.trim()}>
                   {t('auth.mfa.verify')}
                 </Button>
+                {/* Lost-authenticator escape hatch: email a code to the account (T295). */}
+                <button
+                  type="button"
+                  className="auth-link block w-full text-center text-sm"
+                  onClick={beginRecovery}
+                >
+                  {t('auth.mfa.recovery.lostLink')}
+                </button>
               </form>
             )}
 
             {/* Email / Telegram OTP: "Send code" button shown before the code is sent. */}
-            {(selectedChannel === 'email' || selectedChannel === 'telegram') && !otpSent && (
+            {!recovery && (selectedChannel === 'email' || selectedChannel === 'telegram') && !otpSent && (
               <Button
                 className="w-full"
                 loading={loading}
@@ -576,7 +724,7 @@ export default function LoginPage() {
             )}
 
             {/* Email / Telegram OTP: code input after the code is sent. */}
-            {(selectedChannel === 'email' || selectedChannel === 'telegram') && otpSent && (
+            {!recovery && (selectedChannel === 'email' || selectedChannel === 'telegram') && otpSent && (
               <form onSubmit={submitChallenge} className="space-y-3">
                 {/* Demo affordance: show the one-time code on-screen. */}
                 {demoCode && (
@@ -634,7 +782,7 @@ export default function LoginPage() {
             )}
 
             {/* "Use a different channel" back link when a channel is already selected. */}
-            {selectedChannel && challengeChannelsFor(pendingMfa).length > 1 && (
+            {!recovery && selectedChannel && challengeChannelsFor(pendingMfa).length > 1 && (
               <button
                 type="button"
                 className="auth-link block w-full text-center text-sm"

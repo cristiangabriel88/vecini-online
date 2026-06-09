@@ -716,10 +716,19 @@ Status legend (two axes — built, and wired live):
   delegates challenge/verify to Supabase MFA. Privileged roles are steered to the
   security page until they enrol. Recovery codes are stored only as SHA-256
   hashes and consumed single-use. The login challenge hydrates the factor/channel
-  state before drawing the method picker, and the live path always offers the
-  authenticator option (a live challenge implies a verified factor), so the
-  screen can never render an option-less picker that strands the user (T294).
-  Bilingual RO/EN, accessible.
+  state before drawing the method picker, and the live path offers the
+  authenticator option only when a verified TOTP factor exists, so an email-only
+  user is not shown an authenticator they never set up and a TOTP user never sees
+  an option-less picker (T294/T295). **Email-code is a first-class, selectable
+  second factor (T295):** a resident can choose email instead of (or alongside)
+  an authenticator -- enabling it requires a setup-confirm code mailed to the
+  account address -- and an email-only second factor satisfies the mandatory-2FA
+  requirement for privileged roles. **Self-service recovery (T295):** a user who
+  lost their authenticator can pick "Lost access to your authenticator?" on the
+  challenge to have a one-time code mailed to their verified account address (no
+  pre-enabled channel needed), sign in, and use the "Reset authenticator" button
+  to re-pair. This is the accepted password-reset-level trust tradeoff (see
+  DECISIONS.md). Bilingual RO/EN, accessible.
 - **Files:** `src/features/auth/{mfaLogic,SecurityPage}.tsx/.ts` (+ login
   challenge in `LoginPage.tsx`), `src/shared/store/mfaStore.ts`, enforcement in
   `src/app/AppLayout.tsx`, route `/app/securitate`, `auth.mfa.*` locale keys

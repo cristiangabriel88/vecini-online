@@ -293,6 +293,14 @@
       "stepUpTitle": "Confirmă identitatea pentru a continua",
       "stepUpBody": "Sesiunea ta nu a trecut încă verificarea în doi pași. Introdu un cod pentru a accesa restul aplicației.",
       "stepUpDone": "Identitate confirmată. Poți continua.",
+      "resetAuthenticator": "Resetează aplicația de autentificare",
+      "recovery": {
+        "title": "Ai pierdut aplicația de autentificare?",
+        "body": "Îți trimitem un cod de unică folosință pe email la {{hint}} ca să te poți autentifica și să configurezi o aplicație nouă.",
+        "send": "Trimite-mi un cod pe email",
+        "lostLink": "Nu mai ai acces la aplicația de autentificare?",
+        "useAuthenticator": "Folosesc aplicația de autentificare"
+      },
       "err": {
         "invalidCode": "Cod incorect. Încearcă din nou.",
         "notEnrolled": "Autentificarea în doi pași nu este activată.",
@@ -330,7 +338,10 @@
         "resend": "Retrimite codul",
         "resendIn": "Retrimite în {{seconds}}s",
         "resent": "Un nou cod a fost trimis.",
-        "changeChannel": "Folosește altă metodă"
+        "changeChannel": "Folosește altă metodă",
+        "emailSetupHint": "Primește codurile de autentificare pe emailul contului.",
+        "setupConfirmBody": "Introdu codul trimis la {{hint}} pentru a activa codurile pe email.",
+        "confirmEnable": "Confirmă și activează"
       },
       "confirm2fa": {
         "verifying": "Se verifică...",

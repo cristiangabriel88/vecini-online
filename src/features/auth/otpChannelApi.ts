@@ -37,9 +37,15 @@ async function getBearer(): Promise<string | null> {
 /**
  * Request an OTP for the given channel via the T142 Netlify function.
  * Returns `ok=true` on success, or an error code on failure.
- * Only intended to be called when `isSupabaseConfigured` is true.
+ * Pass `{ recovery: true }` for the lost-authenticator escape hatch (T295):
+ * the server then delivers to the verified account email without requiring the
+ * email channel to be registered. Only intended to be called when
+ * `isSupabaseConfigured` is true.
  */
-export async function requestOtpLive(channel: MfaChannel): Promise<OtpRequestResult> {
+export async function requestOtpLive(
+  channel: MfaChannel,
+  opts?: { recovery?: boolean },
+): Promise<OtpRequestResult> {
   if (!isSupabaseConfigured) return { ok: true };
   const token = await getBearer();
   if (!token) return { ok: false, error: 'no-session' };
@@ -50,7 +56,7 @@ export async function requestOtpLive(channel: MfaChannel): Promise<OtpRequestRes
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ channel }),
+      body: JSON.stringify({ channel, ...(opts?.recovery ? { recovery: true } : {}) }),
     });
     if (res.ok) return { ok: true };
     const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;

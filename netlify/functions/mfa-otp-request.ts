@@ -72,6 +72,16 @@ export function extractSessionId(jwt: string): string | null {
 interface RequestBody {
   channel?: unknown;
   locale?: unknown;
+  /**
+   * Recovery mode (T295): send a one-time code to the caller's own verified
+   * account email even when the email channel is NOT registered. This is the
+   * self-service escape hatch for a user who lost their authenticator and never
+   * enabled email 2FA. It does not require an `mfa_channels` row; every other
+   * protection (session binding, cooldown, hourly ceiling, IP/identity rate
+   * limit, hash-only storage) is unchanged, and verification reuses the same
+   * `email` challenge rows so `mfa-otp-verify` needs no special case.
+   */
+  recovery?: unknown;
 }
 
 export default async (req: Request): Promise<Response> => {
@@ -125,15 +135,23 @@ export default async (req: Request): Promise<Response> => {
   }
 
   const locale = typeof body.locale === 'string' ? body.locale : null;
+  const recovery = body.recovery === true;
 
   // ── Verify this user has the email channel enabled ────────────────────────
-  const { data: channelRow } = await supabaseAdmin()
-    .from('mfa_channels')
-    .select('id')
-    .eq('user_id', userId)
-    .eq('channel', EMAIL_CHANNEL)
-    .maybeSingle();
-  if (!channelRow) return json(422, { error: 'channel-not-enabled' });
+  // Recovery mode (T295) skips this check and delivers to the verified account
+  // email, so a user who lost their authenticator and never enabled email 2FA
+  // can still receive a code. Trust here is the same as a password reset: the
+  // caller already proved the password (they hold a valid session) and controls
+  // the inbox.
+  if (!recovery) {
+    const { data: channelRow } = await supabaseAdmin()
+      .from('mfa_channels')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('channel', EMAIL_CHANNEL)
+      .maybeSingle();
+    if (!channelRow) return json(422, { error: 'channel-not-enabled' });
+  }
 
   const now = new Date();
 

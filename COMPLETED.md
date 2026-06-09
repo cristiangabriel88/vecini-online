@@ -4,6 +4,20 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T295 ✅ 2026-06-09 -- Self-service 2FA recovery + email-code as a standalone, selectable factor
+- problem: an account that enrolled TOTP then lost the authenticator (no saved recovery codes) was permanently locked out -- the only escape was deleting the `auth.mfa_factors` row by hand. A lockout class that hits ordinary residents too. Owner asked for a self-service "lost authenticator" flow + email-code 2FA the user can choose. Policy (owner): email OR TOTP satisfies the requirement; confirm a code when enabling email.
+- server: `netlify/functions/mfa-otp-request.ts` -- new `recovery: true` mode skips the `channel-not-enabled` check and mails a code to the verified account email; all other protections (session binding, resend cooldown, hourly ceiling, IP/identity rate limit, hash-only storage) unchanged. Reuses the `email` challenge rows so `mfa-otp-verify` needs no change.
+- client api: `src/features/auth/otpChannelApi.ts` -- `requestOtpLive(channel, { recovery })` threads the flag into the POST body.
+- store: `src/shared/store/mfaStore.ts` -- new `requestRecoveryOtp`/`verifyRecoveryOtp` (live + demo) that bypass the enabled-channel guard; `challengeRequired()` (live) now also raises a challenge for an email-only account (reads `liveEnabledChannels`, returns false once native aal2 or `app_2fa_at` is satisfied); `verifyConfirmToken` lost its redundant client channel guard (server binds by user+channel+session) so recovery confirm-links work; `loadChannels` made best-effort (try/catch).
+- state machine: `src/features/auth/mfaLogic.ts` -- `challengeChannels(pending, base, hasTotp)` offers the authenticator only when a TOTP factor exists (keeps the T294 option-less-picker fallback); `mfaEnforcementRedirect` gained a `deliveredFactorEnrolled` axis so an email-only privileged user is not trapped on the security page. `src/app/useMfaEnforcement.ts` loads channels + passes the axis.
+- login UI: `src/features/auth/LoginPage.tsx` -- "Lost access to your authenticator?" disclosure on the TOTP challenge emails a code to the masked account address; passing it lets the user in to reset their authenticator. `challengeChannelsFor` passes `enrolled` as `hasTotp`.
+- security UI: `src/features/auth/SecurityPage.tsx` -- enabling email 2FA now requires a setup-confirm code (sent via recovery mode, persisted via `enableChannel` only on success); new "Reset authenticator" button = `disable()` + `beginEnroll()` for a fresh QR.
+- i18n: `auth.mfa.recovery.*`, `auth.mfa.resetAuthenticator`, `auth.mfa.channels.{emailSetupHint,setupConfirmBody,confirmEnable}` in RO + EN.
+- tests: `mfaLogic.test.ts` (challengeChannels email-only / hasTotp ordering), `mfaEnforcement.test.tsx` (deliveredFactorEnrolled cases + `from` mock), `otpChannelApi.test.ts` (recovery flag in body), `otpChannelStore.test.ts` (demo recovery request/verify/expiry).
+- decision logged in DECISIONS.md (2026-06-09). No migration (reuses mfa_channels / mfa_otp_challenges / session_elevations).
+- note: for the durable flow to deliver on prod, RESEND_API_KEY + RESEND_FROM_EMAIL must be set in Netlify; otherwise the one-time fallback is deleting the factor row in the Supabase dashboard.
+- verified: lint + typecheck + full test suite + build + build:pi + build:demo all green.
+
 ### T292 ✅ 2026-06-08 -- E2E for required flows with no prior spec
 - new: `tests/e2e/aga.spec.ts` -- full AGA lifecycle test (convocare: create meeting + fill date/location; add agenda item; RSVP prezent; open meeting to in_desfasurare; vote Pentru; assert tally + quorum bar; close to incheiata; download proces-verbal + assert toast)
 - modified: `tests/e2e/smoke.spec.ts` -- added `T06-export` test: resident navigates to /app/datele-mele, clicks "Descarca JSON", asserts toast "Copia datelor tale a fost descarcata" and that the completed "Export de date" request appears in "Cererile mele"

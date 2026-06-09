@@ -81,6 +81,8 @@ export default function SecurityPage() {
     verifyChallenge,
     requestOtp,
     verifyOtp,
+    requestRecoveryOtp,
+    verifyRecoveryOtp,
     demoEnabledChannels,
     liveEnabledChannels,
     enableChannel,
@@ -91,6 +93,11 @@ export default function SecurityPage() {
 
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
+  // Email 2FA setup-confirm flow (T295): enabling email requires entering a code
+  // sent to the account address, proving the inbox works before it counts.
+  const [emailSetupStage, setEmailSetupStage] = useState<'idle' | 'codeSent'>('idle');
+  const [emailSetupCode, setEmailSetupCode] = useState('');
+  const [emailSetupDemoCode, setEmailSetupDemoCode] = useState<string | null>(null);
   const [confirmDisable, setConfirmDisable] = useState(false);
   const [confirmSignOutAll, setConfirmSignOutAll] = useState(false);
   const [confirmRegen, setConfirmRegen] = useState(false);
@@ -210,15 +217,59 @@ export default function SecurityPage() {
   /** Whether the current user has a linked Telegram account. */
   const myTelegramLink = telegramLinks.find((l) => l.userId === currentUserId) ?? null;
 
+  // Email 2FA enable is a two-step, confirm-at-setup flow (T295): send a code to
+  // the account address (recovery branch needs no prior channel row), then only
+  // persist the channel once the user proves they received it.
+  const startEmailSetup = async () => {
+    setBusy(true);
+    try {
+      const result = await requestRecoveryOtp();
+      if (result.error) {
+        toast.error(t(`auth.mfa.err.${mfaErrorKey(result.error)}`));
+        return;
+      }
+      setEmailSetupStage('codeSent');
+      setEmailSetupCode('');
+      setEmailSetupDemoCode(result.demoCode ?? null);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const confirmEmailSetup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isValidOtpFormat(emailSetupCode)) return;
+    setBusy(true);
+    try {
+      const { error } = await verifyRecoveryOtp(emailSetupCode);
+      if (error) {
+        fail(error);
+        return;
+      }
+      const { error: enableErr } = await enableChannel('email', maskEmail(account));
+      if (enableErr) {
+        fail(enableErr);
+        return;
+      }
+      setEmailSetupStage('idle');
+      setEmailSetupCode('');
+      setEmailSetupDemoCode(null);
+      toast.success(t('auth.mfa.channels.enabledToast', { channel: t('auth.mfa.channels.emailLabel') }));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const cancelEmailSetup = () => {
+    setEmailSetupStage('idle');
+    setEmailSetupCode('');
+    setEmailSetupDemoCode(null);
+  };
+
   const handleEnableChannel = async (channel: MfaChannel) => {
     setBusy(true);
     try {
-      if (channel === 'email') {
-        const hint = maskEmail(account);
-        const { error } = await enableChannel('email', hint);
-        if (error) { fail(error); return; }
-        toast.success(t('auth.mfa.channels.enabledToast', { channel: t('auth.mfa.channels.emailLabel') }));
-      } else if (channel === 'telegram') {
+      if (channel === 'telegram') {
         if (!myTelegramLink) {
           toast.error(t('auth.mfa.channels.telegramNotLinked'));
           return;
@@ -288,6 +339,23 @@ export default function SecurityPage() {
       setConfirmDisable(false);
       if (error) fail(error);
       else toast.success(t('auth.mfa.disabledToast'));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // Replace a lost authenticator (T295): drop the old TOTP factor and immediately
+  // start a fresh enrolment, so a user who changed phones can re-pair in one tap.
+  const onResetAuthenticator = async () => {
+    setBusy(true);
+    try {
+      const { error } = await disable();
+      if (error) {
+        fail(error);
+        return;
+      }
+      const { error: enrollErr } = await beginEnroll(account);
+      if (enrollErr) fail(enrollErr);
     } finally {
       setBusy(false);
     }
@@ -682,9 +750,14 @@ export default function SecurityPage() {
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
               {enrolled ? (
-                <Button variant="danger" onClick={() => setConfirmDisable(true)} disabled={busy}>
-                  {t('auth.mfa.disable')}
-                </Button>
+                <>
+                  <Button variant="secondary" onClick={onResetAuthenticator} loading={busy}>
+                    <Smartphone className="h-4 w-4" /> {t('auth.mfa.resetAuthenticator')}
+                  </Button>
+                  <Button variant="danger" onClick={() => setConfirmDisable(true)} disabled={busy}>
+                    {t('auth.mfa.disable')}
+                  </Button>
+                </>
               ) : (
                 <Button onClick={onBegin} loading={busy}>
                   <ShieldCheck className="h-4 w-4" /> {t('auth.mfa.enable')}
@@ -736,31 +809,86 @@ export default function SecurityPage() {
             <p className="text-sm text-muted">{t('auth.mfa.channels.body')}</p>
             <ul className="mt-4 divide-y divide-[var(--border)]">
               {/* Email channel */}
-              <li className="flex items-center gap-3 py-3">
-                <span
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
-                  style={{
-                    background: emailEnabled ? 'var(--success-soft, var(--primary-soft))' : 'var(--bg-sunken)',
-                    color: emailEnabled ? 'var(--success, var(--primary))' : 'var(--text-muted)',
-                  }}
-                >
-                  {emailEnabled ? <CheckCircle2 className="h-4 w-4" /> : <Mail className="h-4 w-4" />}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium">{t('auth.mfa.channels.emailLabel')}</p>
-                  {emailEnabled && activeChannels['email'] && (
-                    <p className="text-xs text-muted">{activeChannels['email'].targetHint}</p>
+              <li className="py-3">
+                <div className="flex items-center gap-3">
+                  <span
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+                    style={{
+                      background: emailEnabled ? 'var(--success-soft, var(--primary-soft))' : 'var(--bg-sunken)',
+                      color: emailEnabled ? 'var(--success, var(--primary))' : 'var(--text-muted)',
+                    }}
+                  >
+                    {emailEnabled ? <CheckCircle2 className="h-4 w-4" /> : <Mail className="h-4 w-4" />}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium">{t('auth.mfa.channels.emailLabel')}</p>
+                    {emailEnabled && activeChannels['email'] && (
+                      <p className="text-xs text-muted">{activeChannels['email'].targetHint}</p>
+                    )}
+                    {!emailEnabled && emailSetupStage === 'idle' && (
+                      <p className="text-xs text-muted">{t('auth.mfa.channels.emailSetupHint')}</p>
+                    )}
+                  </div>
+                  {emailEnabled ? (
+                    <Button
+                      variant="danger"
+                      className="shrink-0 text-sm"
+                      onClick={() => handleDisableChannel('email')}
+                    >
+                      {t('auth.mfa.channels.disable')}
+                    </Button>
+                  ) : (
+                    emailSetupStage === 'idle' && (
+                      <Button
+                        variant="secondary"
+                        className="shrink-0 text-sm"
+                        loading={busy}
+                        onClick={startEmailSetup}
+                      >
+                        {t('auth.mfa.channels.enable')}
+                      </Button>
+                    )
                   )}
                 </div>
-                <Button
-                  variant={emailEnabled ? 'danger' : 'secondary'}
-                  className="shrink-0 text-sm"
-                  onClick={() =>
-                    emailEnabled ? handleDisableChannel('email') : handleEnableChannel('email')
-                  }
-                >
-                  {emailEnabled ? t('auth.mfa.channels.disable') : t('auth.mfa.channels.enable')}
-                </Button>
+
+                {/* Setup-confirm step: enter the code mailed to the account address. */}
+                {!emailEnabled && emailSetupStage === 'codeSent' && (
+                  <form onSubmit={confirmEmailSetup} className="mt-3 space-y-2 pl-12">
+                    <p className="text-xs text-muted">
+                      {t('auth.mfa.channels.setupConfirmBody', { hint: maskEmail(account) })}
+                    </p>
+                    {emailSetupDemoCode && (
+                      <div className="rounded-lg border border-warning/30 bg-warning/8 px-4 py-3">
+                        <p className="text-xs font-medium text-warning">{t('auth.mfa.channels.demoNotice')}</p>
+                        <p
+                          className="iv-mono mt-1 text-center text-2xl font-bold tracking-[0.3em] text-text"
+                          aria-label={t('auth.mfa.channels.demoCodeAriaLabel')}
+                        >
+                          {emailSetupDemoCode}
+                        </p>
+                      </div>
+                    )}
+                    <Input
+                      label={t('auth.mfa.channels.otpLabel')}
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      autoFocus
+                      value={emailSetupCode}
+                      maxLength={6}
+                      onChange={(e) => setEmailSetupCode(e.target.value.replace(/\D/g, ''))}
+                      hint={t('auth.mfa.channels.otpHint')}
+                      required
+                    />
+                    <div className="flex gap-2">
+                      <Button type="submit" loading={busy} disabled={!isValidOtpFormat(emailSetupCode)}>
+                        {t('auth.mfa.channels.confirmEnable')}
+                      </Button>
+                      <Button type="button" variant="ghost" onClick={cancelEmailSetup} disabled={busy}>
+                        {t('common.cancel')}
+                      </Button>
+                    </div>
+                  </form>
+                )}
               </li>
 
               {/* Telegram channel */}
