@@ -4,6 +4,11 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T296 ✅ 2026-06-09 -- E2E for self-service 2FA recovery + email-method enable (T295 follow-up)
+- new: `tests/e2e/mfa-recovery.spec.ts` -- two flows: (T296a) enrol TOTP, sign out, sign in via form, open "Lost access to your authenticator?" disclosure, request account-email code (demo shows it on screen), verify code, reach app, click "Reset authenticator", assert fresh enrolment form shows; (T296b) enable email channel via setup-confirm code in Security, sign out, sign in via form, email challenge auto-selected, request OTP, verify code, reach app.
+- both tests skip gracefully in the demo build (no login page); use `[aria-label="Cod de unică folosință demo"]` to read the on-screen demo code; `signOutViaMenu` helper opens the UserMenu and clicks "Deconectare".
+- verified: lint + typecheck + 3498 unit tests + build + build:pi + build:demo all green.
+
 ### T295 ✅ 2026-06-09 -- Self-service 2FA recovery + email-code as a standalone, selectable factor
 - problem: an account that enrolled TOTP then lost the authenticator (no saved recovery codes) was permanently locked out -- the only escape was deleting the `auth.mfa_factors` row by hand. A lockout class that hits ordinary residents too. Owner asked for a self-service "lost authenticator" flow + email-code 2FA the user can choose. Policy (owner): email OR TOTP satisfies the requirement; confirm a code when enabling email.
 - server: `netlify/functions/mfa-otp-request.ts` -- new `recovery: true` mode skips the `channel-not-enabled` check and mails a code to the verified account email; all other protections (session binding, resend cooldown, hourly ceiling, IP/identity rate limit, hash-only storage) unchanged. Reuses the `email` challenge rows so `mfa-otp-verify` needs no change.
