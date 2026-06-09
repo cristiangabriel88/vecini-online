@@ -76,6 +76,7 @@ export default function PlatformAsociatiiPage() {
   const resendInvite = usePlatformAsociatiiStore((s) => s.resendInvite);
   const markAdminEmailSent = usePlatformAsociatiiStore((s) => s.markAdminEmailSent);
   const fetchError = usePlatformAsociatiiStore((s) => s.fetchError);
+  const setFetchError = usePlatformAsociatiiStore((s) => s.setFetchError);
   const listFilter = usePlatformAsociatiiStore((s) => s.listFilter);
   const setListFilter = usePlatformAsociatiiStore((s) => s.setListFilter);
   const [isHydrating, setIsHydrating] = useState(false);
@@ -85,10 +86,14 @@ export default function PlatformAsociatiiPage() {
   const isDemo = usePlatformAuthStore.getState().demo || !isSupabaseConfigured;
 
   useEffect(() => {
+    // Clear any stale fetch error left over from a previous session/visit before
+    // we hydrate. A persisted error must never block this session's list from
+    // rendering; a fresh failure (if any) is re-set by hydrateAsociatiiList.
+    setFetchError(null);
     if (!isSupabaseConfigured) return;
     setIsHydrating(true);
     void hydrateAsociatiiList().finally(() => setIsHydrating(false));
-  }, []);
+  }, [setFetchError]);
 
   const retry = () => {
     setIsHydrating(true);

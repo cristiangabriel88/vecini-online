@@ -6,8 +6,10 @@ import { PageHeader } from '@/shared/components/PageHeader';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
+import { getStage } from '@/shared/lib/env';
 import {
   blankAdminInvite,
+  resolveAddAsociatieMode,
   validateAdminInvite,
   type AdminInviteDraft,
 } from './platformProvisioningLogic';
@@ -66,7 +68,14 @@ export default function PlatformAddAsociatiePage() {
     setSubmitting(true);
     setLiveError(null);
     try {
-      if (isSupabaseConfigured) {
+      const mode = resolveAddAsociatieMode(isSupabaseConfigured, getStage());
+      if (mode === 'unconfigured') {
+        // Prod/dev build without backend credentials: surface a real error
+        // rather than silently creating a throwaway local invite. No fallback.
+        setLiveError(t('platform.addAsociatie.err.notConfigured'));
+        return;
+      }
+      if (mode === 'live') {
         // Live path: call the service-role provisioning function with a bearer
         // token so the function can re-verify the caller server-side.
         const {
@@ -110,7 +119,8 @@ export default function PlatformAddAsociatiePage() {
         if (body.emailSent) markAdminEmailSent(invite.id);
         setEmailSentLive(body.emailSent);
       } else {
-        // Demo/offline: simulate a brief round-trip so the UX flow is complete.
+        // Demo/offline (mode === 'demo'): simulate a brief round-trip so the
+        // UX flow is complete when the app runs without a backend.
         const invite = inviteAdmin(value.adminName, value.adminEmail);
         await new Promise<void>((resolve) => setTimeout(resolve, 400));
         markAdminEmailSent(invite.id);

@@ -11,6 +11,7 @@ import {
   generateInviteToken,
 } from '@/shared/lib/inviteCode';
 import { ONBOARDING_LINK_TTL_MS } from '@/features/invites/inviteLogic';
+import type { AppStage } from '@/shared/lib/env';
 import type { PlatformAsociatieSummary } from './demoPlatform';
 
 // The identity validators now live in the shared module (T131) so the
@@ -260,6 +261,29 @@ export function validateAdminInvite(draft: AdminInviteDraft): AdminInviteValidat
   else if (!isValidEmail(adminEmail)) errors.adminEmail = 'email';
   const value = Object.keys(errors).length === 0 ? { adminName, adminEmail } : null;
   return { errors, value };
+}
+
+/**
+ * How the "Add Association" form should submit, given whether the Supabase
+ * backend is configured and the resolved deployment stage.
+ *
+ * - `live`: backend is configured -> call the service-role provisioning function.
+ * - `demo`: genuine offline demo build (stage `demo`, no backend) -> simulate
+ *   the round-trip via the local store so the showcase runs offline.
+ * - `unconfigured`: a prod/dev build whose backend credentials are missing ->
+ *   surface a real "backend not configured" error. Never fall back to the local
+ *   demo write here, so a misconfigured prod deploy fails loudly instead of
+ *   silently creating a throwaway local invite that goes nowhere.
+ */
+export type AddAsociatieMode = 'live' | 'demo' | 'unconfigured';
+
+export function resolveAddAsociatieMode(
+  supabaseConfigured: boolean,
+  stage: AppStage,
+): AddAsociatieMode {
+  if (supabaseConfigured) return 'live';
+  if (stage === 'demo') return 'demo';
+  return 'unconfigured';
 }
 
 /** Sort asociații by display name (Romanian collation). Does not mutate the input. */

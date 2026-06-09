@@ -444,6 +444,11 @@ export const usePlatformAsociatiiStore = create<PlatformAsociatiiState>()(
     {
       name: 'vecini.platform.asociatii',
       version: 6,
+      // `fetchError` is transient live-hydration state; never persist it, or a
+      // stale error from a failed session would rehydrate and block the list.
+      // Cast back to the full state type so the persisted-state generic (and the
+      // `migrate` contract below) is unchanged; the omitted key is dropped at runtime.
+      partialize: ({ fetchError: _fetchError, ...rest }) => rest as PlatformAsociatiiState,
       // v2 (T123) added the secure setup link's token + 24h expiry; v3 (T124)
       // added the single-use `redeemedAt`; v4 (T152) added `pendingInvites`;
       // v5 (T249) added `listFilter` + `status`/`statusReason`/`statusChangedAt`
