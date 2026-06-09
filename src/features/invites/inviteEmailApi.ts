@@ -56,6 +56,7 @@ export async function sendInviteEmail(input: SendInviteEmailInput): Promise<Send
       body: JSON.stringify({
         inviteId: input.invite.id.startsWith('inv-') ? input.invite.id.slice(4) : input.invite.id,
         locale: input.locale,
+        token: input.invite.token,
       }),
     });
     if (res.ok) return { ok: true };

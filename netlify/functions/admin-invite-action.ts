@@ -23,7 +23,7 @@
 //
 // Privacy: never log user ids, PII, or invite tokens verbatim.
 
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { checkProvisionRateLimit } from './_shared/rateLimiter';
 import { buildOnboardingLink, generateInviteCode } from '../../src/shared/lib/inviteCode';
 import { buildAdminInviteEmail } from '../../src/shared/lib/inviteEmail';
@@ -136,12 +136,13 @@ export default async (req: Request): Promise<Response> => {
   }
 
   const newToken = generateToken();
+  const newTokenHash = createHash('sha256').update(newToken).digest('hex');
   const newCode = generateInviteCode();
   const newExpiresAt = new Date(Date.now() + INVITE_TTL_MS).toISOString();
 
   const { error: updateErr } = await db
     .from('invite_codes')
-    .update({ token: newToken, code: newCode, expires_at: newExpiresAt })
+    .update({ token: newTokenHash, code: newCode, expires_at: newExpiresAt })
     .eq('id', (invite as { id: string }).id);
   if (updateErr) return json(502, { error: 'db-error' });
 

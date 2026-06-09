@@ -25,6 +25,7 @@
 //
 // Privacy: never log the recipient, token, rendered body, or user id.
 
+import { createHash } from 'node:crypto';
 import QRCode from 'qrcode';
 import { buildAdminInviteEmail, buildInviteEmail } from '../../src/shared/lib/inviteEmail';
 import { buildOnboardingLink } from '../../src/shared/lib/inviteCode';
@@ -51,6 +52,15 @@ interface InviteEmailRequest {
    * this field (or `'resident_invite'`) renders the standard resident template.
    */
   kind?: 'admin_setup' | 'resident_invite';
+  /**
+   * Plaintext onboarding token generated client-side (64 lower-case hex chars).
+   * The DB stores only its SHA-256 hash; this value is verified against the
+   * stored hash then used to build the invite link so the link carries the
+   * plaintext (which the redemption RPCs hash internally before lookup).
+   * Required for resident invites; omit for admin_setup (which regenerates tokens
+   * server-side).
+   */
+  token?: string;
 }
 
 function json(status: number, body: Record<string, unknown>): Response {
@@ -133,8 +143,17 @@ export default async (req: Request): Promise<Response> => {
   const asociatieName = await getAsociatieName(invite.asociatie_id);
   if (!asociatieName) return json(502, { error: 'asociatie-not-found' });
 
+  // Verify the client-supplied plaintext token against the stored SHA-256 hash,
+  // then use the plaintext in the link. The redemption RPCs (resolve/redeem_onboarding_token)
+  // hash the URL token internally before DB lookup, so the link must carry the
+  // plaintext -- not the stored hash.
+  const clientToken = payload.token?.trim();
+  if (!clientToken) return json(422, { error: 'missing-token' });
+  const clientHash = createHash('sha256').update(clientToken).digest('hex');
+  if (clientHash !== invite.token) return json(422, { error: 'token-mismatch' });
+
   const appUrl = (process.env.APP_URL ?? 'https://vecini.online').replace(/\/+$/, '');
-  const inviteLink = buildOnboardingLink(appUrl, invite.token);
+  const inviteLink = buildOnboardingLink(appUrl, clientToken);
 
   // ── Render template and send ──────────────────────────────────────────────
   const isAdminKind = payload.kind === 'admin_setup';

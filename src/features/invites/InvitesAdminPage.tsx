@@ -288,11 +288,11 @@ export default function InvitesAdminPage() {
                   {invite.expiresAt === null
                     ? t('invites.neverExpires')
                     : <strong className="font-bold text-foreground">{t('invites.expiresOn', { date: formatDate(invite.expiresAt) })}</strong>}
-                  {invite.emailSentAt !== null &&
+                  {invite.emailSentAt != null &&
                     ` · ${t('invites.emailSentOn', { date: formatDate(invite.emailSentAt) })}`}
-                  {invite.consumedAt !== null &&
+                  {invite.consumedAt != null &&
                     ` · ${t('invites.consumedOn', { date: formatDate(invite.consumedAt) })}`}
-                  {invite.emailDeliveredAt !== null &&
+                  {invite.emailDeliveredAt != null &&
                     ` · ${t('invites.emailDeliveredOn', { date: formatDate(invite.emailDeliveredAt) })}`}
                 </p>
                 {openQrs.has(invite.id) && (

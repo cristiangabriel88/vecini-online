@@ -334,7 +334,11 @@ export default function ApartmentsPage() {
         after: invite.role,
       });
       if (isSupabaseConfigured) {
-        await writeInviteToLive(invite);
+        const writeResult = await writeInviteToLive(invite);
+        if (!writeResult.ok) {
+          failedCount++;
+          continue;
+        }
       }
       const result = await sendInviteEmail({ invite, locale: i18n.language });
       if (result.ok) {
@@ -389,7 +393,11 @@ export default function ApartmentsPage() {
       after: invite.role,
     });
     if (isSupabaseConfigured) {
-      await writeInviteToLive(invite);
+      const writeResult = await writeInviteToLive(invite);
+      if (!writeResult.ok) {
+        toast.error(t('apartments.emailFailed'));
+        return;
+      }
     }
     const result = await sendInviteEmail({ invite, locale: i18n.language });
     if (!result.ok) {
