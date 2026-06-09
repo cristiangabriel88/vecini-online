@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, CheckCircle, Info, Megaphone, Plus, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Info, Megaphone, Plus, X, ShieldAlert } from 'lucide-react';
 import { usePlatformBroadcastStore, type BroadcastDraft } from './platformBroadcastStore';
 import { usePlatformAuthStore } from './platformAuthStore';
 import { DEMO_PLATFORM_ADMIN } from './demoPlatform';
@@ -9,7 +9,7 @@ import type { PlatformBroadcast } from './demoPlatform';
 const SEVERITY_ICONS = {
   info: Info,
   warning: AlertTriangle,
-  critical: AlertTriangle,
+  critical: ShieldAlert,
 };
 
 function BroadcastCard({ broadcast, onExpire }: { broadcast: PlatformBroadcast; onExpire: (id: string) => void }) {
@@ -74,7 +74,7 @@ const BLANK_DRAFT: BroadcastDraft = {
   endsAt: null,
 };
 
-function ComposeForm({ onPublished }: { onPublished: () => void }) {
+function ComposeForm({ onPublished, onCancel }: { onPublished: () => void; onCancel: () => void }) {
   const { t } = useTranslation();
   const demo = usePlatformAuthStore((s) => s.demo);
   const publish = usePlatformBroadcastStore((s) => s.publish);
@@ -194,6 +194,9 @@ function ComposeForm({ onPublished }: { onPublished: () => void }) {
           <Megaphone size={15} aria-hidden="true" />
           {t('platform.broadcasts.publishCta')}
         </button>
+        <button type="button" className="platform-btn platform-btn--ghost" onClick={onCancel}>
+          {t('common.cancel')}
+        </button>
       </div>
     </form>
   );
@@ -245,6 +248,7 @@ export default function PlatformBroadcastsPage() {
       {composing && (
         <ComposeForm
           onPublished={handlePublished}
+          onCancel={() => setComposing(false)}
         />
       )}
 

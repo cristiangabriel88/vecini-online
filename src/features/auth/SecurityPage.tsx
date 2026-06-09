@@ -23,6 +23,7 @@ import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
 import { Modal } from '@/shared/components/Modal';
+import { QrCode } from '@/shared/components/QrCode';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useMfaStore } from '@/shared/store/mfaStore';
 import { useSecurityStore } from '@/shared/store/securityStore';
@@ -679,24 +680,9 @@ export default function SecurityPage() {
               <li>{t('auth.mfa.step1')}</li>
               <li>{t('auth.mfa.step2')}</li>
             </ol>
-            {draft.qrSvg ? (
-              // An SVG loaded through <img src=data:...> cannot execute scripts,
-              // so this renders the QR without an HTML-injection surface.
-              <img
-                className="mx-auto mb-3 h-44 w-44"
-                alt={t('auth.mfa.qrAlt')}
-                src={
-                  draft.qrSvg.startsWith('data:')
-                    ? draft.qrSvg
-                    : `data:image/svg+xml;utf8,${encodeURIComponent(draft.qrSvg)}`
-                }
-              />
-            ) : (
-              <div className="mb-3 flex items-start gap-3 rounded-lg bg-[var(--bg-sunken)] px-4 py-3 text-sm">
-                <Smartphone className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-                <p className="text-muted">{t('auth.mfa.manualHint')}</p>
-              </div>
-            )}
+            <div className="mb-4 flex justify-center">
+              <QrCode value={draft.uri} label="totp-setup" size={200} />
+            </div>
             <div className="mb-4">
               <p className="text-xs uppercase tracking-wide text-muted">{t('auth.mfa.manualKey')}</p>
               <code className="iv-mono mt-1 block break-all rounded-md bg-[var(--bg-sunken)] px-3 py-2 text-sm">
