@@ -7,7 +7,7 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 - date: 2026-06-09
 - last_task: T295 self-service 2FA recovery + email-code as a standalone, selectable factor -- mfa-otp-request gains a `recovery` mode that mails a code to the verified account email with no enabled channel; LoginPage "Lost access to your authenticator?" flow + SecurityPage "Reset authenticator" button + email setup-confirm; challengeRequired/enforcement/challengeChannels made email-first-class (deliveredFactorEnrolled axis); 4 unit test files extended; all 3 builds green
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 332 test files / 3493 tests
+- counts: 332 test files / 3497 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task. DEV now matches PROD exactly (no role switcher; switcher is DEMO-only)
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
 - next: queue exhausted -- all Group A-H tasks complete; overnight script will audit+replenish
