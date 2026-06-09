@@ -96,7 +96,7 @@ export function DatePicker({
   max,
   placeholder,
 }: DatePickerProps) {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const lang = i18n.language ?? 'ro';
 
   const autoId = useId();
@@ -245,7 +245,7 @@ export function DatePicker({
           type="button"
           className="btn btn--ghost btn--icon btn--sm"
           onClick={prevMonth}
-          aria-label="previous month"
+          aria-label={t('common.datePicker.prevMonth')}
         >
           <ChevronLeft size={15} />
         </button>
@@ -256,7 +256,7 @@ export function DatePicker({
           type="button"
           className="btn btn--ghost btn--icon btn--sm"
           onClick={nextMonth}
-          aria-label="next month"
+          aria-label={t('common.datePicker.nextMonth')}
         >
           <ChevronRight size={15} />
         </button>
@@ -345,7 +345,7 @@ export function DatePicker({
               ref={popoverRef}
               role="dialog"
               aria-modal="true"
-              aria-label="calendar"
+              aria-label={t('common.datePicker.calendar')}
               className="dp-popover dp-popover--sheet"
               data-state={closing ? 'closing' : 'open'}
               onAnimationEnd={handleAnimationEnd}

@@ -40,6 +40,7 @@ function SingleBanner({ broadcast, onDismiss }: { broadcast: ActiveBroadcast; on
 }
 
 export function BroadcastBanner() {
+  const { t } = useTranslation();
   const hydrate = useBroadcastStore((s) => s.hydrate);
   const visible = useBroadcastStore((s) => s.visible());
   const dismiss = useBroadcastStore((s) => s.dismiss);
@@ -57,7 +58,7 @@ export function BroadcastBanner() {
   if (filtered.length === 0) return null;
 
   return (
-    <div className="broadcast-banner-stack" aria-label="Platform notices">
+    <div className="broadcast-banner-stack" aria-label={t('platform.broadcasts.noticesAriaLabel')}>
       {filtered.map((b) => (
         <SingleBanner key={b.id} broadcast={b} onDismiss={() => dismiss(b.id)} />
       ))}

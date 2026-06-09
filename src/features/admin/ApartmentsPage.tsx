@@ -1237,7 +1237,7 @@ export default function ApartmentsPage() {
               <Input
                 type="email"
                 label={t('apartments.inviteModalNewEmailLabel')}
-                placeholder="exemplu@email.com"
+                placeholder={t('apartments.emailPlaceholder')}
                 hint={t('apartments.inviteModalNewEmailHint')}
                 value={quickCustomEmail}
                 onChange={(e) => setQuickCustomEmail(e.target.value)}

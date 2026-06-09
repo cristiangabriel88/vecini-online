@@ -133,6 +133,11 @@
       "body": "Ai modificări nesalvate care vor fi pierdute. Continui?",
       "stay": "Rămâi",
       "leave": "Pleacă"
+    },
+    "datePicker": {
+      "prevMonth": "Luna anterioară",
+      "nextMonth": "Luna următoare",
+      "calendar": "Calendar"
     }
   },
   "auth": {
@@ -1094,6 +1099,7 @@
     "inviteModalOrNew": "sau folosește o altă adresă",
     "inviteModalNewEmailLabel": "Adresă de email nouă",
     "inviteModalNewEmailHint": "Util când apartamentul este închiriat și proprietarul dorește să se înregistreze separat.",
+    "emailPlaceholder": "exemplu@email.com",
     "deleteLabel": "Șterge {{label}}",
     "deleteTitle": "Șterge apartamentul",
     "deleteConfirm": "Ștergi definitiv {{label}}? Această acțiune este permanentă și nu mai poate fi anulată.",
@@ -1826,6 +1832,7 @@
     "newThread": "Subiect nou",
     "threadTitle": "Titlu",
     "topic": "Etichetă (opțional)",
+    "topicPlaceholder": "#parcare",
     "pinned": "Fixat",
     "pin": "Fixează",
     "unpin": "Anulează fixarea",
@@ -3528,6 +3535,7 @@
       "publishedOn": "Publicat {{date}}",
       "expiresOn": "Expiră {{date}}",
       "expiredOn": "Expirat {{date}}",
+      "noticesAriaLabel": "Anunțuri platformă",
       "dismissAriaLabel": "Închide anunțul",
       "severity": {
         "info": "Informație",

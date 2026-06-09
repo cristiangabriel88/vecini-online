@@ -4,6 +4,15 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T293 ✅ 2026-06-09 -- Translate hardcoded screen-reader strings + example placeholders
+- modified: `src/shared/components/DatePicker.tsx` -- destructure `t` from `useTranslation`; replace hardcoded `"previous month"`, `"next month"`, `"calendar"` aria-labels with `t('common.datePicker.prevMonth')`, `t('common.datePicker.nextMonth')`, `t('common.datePicker.calendar')`
+- modified: `src/shared/components/BroadcastBanner.tsx` -- call `useTranslation()` in `BroadcastBanner`; replace `aria-label="Platform notices"` with `t('platform.broadcasts.noticesAriaLabel')`
+- modified: `src/features/admin/ApartmentFormPage.tsx` -- replace `placeholder="exemplu@email.com"` with `t('apartments.emailPlaceholder')`
+- modified: `src/features/admin/ApartmentsPage.tsx` -- replace `placeholder="exemplu@email.com"` with `t('apartments.emailPlaceholder')`
+- modified: `src/features/discussions/DiscussionsPage.tsx` -- replace `placeholder="#parcare"` with `t('discussions.topicPlaceholder')`
+- modified: `src/shared/locales/ro.json` -- added `common.datePicker.{prevMonth,nextMonth,calendar}`, `apartments.emailPlaceholder`, `discussions.topicPlaceholder`, `platform.broadcasts.noticesAriaLabel`
+- modified: `src/shared/locales/en.json` -- same keys; English values: "Previous month", "Next month", "Calendar", "example@email.com", "#parking", "Platform notices"
+
 ### T297 ✅ 2026-06-09 -- Platform-admin "reset a user's 2FA" support action (total-lockout fallback)
 - new: `netlify/functions/platform-reset-user-mfa.ts` -- POST-only service-role function: verifies bearer token, re-checks `platform_admins`, rate-limits (5/hr per operator), looks up user by exact email via GoTrue admin REST API, deletes all TOTP factors via `auth.admin.mfa.deleteFactor`, then deletes `mfa_channels`, `mfa_recovery_codes`, and `session_elevations` rows by user_id, audits via `appendAudit` with `platform.mfa_reset` action and masked email; returns 401/403/404/429/502/200.
 - new: `src/platform/platformSupportStore.ts` -- Zustand store with `resetUserMfa(email)` action; demo mode simulates success; live mode posts to the Netlify function with the operator's bearer token.

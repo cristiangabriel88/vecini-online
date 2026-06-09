@@ -569,7 +569,7 @@ export default function ApartmentFormPage() {
               <Input
                 type="email"
                 label={t('apartments.inviteModalNewEmailLabel')}
-                placeholder="exemplu@email.com"
+                placeholder={t('apartments.emailPlaceholder')}
                 hint={t('apartments.inviteModalNewEmailHint')}
                 value={customEmail}
                 onChange={(e) => setCustomEmail(e.target.value)}

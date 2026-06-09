@@ -378,7 +378,7 @@ export default function DiscussionsPage() {
             label={t('discussions.topic')}
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
-            placeholder="#parcare"
+            placeholder={t('discussions.topicPlaceholder')}
           />
           {threadRetry.error && (
             <p role="alert" className="text-xs text-destructive" data-testid="thread-error">

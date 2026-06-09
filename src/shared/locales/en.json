@@ -133,6 +133,11 @@
       "body": "You have unsaved changes that will be lost. Continue?",
       "stay": "Stay",
       "leave": "Leave"
+    },
+    "datePicker": {
+      "prevMonth": "Previous month",
+      "nextMonth": "Next month",
+      "calendar": "Calendar"
     }
   },
   "auth": {
@@ -1094,6 +1099,7 @@
     "inviteModalOrNew": "or use a different address",
     "inviteModalNewEmailLabel": "New email address",
     "inviteModalNewEmailHint": "Useful if the apartment is rented and the owner wants to register separately.",
+    "emailPlaceholder": "example@email.com",
     "deleteLabel": "Delete {{label}}",
     "deleteTitle": "Delete apartment",
     "deleteConfirm": "Permanently delete {{label}}? This action is permanent and cannot be undone.",
@@ -1826,6 +1832,7 @@
     "newThread": "New thread",
     "threadTitle": "Title",
     "topic": "Tag (optional)",
+    "topicPlaceholder": "#parking",
     "pinned": "Pinned",
     "pin": "Pin",
     "unpin": "Unpin",
@@ -3528,6 +3535,7 @@
       "publishedOn": "Published {{date}}",
       "expiresOn": "Expires {{date}}",
       "expiredOn": "Expired {{date}}",
+      "noticesAriaLabel": "Platform notices",
       "dismissAriaLabel": "Dismiss notice",
       "severity": {
         "info": "Info",
