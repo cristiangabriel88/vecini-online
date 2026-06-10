@@ -3304,6 +3304,7 @@
       "adminProvisionTitle": "Add additional administrator",
       "adminProvisionCta": "Send invitation",
       "adminProvisionSuccess": "Invitation sent to {{email}}",
+      "adminProvisionSuccessNoEmail": "Invitation for {{email}} was created, but the email could not be sent. Use \"Resend invite\" once email delivery is configured.",
       "adminPending": "Invite pending",
       "adminActive": "Active administrator",
       "adminProvisionedOn": "Invited on {{date}}",

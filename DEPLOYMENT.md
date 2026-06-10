@@ -72,8 +72,11 @@ This guide is for the human deploying vecini.online. It covers Supabase, Netlify
      (email OTP step-up, T142–T144) silently fails to elevate sessions in production.
 
 9. Configure Storage:
-   - Settings → Storage → Create buckets: `attachments`, `documents`, `avatars`
-   - Set all to private (RLS-controlled)
+   - Settings → Storage → Create buckets: `attachments`, `documents`, `avatars`,
+     `photos`, `source-maps`
+   - Set all to private (RLS-controlled). `source-maps` is read only by the
+     `symbolicate-stack` function via service role; `photos` is referenced by the
+     GDPR erasure function.
 
 ## Step 2 — Telegram bot setup
 

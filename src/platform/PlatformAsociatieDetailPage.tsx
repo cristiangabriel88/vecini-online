@@ -173,6 +173,7 @@ export default function PlatformAsociatieDetailPage() {
   const [provisionEmail, setProvisionEmail] = useState('');
   const [provisionErrors, setProvisionErrors] = useState<{ name?: string; email?: string }>({});
   const [provisionSuccess, setProvisionSuccess] = useState<string | null>(null);
+  const [provisionEmailSent, setProvisionEmailSent] = useState(true);
 
   if (!a) {
     return (
@@ -302,6 +303,7 @@ export default function PlatformAsociatieDetailPage() {
     setAdminActionLoading('provision');
     if (isDemo) {
       provisionAdditionalAdmin(a!.id, name, email);
+      setProvisionEmailSent(true);
       setProvisionSuccess(email);
       setProvisionName('');
       setProvisionEmail('');
@@ -315,6 +317,7 @@ export default function PlatformAsociatieDetailPage() {
     if (!result.ok) { setAdminActionError('provisionAdminFailed'); setAdminActionLoading(null); return; }
     // Record the server invite UUID so revoke can address the real DB row.
     provisionAdditionalAdmin(a!.id, name, email, result.inviteId);
+    setProvisionEmailSent(result.emailSent !== false);
     setProvisionSuccess(email);
     setProvisionName('');
     setProvisionEmail('');
@@ -492,8 +495,10 @@ export default function PlatformAsociatieDetailPage() {
         )}
 
         {provisionSuccess && (
-          <p role="status" className="platform-detail-success">
-            {t('platform.detail.adminProvisionSuccess', { email: provisionSuccess })}
+          <p role="status" className={provisionEmailSent ? 'platform-detail-success' : 'platform-detail-error'}>
+            {provisionEmailSent
+              ? t('platform.detail.adminProvisionSuccess', { email: provisionSuccess })
+              : t('platform.detail.adminProvisionSuccessNoEmail', { email: provisionSuccess })}
           </p>
         )}
 

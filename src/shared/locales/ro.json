@@ -3304,6 +3304,7 @@
       "adminProvisionTitle": "Adaugă administrator suplimentar",
       "adminProvisionCta": "Trimite invitație",
       "adminProvisionSuccess": "Invitație trimisă la {{email}}",
+      "adminProvisionSuccessNoEmail": "Invitația pentru {{email}} a fost creată, dar emailul nu a putut fi trimis. Folosiți \"Retrimite invitația\" după ce livrarea emailurilor este configurată.",
       "adminPending": "Invitație în așteptare",
       "adminActive": "Administrator activ",
       "adminProvisionedOn": "Invitat la {{date}}",
