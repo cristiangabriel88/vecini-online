@@ -43,10 +43,10 @@ import { appendAudit } from './_shared/appendAudit';
 import { checkMfaResetRateLimit } from './_shared/rateLimiter';
 import { resolveSupabaseUrl } from '../../src/shared/lib/supabaseUrl';
 
-function json(status: number, body: Record<string, unknown>): Response {
+function json(status: number, body: Record<string, unknown>, extra: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...extra },
   });
 }
 
@@ -110,7 +110,7 @@ export default async (req: Request): Promise<Response> => {
   if (!userId) return json(401, { error: authError ?? 'unauthorized' });
 
   if (!checkMfaResetRateLimit(userId)) {
-    return json(429, { error: 'rate-limited' });
+    return json(429, { error: 'rate-limited' }, { 'Retry-After': '3600' });
   }
 
   const db = supabaseAdmin();

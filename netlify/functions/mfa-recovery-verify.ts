@@ -50,10 +50,10 @@ async function hashRecoveryCode(code: string): Promise<string> {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-function json(status: number, body: Record<string, unknown>): Response {
+function json(status: number, body: Record<string, unknown>, extra: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...extra },
   });
 }
 
@@ -118,7 +118,7 @@ export default async (req: Request): Promise<Response> => {
 
   const currentAttempts = (attemptRow as RecoveryAttemptRow | null)?.attempts ?? 0;
   if (currentAttempts >= MAX_ATTEMPTS) {
-    return json(429, { error: 'attempt-limit-exceeded' });
+    return json(429, { error: 'attempt-limit-exceeded' }, { 'Retry-After': '300' });
   }
 
   // ── Parse body ────────────────────────────────────────────────────────────

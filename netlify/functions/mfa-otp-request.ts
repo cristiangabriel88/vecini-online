@@ -37,10 +37,10 @@ import { checkMfaRequestRateLimit } from './_shared/rateLimiter';
 const EMAIL_CHANNEL = 'email';
 const MAX_ISSUE_PER_HOUR = 10;
 
-function json(status: number, body: Record<string, unknown>): Response {
+function json(status: number, body: Record<string, unknown>, extra: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...extra },
   });
 }
 
@@ -164,7 +164,7 @@ export default async (req: Request): Promise<Response> => {
     .eq('channel', EMAIL_CHANNEL)
     .gte('created_at', cooldownCutoff);
   if ((recentCount ?? 0) > 0) {
-    return json(429, { error: 'resend-cooldown' });
+    return json(429, { error: 'resend-cooldown' }, { 'Retry-After': '60' });
   }
 
   // ── Hourly issue ceiling ──────────────────────────────────────────────────
@@ -176,7 +176,7 @@ export default async (req: Request): Promise<Response> => {
     .eq('channel', EMAIL_CHANNEL)
     .gte('created_at', hourlyCutoff);
   if ((hourlyCount ?? 0) >= MAX_ISSUE_PER_HOUR) {
-    return json(429, { error: 'rate-limited' });
+    return json(429, { error: 'rate-limited' }, { 'Retry-After': '3600' });
   }
 
   // ── Mint the challenge ────────────────────────────────────────────────────

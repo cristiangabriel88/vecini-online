@@ -49,7 +49,7 @@ import {
 // the @/ import chain (platformProvisioningLogic -> @/shared/lib/identity ->
 // @/features/auth/authLogic) which tsconfig.node.json cannot resolve.
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
 
 type AdminInviteFieldError = 'required' | 'tooShort' | 'email';
 type AdminInviteErrors = Partial<Record<'adminName' | 'adminEmail', AdminInviteFieldError>>;
@@ -64,7 +64,7 @@ function validatePayload(
   rawEmail: string,
 ): { value: AdminInviteValidResult | null; errors: AdminInviteErrors } {
   const adminName = rawName.trim();
-  const adminEmail = rawEmail.trim();
+  const adminEmail = rawEmail.trim().toLowerCase();
   const errors: AdminInviteErrors = {};
   if (!adminName) errors.adminName = 'required';
   else if (adminName.length < 2) errors.adminName = 'tooShort';

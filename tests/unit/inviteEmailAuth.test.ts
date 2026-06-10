@@ -183,6 +183,6 @@ describe('invite-email.ts rate-limit wiring (T181)', () => {
 
   it('returns 429 when the IP limit is exceeded', () => {
     expect(src).toContain("!checkIpRateLimit(clientIp)");
-    expect(src).toContain("json(429, { error: 'rate-limited' })");
+    expect(src).toContain("json(429, { error: 'rate-limited' }, { 'Retry-After': '60' })");
   });
 });

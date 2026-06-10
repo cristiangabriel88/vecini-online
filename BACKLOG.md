@@ -202,9 +202,7 @@ The platform console's pending admin invites (`pendingInvites`) and admin roster
 
 The invite-token regression fixed on 2026-06-10 (plaintext at rest vs digest lookup) was invisible to the static-contract tests because nothing exercises the Netlify function and the SQL RPC against the same database. Add an integration spec (vitest, opt-in via env flag like the existing live suites, or Playwright against `supabase start`) that provisions an invite through the function handler, resolves it via `resolve_onboarding_token`, redeems it via `redeem_onboarding_token` with a real auth user, and asserts membership creation + single-use + expiry + email-mismatch paths. This is the only test shape that catches writer/reader contract drift. Prereq: none.
 
-### ⬜ T301 — [P2] Invite e-mail normalization + strict validation + rate-limit header consistency
-
-Three small hardening gaps from the audit: (1) invitee emails are stored as-typed -- normalize to lowercase at insert in the provisioning functions and `inviteWriteApi`, and compare case-insensitively everywhere (the redeem RPC already does); (2) the shared `EMAIL_RE` accepts degenerate addresses like `a@b` -- require a 2+ char TLD in the pragmatic regex used by the functions and `isValidEmail`; (3) every 429 response across the Netlify functions should carry a `Retry-After` header matching its limiter window (most do; sweep for stragglers). Unit tests for the regex change + one static sweep test for the header. Prereq: none.
+### ✅ T301 — [P2] Invite e-mail normalization + strict validation + rate-limit header consistency
 
 ### ⬜ T302 — [P2] Surface comunicare rollback failures to the user (toast on failed mirror writes)
 

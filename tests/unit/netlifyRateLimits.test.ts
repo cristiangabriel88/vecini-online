@@ -320,3 +320,36 @@ describe('mfa-recovery-verify.ts rate-limit wiring', () => {
     expect(src).toContain("event_type: 'rateLimited'");
   });
 });
+
+// ── T301: every 429 response carries Retry-After ──────────────────────────────
+
+describe('all 429 responses carry Retry-After (T301)', () => {
+  const FUNCTION_NAMES = [
+    'assistant-phrase.ts',
+    'audit-hmac.ts',
+    'csp-report.ts',
+    'error-report.ts',
+    'gdpr-erasure.ts',
+    'gdpr-retention-purge.ts',
+    'generate-pv-pdf.ts',
+    'health.ts',
+    'invite-email.ts',
+    'mfa-otp-request.ts',
+    'mfa-otp-verify.ts',
+    'mfa-recovery-verify.ts',
+    'notify-email.ts',
+    'platform-reset-user-mfa.ts',
+    'provision-asociatie.ts',
+    'provision-additional-admin.ts',
+    'admin-invite-action.ts',
+  ];
+
+  for (const name of FUNCTION_NAMES) {
+    it(`${name}: every status 429 is accompanied by Retry-After`, () => {
+      const src = readFileSync(join(process.cwd(), `netlify/functions/${name}`), 'utf8');
+      const has429 = src.includes('429');
+      if (!has429) return;
+      expect(src).toContain("'Retry-After'");
+    });
+  }
+});

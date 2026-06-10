@@ -20,8 +20,8 @@ export type AuthMode = 'signIn' | 'signUp' | 'forgot';
 /** Minimum password length accepted at sign-up (T03 tightens this further). */
 export const MIN_PASSWORD_LENGTH = 8;
 
-/** Pragmatic email shape check — the real validation is the verification email. */
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/** Pragmatic email shape check — requires a 2+ char TLD; the real validation is the verification email. */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
 
 export function isValidEmail(email: string): boolean {
   return EMAIL_RE.test(email.trim());

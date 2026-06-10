@@ -32,10 +32,10 @@ const MAX_VERIFY_ATTEMPTS = 5;
 // How long an app-managed session elevation lasts (24 hours).
 const ELEVATION_TTL_MS = 24 * 60 * 60 * 1000;
 
-function json(status: number, body: Record<string, unknown>): Response {
+function json(status: number, body: Record<string, unknown>, extra: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...extra },
   });
 }
 
@@ -129,7 +129,7 @@ export default async (req: Request): Promise<Response> => {
   if (!challenge) return json(422, { error: 'no-challenge' });
 
   if (challenge.attempts >= MAX_VERIFY_ATTEMPTS) {
-    return json(429, { error: 'challenge-locked' });
+    return json(429, { error: 'challenge-locked' }, { 'Retry-After': '60' });
   }
 
   // ── Verify the submitted credential ──────────────────────────────────────
@@ -160,7 +160,7 @@ export default async (req: Request): Promise<Response> => {
       .eq('id', challenge.id);
 
     if (newAttempts >= MAX_VERIFY_ATTEMPTS) {
-      return json(429, { error: 'challenge-locked' });
+      return json(429, { error: 'challenge-locked' }, { 'Retry-After': '60' });
     }
     return json(422, { error: 'invalid-code', remainingAttempts: MAX_VERIFY_ATTEMPTS - newAttempts });
   }

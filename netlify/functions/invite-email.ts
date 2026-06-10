@@ -63,10 +63,10 @@ interface InviteEmailRequest {
   token?: string;
 }
 
-function json(status: number, body: Record<string, unknown>): Response {
+function json(status: number, body: Record<string, unknown>, extra: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...extra },
   });
 }
 
@@ -87,7 +87,7 @@ export default async (req: Request): Promise<Response> => {
   // ── Per-IP rate limit (burst protection, before any DB queries) ───────────
   const clientIp = extractClientIp(req);
   if (clientIp && !checkIpRateLimit(clientIp)) {
-    return json(429, { error: 'rate-limited' });
+    return json(429, { error: 'rate-limited' }, { 'Retry-After': '60' });
   }
 
   const mailMode = getMailMode();
@@ -132,7 +132,7 @@ export default async (req: Request): Promise<Response> => {
   // ── Rate limit: per caller + asociatie ────────────────────────────────────
   const rateLimitKey = `${userId}:${invite.asociatie_id}`;
   if (!checkInviteRateLimit(rateLimitKey, now)) {
-    return json(429, { error: 'rate-limited' });
+    return json(429, { error: 'rate-limited' }, { 'Retry-After': '600' });
   }
 
   // ── Authorization: caller must administer this asociatie ─────────────────

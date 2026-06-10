@@ -4,6 +4,14 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T301 ✅ 2026-06-10 -- Invite e-mail normalization + strict validation + rate-limit header consistency
+- modified: `src/features/auth/authLogic.ts` -- `EMAIL_RE` now requires a 2+ char TLD (`\.[a-zA-Z]{2,}$`), rejecting degenerate addresses like `a@b` / `a@b.c`
+- modified: `netlify/functions/provision-asociatie.ts` + `provision-additional-admin.ts` -- same stricter `EMAIL_RE`; admin email lowercased (`.trim().toLowerCase()`) before validation/insert
+- modified: `src/features/invites/inviteWriteApi.ts` -- `invitee_email` lowercased + trimmed at insert (null preserved when absent); redeem RPC already compares case-insensitively
+- modified: `netlify/functions/error-report.ts`, `invite-email.ts`, `mfa-otp-request.ts`, `mfa-otp-verify.ts`, `mfa-recovery-verify.ts`, `platform-reset-user-mfa.ts` -- every 429 response now carries a `Retry-After` header matching its limiter window (60s burst / 600s window / 3600s hourly / 300s recovery); `json()` helpers gained an optional `extra` headers arg
+- tests: `authLogic.test.ts` (1-char TLD + `a@b.c` rejection), `inviteWriteApi.test.ts` (lowercase / trim / null invitee_email at insert), `netlifyRateLimits.test.ts` (static sweep: every function file containing `429` also contains `'Retry-After'`), `inviteEmailAuth.test.ts` (IP-limit assertion updated to new `json(429, ..., { 'Retry-After': '60' })` shape)
+- verified: lint + typecheck + full unit suite + build + build:pi + build:demo all green
+
 ### T300 ✅ 2026-06-10 -- Live round-trip integration test for the invite flow
 - new: `vitest.integration.config.ts` -- separate Vitest config for integration tests; `environment: 'node'`, includes `tests/integration/**`, 30s timeout; run with `npm run test:integration`
 - new: `tests/integration/inviteFlow.test.ts` -- 6 live tests gated by `VITE_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` + `VITE_SUPABASE_ANON_KEY`; all skip when credentials absent (unit suite stays offline-safe); covers: resolve returns ok with correct kind/email; full round-trip provision-resolve-redeem creates admin membership and marks invite consumed; single-use protection (second redeem returns `used`); expiry on resolve; expiry on redeem; email-mismatch rejects wrong-email user. Provisioning mirrors `provision-asociatie.ts` exactly (SHA-256 hash at rest) so the writer/reader contract is exercised end-to-end.

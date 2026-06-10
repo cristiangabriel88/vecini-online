@@ -16,12 +16,17 @@ describe('email validation', () => {
     expect(isValidEmail('  ana@vecini.ro  ')).toBe(true);
   });
 
-  it.each(['', 'ana', 'ana@', 'ana@vecini', 'ana @vecini.ro', 'a@b'])(
+  it.each(['', 'ana', 'ana@', 'ana@vecini', 'ana @vecini.ro', 'a@b', 'a@b.c'])(
     'rejects malformed address %p',
     (value) => {
       expect(isValidEmail(value)).toBe(false);
     },
   );
+
+  it('rejects a 1-char TLD (requires 2+ chars)', () => {
+    expect(isValidEmail('ana@vecini.x')).toBe(false);
+    expect(isValidEmail('ana@vecini.ro')).toBe(true);
+  });
 });
 
 describe('password validation', () => {

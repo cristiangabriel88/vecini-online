@@ -38,7 +38,7 @@ import {
 } from './_shared/supabaseAdmin';
 import { appendAudit } from './_shared/appendAudit';
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
 const INVITE_TTL_MS = 24 * 60 * 60 * 1000;
 
 function generateToken(): string {
@@ -101,7 +101,7 @@ export default async (req: Request): Promise<Response> => {
   if (!asociatieId) return json(422, { error: 'validation-failed', field: 'asociatieId' });
 
   const adminName = rawName.trim();
-  const adminEmail = rawEmail.trim();
+  const adminEmail = rawEmail.trim().toLowerCase();
   const errors: Record<string, string> = {};
   if (!adminName) errors.adminName = 'required';
   else if (adminName.length < 2) errors.adminName = 'tooShort';

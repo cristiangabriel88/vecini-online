@@ -117,7 +117,7 @@ export default async (req: Request): Promise<Response> => {
 
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '';
   if (ip && !checkSlidingWindow(_ipStore, ip, Date.now(), IP_WINDOW_MS, IP_MAX)) {
-    return new Response(null, { status: 429 });
+    return new Response(null, { status: 429, headers: { 'Retry-After': '600' } });
   }
 
   try {

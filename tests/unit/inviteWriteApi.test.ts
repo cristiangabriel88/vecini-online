@@ -247,6 +247,30 @@ describe('writeInviteToLive — inserted row shape', () => {
     const row = mockInsert.mock.calls[0][0] as Record<string, unknown>;
     expect(row.kind).toBe('resident_invite');
   });
+
+  it('lowercases invitee_email before insert (T301)', async () => {
+    const invite: InviteCode = { ...BASE_INVITE, inviteeEmail: 'Ana.Popescu@Vecini.RO' };
+    await writeInviteToLive(invite);
+
+    const row = mockInsert.mock.calls[0][0] as Record<string, unknown>;
+    expect(row.invitee_email).toBe('ana.popescu@vecini.ro');
+  });
+
+  it('trims whitespace from invitee_email before insert (T301)', async () => {
+    const invite: InviteCode = { ...BASE_INVITE, inviteeEmail: '  ana@vecini.ro  ' };
+    await writeInviteToLive(invite);
+
+    const row = mockInsert.mock.calls[0][0] as Record<string, unknown>;
+    expect(row.invitee_email).toBe('ana@vecini.ro');
+  });
+
+  it('stores null invitee_email when absent (T301)', async () => {
+    const invite: InviteCode = { ...BASE_INVITE, inviteeEmail: null };
+    await writeInviteToLive(invite);
+
+    const row = mockInsert.mock.calls[0][0] as Record<string, unknown>;
+    expect(row.invitee_email).toBeNull();
+  });
 });
 
 describe('hydrateInviteDelivery — offline guard', () => {

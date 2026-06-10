@@ -59,7 +59,7 @@ export async function writeInviteToLive(invite: InviteCode): Promise<WriteInvite
     single_use: invite.singleUse,
     expires_at: invite.expiresAt ? new Date(invite.expiresAt).toISOString() : null,
     invitee_name: invite.inviteeName ?? null,
-    invitee_email: invite.inviteeEmail ?? null,
+    invitee_email: invite.inviteeEmail ? invite.inviteeEmail.trim().toLowerCase() : null,
     kind: 'resident_invite',
     created_at: new Date(invite.createdAt).toISOString(),
     created_by: invite.createdBy ?? null,
