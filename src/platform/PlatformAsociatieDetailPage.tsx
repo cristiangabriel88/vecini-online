@@ -261,7 +261,11 @@ export default function PlatformAsociatieDetailPage() {
     }
     const token = useAuthStore.getState().session?.access_token ?? '';
     if (!token) { setAdminActionError('unauthorized'); setAdminActionLoading(null); return; }
-    const result = await callAdminInviteAction('revoke', record.setupToken, token);
+    // Prefer the live invite UUID (set by the live provisioning path); the
+    // plaintext setup token works as a fallback for records minted before the
+    // UUID was tracked (the server hashes non-UUID values and matches the
+    // token-at-rest digest).
+    const result = await callAdminInviteAction('revoke', record.inviteId ?? record.setupToken, token);
     if (!result.ok) { setAdminActionError('revokeFailed'); setAdminActionLoading(null); return; }
     revokeAdminAccess(a!.id, record.email);
     setAdminActionLoading(null);
@@ -309,7 +313,8 @@ export default function PlatformAsociatieDetailPage() {
     if (!token) { setAdminActionError('unauthorized'); setAdminActionLoading(null); return; }
     const result = await callProvisionAdditionalAdmin(a!.id, name, email, token);
     if (!result.ok) { setAdminActionError('provisionAdminFailed'); setAdminActionLoading(null); return; }
-    provisionAdditionalAdmin(a!.id, name, email);
+    // Record the server invite UUID so revoke can address the real DB row.
+    provisionAdditionalAdmin(a!.id, name, email, result.inviteId);
     setProvisionSuccess(email);
     setProvisionName('');
     setProvisionEmail('');

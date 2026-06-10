@@ -129,8 +129,11 @@ export default function PlatformAddAsociatiePage() {
           inviteId: string;
           emailSent: boolean;
         };
-        // Mirror to local store for display in the pending invites list.
-        const invite = inviteAdmin(value.adminName, value.adminEmail);
+        // Mirror to local store for display in the pending invites list. The
+        // server-returned invite_codes UUID becomes the local id so resend and
+        // revoke can address the real DB row (admin-invite-action looks it up
+        // by id).
+        const invite = inviteAdmin(value.adminName, value.adminEmail, body.inviteId);
         if (body.emailSent) markAdminEmailSent(invite.id);
         setEmailSentLive(body.emailSent);
       } else {

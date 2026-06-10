@@ -77,7 +77,11 @@ export function startThread(
   if (isSupabaseConfigured) {
     void (async () => {
       try {
-        await supabase.from('private_threads').insert({
+        // supabase-js does not throw on a PostgREST/RLS failure; it returns
+        // { error }, so each result must be checked explicitly or a rejected
+        // write would pass silently and the local thread would diverge from
+        // the backend.
+        const { error: threadErr } = await supabase.from('private_threads').insert({
           id: thread.id,
           asociatie_id: thread.asociatie_id,
           resident_user_id: thread.resident_user_id,
@@ -87,8 +91,15 @@ export function startThread(
           status: thread.status,
           created_at: thread.created_at,
         });
-        await supabase.from('private_messages').insert(messageRow(asociatieId, thread.messages[0]));
+        if (threadErr) throw threadErr;
+        const { error: msgErr } = await supabase
+          .from('private_messages')
+          .insert(messageRow(asociatieId, thread.messages[0]));
+        if (msgErr) throw msgErr;
       } catch (err) {
+        // Roll the optimistic thread back so the inbox does not show a
+        // conversation the other party can never receive.
+        useAdminChatStore.getState().removeThreads(asociatieId, [thread.id]);
         reportError(err, { source: 'adminChatApi.startThread' });
         onError?.();
       }
@@ -107,6 +118,7 @@ export function reply(
   body: string,
   onError?: () => void,
 ): void {
+  const before = useAdminChatStore.getState().forAsociatie(asociatieId);
   useAdminChatStore.getState().reply(asociatieId, threadId, sender, senderName, body);
   if (isSupabaseConfigured) {
     void (async () => {
@@ -116,9 +128,21 @@ export function reply(
           .forAsociatie(asociatieId)
           .find((t) => t.id === threadId);
         const message = thread?.messages[thread.messages.length - 1];
-        if (message) await supabase.from('private_messages').insert(messageRow(asociatieId, message));
-        await supabase.from('private_threads').update({ status: 'open' }).eq('id', threadId);
+        if (message) {
+          const { error: msgErr } = await supabase
+            .from('private_messages')
+            .insert(messageRow(asociatieId, message));
+          if (msgErr) throw msgErr;
+        }
+        const { error: statusErr } = await supabase
+          .from('private_threads')
+          .update({ status: 'open' })
+          .eq('id', threadId);
+        if (statusErr) throw statusErr;
       } catch (err) {
+        // Restore the pre-reply snapshot so the sender sees the message did
+        // not go through instead of a phantom reply only they can see.
+        useAdminChatStore.getState().replaceAll(asociatieId, before);
         reportError(err, { source: 'adminChatApi.reply' });
         onError?.();
       }
@@ -133,11 +157,12 @@ export function markRead(asociatieId: string, threadId: string, viewer: PrivateS
   if (isSupabaseConfigured) {
     void (async () => {
       try {
-        await supabase
+        const { error } = await supabase
           .from('private_messages')
           .update({ read: true })
           .eq('thread_id', threadId)
           .eq('sender', counterpartOf(viewer));
+        if (error) throw error;
       } catch (err) {
         reportError(err, { source: 'adminChatApi.markRead' });
       }
@@ -146,15 +171,21 @@ export function markRead(asociatieId: string, threadId: string, viewer: PrivateS
 }
 
 /** Delete one or more threads; updates the store and mirrors to the backend. */
-export function deleteThreads(asociatieId: string, ids: string[]): void {
+export function deleteThreads(asociatieId: string, ids: string[], onError?: () => void): void {
   if (!ids.length) return;
+  const before = useAdminChatStore.getState().forAsociatie(asociatieId);
   useAdminChatStore.getState().removeThreads(asociatieId, ids);
   if (isSupabaseConfigured) {
     void (async () => {
       try {
-        await supabase.from('private_threads').delete().in('id', ids);
+        const { error } = await supabase.from('private_threads').delete().in('id', ids);
+        if (error) throw error;
       } catch (err) {
+        // Restore the snapshot: the rows still exist on the server, so the
+        // optimistic removal must not stand.
+        useAdminChatStore.getState().replaceAll(asociatieId, before);
         reportError(err, { source: 'adminChatApi.deleteThreads' });
+        onError?.();
       }
     })();
   }
@@ -172,9 +203,15 @@ export function toggleStatus(asociatieId: string, threadId: string, onError?: ()
           .forAsociatie(asociatieId)
           .find((t) => t.id === threadId);
         if (thread) {
-          await supabase.from('private_threads').update({ status: thread.status }).eq('id', threadId);
+          const { error } = await supabase
+            .from('private_threads')
+            .update({ status: thread.status })
+            .eq('id', threadId);
+          if (error) throw error;
         }
       } catch (err) {
+        // Re-toggle so the badge reflects the server's status again.
+        useAdminChatStore.getState().toggleStatus(asociatieId, threadId);
         reportError(err, { source: 'adminChatApi.toggleStatus' });
         onError?.();
       }

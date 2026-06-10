@@ -24,6 +24,8 @@ import { downscalePhoto } from '@/shared/lib/imageResize';
 
 const BUCKET = 'attachments';
 const SIGNED_URL_EXPIRY_SECONDS = 3600;
+/** Newest announcements fetched per hydrate; older rows stay on the server. */
+const HYDRATE_LIMIT = 200;
 
 function buildAttachmentPath(asociatieId: string, attachmentId: string, fileName: string): string {
   return `${asociatieId}/announcements/${attachmentId}/${fileName}`;
@@ -42,7 +44,10 @@ export async function hydrateAnnouncements(asociatieId: string): Promise<void> {
         'id, asociatie_id, author_user_id, title, body_html, category, audience, scheduled_at, published_at, expires_at, created_at, updated_at',
       )
       .eq('asociatie_id', asociatieId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      // Newest-first cap so one long-lived asociatie cannot make hydration
+      // fetch an unbounded list (full pagination is a tracked follow-up).
+      .limit(HYDRATE_LIMIT);
     if (error || !data) {
       reportError(error ?? new Error('no data'), { source: 'announcementsApi.hydrate' });
       store.setFetchError('load');
@@ -192,15 +197,23 @@ export async function publishAnnouncement(
   }
 }
 
-/** Delete announcements by id; updates the store synchronously and mirrors to the backend. */
+/** Delete announcements by id; updates the store synchronously and mirrors to
+ *  the backend. supabase-js returns { error } instead of throwing on an
+ *  RLS/PostgREST failure, so the result is checked and the pre-delete snapshot
+ *  restored when the backend rejected the delete (otherwise the rows would
+ *  reappear on the next hydrate with no explanation). */
 export function deleteAnnouncements(asociatieId: string, ids: string[]): void {
   if (!ids.length) return;
-  useAnnouncementsStore.getState().remove(asociatieId, ids);
+  const store = useAnnouncementsStore.getState();
+  const before = announcementsForAsociatie(store.byAsociatie, asociatieId);
+  store.remove(asociatieId, ids);
   if (isSupabaseConfigured) {
     void (async () => {
       try {
-        await supabase.from('announcements').delete().in('id', ids);
+        const { error } = await supabase.from('announcements').delete().in('id', ids);
+        if (error) throw error;
       } catch (err) {
+        useAnnouncementsStore.getState().replaceForAsociatie(asociatieId, before);
         reportError(err, { source: 'announcementsApi.delete' });
       }
     })();

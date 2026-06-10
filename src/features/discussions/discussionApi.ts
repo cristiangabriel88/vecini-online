@@ -21,6 +21,9 @@ import { useDiscussionStore } from './discussionStore';
    `author_name` on messages; both were added to support direct client reads
    without a join to the self-read-only users table. */
 
+/** Newest threads fetched per hydrate; older threads stay on the server. */
+const THREADS_HYDRATE_LIMIT = 100;
+
 type ThreadRow = {
   id: string;
   asociatie_id: string;
@@ -82,7 +85,10 @@ export async function hydrateThreads(asociatieId: string): Promise<void> {
         'id, asociatie_id, topic, title, pinned, created_at, messages:discussion_messages(id, thread_id, author_user_id, author_name, body, deleted_at, created_at)',
       )
       .eq('asociatie_id', asociatieId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      // Newest-first cap so hydration stays bounded as the forum grows
+      // (per-thread message pagination is a tracked follow-up).
+      .limit(THREADS_HYDRATE_LIMIT);
 
     // Schema is behind (missing author_name / title columns) -- retry without them.
     if (error && (error.code === '42703' || error.message?.includes('does not exist'))) {
@@ -92,7 +98,8 @@ export async function hydrateThreads(asociatieId: string): Promise<void> {
           'id, asociatie_id, topic, pinned, created_at, messages:discussion_messages(id, thread_id, author_user_id, body, deleted_at, created_at)',
         )
         .eq('asociatie_id', asociatieId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(THREADS_HYDRATE_LIMIT);
       if (fb.error || !fb.data) {
         reportError(fb.error ?? new Error('no data'), { source: 'discussionApi.hydrate.fallback' });
         store.setFetchError('load');
@@ -167,6 +174,17 @@ export async function postMessage(
   if (error) throw error;
 }
 
+/* The four mutations below apply the store change optimistically and mirror it
+   in the background. supabase-js does not throw on a PostgREST/RLS failure (it
+   returns { error }), so each result is checked explicitly and the pre-change
+   snapshot of the asociatie's thread list is restored on failure: the UI must
+   not keep showing a change the backend rejected. */
+
+/** Snapshot of one asociatie's threads, for rollback of a failed mirror. */
+function snapshotThreads(asociatieId: string): ReturnType<typeof threadsForAsociatie> {
+  return threadsForAsociatie(useDiscussionStore.getState().byAsociatie, asociatieId);
+}
+
 /** Toggle a thread's pinned state; updates the store and mirrors to the backend. */
 export function togglePin(asociatieId: string, threadId: string): void {
   useDiscussionStore.getState().togglePin(asociatieId, threadId);
@@ -179,11 +197,13 @@ export function togglePin(asociatieId: string, threadId: string): void {
       );
       const thread = threads.find((t) => t.id === threadId);
       if (!thread) return;
-      await supabase
+      const { error } = await supabase
         .from('discussion_threads')
         .update({ pinned: thread.pinned })
         .eq('id', threadId);
+      if (error) throw error;
     } catch (err) {
+      useDiscussionStore.getState().togglePin(asociatieId, threadId);
       reportError(err, { source: 'discussionApi.togglePin' });
     }
   })();
@@ -191,12 +211,15 @@ export function togglePin(asociatieId: string, threadId: string): void {
 
 /** Delete a thread and all its messages; updates the store and mirrors to the backend. */
 export function deleteThread(asociatieId: string, threadId: string): void {
+  const before = snapshotThreads(asociatieId);
   useDiscussionStore.getState().deleteThread(asociatieId, threadId);
   if (!isSupabaseConfigured) return;
   void (async () => {
     try {
-      await supabase.from('discussion_threads').delete().eq('id', threadId);
+      const { error } = await supabase.from('discussion_threads').delete().eq('id', threadId);
+      if (error) throw error;
     } catch (err) {
+      useDiscussionStore.getState().replaceForAsociatie(asociatieId, before);
       reportError(err, { source: 'discussionApi.deleteThread' });
     }
   })();
@@ -209,12 +232,18 @@ export function updateMessage(
   messageId: string,
   body: string,
 ): void {
+  const before = snapshotThreads(asociatieId);
   useDiscussionStore.getState().updateMessage(asociatieId, threadId, messageId, body);
   if (!isSupabaseConfigured) return;
   void (async () => {
     try {
-      await supabase.from('discussion_messages').update({ body }).eq('id', messageId);
+      const { error } = await supabase
+        .from('discussion_messages')
+        .update({ body })
+        .eq('id', messageId);
+      if (error) throw error;
     } catch (err) {
+      useDiscussionStore.getState().replaceForAsociatie(asociatieId, before);
       reportError(err, { source: 'discussionApi.updateMessage' });
     }
   })();
@@ -226,15 +255,18 @@ export function deleteMessage(
   threadId: string,
   messageId: string,
 ): void {
+  const before = snapshotThreads(asociatieId);
   useDiscussionStore.getState().deleteMessage(asociatieId, threadId, messageId);
   if (!isSupabaseConfigured) return;
   void (async () => {
     try {
-      await supabase
+      const { error } = await supabase
         .from('discussion_messages')
         .update({ deleted_at: new Date().toISOString() })
         .eq('id', messageId);
+      if (error) throw error;
     } catch (err) {
+      useDiscussionStore.getState().replaceForAsociatie(asociatieId, before);
       reportError(err, { source: 'discussionApi.deleteMessage' });
     }
   })();

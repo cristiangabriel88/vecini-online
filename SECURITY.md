@@ -187,17 +187,24 @@ These are deliberate, queued follow-ups rather than accepted risks:
   in this file and in `.env.example`. They must be applied on the provisioned project's
   Auth dashboard before the server becomes the authoritative backstop. Until then a
   direct API call can bypass the client-side password/throttle policy.
-- Client-side login throttle is clearable by an attacker (localStorage) -- T33
-  queues a server-backed lockout once the backend is provisioned.
-- Live recovery-code login needs a server routine to reach AAL2 -- T29.
+- ~~Client-side login throttle clearable (T33)~~ resolved: sign-in reconciles
+  the client lock with a server-backed lockout (`serverLockout.ts` +
+  `securityStore.checkServerLock`/`recordServerFailure`), so clearing
+  localStorage alone no longer bypasses it.
+- ~~Live recovery-code login server routine (T29)~~ superseded: recovery codes
+  verify server-side via `netlify/functions/mfa-recovery-verify.ts`, and T295
+  (2026-06-09) added self-service authenticator recovery via email-code 2FA.
+  Recovery codes remain a one-time complement, not a session-elevation path.
 - Live cross-tenant isolation tests against real Postgres -- T08; static
   RLS-coverage guard -- T35.
 - Email OTP service-role functions (T142) are deployed; live activation requires
   `SUPABASE_SERVICE_ROLE_KEY` + `RESEND_API_KEY` + `RESEND_FROM_EMAIL` + `APP_URL`
   in the Netlify environment, and the Custom Access Token Hook (T141) must be
-  enabled in Authentication > Hooks before the `app_2fa_at` claim reaches clients.
-  Until then, email OTP works in demo mode only. Server-side attempt limits and
+  enabled in Authentication > Hooks before the `app_2fa_at` claim reaches clients
+  (now also a step in `DEPLOYMENT.md` Step 1). Server-side attempt limits and
   session elevation require the provisioned backend.
 
-Last reviewed: 2026-05-29 (T142 email OTP service-role functions shipped; T32
-server-side auth-policy parity documented; T137 2026-05-26; T04 RLS audit 2026-05-22).
+Last reviewed: 2026-06-10 (invite-token hash-at-rest regression fixed in the
+provisioning functions + static contract test added; T295 self-service 2FA
+recovery noted; earlier: T142 2026-05-29; T137 2026-05-26; T04 RLS audit
+2026-05-22).

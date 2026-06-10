@@ -105,6 +105,8 @@ creates the asociație with the identity fields, and issues the hashed setup tok
 | Provisioning | Local platform store mints token + code | Service-role function (**T92**) |
 | Account creation | Local session + membership on redemption | Supabase Auth sign-up on redemption (**T55**) |
 | Invite consume | Replay-safe local `inviteStore.consume` | Hashed-token RPC under RLS (**T55**) |
+| Token hashing + rate limit | Plaintext local token (demo only) | sha256 at rest in `invite_codes.token`; every writer stores the digest, RPCs hash before lookup; 10 redeem attempts / 15 min per token (**T128**) |
+| Redemption audit | None | `invite.redeemed` event in `audit_log` (**T128**) |
 | Notifications | Local inbox store seeded from demo | `notifications` rows + read-state under RLS (**T127**) |
 
 ---

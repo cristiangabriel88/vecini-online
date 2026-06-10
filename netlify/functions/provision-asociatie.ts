@@ -31,7 +31,7 @@
 //
 // Privacy: never log the recipient email, invite token, user id, or any PII.
 
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { checkProvisionRateLimit } from './_shared/rateLimiter';
 import QRCode from 'qrcode';
 import { buildAdminInviteEmail } from '../../src/shared/lib/inviteEmail';
@@ -181,7 +181,11 @@ export default async (req: Request): Promise<Response> => {
   // The token is the high-entropy deep-link identifier; the code satisfies the
   // NOT NULL constraint and serves as a manual-entry fallback (not shown in UI
   // after T157). Neither is accepted from the client.
+  // Hash-at-rest (T128): resolve/redeem_onboarding_token look the row up by
+  // sha256(plaintext), so the DB must store the digest. The plaintext lives
+  // only in the emailed link.
   const token = generateToken();
+  const tokenHash = createHash('sha256').update(token).digest('hex');
   const code = generateInviteCode();
   const expiresAt = new Date(Date.now() + INVITE_TTL_MS).toISOString();
 
@@ -190,7 +194,7 @@ export default async (req: Request): Promise<Response> => {
     .insert({
       asociatie_id: asociatieId,
       code,
-      token,
+      token: tokenHash,
       expires_at: expiresAt,
       invitee_name: value.adminName,
       invitee_email: value.adminEmail,

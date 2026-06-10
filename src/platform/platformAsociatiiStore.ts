@@ -64,6 +64,13 @@ export interface AdminProvisionRecord {
   asociatieId: string;
   name: string;
   email: string;
+  /**
+   * The live invite_codes UUID for this provision (returned by the
+   * provision-additional-admin function), used by resend/revoke to address the
+   * real DB row. Null/absent for offline records minted before the backend
+   * call or in demo mode.
+   */
+  inviteId?: string | null;
   /** One-time setup code handed to the admin to complete sign-up (manual fallback). */
   setupCode: string;
   /** Opaque token backing the secure setup link (T123). */
@@ -130,8 +137,11 @@ interface PlatformAsociatiiState {
    * supplies only the admin's name and email; the invite token backs the setup
    * link emailed to the admin. The asociație identity is entered by the admin
    * during the onboarding wizard. No asociație row is created at this point.
+   * In live mode pass the server-returned invite_codes UUID as `id` so the
+   * resend/revoke actions can reference the real DB row; offline the id is
+   * minted locally.
    */
-  inviteAdmin: (adminName: string, adminEmail: string) => PendingAdminInvite;
+  inviteAdmin: (adminName: string, adminEmail: string, id?: string) => PendingAdminInvite;
   /** Stamp `emailSentAt` once the invitation email was successfully dispatched. */
   markAdminEmailSent: (inviteId: string) => void;
   /**
@@ -157,12 +167,14 @@ interface PlatformAsociatiiState {
   /**
    * Provision an additional admin for an existing asociație (T250). Adds a new
    * AdminProvisionRecord to `additionalAdmins[asociatieId]`. Audits
-   * `admin.provisioned`.
+   * `admin.provisioned`. In live mode pass the server-returned invite_codes
+   * UUID as `inviteId` so revoke/resend can reference the real DB row.
    */
   provisionAdditionalAdmin: (
     asociatieId: string,
     adminName: string,
     adminEmail: string,
+    inviteId?: string,
   ) => AdminProvisionRecord;
   /**
    * Revoke an active admin's access to an asociație (T250). Sets `revokedAt` on
@@ -283,10 +295,10 @@ export const usePlatformAsociatiiStore = create<PlatformAsociatiiState>()(
         return result;
       },
 
-      inviteAdmin: (adminName, adminEmail) => {
+      inviteAdmin: (adminName, adminEmail, id) => {
         const now = Date.now();
         const invite: PendingAdminInvite = {
-          id: crypto.randomUUID(),
+          id: id ?? crypto.randomUUID(),
           adminName,
           adminEmail,
           setupToken: generateInviteToken(),
@@ -372,12 +384,13 @@ export const usePlatformAsociatiiStore = create<PlatformAsociatiiState>()(
         return updated;
       },
 
-      provisionAdditionalAdmin: (asociatieId, adminName, adminEmail) => {
+      provisionAdditionalAdmin: (asociatieId, adminName, adminEmail, inviteId) => {
         const now = Date.now();
         const record: AdminProvisionRecord = {
           asociatieId,
           name: adminName,
           email: adminEmail,
+          inviteId: inviteId ?? null,
           setupCode: '',
           setupToken: generateInviteToken(),
           expiresAt: now + ONBOARDING_LINK_TTL_MS,

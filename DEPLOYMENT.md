@@ -65,7 +65,13 @@ This guide is for the human deploying vecini.online. It covers Supabase, Netlify
    - Configure SMTP if you want branded emails (otherwise Supabase uses their default)
    - Add your Netlify URL to redirect URLs (you'll do this after Step 2)
 
-8. Configure Storage:
+8. **(Critical for 2FA)** Enable the Custom Access Token Hook:
+   - Authentication → Hooks → enable the custom access token hook installed by the
+     migrations (`custom_access_token_hook`, T141)
+   - Without it the `app_2fa_at` claim never reaches clients, so app-managed 2FA
+     (email OTP step-up, T142–T144) silently fails to elevate sessions in production.
+
+9. Configure Storage:
    - Settings → Storage → Create buckets: `attachments`, `documents`, `avatars`
    - Set all to private (RLS-controlled)
 
@@ -103,8 +109,17 @@ This guide is for the human deploying vecini.online. It covers Supabase, Netlify
    | `TELEGRAM_WEBHOOK_SECRET` | random string from Step 2.7 |
    | `TELEGRAM_BOT_USERNAME` | from Step 2.2 |
    | `APP_URL` | your Netlify URL (e.g., `https://vecini.online`) |
+   | `PLATFORM_URL` | the hub origin (e.g., `https://hub.vecini.online`), used in platform team-invite emails |
+   | `AUDIT_HMAC_SECRET` | 32+ char random hex string; signs the audit-chain head (tamper evidence) |
+   | `MAIL_MODE` | `resend` (live email), `log` (dev: log instead of send), or `disabled` (no email) |
    | `SENTRY_DSN` | optional, for error monitoring |
-   | `RESEND_API_KEY` | optional, for transactional emails |
+   | `RESEND_API_KEY` | required when `MAIL_MODE=resend`, for transactional emails |
+   | `RESEND_FROM_EMAIL` | required when `MAIL_MODE=resend`, the verified sender address |
+   
+   The full two-site env table (including the `VITE_*` build-time variables for
+   both origins) lives in `RUNBOOK-MVP.md` § 3. `netlify/functions/_shared/configValidator.ts`
+   is the authoritative list of required server vars; the startup validation (T282)
+   fails loud when one is missing.
    
 5. Deploy. Wait for first build to complete (~3-5 min).
 
@@ -130,37 +145,59 @@ This guide is for the human deploying vecini.online. It covers Supabase, Netlify
    ```
    You should see your URL and `"pending_update_count": 0`.
 
-## Step 4 — First admin account
+## Step 4 — Provision the first asociație + admin (superadmin)
 
-1. Open your Netlify URL in a browser.
-2. You'll see the vecini.online landing page.
-3. Click "Înregistrare administrator" — this option is only available when no admin exists yet (bootstrap).
-4. Create your account with email + password.
-5. After login, you're prompted to create your first asociație.
+The app is invite-only: there is no public registration. The flow is documented
+in full in `ONBOARDING_FLOW.md`; the operator steps are:
 
-## Step 5 — Create your first asociație
+1. Sign in to the superadmin console at your hub origin (`hub.vecini.online`).
+   The superadmin account must exist in `platform_admins` (insert your user id
+   there once via the Supabase SQL editor; every privileged function re-checks
+   this table server-side).
+2. Open Asociații → "Adaugă asociație" and enter the first administrator's
+   name + email.
+3. The `provision-asociatie` function creates the asociație row plus a 24h
+   single-use setup invite and emails the admin a secure setup link (when
+   `MAIL_MODE=resend`; otherwise resend it later or share the link manually).
+4. The admin opens the link, lands on `/configurare-cont`, sets a password
+   twice, and the account + `admin` membership are created on redemption.
 
-Follow the onboarding wizard:
+## Step 5 — Admin completes the asociație
 
-1. **Profil asociație:** name, address, CUI (CIF), nr. înregistrare
-2. **Import apartamente:** upload CSV with columns `scara,etaj,numar_apartament,suprafata_utila,cota_parte_indiviza,proprietar_principal_name`
-3. **Funcționalități:** select which of the 60+ features to enable. Recommended starter set: F01, F03, F08, F09, F17, F19, F20, F33, F36, F56.
-4. **Branding:** upload logo, pick primary color, set welcome message
-5. **Invitații:** add other admins/comitet members by email
+After first sign-in the admin:
+
+1. Completes the asociație identity (name, address, CUI, IBAN) in
+   Setări → Date asociație (`BuildingSettingsPage`).
+2. Adds apartments in `/app/admin/apartamente` (manual or CSV import).
+3. Enables the features the building needs (feature toggles).
 
 ## Step 6 — Invite residents
 
-After the asociație is set up:
-
-1. Go to Apartamente → click "Generează coduri de invitație"
-2. The system generates a PDF with one slip per apartament, each with a unique code
-3. Print and distribute (under doors, or at the next AGA)
-4. Residents open Telegram, find your bot, send `/start <their-code>`
-5. They're linked and start receiving notifications
+1. The admin opens `/app/admin/invitatii` and issues a **per-resident** invite:
+   granted role (proprietar / locatar / comitet / cenzor / presedinte; never
+   `admin`) plus an optional apartment link.
+2. Each invite renders as a secure link + QR + short fallback code, valid 24h,
+   single-use; the email is dispatched via the `invite-email` function when
+   `MAIL_MODE=resend`.
+3. The resident opens the link, lands on `/configurare-cont`, sets a password,
+   and the account + membership (+ apartment link) are created on redemption.
+   The admin gets an in-app notification when the resident joins.
+4. (Optional) Residents can additionally link Telegram later — the bot's
+   `/start <code>` flow is for Telegram notification linking only, not for
+   account onboarding.
 
 ## Step 7 — Smoke test
 
-Run through the manual smoke test checklist in `TESTING.md § Manual smoke test checklist`. Fix anything broken before announcing to residents.
+Before and after deploying, validate locally:
+
+```bash
+npm run preflight
+```
+
+This runs lint + typecheck + unit tests and all three stage builds (PROD /
+DEV / DEMO) with bundle-size budgets. Then run through the manual smoke test
+checklist in `TESTING.md § Manual smoke test checklist`. Fix anything broken
+before announcing to residents.
 
 ## Custom domain (optional)
 

@@ -4,6 +4,7 @@ import type { PrivateMessage, PrivateSender, PrivateThread } from '@/shared/type
 import { DEMO_PRIVATE_THREADS } from '@/shared/demo/demoData';
 import { useAuthStore } from '@/shared/store/authStore';
 import { recordTimestamp, pruneTimestamps } from '@/shared/lib/contentGuard';
+import { genId } from '@/shared/lib/id';
 import { counterpartOf, toggledStatus } from './adminChatLogic';
 
 export type ThreadsByAsociatie = Record<string, PrivateThread[]>;
@@ -102,7 +103,10 @@ export const useAdminChatStore = create<AdminChatState>()(
           };
         }),
       startThread: (asociatieId, sender, input) => {
-        const id = `pt-${Date.now()}`;
+        // UUID-format ids: these rows are mirrored verbatim into the
+        // private_threads / private_messages tables whose id columns are uuid,
+        // so a prefixed local id would fail the insert in live mode.
+        const id = genId();
         const now = new Date().toISOString();
         const thread: PrivateThread = {
           id,
@@ -115,7 +119,7 @@ export const useAdminChatStore = create<AdminChatState>()(
           created_at: now,
           messages: [
             {
-              id: `pm-${Date.now()}`,
+              id: genId(),
               thread_id: id,
               sender,
               sender_name: sender === 'admin' ? 'Administrator' : input.residentName,
@@ -135,7 +139,7 @@ export const useAdminChatStore = create<AdminChatState>()(
         set((s) => ({
           byAsociatie: mapThread(s.byAsociatie, asociatieId, threadId, (th) => {
             const message: PrivateMessage = {
-              id: `pm-${Date.now()}`,
+              id: genId(),
               thread_id: threadId,
               sender,
               sender_name: senderName,

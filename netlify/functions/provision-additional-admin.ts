@@ -25,7 +25,7 @@
 //
 // Privacy: never log the recipient email, invite token, user id, or any PII.
 
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { checkProvisionRateLimit } from './_shared/rateLimiter';
 import { buildOnboardingLink, generateInviteCode } from '../../src/shared/lib/inviteCode';
 import { buildAdminInviteEmail } from '../../src/shared/lib/inviteEmail';
@@ -119,7 +119,11 @@ export default async (req: Request): Promise<Response> => {
     .maybeSingle();
   if (!asoc) return json(404, { error: 'not-found' });
 
+  // Hash-at-rest (T128): the onboarding RPCs look the row up by
+  // sha256(plaintext), so the DB stores only the digest; the plaintext token
+  // lives only in the emailed link.
   const token = generateToken();
+  const tokenHash = createHash('sha256').update(token).digest('hex');
   const code = generateInviteCode();
   const expiresAt = new Date(Date.now() + INVITE_TTL_MS).toISOString();
 
@@ -128,7 +132,7 @@ export default async (req: Request): Promise<Response> => {
     .insert({
       asociatie_id: asociatieId,
       code,
-      token,
+      token: tokenHash,
       expires_at: expiresAt,
       invitee_name: adminName,
       invitee_email: adminEmail,

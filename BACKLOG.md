@@ -182,6 +182,36 @@ T295's email recovery covers the common case (lost authenticator, still has the 
 
 Locale parity, diacritics, and alt-text are complete and test-guarded, but the audit found a few user-facing strings bypassing i18n: hardcoded English aria-labels in `src/shared/components/DatePicker.tsx` (`"previous month"`, `"next month"`, `"calendar"` at lines 248, 259, 348, 362 -- the component already imports `useTranslation` but destructures only `{ i18n }`, not `t`), `aria-label="Platform notices"` in `src/shared/components/BroadcastBanner.tsx:60`, and Romanian-only example placeholders shown to EN users (`exemplu@email.com` in `ApartmentFormPage.tsx:572` and `ApartmentsPage.tsx:1240`, `#parcare` in `DiscussionsPage.tsx:365`). Move each to a `t()` key in both `ro.json` and `en.json` (an `emailPlaceholder`-style key already exists to follow). Small a11y + i18n correctness fix. Prereq: none.
 
+### Group G — Follow-ups from the 2026-06-10 production audit (auth / invites / comunicare)
+
+> Context: the 2026-06-10 end-to-end audit fixed in place a P0 invite-token regression
+> (provisioning functions stored plaintext tokens while the onboarding RPCs look up by
+> sha256 digest -- fresh admin setup links could never resolve in production), broken
+> resend/revoke addressing (local mirror ids never matched the DB rows), uuid-format ids
+> for private chat (inserts silently failed), missing Realtime sync for discussions, and
+> silently-ignored `{ error }` results across the comunicare mirror writes (supabase-js
+> does not throw). The tasks below are the remaining gaps that audit surfaced.
+
+### ⬜ T298 — [P1] Live hydration of the platform console's pending-invite + admin roster
+
+The platform console's pending admin invites (`pendingInvites`) and admin roster (`provisions` / `additionalAdmins`) live only in the local persisted Zustand store: a superadmin on a different browser/device sees an empty list even though `invite_codes` rows exist, and the roster never reflects redemptions. Add a service-role Netlify function (`platform-list-invites` or extend an existing one) that lists `invite_codes` rows with `kind='admin_setup'` (id, asociatie_id, invitee name/email, expires_at, consumed_at, revoked_at -- never the token) after re-checking `platform_admins`, and hydrate `platformAsociatiiStore` from it on console load like `hydrateAsociatiiList` does. Resend/revoke then work from any device because the rows carry the real DB UUIDs. Unit tests for the function's auth guards + the store hydration mapping. Prereq: none.
+
+### ⬜ T299 — [P1] Real pagination for announcements + per-thread message loading for discussions
+
+The 2026-06-10 audit added newest-first hydrate caps (200 announcements, 100 discussion threads) so one long-lived asociație cannot make hydration unbounded, but there is no way to reach older content, and `hydrateThreads` still loads every message of every thread in one nested query (N×M rows). Add "load older" pagination for the announcements feed (range queries on `created_at`) and switch discussions to a two-step load: thread list first (with last-message preview), messages per thread on open, paginated. Keep the demo/offline stores unchanged. Bilingual UI for the load-more affordances, unit tests for the query-window logic. Prereq: none.
+
+### ⬜ T300 — [P1] Live round-trip integration test for the invite flow (provision → resolve → redeem)
+
+The invite-token regression fixed on 2026-06-10 (plaintext at rest vs digest lookup) was invisible to the static-contract tests because nothing exercises the Netlify function and the SQL RPC against the same database. Add an integration spec (vitest, opt-in via env flag like the existing live suites, or Playwright against `supabase start`) that provisions an invite through the function handler, resolves it via `resolve_onboarding_token`, redeems it via `redeem_onboarding_token` with a real auth user, and asserts membership creation + single-use + expiry + email-mismatch paths. This is the only test shape that catches writer/reader contract drift. Prereq: none.
+
+### ⬜ T301 — [P2] Invite e-mail normalization + strict validation + rate-limit header consistency
+
+Three small hardening gaps from the audit: (1) invitee emails are stored as-typed -- normalize to lowercase at insert in the provisioning functions and `inviteWriteApi`, and compare case-insensitively everywhere (the redeem RPC already does); (2) the shared `EMAIL_RE` accepts degenerate addresses like `a@b` -- require a 2+ char TLD in the pragmatic regex used by the functions and `isValidEmail`; (3) every 429 response across the Netlify functions should carry a `Retry-After` header matching its limiter window (most do; sweep for stragglers). Unit tests for the regex change + one static sweep test for the header. Prereq: none.
+
+### ⬜ T302 — [P2] Surface comunicare rollback failures to the user (toast on failed mirror writes)
+
+The 2026-06-10 audit made the optimistic comunicare writes (announcements delete, discussion pin/edit/delete, private-chat start/reply/delete/toggle) check the supabase `{ error }` result and roll the store back, and `adminChatApi.deleteThreads` gained an `onError` callback -- but most pages do not yet pass an error handler, so a rollback happens silently (the item reappears with no explanation). Wire the existing react-hot-toast pattern into the calling pages for every rollback path, with bilingual messages (reuse the `adminchat`/`announcements`/`discussions` i18n namespaces). Unit/RTL test that a failed delete shows the toast and restores the row. Prereq: none.
+
 ---
 
 ## On hold

@@ -1,11 +1,19 @@
 import { useEffect } from 'react';
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import { env } from '@/shared/lib/env';
-import type { Announcement, Ticket, PrivateThread, PrivateMessage, Vote } from '@/shared/types/domain';
+import type {
+  Announcement,
+  Ticket,
+  PrivateThread,
+  PrivateMessage,
+  Vote,
+  DiscussionMessage,
+} from '@/shared/types/domain';
 import type { AppNotification, NotificationKind, NotificationPriority } from '@/features/notifications/notificationLogic';
 import { useAnnouncementsStore } from '@/features/announcements/announcementsStore';
 import { useTicketsStore } from '@/features/tickets/ticketsStore';
 import { useAdminChatStore } from '@/features/adminchat/adminChatStore';
+import { useDiscussionStore } from '@/features/discussions/discussionStore';
 import { useNotificationStore } from '@/shared/store/notificationStore';
 import { usePetitionStore } from '@/features/petitions/petitionStore';
 import { usePollsStore } from '@/features/polls/pollsStore';
@@ -19,6 +27,10 @@ import {
   applyThreadStatusUpdate,
   applyThreadDelete,
   applyMessageInsert,
+  applyDiscussionThreadInsert,
+  applyDiscussionThreadUpdate,
+  applyDiscussionThreadDelete,
+  applyDiscussionMessageChange,
   applyNotificationInsert,
   applyPetitionSignatureInsert,
   applyVoteInsert,
@@ -49,9 +61,43 @@ type RsvpRow = { event_id: string; status: string };
 /** DB row shape for private_threads (no computed messages join). */
 type ThreadRow = Omit<PrivateThread, 'messages'>;
 
+/** DB row shape for discussion_threads (no computed messages join). */
+type DiscussionThreadRow = {
+  id: string;
+  asociatie_id: string;
+  topic: string | null;
+  title: string | null;
+  pinned: boolean;
+  created_at: string;
+};
+
+/** DB row shape for discussion_messages (carries the soft-delete marker). */
+type DiscussionMessageRow = {
+  id: string;
+  thread_id: string;
+  author_user_id: string | null;
+  author_name: string | null;
+  body: string | null;
+  deleted_at: string | null;
+  created_at: string;
+};
+
+function fromDiscussionMessageRow(row: DiscussionMessageRow): DiscussionMessage {
+  return {
+    id: row.id,
+    thread_id: row.thread_id,
+    author_user_id: row.author_user_id ?? '',
+    author_name: row.author_name ?? '',
+    body: row.body ?? '',
+    created_at: row.created_at,
+  };
+}
+
 /**
  * Subscribe to Supabase Realtime postgres_changes for the active asociație:
- * announcements, tickets, and private messaging threads + messages (F04).
+ * announcements, tickets, discussions (F02 threads + messages), private
+ * messaging threads + messages (F04), notifications, petition signatures,
+ * poll votes, and event RSVPs.
  *
  * Each INSERT is deduplicated by id against the local store so optimistic writes
  * (which use the same id as the backend row) do not produce duplicates. Updates
@@ -139,6 +185,90 @@ export function useRealtimeSync(asociatieId: string | null): void {
           if (!id) return;
           const store = useTicketsStore.getState();
           store.replaceForAsociatie(aid, applyTicketDelete(store.forAsociatie(aid), id));
+        },
+      )
+
+      // ---- discussion threads (F02) ---------------------------------------
+      .on<DiscussionThreadRow>(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'discussion_threads', filter: `asociatie_id=eq.${aid}` },
+        (payload) => {
+          const store = useDiscussionStore.getState();
+          const row = payload.new;
+          store.replaceForAsociatie(
+            aid,
+            applyDiscussionThreadInsert(store.forAsociatie(aid), {
+              id: row.id,
+              asociatie_id: row.asociatie_id,
+              topic: row.topic ?? '#general',
+              title: row.title ?? '',
+              pinned: row.pinned,
+              created_at: row.created_at,
+              messages: [],
+            }),
+          );
+        },
+      )
+      .on<DiscussionThreadRow>(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'discussion_threads', filter: `asociatie_id=eq.${aid}` },
+        (payload) => {
+          const store = useDiscussionStore.getState();
+          const row = payload.new;
+          store.replaceForAsociatie(
+            aid,
+            applyDiscussionThreadUpdate(store.forAsociatie(aid), row.id, {
+              topic: row.topic ?? '#general',
+              title: row.title ?? '',
+              pinned: row.pinned,
+            }),
+          );
+        },
+      )
+      .on<{ id: string }>(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'discussion_threads', filter: `asociatie_id=eq.${aid}` },
+        (payload) => {
+          const id = payload.old.id;
+          if (!id) return;
+          const store = useDiscussionStore.getState();
+          store.replaceForAsociatie(
+            aid,
+            applyDiscussionThreadDelete(store.forAsociatie(aid), id),
+          );
+        },
+      )
+
+      // ---- discussion messages (F02) ---------------------------------------
+      // UPDATE covers both edits (body) and soft-deletes (deleted_at set).
+      .on<DiscussionMessageRow>(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'discussion_messages', filter: `asociatie_id=eq.${aid}` },
+        (payload) => {
+          const store = useDiscussionStore.getState();
+          store.replaceForAsociatie(
+            aid,
+            applyDiscussionMessageChange(
+              store.forAsociatie(aid),
+              fromDiscussionMessageRow(payload.new),
+              payload.new.deleted_at,
+            ),
+          );
+        },
+      )
+      .on<DiscussionMessageRow>(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'discussion_messages', filter: `asociatie_id=eq.${aid}` },
+        (payload) => {
+          const store = useDiscussionStore.getState();
+          store.replaceForAsociatie(
+            aid,
+            applyDiscussionMessageChange(
+              store.forAsociatie(aid),
+              fromDiscussionMessageRow(payload.new),
+              payload.new.deleted_at,
+            ),
+          );
         },
       )
 

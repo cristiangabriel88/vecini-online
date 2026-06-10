@@ -91,13 +91,22 @@ export default async (req: Request): Promise<Response> => {
   }
   if (!inviteId) return json(422, { error: 'validation-failed', field: 'inviteId' });
 
-  // Look up the invite by token (inviteId may be a token or UUID).
-  const { data: invite } = await db
+  // Look up the invite. inviteId is either the invite_codes UUID (preferred,
+  // returned by the provisioning functions) or the plaintext setup token from
+  // a stored link. Tokens are hashed at rest (T128), so a non-UUID value must
+  // be sha256-hashed before the lookup. Branching on shape also keeps the
+  // client-supplied value out of a raw PostgREST .or() filter string and
+  // avoids the uuid cast error a non-UUID value triggers on id.eq.
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const inviteQuery = db
     .from('invite_codes')
     .select('id, asociatie_id, invitee_name, invitee_email, expires_at, kind')
-    .or(`token.eq.${inviteId},id.eq.${inviteId}`)
-    .eq('kind', 'admin_setup')
-    .maybeSingle();
+    .eq('kind', 'admin_setup');
+  const { data: invite } = UUID_RE.test(inviteId)
+    ? await inviteQuery.eq('id', inviteId).maybeSingle()
+    : await inviteQuery
+        .eq('token', createHash('sha256').update(inviteId).digest('hex'))
+        .maybeSingle();
 
   if (!invite) return json(404, { error: 'not-found' });
 

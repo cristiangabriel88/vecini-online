@@ -1,4 +1,12 @@
-import type { Announcement, Ticket, PrivateThread, PrivateMessage, Petition } from '@/shared/types/domain';
+import type {
+  Announcement,
+  Ticket,
+  PrivateThread,
+  PrivateMessage,
+  Petition,
+  DiscussionThread,
+  DiscussionMessage,
+} from '@/shared/types/domain';
 import type { AppNotification } from '@/features/notifications/notificationLogic';
 
 /** Prepend an announcement if not already present (dedup by id); replace on UPDATE. */
@@ -64,6 +72,55 @@ export function applyMessageInsert(
   return threads.map((t) => {
     if (t.id !== message.thread_id) return t;
     if (t.messages.some((m) => m.id === message.id)) return t;
+    return { ...t, messages: [...t.messages, message] };
+  });
+}
+
+/** Prepend a discussion thread if not already present (dedup by id guards
+ *  against optimistic-write echoes). The DB thread row carries no messages;
+ *  they arrive separately through discussion_messages inserts. */
+export function applyDiscussionThreadInsert(
+  current: DiscussionThread[],
+  thread: DiscussionThread,
+): DiscussionThread[] {
+  return current.some((t) => t.id === thread.id) ? current : [thread, ...current];
+}
+
+/** Patch a discussion thread's mutable fields (topic / title / pinned),
+ *  preserving the locally-assembled messages array the row does not carry. */
+export function applyDiscussionThreadUpdate(
+  current: DiscussionThread[],
+  id: string,
+  patch: Pick<DiscussionThread, 'topic' | 'title' | 'pinned'>,
+): DiscussionThread[] {
+  return current.map((t) => (t.id === id ? { ...t, ...patch } : t));
+}
+
+/** Remove a discussion thread by id. */
+export function applyDiscussionThreadDelete(
+  current: DiscussionThread[],
+  id: string,
+): DiscussionThread[] {
+  return current.filter((t) => t.id !== id);
+}
+
+/** Apply a discussion message INSERT or UPDATE to its parent thread.
+ *  A row with deleted_at set is removed (soft-delete propagates as an UPDATE);
+ *  an existing id is replaced (edits); otherwise the message is appended.
+ *  No-op when the parent thread is not loaded locally. */
+export function applyDiscussionMessageChange(
+  threads: DiscussionThread[],
+  message: DiscussionMessage,
+  deletedAt: string | null,
+): DiscussionThread[] {
+  return threads.map((t) => {
+    if (t.id !== message.thread_id) return t;
+    if (deletedAt) {
+      return { ...t, messages: t.messages.filter((m) => m.id !== message.id) };
+    }
+    if (t.messages.some((m) => m.id === message.id)) {
+      return { ...t, messages: t.messages.map((m) => (m.id === message.id ? message : m)) };
+    }
     return { ...t, messages: [...t.messages, message] };
   });
 }
