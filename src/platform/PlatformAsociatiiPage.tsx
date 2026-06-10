@@ -27,7 +27,7 @@ import { useAuthStore } from '@/shared/store/authStore';
 import { usePlatformAsociatiiStore, type AsociatiiListFilter } from './platformAsociatiiStore';
 import { usePlatformAuthStore } from './platformAuthStore';
 import { isDormant } from './platformProvisioningLogic';
-import { hydrateAsociatiiList } from './platformApi';
+import { hydrateAsociatiiList, hydrateInvitesAndRoster } from './platformApi';
 import type { AsociatieStatus } from './demoPlatform';
 
 /**
@@ -93,12 +93,16 @@ export default function PlatformAsociatiiPage() {
     setFetchError(null);
     if (!isSupabaseConfigured) return;
     setIsHydrating(true);
-    void hydrateAsociatiiList().finally(() => setIsHydrating(false));
+    void Promise.all([hydrateAsociatiiList(), hydrateInvitesAndRoster()]).finally(
+      () => setIsHydrating(false),
+    );
   }, [setFetchError]);
 
   const retry = () => {
     setIsHydrating(true);
-    void hydrateAsociatiiList().finally(() => setIsHydrating(false));
+    void Promise.all([hydrateAsociatiiList(), hydrateInvitesAndRoster()]).finally(
+      () => setIsHydrating(false),
+    );
   };
 
   async function handleInviteAction(inviteId: string, action: 'resend' | 'revoke') {

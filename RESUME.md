@@ -4,10 +4,10 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 
 ## 0. Current status
 
-- date: 2026-06-09
-- last_task: T293 Translate hardcoded screen-reader strings + example placeholders -- DatePicker aria-labels (prevMonth/nextMonth/calendar) + BroadcastBanner noticesAriaLabel + apartments.emailPlaceholder + discussions.topicPlaceholder; all keys added to ro.json + en.json; 334 test files / 3517 tests; all 3 builds green
+- date: 2026-06-10
+- last_task: T298 Live hydration of the platform console's pending-invite + admin roster -- platform-list-invites Netlify function (GET, service-role, 405/503/401/403 gated), replaceFromLive store action, hydrateInvitesAndRoster in platformApi, wired into PlatformAsociatiiPage; 339 test files / 3558 tests; all 3 builds green
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 334 test files / 3517 tests
+- counts: 339 test files / 3558 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task. DEV now matches PROD exactly (no role switcher; switcher is DEMO-only)
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
 - next: queue exhausted -- all Group A-H tasks complete; overnight script will audit+replenish

@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
 import { reportError } from '@/shared/lib/errorReporting';
+import type { LiveAdminInvite } from './platformAsociatiiStore';
 import {
   type AuditEntry,
   type AuditAction,
@@ -546,6 +547,47 @@ interface DbBroadcastRow {
   created_by: string | null;
   created_at: string;
   expired_at: string | null;
+}
+
+/**
+ * Load all admin-setup invite_codes from the DB and hydrate the platform store
+ * with the live invite/roster state (T298). After this call the pending invites
+ * list and the per-asociatie admin roster reflect the real DB state, so resend
+ * and revoke work from any device using the real DB UUIDs.
+ * No-op in demo/offline mode.
+ */
+export async function hydrateInvitesAndRoster(): Promise<void> {
+  if (!isSupabaseConfigured) return;
+
+  usePlatformAsociatiiStore.getState().setFetchError(null);
+
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session?.access_token) return;
+
+    const res = await fetch('/.netlify/functions/platform-list-invites', {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
+
+    if (!res.ok) {
+      usePlatformAsociatiiStore.getState().setFetchError('load');
+      reportError(new Error(`platform-list-invites returned ${res.status}`), {
+        source: 'platformApi.hydrateInvitesAndRoster',
+      });
+      return;
+    }
+
+    const body = (await res.json()) as { invites: LiveAdminInvite[] };
+    usePlatformAsociatiiStore.getState().replaceFromLive(body.invites ?? []);
+  } catch (err) {
+    usePlatformAsociatiiStore.getState().setFetchError('load');
+    reportError(err instanceof Error ? err : new Error(String(err)), {
+      source: 'platformApi.hydrateInvitesAndRoster',
+    });
+  }
 }
 
 /**

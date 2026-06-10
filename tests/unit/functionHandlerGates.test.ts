@@ -77,6 +77,7 @@ import revokeAdminHandler from '../../netlify/functions/revoke-admin-access';
 import featureOverrideHandler from '../../netlify/functions/feature-override';
 import billingCheckoutHandler from '../../netlify/functions/billing-checkout';
 import purgeHandler from '../../netlify/functions/gdpr-retention-purge';
+import listInvitesHandler from '../../netlify/functions/platform-list-invites';
 
 function makeReq(
   method: string,
@@ -294,6 +295,54 @@ describe('gdpr-retention-purge handler — gate rejection', () => {
       makeReq('POST', 'http://localhost/.netlify/functions/gdpr-retention-purge', {
         Authorization: 'Bearer valid-token',
         'x-forwarded-for': '1.2.3.4',
+      }),
+    );
+    expect(res.status).toBe(403);
+    const body = await res.json() as { error: string };
+    expect(body.error).toBe('forbidden');
+  });
+});
+
+// ── platform-list-invites ─────────────────────────────────────────────────────
+
+describe('platform-list-invites handler — gate rejection', () => {
+  it('returns 405 for a POST request (only GET is accepted)', async () => {
+    const res = await listInvitesHandler(
+      makeReq('POST', 'http://localhost/.netlify/functions/platform-list-invites'),
+    );
+    expect(res.status).toBe(405);
+    const body = await res.json() as { error: string };
+    expect(body.error).toBe('method-not-allowed');
+  });
+
+  it('returns 503 when backend is not configured', async () => {
+    supabaseMocks.configured = false;
+    const res = await listInvitesHandler(
+      makeReq('GET', 'http://localhost/.netlify/functions/platform-list-invites'),
+    );
+    expect(res.status).toBe(503);
+    const body = await res.json() as { error: string };
+    expect(body.error).toBe('backend-not-configured');
+  });
+
+  it('returns 401 when bearer token is missing or invalid', async () => {
+    supabaseMocks.configured = true;
+    supabaseMocks.bearerResult = { userId: null, error: 'unauthorized' };
+    const res = await listInvitesHandler(
+      makeReq('GET', 'http://localhost/.netlify/functions/platform-list-invites'),
+    );
+    expect(res.status).toBe(401);
+    const body = await res.json() as { error: string };
+    expect(body.error).toBe('unauthorized');
+  });
+
+  it('returns 403 when caller is not a platform admin', async () => {
+    supabaseMocks.configured = true;
+    supabaseMocks.bearerResult = { userId: 'user-not-admin', error: undefined };
+    supabaseMocks.platformAdminRow = null;
+    const res = await listInvitesHandler(
+      makeReq('GET', 'http://localhost/.netlify/functions/platform-list-invites', {
+        Authorization: 'Bearer valid-token',
       }),
     );
     expect(res.status).toBe(403);

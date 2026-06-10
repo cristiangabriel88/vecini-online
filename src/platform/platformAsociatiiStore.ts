@@ -95,6 +95,22 @@ export interface ConsumeSetupResult {
 /** Filter applied to the asociații list in the platform console (T249). */
 export type AsociatiiListFilter = 'all' | 'active' | 'suspended' | 'archived';
 
+/**
+ * A single admin-setup invite row returned by the platform-list-invites
+ * function (T298). Token and code are NEVER included -- only metadata.
+ */
+export interface LiveAdminInvite {
+  id: string;
+  asociatieId: string;
+  inviteeName: string | null;
+  inviteeEmail: string | null;
+  expiresAt: string;
+  consumedAt: string | null;
+  revokedAt: string | null;
+  createdAt: string;
+  emailSentAt: string | null;
+}
+
 interface PlatformAsociatiiState {
   /** Every asociație the platform knows about (seeded + provisioned), sorted. */
   asociatii: PlatformAsociatieSummary[];
@@ -120,6 +136,14 @@ interface PlatformAsociatiiState {
   listFilter: AsociatiiListFilter;
   /** Replace the asociatii list with live data from the DB (T120 live read). */
   replaceAsociatii: (rows: PlatformAsociatieSummary[]) => void;
+  /**
+   * Replace the invite/roster state with live data from the DB (T298).
+   * Maps all admin-setup invite_codes into pendingInvites, revokedInviteIds,
+   * provisions, and additionalAdmins so the console is consistent across
+   * devices. Tokens are never present in the live rows -- setupToken and
+   * setupCode are set to '' in the mapped records.
+   */
+  replaceFromLive: (invites: LiveAdminInvite[]) => void;
   /** Set or clear the fetch error (called by platformApi). */
   setFetchError: (err: string | null) => void;
   /** Set the active list filter (T249). */
@@ -205,6 +229,64 @@ export const usePlatformAsociatiiStore = create<PlatformAsociatiiState>()(
 
       replaceAsociatii: (rows) => {
         set(() => ({ asociatii: rows }));
+      },
+
+      replaceFromLive: (invites) => {
+        const now = Date.now();
+        const nextProvisions: Record<string, AdminProvisionRecord> = {};
+        const nextAdditionalAdmins: Record<string, AdminProvisionRecord[]> = {};
+        const nextPending: PendingAdminInvite[] = [];
+        const nextRevokedIds: string[] = [];
+
+        // invites arrive sorted oldest-first (the function orders by created_at asc),
+        // so the first row per asociatieId becomes the primary provision record and
+        // subsequent rows become additional admins -- mirrors the offline split.
+        const seenAsociatie = new Set<string>();
+
+        for (const inv of invites) {
+          const expiresAtMs = new Date(inv.expiresAt).getTime();
+          const record: AdminProvisionRecord = {
+            asociatieId: inv.asociatieId,
+            name: inv.inviteeName ?? '',
+            email: inv.inviteeEmail ?? '',
+            inviteId: inv.id,
+            setupCode: '',
+            setupToken: '',
+            expiresAt: expiresAtMs,
+            redeemedAt: inv.consumedAt ? new Date(inv.consumedAt).getTime() : null,
+            provisionedAt: inv.createdAt,
+            revokedAt: inv.revokedAt ? new Date(inv.revokedAt).getTime() : null,
+          };
+
+          if (!seenAsociatie.has(inv.asociatieId)) {
+            seenAsociatie.add(inv.asociatieId);
+            nextProvisions[inv.asociatieId] = record;
+          } else {
+            (nextAdditionalAdmins[inv.asociatieId] ??= []).push(record);
+          }
+
+          const isRevoked = inv.revokedAt !== null || expiresAtMs <= now;
+          if (isRevoked) {
+            nextRevokedIds.push(inv.id);
+          } else if (!inv.consumedAt) {
+            nextPending.push({
+              id: inv.id,
+              adminName: inv.inviteeName ?? '',
+              adminEmail: inv.inviteeEmail ?? '',
+              setupToken: '',
+              expiresAt: expiresAtMs,
+              invitedAt: inv.createdAt,
+              emailSentAt: inv.emailSentAt ? new Date(inv.emailSentAt).getTime() : null,
+            });
+          }
+        }
+
+        set(() => ({
+          pendingInvites: nextPending,
+          revokedInviteIds: nextRevokedIds,
+          provisions: nextProvisions,
+          additionalAdmins: nextAdditionalAdmins,
+        }));
       },
 
       setFetchError: (err) => {

@@ -4,6 +4,15 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T298 ✅ 2026-06-10 -- Live hydration of the platform console's pending-invite + admin roster
+- new: `netlify/functions/platform-list-invites.ts` -- GET-only service-role function: verifies bearer token, re-checks `platform_admins`, queries all `invite_codes` with `kind='admin_setup'` (id, asociatie_id, invitee_name, invitee_email, expires_at, consumed_at, revoked_at, created_at, invite_email_sent_at -- never token/code), returns `{ invites: [...] }`; 405/503/401/403 gates.
+- modified: `src/platform/platformAsociatiiStore.ts` -- added `LiveAdminInvite` interface + `replaceFromLive` action: maps live DB rows into `pendingInvites`, `revokedInviteIds`, `provisions` (oldest per asociatieId), and `additionalAdmins`; token/setupCode set to '' (not returned by server); all fields converted from ISO to epoch ms as needed.
+- modified: `src/platform/platformApi.ts` -- added `hydrateInvitesAndRoster`: fetches `platform-list-invites` with the session bearer token, calls `replaceFromLive` on success; no-op when Supabase not configured; errors reported to the platform error stream.
+- modified: `src/platform/PlatformAsociatiiPage.tsx` -- call `hydrateInvitesAndRoster` in parallel with `hydrateAsociatiiList` on initial load and retry.
+- modified: `tests/unit/platformApi.test.ts` -- added `replaceFromLive` mapping tests (9 cases: pending, consumed, expired, revoked, primary/additional split, redeemedAt mapping, clear-on-empty) + source-contract checks for `hydrateInvitesAndRoster`.
+- modified: `tests/unit/functionHandlerGates.test.ts` -- added 4 gate tests for `platform-list-invites` (405 POST, 503 unconfigured, 401 bad-token, 403 non-admin).
+- verified: lint + typecheck + 3558 unit tests + build + build:pi + build:demo all green.
+
 ### T293 ✅ 2026-06-09 -- Translate hardcoded screen-reader strings + example placeholders
 - modified: `src/shared/components/DatePicker.tsx` -- destructure `t` from `useTranslation`; replace hardcoded `"previous month"`, `"next month"`, `"calendar"` aria-labels with `t('common.datePicker.prevMonth')`, `t('common.datePicker.nextMonth')`, `t('common.datePicker.calendar')`
 - modified: `src/shared/components/BroadcastBanner.tsx` -- call `useTranslation()` in `BroadcastBanner`; replace `aria-label="Platform notices"` with `t('platform.broadcasts.noticesAriaLabel')`

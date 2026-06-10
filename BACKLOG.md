@@ -192,7 +192,7 @@ Locale parity, diacritics, and alt-text are complete and test-guarded, but the a
 > silently-ignored `{ error }` results across the comunicare mirror writes (supabase-js
 > does not throw). The tasks below are the remaining gaps that audit surfaced.
 
-### ⬜ T298 — [P1] Live hydration of the platform console's pending-invite + admin roster
+### ✅ T298 — [P1] Live hydration of the platform console's pending-invite + admin roster
 
 The platform console's pending admin invites (`pendingInvites`) and admin roster (`provisions` / `additionalAdmins`) live only in the local persisted Zustand store: a superadmin on a different browser/device sees an empty list even though `invite_codes` rows exist, and the roster never reflects redemptions. Add a service-role Netlify function (`platform-list-invites` or extend an existing one) that lists `invite_codes` rows with `kind='admin_setup'` (id, asociatie_id, invitee name/email, expires_at, consumed_at, revoked_at -- never the token) after re-checking `platform_admins`, and hydrate `platformAsociatiiStore` from it on console load like `hydrateAsociatiiList` does. Resend/revoke then work from any device because the rows carry the real DB UUIDs. Unit tests for the function's auth guards + the store hydration mapping. Prereq: none.
 
