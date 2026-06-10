@@ -576,7 +576,8 @@
     "deleteBulkConfirm_few": "Permanently delete {{count}} announcements? This action cannot be undone.",
     "deleteSelected_few": "Delete {{count}} selected",
     "loadOlder": "Load older announcements",
-    "loadingOlder": "Loading..."
+    "loadingOlder": "Loading...",
+    "deleteFailed": "Could not delete. Please try again."
   },
   "polls": {
     "title": "Polls",
@@ -1867,7 +1868,10 @@
     "deleteBulkConfirm_few": "Permanently delete {{count}} threads and all their messages? This action cannot be undone.",
     "deleteSelected_few": "Delete {{count}} selected",
     "loadOlderMessages": "Older messages",
-    "loadingMessages": "Loading messages..."
+    "loadingMessages": "Loading messages...",
+    "deleteFailed": "Could not delete. Please try again.",
+    "pinFailed": "Could not pin/unpin. Please try again.",
+    "editFailed": "Message could not be updated. Please try again."
   },
   "budget": {
     "title": "Participatory budget",
@@ -2061,7 +2065,8 @@
     "waiting_few": "awaiting reply for {{count}}h",
     "deleteBulkTitle_few": "Delete {{count}} conversations?",
     "deleteBulkConfirm_few": "Permanently delete {{count}} conversations? This action cannot be undone.",
-    "deleteSelected_few": "Delete {{count}} selected"
+    "deleteSelected_few": "Delete {{count}} selected",
+    "deleteFailed": "Conversation could not be deleted. Please try again."
   },
   "welcomeKit": {
     "title": "Welcome kit",

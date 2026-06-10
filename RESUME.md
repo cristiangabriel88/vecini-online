@@ -5,9 +5,9 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-10
-- last_task: T301 Invite e-mail normalization + strict validation + rate-limit header consistency -- EMAIL_RE now requires a 2+ char TLD (authLogic + provision-asociatie + provision-additional-admin); invitee/admin emails lowercased+trimmed at insert (inviteWriteApi + provisioning functions); every Netlify 429 response carries a Retry-After header matching its limiter window; tests: TLD rejection, lowercase/trim/null invitee_email at insert, static sweep that every function containing 429 also contains Retry-After; 340 test files / 3600 unit tests; all 3 builds green
+- last_task: T302 Surface comunicare rollback failures (toast on failed mirror writes) -- `deleteAnnouncements`, `togglePin`, `deleteThread`, `updateMessage`, `deleteMessage` all accept `onError?` callback; wired in AnnouncementsPage, DiscussionsPage, AdminChatPage with bilingual error toasts; 5 new i18n keys (announcements.deleteFailed, discussions.deleteFailed/pinFailed/editFailed, adminChat.deleteFailed); 13 new unit tests in comunicareRollback.test.ts; 341 test files / 3613 tests; all 3 builds green
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
-- counts: 340 test files / 3600 tests
+- counts: 341 test files / 3613 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task. DEV now matches PROD exactly (no role switcher; switcher is DEMO-only)
 - mvp_spine: complete (T168/T169/T92/T55/T115 done; T128 token hardening done)
 - next: queue exhausted -- all Group A-H tasks complete; overnight script will audit+replenish

@@ -225,7 +225,7 @@ function snapshotThreads(asociatieId: string): ReturnType<typeof threadsForAsoci
 }
 
 /** Toggle a thread's pinned state; updates the store and mirrors to the backend. */
-export function togglePin(asociatieId: string, threadId: string): void {
+export function togglePin(asociatieId: string, threadId: string, onError?: () => void): void {
   useDiscussionStore.getState().togglePin(asociatieId, threadId);
   if (!isSupabaseConfigured) return;
   void (async () => {
@@ -244,12 +244,13 @@ export function togglePin(asociatieId: string, threadId: string): void {
     } catch (err) {
       useDiscussionStore.getState().togglePin(asociatieId, threadId);
       reportError(err, { source: 'discussionApi.togglePin' });
+      onError?.();
     }
   })();
 }
 
 /** Delete a thread and all its messages; updates the store and mirrors to the backend. */
-export function deleteThread(asociatieId: string, threadId: string): void {
+export function deleteThread(asociatieId: string, threadId: string, onError?: () => void): void {
   const before = snapshotThreads(asociatieId);
   useDiscussionStore.getState().deleteThread(asociatieId, threadId);
   if (!isSupabaseConfigured) return;
@@ -260,6 +261,7 @@ export function deleteThread(asociatieId: string, threadId: string): void {
     } catch (err) {
       useDiscussionStore.getState().replaceForAsociatie(asociatieId, before);
       reportError(err, { source: 'discussionApi.deleteThread' });
+      onError?.();
     }
   })();
 }
@@ -270,6 +272,7 @@ export function updateMessage(
   threadId: string,
   messageId: string,
   body: string,
+  onError?: () => void,
 ): void {
   const before = snapshotThreads(asociatieId);
   useDiscussionStore.getState().updateMessage(asociatieId, threadId, messageId, body);
@@ -284,6 +287,7 @@ export function updateMessage(
     } catch (err) {
       useDiscussionStore.getState().replaceForAsociatie(asociatieId, before);
       reportError(err, { source: 'discussionApi.updateMessage' });
+      onError?.();
     }
   })();
 }
@@ -293,6 +297,7 @@ export function deleteMessage(
   asociatieId: string,
   threadId: string,
   messageId: string,
+  onError?: () => void,
 ): void {
   const before = snapshotThreads(asociatieId);
   useDiscussionStore.getState().deleteMessage(asociatieId, threadId, messageId);
@@ -307,6 +312,7 @@ export function deleteMessage(
     } catch (err) {
       useDiscussionStore.getState().replaceForAsociatie(asociatieId, before);
       reportError(err, { source: 'discussionApi.deleteMessage' });
+      onError?.();
     }
   })();
 }

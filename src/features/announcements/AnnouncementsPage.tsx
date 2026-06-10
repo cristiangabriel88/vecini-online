@@ -533,9 +533,11 @@ export default function AnnouncementsPage() {
     setPendingDeleteId(id);
   }, []);
 
+  const onDeleteError = useCallback(() => toast.error(t('announcements.deleteFailed')), [t]);
+
   const confirmDeleteOne = useCallback(() => {
     if (!asociatieId || !pendingDeleteId) return;
-    deleteAnnouncements(asociatieId, [pendingDeleteId]);
+    deleteAnnouncements(asociatieId, [pendingDeleteId], onDeleteError);
     setSelectedIds((prev) => {
       const next = new Set(prev);
       next.delete(pendingDeleteId);
@@ -543,7 +545,7 @@ export default function AnnouncementsPage() {
     });
     toast.success(t('announcements.deleted'));
     setPendingDeleteId(null);
-  }, [asociatieId, pendingDeleteId, t]);
+  }, [asociatieId, pendingDeleteId, t, onDeleteError]);
 
   const handleDeleteSelected = useCallback(() => {
     setPendingBulkDelete(true);
@@ -552,11 +554,11 @@ export default function AnnouncementsPage() {
   const confirmDeleteSelected = useCallback(() => {
     if (!asociatieId) return;
     const ids = [...selectedIds];
-    deleteAnnouncements(asociatieId, ids);
+    deleteAnnouncements(asociatieId, ids, onDeleteError);
     setSelectedIds(new Set());
     toast.success(t('announcements.deletedBulk', { count: ids.length }));
     setPendingBulkDelete(false);
-  }, [asociatieId, selectedIds, t]);
+  }, [asociatieId, selectedIds, t, onDeleteError]);
 
   const handleMarkRead = useCallback((id: string) => {
     markRead(id);

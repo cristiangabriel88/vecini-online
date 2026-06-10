@@ -156,9 +156,13 @@ export default function DiscussionsPage() {
     setPendingDeleteThreadId(threadId);
   };
 
+  const onDeleteError = () => toast.error(t('discussions.deleteFailed'));
+  const onPinError = () => toast.error(t('discussions.pinFailed'));
+  const onEditError = () => toast.error(t('discussions.editFailed'));
+
   const confirmDeleteThread = () => {
     if (!asociatieId || !pendingDeleteThreadId) return;
-    deleteThread(asociatieId, pendingDeleteThreadId);
+    deleteThread(asociatieId, pendingDeleteThreadId, onDeleteError);
     setSelectedIds((prev) => {
       const next = new Set(prev);
       next.delete(pendingDeleteThreadId);
@@ -176,7 +180,7 @@ export default function DiscussionsPage() {
   const confirmDeleteSelected = () => {
     if (!asociatieId) return;
     const ids = [...selectedIds];
-    ids.forEach((id) => deleteThread(asociatieId, id));
+    ids.forEach((id) => deleteThread(asociatieId, id, onDeleteError));
     if (openId && ids.includes(openId)) setOpenId(null);
     setSelectedIds(new Set());
     toast.success(t('discussions.threadDeleted'));
@@ -185,7 +189,7 @@ export default function DiscussionsPage() {
 
   const confirmDeleteMessage = () => {
     if (!asociatieId || !pendingDeleteMessage) return;
-    deleteMessage(asociatieId, pendingDeleteMessage.threadId, pendingDeleteMessage.messageId);
+    deleteMessage(asociatieId, pendingDeleteMessage.threadId, pendingDeleteMessage.messageId, onDeleteError);
     setPendingDeleteMessage(null);
   };
 
@@ -280,7 +284,7 @@ export default function DiscussionsPage() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => asociatieId && togglePin(asociatieId, th.id)}
+                        onClick={() => asociatieId && togglePin(asociatieId, th.id, onPinError)}
                         aria-label={th.pinned ? t('discussions.unpin') : t('discussions.pin')}
                       >
                         <Pin className="h-4 w-4" />
@@ -325,7 +329,7 @@ export default function DiscussionsPage() {
                                     disabled={!isValidMessage(editingBody)}
                                     onClick={() => {
                                       if (asociatieId && isValidMessage(editingBody)) {
-                                        updateMessage(asociatieId, th.id, m.id, editingBody.trim());
+                                        updateMessage(asociatieId, th.id, m.id, editingBody.trim(), onEditError);
                                         toast.success(t('discussions.messageUpdated'));
                                         setEditingMessageId(null);
                                       }

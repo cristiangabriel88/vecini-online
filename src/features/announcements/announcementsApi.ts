@@ -245,7 +245,7 @@ export async function publishAnnouncement(
  *  RLS/PostgREST failure, so the result is checked and the pre-delete snapshot
  *  restored when the backend rejected the delete (otherwise the rows would
  *  reappear on the next hydrate with no explanation). */
-export function deleteAnnouncements(asociatieId: string, ids: string[]): void {
+export function deleteAnnouncements(asociatieId: string, ids: string[], onError?: () => void): void {
   if (!ids.length) return;
   const store = useAnnouncementsStore.getState();
   const before = announcementsForAsociatie(store.byAsociatie, asociatieId);
@@ -258,6 +258,7 @@ export function deleteAnnouncements(asociatieId: string, ids: string[]): void {
       } catch (err) {
         useAnnouncementsStore.getState().replaceForAsociatie(asociatieId, before);
         reportError(err, { source: 'announcementsApi.delete' });
+        onError?.();
       }
     })();
   }

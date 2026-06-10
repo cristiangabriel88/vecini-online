@@ -4,6 +4,15 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T302 ✅ 2026-06-10 -- Surface comunicare rollback failures (toast on failed mirror writes)
+- modified: src/features/announcements/announcementsApi.ts (`deleteAnnouncements` accepts `onError?: () => void`, calls it in catch after store restore)
+- modified: src/features/discussions/discussionApi.ts (`togglePin`, `deleteThread`, `updateMessage`, `deleteMessage` each accept `onError?: () => void`, call it in catch after store restore)
+- modified: src/features/adminchat/AdminChatPage.tsx (both `deleteThreads` calls now pass `onDeleteError`; added `onDeleteError` callback)
+- modified: src/features/announcements/AnnouncementsPage.tsx (`onDeleteError` callback wired into both `deleteAnnouncements` calls in `confirmDeleteOne` + `confirmDeleteSelected`)
+- modified: src/features/discussions/DiscussionsPage.tsx (`onDeleteError`, `onPinError`, `onEditError` callbacks wired to `deleteThread`, `deleteMessage`, `togglePin`, `updateMessage`)
+- modified: src/shared/locales/en.json + ro.json (added `announcements.deleteFailed`, `discussions.deleteFailed`, `discussions.pinFailed`, `discussions.editFailed`, `adminChat.deleteFailed`)
+- new: tests/unit/comunicareRollback.test.ts (13 tests: onError called on backend failure + store restored, for all 5 operations across 3 surfaces)
+
 ### T301 ✅ 2026-06-10 -- Invite e-mail normalization + strict validation + rate-limit header consistency
 - modified: `src/features/auth/authLogic.ts` -- `EMAIL_RE` now requires a 2+ char TLD (`\.[a-zA-Z]{2,}$`), rejecting degenerate addresses like `a@b` / `a@b.c`
 - modified: `netlify/functions/provision-asociatie.ts` + `provision-additional-admin.ts` -- same stricter `EMAIL_RE`; admin email lowercased (`.trim().toLowerCase()`) before validation/insert

@@ -179,10 +179,12 @@ export default function AdminChatPage() {
     setPendingBulkDelete(true);
   };
 
+  const onDeleteError = () => toast.error(t('adminChat.deleteFailed'));
+
   const confirmDeleteSelected = () => {
     if (!currentAsociatieId) return;
     const ids = [...selectedThreadIds];
-    deleteThreads(currentAsociatieId, ids);
+    deleteThreads(currentAsociatieId, ids, onDeleteError);
     if (selectedId && ids.includes(selectedId)) setSelectedId(null);
     setSelectedThreadIds(new Set());
     toast.success(t('adminChat.threadDeleted'));
@@ -195,7 +197,7 @@ export default function AdminChatPage() {
 
   const confirmDeleteOne = () => {
     if (!currentAsociatieId || !pendingDeleteId) return;
-    deleteThreads(currentAsociatieId, [pendingDeleteId]);
+    deleteThreads(currentAsociatieId, [pendingDeleteId], onDeleteError);
     if (selectedId === pendingDeleteId) setSelectedId(null);
     setSelectedThreadIds((prev) => {
       const next = new Set(prev);

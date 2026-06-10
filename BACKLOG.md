@@ -204,7 +204,7 @@ The invite-token regression fixed on 2026-06-10 (plaintext at rest vs digest loo
 
 ### ✅ T301 — [P2] Invite e-mail normalization + strict validation + rate-limit header consistency
 
-### ⬜ T302 — [P2] Surface comunicare rollback failures to the user (toast on failed mirror writes)
+### ✅ T302 — [P2] Surface comunicare rollback failures to the user (toast on failed mirror writes)
 
 The 2026-06-10 audit made the optimistic comunicare writes (announcements delete, discussion pin/edit/delete, private-chat start/reply/delete/toggle) check the supabase `{ error }` result and roll the store back, and `adminChatApi.deleteThreads` gained an `onError` callback -- but most pages do not yet pass an error handler, so a rollback happens silently (the item reappears with no explanation). Wire the existing react-hot-toast pattern into the calling pages for every rollback path, with bilingual messages (reuse the `adminchat`/`announcements`/`discussions` i18n namespaces). Unit/RTL test that a failed delete shows the toast and restores the row. Prereq: none.
 
