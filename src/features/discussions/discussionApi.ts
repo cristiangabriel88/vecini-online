@@ -23,15 +23,17 @@ import { useDiscussionStore } from './discussionStore';
 
 /** Newest threads fetched per hydrate; older threads stay on the server. */
 const THREADS_HYDRATE_LIMIT = 100;
+/** Messages loaded per thread on open and per "load older" page. */
+export const MESSAGES_PAGE_SIZE = 50;
 
-type ThreadRow = {
+type ThreadListRow = {
   id: string;
   asociatie_id: string;
   topic: string | null;
   title: string | null;
   pinned: boolean;
   created_at: string;
-  messages: MessageRow[] | null;
+  message_count: Array<{ count: number }> | null;
 };
 
 type MessageRow = {
@@ -55,11 +57,10 @@ function fromMessageRow(row: MessageRow): DiscussionMessage {
   };
 }
 
-function fromThreadRow(row: ThreadRow): DiscussionThread {
-  const messages = (row.messages ?? [])
-    .filter((m) => !m.deleted_at)
-    .sort((a, b) => a.created_at.localeCompare(b.created_at))
-    .map(fromMessageRow);
+function fromThreadListRow(row: ThreadListRow): DiscussionThread {
+  const count = Array.isArray(row.message_count) && row.message_count.length > 0
+    ? (row.message_count[0] as { count: number }).count
+    : 0;
   return {
     id: row.id,
     asociatie_id: row.asociatie_id,
@@ -67,12 +68,14 @@ function fromThreadRow(row: ThreadRow): DiscussionThread {
     title: row.title ?? '',
     pinned: row.pinned,
     created_at: row.created_at,
-    messages,
+    messages: [],
+    message_count: count,
   };
 }
 
-/** Hydrate discussion threads (with messages) for one asociație from the backend.
- *  The demo store remains the source of truth if the read fails or backend is absent.
+/** Hydrate discussion thread list (without message bodies) for one asociație.
+ *  Message bodies are loaded on demand via `loadThreadMessages` when a thread is
+ *  opened. The demo store remains the source of truth when the backend is absent.
  *  Falls back to a schema-compatible query when the schema is behind (e.g. Pi DEV
  *  missing the author_name / title columns from migration 20260528000001). */
 export async function hydrateThreads(asociatieId: string): Promise<void> {
@@ -82,21 +85,17 @@ export async function hydrateThreads(asociatieId: string): Promise<void> {
     const { data, error } = await supabase
       .from('discussion_threads')
       .select(
-        'id, asociatie_id, topic, title, pinned, created_at, messages:discussion_messages(id, thread_id, author_user_id, author_name, body, deleted_at, created_at)',
+        'id, asociatie_id, topic, title, pinned, created_at, message_count:discussion_messages(count)',
       )
       .eq('asociatie_id', asociatieId)
       .order('created_at', { ascending: false })
-      // Newest-first cap so hydration stays bounded as the forum grows
-      // (per-thread message pagination is a tracked follow-up).
       .limit(THREADS_HYDRATE_LIMIT);
 
-    // Schema is behind (missing author_name / title columns) -- retry without them.
+    // Schema is behind (missing title column) -- retry without it.
     if (error && (error.code === '42703' || error.message?.includes('does not exist'))) {
       const fb = await supabase
         .from('discussion_threads')
-        .select(
-          'id, asociatie_id, topic, pinned, created_at, messages:discussion_messages(id, thread_id, author_user_id, body, deleted_at, created_at)',
-        )
+        .select('id, asociatie_id, topic, pinned, created_at, message_count:discussion_messages(count)')
         .eq('asociatie_id', asociatieId)
         .order('created_at', { ascending: false })
         .limit(THREADS_HYDRATE_LIMIT);
@@ -109,7 +108,7 @@ export async function hydrateThreads(asociatieId: string): Promise<void> {
       store.replaceForAsociatie(
         asociatieId,
         (fb.data as Array<Record<string, unknown>>).map((row) =>
-          fromThreadRow({ ...row, title: null, messages: ((row.messages as MessageRow[] | null) ?? []).map((m) => ({ ...m, author_name: null })) } as ThreadRow),
+          fromThreadListRow({ ...row, title: null, message_count: null } as ThreadListRow),
         ),
       );
       return;
@@ -121,10 +120,50 @@ export async function hydrateThreads(asociatieId: string): Promise<void> {
       return;
     }
     store.setFetchError(null);
-    store.replaceForAsociatie(asociatieId, (data as ThreadRow[]).map(fromThreadRow));
+    store.replaceForAsociatie(asociatieId, (data as ThreadListRow[]).map(fromThreadListRow));
   } catch (err) {
     reportError(err, { source: 'discussionApi.hydrate' });
     store.setFetchError('load');
+  }
+}
+
+/** Load messages for one thread (newest-first, up to MESSAGES_PAGE_SIZE).
+ *  Pass `beforeCreatedAt` to fetch the next older page. Messages are stored
+ *  oldest-first; older pages are prepended. Returns `hasMore: true` when a
+ *  further older page may exist. No-op when offline. */
+export async function loadThreadMessages(
+  asociatieId: string,
+  threadId: string,
+  beforeCreatedAt?: string,
+): Promise<{ messages: DiscussionMessage[]; hasMore: boolean }> {
+  if (!isSupabaseConfigured || !asociatieId) return { messages: [], hasMore: false };
+  const store = useDiscussionStore.getState();
+  try {
+    let q = supabase
+      .from('discussion_messages')
+      .select('id, thread_id, author_user_id, author_name, body, deleted_at, created_at')
+      .eq('asociatie_id', asociatieId)
+      .eq('thread_id', threadId)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false })
+      .limit(MESSAGES_PAGE_SIZE);
+    if (beforeCreatedAt) q = q.lt('created_at', beforeCreatedAt);
+    const { data, error } = await q;
+    if (error || !data) {
+      if (error) reportError(error, { source: 'discussionApi.loadMessages' });
+      return { messages: [], hasMore: false };
+    }
+    // Reverse to oldest-first for display order.
+    const messages = (data as MessageRow[]).map(fromMessageRow).reverse();
+    if (beforeCreatedAt) {
+      store.prependMessagesForThread(asociatieId, threadId, messages);
+    } else {
+      store.setMessagesForThread(asociatieId, threadId, messages);
+    }
+    return { messages, hasMore: data.length === MESSAGES_PAGE_SIZE };
+  } catch (err) {
+    reportError(err, { source: 'discussionApi.loadMessages' });
+    return { messages: [], hasMore: false };
   }
 }
 

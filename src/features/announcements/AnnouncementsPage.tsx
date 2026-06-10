@@ -25,6 +25,7 @@ import { useWriteRetry } from '@/shared/lib/useWriteRetry';
 import { useAnnouncementsStore, useAsociatieAnnouncements } from './announcementsStore';
 import {
   hydrateAnnouncements,
+  loadOlderAnnouncements,
   publishAnnouncement,
   updateAnnouncement,
   uploadAnnouncementAttachments,
@@ -499,6 +500,8 @@ export default function AnnouncementsPage() {
   const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [pendingBulkDelete, setPendingBulkDelete] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const allSelected = items.length > 0 && selectedIds.size === items.length;
@@ -508,7 +511,8 @@ export default function AnnouncementsPage() {
   );
 
   useEffect(() => {
-    if (asociatieId) void hydrateAnnouncements(asociatieId);
+    if (!asociatieId) return;
+    void hydrateAnnouncements(asociatieId).then((r) => setHasMore(r.hasMore));
   }, [asociatieId]);
 
   const handleToggleItem = useCallback((id: string) => {
@@ -568,6 +572,19 @@ export default function AnnouncementsPage() {
       triggerDownload(att.file_data_url, att.file_name);
     }
   }, [t]);
+
+  const handleLoadOlder = useCallback(async () => {
+    if (!asociatieId || !hasMore || loadingOlder) return;
+    const oldest = items.at(-1);
+    if (!oldest) return;
+    setLoadingOlder(true);
+    try {
+      const result = await loadOlderAnnouncements(asociatieId, oldest.created_at);
+      setHasMore(result.hasMore);
+    } finally {
+      setLoadingOlder(false);
+    }
+  }, [asociatieId, hasMore, items, loadingOlder]);
 
   return (
     <div>
@@ -637,6 +654,17 @@ export default function AnnouncementsPage() {
               onDownload={handleDownload}
             />
           ))}
+          {hasMore && (
+            <div className="flex justify-center pt-2">
+              <Button
+                variant="ghost"
+                loading={loadingOlder}
+                onClick={() => void handleLoadOlder()}
+              >
+                {loadingOlder ? t('announcements.loadingOlder') : t('announcements.loadOlder')}
+              </Button>
+            </div>
+          )}
         </div>
       )}
 

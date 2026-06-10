@@ -28,6 +28,8 @@ interface AnnouncementsState {
   update: (asociatieId: string, id: string, patch: Partial<Pick<Announcement, 'title' | 'body_html' | 'category'>>) => void;
   /** Replace the full list for one asociație (used by live hydration). */
   replaceForAsociatie: (asociatieId: string, items: Announcement[]) => void;
+  /** Append older announcements to one asociație's list (for load-older pagination). */
+  appendForAsociatie: (asociatieId: string, items: Announcement[]) => void;
   /** Set or clear the live-fetch error (called by the API layer). */
   setFetchError: (msg: string | null) => void;
   markRead: (id: string) => void;
@@ -71,6 +73,13 @@ export const useAnnouncementsStore = create<AnnouncementsState>()(
         })),
       replaceForAsociatie: (asociatieId, items) =>
         set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: items } })),
+      appendForAsociatie: (asociatieId, items) =>
+        set((s) => ({
+          byAsociatie: {
+            ...s.byAsociatie,
+            [asociatieId]: [...(s.byAsociatie[asociatieId] ?? []), ...items],
+          },
+        })),
       setFetchError: (msg) => set({ fetchError: msg }),
       markRead: (id) => set((s) => ({ reads: { ...s.reads, [id]: true } })),
       forAsociatie: (asociatieId) => announcementsForAsociatie(get().byAsociatie, asociatieId),

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { DiscussionThread } from '@/shared/types/domain';
+import type { DiscussionMessage, DiscussionThread } from '@/shared/types/domain';
 import { useAuthStore } from '@/shared/store/authStore';
 import {
   type MessageAuthor,
@@ -42,6 +42,10 @@ interface DiscussionState {
   updateMessage: (asociatieId: string, threadId: string, messageId: string, body: string) => void;
   /** Replace the full thread list for one asociație (used by live hydration). */
   replaceForAsociatie: (asociatieId: string, threads: DiscussionThread[]) => void;
+  /** Set the messages for one thread (initial per-thread load). */
+  setMessagesForThread: (asociatieId: string, threadId: string, messages: DiscussionMessage[]) => void;
+  /** Prepend older messages to a thread's message list (load-older pagination). */
+  prependMessagesForThread: (asociatieId: string, threadId: string, olderMessages: DiscussionMessage[]) => void;
   /** Set or clear the live-fetch error (called by the API layer). */
   setFetchError: (msg: string | null) => void;
   /** The threads for one asociație (stable reference). */
@@ -98,6 +102,24 @@ export const useDiscussionStore = create<DiscussionState>()(
         })),
       replaceForAsociatie: (asociatieId, threads) =>
         set((s) => ({ byAsociatie: { ...s.byAsociatie, [asociatieId]: threads } })),
+      setMessagesForThread: (asociatieId, threadId, messages) =>
+        set((s) => ({
+          byAsociatie: {
+            ...s.byAsociatie,
+            [asociatieId]: (s.byAsociatie[asociatieId] ?? []).map((th) =>
+              th.id !== threadId ? th : { ...th, messages },
+            ),
+          },
+        })),
+      prependMessagesForThread: (asociatieId, threadId, olderMessages) =>
+        set((s) => ({
+          byAsociatie: {
+            ...s.byAsociatie,
+            [asociatieId]: (s.byAsociatie[asociatieId] ?? []).map((th) =>
+              th.id !== threadId ? th : { ...th, messages: [...olderMessages, ...th.messages] },
+            ),
+          },
+        })),
       setFetchError: (msg) => set({ fetchError: msg }),
       recordPost: (asociatieId, userId, now = Date.now()) =>
         set((s) => {

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { Announcement } from '@/shared/types/domain';
 import { useAnnouncementsStore } from '@/features/announcements/announcementsStore';
-import { hydrateAnnouncements, publishAnnouncement } from '@/features/announcements/announcementsApi';
+import { hydrateAnnouncements, loadOlderAnnouncements, publishAnnouncement } from '@/features/announcements/announcementsApi';
 
 // announcementsApi offline-path tests (T57).
 // Live-path tests require a real Supabase backend; the offline path
@@ -165,5 +165,60 @@ describe('publishAnnouncement', () => {
     expect(item.attachments).toHaveLength(1);
     expect(item.attachments![0].file_name).toBe('plan.pdf');
     expect(item.attachments![0].file_data_url).toContain('data:application/pdf');
+  });
+});
+
+describe('useAnnouncementsStore — appendForAsociatie (T299)', () => {
+  it('appends items at the end of the existing list', () => {
+    const older: Announcement = {
+      id: 'a-old',
+      asociatie_id: DEMO_ASOC,
+      author_user_id: 'u-admin',
+      title: 'Older',
+      body_html: '<p>Older</p>',
+      category: 'informativ',
+      audience: { type: 'all' },
+      scheduled_at: null,
+      published_at: '2025-12-01T10:00:00.000Z',
+      expires_at: null,
+      created_at: '2025-12-01T10:00:00.000Z',
+      updated_at: '2025-12-01T10:00:00.000Z',
+    };
+    useAnnouncementsStore.getState().appendForAsociatie(DEMO_ASOC, [older]);
+    const items = useAnnouncementsStore.getState().byAsociatie[DEMO_ASOC];
+    expect(items).toHaveLength(2);
+    expect(items[0].id).toBe('a-1');
+    expect(items[1].id).toBe('a-old');
+  });
+
+  it('does not touch other asociatii', () => {
+    useAnnouncementsStore.getState().appendForAsociatie('other-asoc', []);
+    expect(useAnnouncementsStore.getState().byAsociatie[DEMO_ASOC]).toHaveLength(1);
+  });
+
+  it('creates the list when the asociatie had no entries yet', () => {
+    useAnnouncementsStore.getState().appendForAsociatie('new-asoc', [SEED[0]]);
+    expect(useAnnouncementsStore.getState().byAsociatie['new-asoc']).toHaveLength(1);
+  });
+});
+
+describe('hydrateAnnouncements — pagination contract (T299)', () => {
+  it('returns hasMore: false when backend is not configured', async () => {
+    const result = await hydrateAnnouncements(DEMO_ASOC);
+    expect(result.hasMore).toBe(false);
+  });
+
+  it('returns hasMore: false when asociatieId is empty', async () => {
+    const result = await hydrateAnnouncements('');
+    expect(result.hasMore).toBe(false);
+  });
+});
+
+describe('loadOlderAnnouncements — offline no-op (T299)', () => {
+  it('returns hasMore: false and does not modify the store when offline', async () => {
+    const before = useAnnouncementsStore.getState().byAsociatie[DEMO_ASOC];
+    const result = await loadOlderAnnouncements(DEMO_ASOC, '2026-01-01T00:00:00.000Z');
+    expect(result.hasMore).toBe(false);
+    expect(useAnnouncementsStore.getState().byAsociatie[DEMO_ASOC]).toBe(before);
   });
 });

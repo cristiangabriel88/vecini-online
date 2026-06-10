@@ -931,6 +931,8 @@ export interface DiscussionThread {
   pinned: boolean;
   created_at: string;
   messages: DiscussionMessage[];
+  /** Total message count from the server (live mode only; undefined in demo). */
+  message_count?: number;
 }
 
 /** F12 — participatory budget cycle and its proposals (`budget_cycles` +

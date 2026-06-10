@@ -574,7 +574,9 @@
     "deleteBulkConfirm_other": "Ștergi definitiv {{count}} de anunțuri? Acțiunea nu poate fi anulată.",
     "deleteSelected_one": "Șterge {{count}} selectat",
     "deleteSelected_few": "Șterge {{count}} selectate",
-    "deleteSelected_other": "Șterge {{count}} de selectate"
+    "deleteSelected_other": "Șterge {{count}} de selectate",
+    "loadOlder": "Anunțuri mai vechi",
+    "loadingOlder": "Se încarcă..."
   },
   "polls": {
     "title": "Voturi",
@@ -1863,7 +1865,9 @@
     "deleteBulkConfirm_other": "Ștergi definitiv {{count}} de subiecte și toate mesajele lor? Acțiunea nu poate fi anulată.",
     "deleteSelected_one": "Șterge {{count}} selectat",
     "deleteSelected_few": "Șterge {{count}} selectate",
-    "deleteSelected_other": "Șterge {{count}} de selectate"
+    "deleteSelected_other": "Șterge {{count}} de selectate",
+    "loadOlderMessages": "Mesaje mai vechi",
+    "loadingMessages": "Se încarcă mesajele..."
   },
   "budget": {
     "title": "Buget participativ",

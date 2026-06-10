@@ -196,9 +196,7 @@ Locale parity, diacritics, and alt-text are complete and test-guarded, but the a
 
 The platform console's pending admin invites (`pendingInvites`) and admin roster (`provisions` / `additionalAdmins`) live only in the local persisted Zustand store: a superadmin on a different browser/device sees an empty list even though `invite_codes` rows exist, and the roster never reflects redemptions. Add a service-role Netlify function (`platform-list-invites` or extend an existing one) that lists `invite_codes` rows with `kind='admin_setup'` (id, asociatie_id, invitee name/email, expires_at, consumed_at, revoked_at -- never the token) after re-checking `platform_admins`, and hydrate `platformAsociatiiStore` from it on console load like `hydrateAsociatiiList` does. Resend/revoke then work from any device because the rows carry the real DB UUIDs. Unit tests for the function's auth guards + the store hydration mapping. Prereq: none.
 
-### ⬜ T299 — [P1] Real pagination for announcements + per-thread message loading for discussions
-
-The 2026-06-10 audit added newest-first hydrate caps (200 announcements, 100 discussion threads) so one long-lived asociație cannot make hydration unbounded, but there is no way to reach older content, and `hydrateThreads` still loads every message of every thread in one nested query (N×M rows). Add "load older" pagination for the announcements feed (range queries on `created_at`) and switch discussions to a two-step load: thread list first (with last-message preview), messages per thread on open, paginated. Keep the demo/offline stores unchanged. Bilingual UI for the load-more affordances, unit tests for the query-window logic. Prereq: none.
+### ✅ T299 — [P1] Real pagination for announcements + per-thread message loading for discussions
 
 ### ⬜ T300 — [P1] Live round-trip integration test for the invite flow (provision → resolve → redeem)
 

@@ -574,7 +574,9 @@
     "deletedBulk_few": "{{count}} announcements deleted.",
     "deleteBulkTitle_few": "Delete {{count}} announcements?",
     "deleteBulkConfirm_few": "Permanently delete {{count}} announcements? This action cannot be undone.",
-    "deleteSelected_few": "Delete {{count}} selected"
+    "deleteSelected_few": "Delete {{count}} selected",
+    "loadOlder": "Load older announcements",
+    "loadingOlder": "Loading..."
   },
   "polls": {
     "title": "Polls",
@@ -1863,7 +1865,9 @@
     "messageCount_few": "{{count}} messages",
     "deleteBulkTitle_few": "Delete {{count}} threads?",
     "deleteBulkConfirm_few": "Permanently delete {{count}} threads and all their messages? This action cannot be undone.",
-    "deleteSelected_few": "Delete {{count}} selected"
+    "deleteSelected_few": "Delete {{count}} selected",
+    "loadOlderMessages": "Older messages",
+    "loadingMessages": "Loading messages..."
   },
   "budget": {
     "title": "Participatory budget",

@@ -32,10 +32,11 @@ function buildAttachmentPath(asociatieId: string, attachmentId: string, fileName
 }
 
 /** Hydrate the announcements (and their attachments) for one asociație from the
- *  backend, when configured. The demo store is the source of truth if the read
- *  fails or the backend is absent. */
-export async function hydrateAnnouncements(asociatieId: string): Promise<void> {
-  if (!isSupabaseConfigured || !asociatieId) return;
+ *  backend, when configured. Returns whether there may be older rows beyond the
+ *  HYDRATE_LIMIT cap. The demo store is the source of truth if the read fails or
+ *  the backend is absent. */
+export async function hydrateAnnouncements(asociatieId: string): Promise<{ hasMore: boolean }> {
+  if (!isSupabaseConfigured || !asociatieId) return { hasMore: false };
   const store = useAnnouncementsStore.getState();
   try {
     const { data, error } = await supabase
@@ -45,39 +46,81 @@ export async function hydrateAnnouncements(asociatieId: string): Promise<void> {
       )
       .eq('asociatie_id', asociatieId)
       .order('created_at', { ascending: false })
-      // Newest-first cap so one long-lived asociatie cannot make hydration
-      // fetch an unbounded list (full pagination is a tracked follow-up).
       .limit(HYDRATE_LIMIT);
     if (error || !data) {
       reportError(error ?? new Error('no data'), { source: 'announcementsApi.hydrate' });
       store.setFetchError('load');
-      return;
+      return { hasMore: false };
     }
 
-    const byAnnouncement = await fetchAttachmentsByAnnouncement(asociatieId);
+    const ids = (data as Announcement[]).map((a) => a.id);
+    const byAnnouncement = await fetchAttachmentsByAnnouncement(asociatieId, ids);
     const items = (data as Announcement[]).map((a) => ({
       ...a,
       attachments: byAnnouncement[a.id] ?? [],
     }));
     store.setFetchError(null);
     store.replaceForAsociatie(asociatieId, items);
+    return { hasMore: data.length === HYDRATE_LIMIT };
   } catch (err) {
     reportError(err, { source: 'announcementsApi.hydrate' });
     store.setFetchError('load');
+    return { hasMore: false };
   }
 }
 
-/** Read the announcement attachments for one asociație, grouped by announcement
- *  id. Best-effort: returns an empty map on failure so hydration still renders. */
-async function fetchAttachmentsByAnnouncement(
+/** Fetch announcements older than `oldestCreatedAt` and append them to the
+ *  store. Returns whether there may be even older rows. No-op when offline. */
+export async function loadOlderAnnouncements(
   asociatieId: string,
-): Promise<Record<string, AnnouncementAttachment[]>> {
+  oldestCreatedAt: string,
+): Promise<{ hasMore: boolean }> {
+  if (!isSupabaseConfigured || !asociatieId) return { hasMore: false };
+  const store = useAnnouncementsStore.getState();
   try {
     const { data, error } = await supabase
+      .from('announcements')
+      .select(
+        'id, asociatie_id, author_user_id, title, body_html, category, audience, scheduled_at, published_at, expires_at, created_at, updated_at',
+      )
+      .eq('asociatie_id', asociatieId)
+      .lt('created_at', oldestCreatedAt)
+      .order('created_at', { ascending: false })
+      .limit(HYDRATE_LIMIT);
+    if (error || !data || !data.length) {
+      if (error) reportError(error, { source: 'announcementsApi.loadOlder' });
+      return { hasMore: false };
+    }
+    const ids = (data as Announcement[]).map((a) => a.id);
+    const byAnnouncement = await fetchAttachmentsByAnnouncement(asociatieId, ids);
+    const items = (data as Announcement[]).map((a) => ({
+      ...a,
+      attachments: byAnnouncement[a.id] ?? [],
+    }));
+    store.appendForAsociatie(asociatieId, items);
+    return { hasMore: data.length === HYDRATE_LIMIT };
+  } catch (err) {
+    reportError(err, { source: 'announcementsApi.loadOlder' });
+    return { hasMore: false };
+  }
+}
+
+/** Read announcement attachments grouped by announcement id.
+ *  When `announcementIds` is provided only those announcements are fetched
+ *  (used by load-older pagination to avoid re-fetching the full set).
+ *  Best-effort: returns an empty map on failure so hydration still renders. */
+async function fetchAttachmentsByAnnouncement(
+  asociatieId: string,
+  announcementIds?: string[],
+): Promise<Record<string, AnnouncementAttachment[]>> {
+  try {
+    let q = supabase
       .from('attachments')
       .select('id, related_id, filename, mime_type, size_bytes, storage_path')
       .eq('asociatie_id', asociatieId)
       .eq('related_type', 'announcement');
+    if (announcementIds?.length) q = q.in('related_id', announcementIds);
+    const { data, error } = await q;
     if (error || !data) return {};
     const grouped: Record<string, AnnouncementAttachment[]> = {};
     for (const row of data as Array<{

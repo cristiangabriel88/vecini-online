@@ -30,10 +30,12 @@ import {
   deleteMessage,
   deleteThread,
   hydrateThreads,
+  loadThreadMessages,
   postMessage,
   togglePin,
   updateMessage,
 } from './discussionApi';
+import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import { emitDiscussionReply } from '@/features/notifications/notificationFanout';
 import { useWriteRetry } from '@/shared/lib/useWriteRetry';
 
@@ -60,6 +62,10 @@ export default function DiscussionsPage() {
   const [pendingDeleteMessage, setPendingDeleteMessage] = useState<{ threadId: string; messageId: string } | null>(null);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingBody, setEditingBody] = useState('');
+  // Per-thread message loading state (live mode only; demo threads have messages pre-seeded).
+  const [messagesLoadedForThread, setMessagesLoadedForThread] = useState<Set<string>>(new Set());
+  const [threadMessagesLoading, setThreadMessagesLoading] = useState<Set<string>>(new Set());
+  const [threadHasOlderMessages, setThreadHasOlderMessages] = useState<Record<string, boolean>>({});
 
   const canModerate = canModerateDiscussion(role);
   const sendRetry = useWriteRetry('discussions.send');
@@ -86,6 +92,30 @@ export default function DiscussionsPage() {
     setSelectedIds(allSelected ? new Set() : new Set(ordered.map((t) => t.id)));
 
   const vetted = isVettedRole(role);
+
+  const openThread = (threadId: string | null) => {
+    setOpenId(threadId);
+    if (!threadId || !asociatieId || !isSupabaseConfigured) return;
+    if (messagesLoadedForThread.has(threadId) || threadMessagesLoading.has(threadId)) return;
+    setThreadMessagesLoading((prev) => new Set([...prev, threadId]));
+    void loadThreadMessages(asociatieId, threadId).then(({ hasMore }) => {
+      setMessagesLoadedForThread((prev) => new Set([...prev, threadId]));
+      setThreadMessagesLoading((prev) => { const next = new Set(prev); next.delete(threadId); return next; });
+      setThreadHasOlderMessages((prev) => ({ ...prev, [threadId]: hasMore }));
+    });
+  };
+
+  const loadOlderMessages = (threadId: string) => {
+    if (!asociatieId || threadMessagesLoading.has(threadId)) return;
+    const thread = threads.find((th) => th.id === threadId);
+    const oldest = thread?.messages[0]?.created_at;
+    if (!oldest) return;
+    setThreadMessagesLoading((prev) => new Set([...prev, threadId]));
+    void loadThreadMessages(asociatieId, threadId, oldest).then(({ hasMore }) => {
+      setThreadMessagesLoading((prev) => { const next = new Set(prev); next.delete(threadId); return next; });
+      setThreadHasOlderMessages((prev) => ({ ...prev, [threadId]: hasMore }));
+    });
+  };
 
   const recentCount = () => {
     const key = `${asociatieId}:${author.id}`;
@@ -228,11 +258,11 @@ export default function DiscussionsPage() {
                   <div className="flex items-start justify-between gap-3">
                     <button
                       className="text-left"
-                      onClick={() => setOpenId(expanded ? null : th.id)}
+                      onClick={() => openThread(expanded ? null : th.id)}
                     >
                       <p className="font-medium">{th.title}</p>
                       <p className="text-sm text-muted">
-                        {th.topic} · {t('discussions.messageCount', { count: th.messages.length })}
+                        {th.topic} · {t('discussions.messageCount', { count: messagesLoadedForThread.has(th.id) ? th.messages.length : (th.message_count ?? th.messages.length) })}
                       </p>
                     </button>
                     <div className="flex items-center gap-1">
@@ -260,6 +290,21 @@ export default function DiscussionsPage() {
 
                   {expanded && (
                     <div className="space-y-2 border-t border-border pt-3">
+                      {threadMessagesLoading.has(th.id) && !th.messages.length && (
+                        <p className="py-2 text-center text-sm text-muted">{t('discussions.loadingMessages')}</p>
+                      )}
+                      {threadHasOlderMessages[th.id] && (
+                        <div className="flex justify-center">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            loading={threadMessagesLoading.has(th.id)}
+                            onClick={() => loadOlderMessages(th.id)}
+                          >
+                            {t('discussions.loadOlderMessages')}
+                          </Button>
+                        </div>
+                      )}
                       {th.messages.map((m) => {
                         const canDeleteMsg = canModerate || m.author_user_id === author.id;
                         const isEditingMsg = editingMessageId === m.id;

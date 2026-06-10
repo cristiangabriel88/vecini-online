@@ -4,6 +4,19 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T299 ✅ 2026-06-10 -- Real pagination for announcements + per-thread message loading for discussions
+- modified: `src/shared/types/domain.ts` -- added optional `message_count?: number` to `DiscussionThread` (populated by live hydration from the server-side count embed; undefined in demo)
+- modified: `src/features/announcements/announcementsStore.ts` -- added `appendForAsociatie` action (appends older items at the end for load-older pagination)
+- modified: `src/features/announcements/announcementsApi.ts` -- refactored `fetchAttachmentsByAnnouncement` to accept optional `announcementIds` filter; changed `hydrateAnnouncements` return type to `{ hasMore: boolean }`; added `loadOlderAnnouncements(asociatieId, oldestCreatedAt)` that range-queries `created_at < cursor` and calls `appendForAsociatie`
+- modified: `src/features/announcements/AnnouncementsPage.tsx` -- added `hasMore`/`loadingOlder` state; `hydrateAnnouncements` result sets `hasMore`; bilingual "Anunțuri mai vechi / Load older announcements" ghost button at bottom of list
+- modified: `src/features/discussions/discussionStore.ts` -- added `setMessagesForThread` (initial per-thread load) and `prependMessagesForThread` (load-older prepend) actions
+- modified: `src/features/discussions/discussionApi.ts` -- refactored `hydrateThreads` to load thread list with `message_count` embed (no longer embeds full message bodies); added `loadThreadMessages(asociatieId, threadId, beforeCreatedAt?)` with `MESSAGES_PAGE_SIZE=50`; exported `MESSAGES_PAGE_SIZE`
+- modified: `src/features/discussions/DiscussionsPage.tsx` -- per-thread `messagesLoadedForThread`/`threadMessagesLoading`/`threadHasOlderMessages` state; `openThread` triggers lazy message load on first open; "Mesaje mai vechi / Older messages" button shown when `hasOlderMessages[threadId]`; loading spinner while messages load; count display uses `message_count ?? messages.length`
+- modified: `src/shared/locales/ro.json` + `en.json` -- added `announcements.loadOlder`, `announcements.loadingOlder`, `discussions.loadOlderMessages`, `discussions.loadingMessages`
+- new: `tests/unit/discussionPagination.test.ts` -- 15 tests covering `setMessagesForThread`, `prependMessagesForThread`, query-window cursor derivation, `hasMore` semantics, and offline no-op contracts for `hydrateThreads`/`loadThreadMessages`
+- modified: `tests/unit/announcementsApi.test.ts` -- added 7 tests for `appendForAsociatie`, `hydrateAnnouncements` pagination contract, and `loadOlderAnnouncements` offline no-op
+- 340 test files / 3578 tests green; all 3 builds (PROD/DEV/DEMO) green
+
 ### T298 ✅ 2026-06-10 -- Live hydration of the platform console's pending-invite + admin roster
 - new: `netlify/functions/platform-list-invites.ts` -- GET-only service-role function: verifies bearer token, re-checks `platform_admins`, queries all `invite_codes` with `kind='admin_setup'` (id, asociatie_id, invitee_name, invitee_email, expires_at, consumed_at, revoked_at, created_at, invite_email_sent_at -- never token/code), returns `{ invites: [...] }`; 405/503/401/403 gates.
 - modified: `src/platform/platformAsociatiiStore.ts` -- added `LiveAdminInvite` interface + `replaceFromLive` action: maps live DB rows into `pendingInvites`, `revokedInviteIds`, `provisions` (oldest per asociatieId), and `additionalAdmins`; token/setupCode set to '' (not returned by server); all fields converted from ISO to epoch ms as needed.
