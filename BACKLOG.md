@@ -198,7 +198,7 @@ The platform console's pending admin invites (`pendingInvites`) and admin roster
 
 ### ✅ T299 — [P1] Real pagination for announcements + per-thread message loading for discussions
 
-### ⬜ T300 — [P1] Live round-trip integration test for the invite flow (provision → resolve → redeem)
+### ✅ T300 — [P1] Live round-trip integration test for the invite flow (provision → resolve → redeem)
 
 The invite-token regression fixed on 2026-06-10 (plaintext at rest vs digest lookup) was invisible to the static-contract tests because nothing exercises the Netlify function and the SQL RPC against the same database. Add an integration spec (vitest, opt-in via env flag like the existing live suites, or Playwright against `supabase start`) that provisions an invite through the function handler, resolves it via `resolve_onboarding_token`, redeems it via `redeem_onboarding_token` with a real auth user, and asserts membership creation + single-use + expiry + email-mismatch paths. This is the only test shape that catches writer/reader contract drift. Prereq: none.
 

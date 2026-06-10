@@ -5,7 +5,7 @@ Terse machine-readable status log. Full history archived in `COMPLETED.md` (newe
 ## 0. Current status
 
 - date: 2026-06-10
-- last_task: T299 Real pagination for announcements + per-thread message loading for discussions -- appendForAsociatie + loadOlderAnnouncements (announcements); setMessagesForThread + prependMessagesForThread + loadThreadMessages + MESSAGES_PAGE_SIZE (discussions); hydrateThreads refactored to thread-list-only with message_count embed; bilingual load-older UI in both pages; 340 test files / 3578 tests; all 3 builds green
+- last_task: T300 Live round-trip integration test for the invite flow -- vitest.integration.config.ts + tests/integration/inviteFlow.test.ts (6 tests: resolve, round-trip, single-use, expiry x2, email-mismatch); gated by SUPABASE env vars so unit suite stays offline-safe; writer/reader SHA-256 hash-at-rest contract tested end-to-end; 340 test files / 3578 unit tests; all 3 builds green
 - pipeline: green (lint + typecheck + test + build + build:pi + build:demo)
 - counts: 340 test files / 3578 tests
 - stages: PROD/DEV/DEMO formalized (T171/T172); all three build green every task. DEV now matches PROD exactly (no role switcher; switcher is DEMO-only)

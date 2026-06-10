@@ -4,6 +4,13 @@ Permanent archive of finished `make progress` tasks, newest first.
 Reference only -- not read during a normal `make progress` task.
 `RESUME.md` §0 is the dated chronological summary.
 
+### T300 ✅ 2026-06-10 -- Live round-trip integration test for the invite flow
+- new: `vitest.integration.config.ts` -- separate Vitest config for integration tests; `environment: 'node'`, includes `tests/integration/**`, 30s timeout; run with `npm run test:integration`
+- new: `tests/integration/inviteFlow.test.ts` -- 6 live tests gated by `VITE_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` + `VITE_SUPABASE_ANON_KEY`; all skip when credentials absent (unit suite stays offline-safe); covers: resolve returns ok with correct kind/email; full round-trip provision-resolve-redeem creates admin membership and marks invite consumed; single-use protection (second redeem returns `used`); expiry on resolve; expiry on redeem; email-mismatch rejects wrong-email user. Provisioning mirrors `provision-asociatie.ts` exactly (SHA-256 hash at rest) so the writer/reader contract is exercised end-to-end.
+- modified: `package.json` -- added `test:integration` script
+- modified: `tsconfig.node.json` -- added `vitest.integration.config.ts` and `tests/integration` to includes
+- verified: lint + typecheck + 3578 unit tests (340 files) + build + build:pi + build:demo all green
+
 ### T299 ✅ 2026-06-10 -- Real pagination for announcements + per-thread message loading for discussions
 - modified: `src/shared/types/domain.ts` -- added optional `message_count?: number` to `DiscussionThread` (populated by live hydration from the server-side count embed; undefined in demo)
 - modified: `src/features/announcements/announcementsStore.ts` -- added `appendForAsociatie` action (appends older items at the end for load-older pagination)
