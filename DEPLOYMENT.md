@@ -61,7 +61,13 @@ This guide is for the human deploying vecini.online. It covers Supabase, Netlify
 
 7. Configure Auth:
    - Settings → Authentication → Email Auth: enable Email + Password
-   - Disable signups from the public (we want invite-only)
+   - **Keep "Allow new users to sign up" ON.** The invite redemption page calls
+     `supabase.auth.signUp()` directly; disabling signups breaks onboarding.
+     Invite-only access is enforced at the application layer: an account created
+     without a valid invite token gets no membership and sees no data.
+   - **Turn "Confirm email" OFF** (RUNBOOK-MVP.md § 1). The single-use 24h invite
+     link is the proof of email ownership; signup must return a session
+     immediately so the redemption RPC can run.
    - Configure SMTP if you want branded emails (otherwise Supabase uses their default)
    - Add your Netlify URL to redirect URLs (you'll do this after Step 2)
 
