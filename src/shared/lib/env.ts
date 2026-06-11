@@ -1,9 +1,13 @@
 import { parseSecurityEnforcement, type SecurityEnforcement } from '@/features/auth/mfaLogic';
 import { resolveSupabaseUrl } from './supabaseUrl';
+import { selectedDeploy, getProfile, type Deploy } from '@/config/app.config';
 
 /** Deployment stage. PROD = cloud Supabase + Resend. DEV = local Pi Supabase.
- *  DEMO = frontend-only, no backend, offline seed. */
-export type AppStage = 'prod' | 'dev' | 'demo';
+ *  DEMO = frontend-only, no backend, offline seed.
+ *  The concrete values for each stage live in the single config file
+ *  `src/config/app.config.ts`; this module only binds them to the browser
+ *  environment and applies typed resolution. */
+export type AppStage = Deploy;
 
 interface ClientEnv {
   supabaseUrl: string;
@@ -38,8 +42,25 @@ interface ClientEnv {
   telegramBotUsername: string;
 }
 
-const rawUrl = import.meta.env.VITE_SUPABASE_URL ?? '';
-const rawKey = import.meta.env.VITE_SUPABASE_ANON_KEY ?? '';
+// The active deploy target chosen by the switch in app.config.ts (or a
+// build-time VITE_APP_STAGE override). Null when nothing was selected, in which
+// case the stage is derived below from whether Supabase creds are present, so a
+// creds-less build still falls back to demo exactly as before.
+const selected = selectedDeploy(import.meta.env.VITE_APP_STAGE as string | undefined);
+
+// Profile providing the committed default VALUES. When no stage was selected we
+// read prod's defaults; the final stage is still resolved cred-aware below, so a
+// creds-less unselected build resolves to demo while ignoring these values.
+const profile = getProfile(selected ?? 'prod');
+
+/** An env var wins when set and non-blank; otherwise the profile default. */
+function pick(envValue: string | undefined, fallback: string): string {
+  const v = envValue?.trim();
+  return v ? v : fallback;
+}
+
+const rawUrl = pick(import.meta.env.VITE_SUPABASE_URL, profile.supabaseUrl);
+const rawKey = pick(import.meta.env.VITE_SUPABASE_ANON_KEY, profile.supabaseAnonKey);
 
 /**
  * Resolve the resident-app base URL for links built anywhere (notably the
@@ -69,27 +90,37 @@ export function resolveAppStage(
 }
 
 const appUrl =
-  import.meta.env.VITE_APP_URL ??
+  pick(import.meta.env.VITE_APP_URL, profile.appUrl) ||
   (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173');
 
 /** True when Supabase credentials are present. In their absence the app runs
  *  in a read-only demo mode so the UI is still inspectable without a backend. */
 export const isSupabaseConfigured = Boolean(rawUrl && rawKey);
 
+/** Resolved deployment stage. An explicit selection (env var or the
+ *  app.config.ts switch) is honoured as-is; otherwise it defaults to prod when
+ *  Supabase is configured and demo when it is not, preserving prior behaviour. */
+export const appStage: AppStage = resolveAppStage(selected ?? undefined, isSupabaseConfigured);
+
 export const env: ClientEnv = {
   supabaseUrl: resolveSupabaseUrl(
     rawUrl,
-    import.meta.env.VITE_APP_STAGE as string | undefined,
+    appStage,
     typeof window !== 'undefined' ? window.location.hostname : undefined,
   ),
   supabaseAnonKey: rawKey,
-  defaultLocale: import.meta.env.VITE_DEFAULT_LOCALE ?? 'ro',
+  defaultLocale: pick(import.meta.env.VITE_DEFAULT_LOCALE, profile.defaultLocale),
   appUrl,
-  residentAppUrl: resolveResidentAppUrl(import.meta.env.VITE_RESIDENT_APP_URL, appUrl),
-  securityEnforcement: parseSecurityEnforcement(import.meta.env.VITE_SECURITY_ENFORCEMENT),
-  platformUrl: (import.meta.env.VITE_PLATFORM_URL as string | undefined)?.trim() || null,
-  appStage: resolveAppStage(import.meta.env.VITE_APP_STAGE as string | undefined, isSupabaseConfigured),
-  telegramBotUsername: (import.meta.env.VITE_TELEGRAM_BOT_USERNAME as string | undefined)?.trim() || '',
+  residentAppUrl: resolveResidentAppUrl(
+    pick(import.meta.env.VITE_RESIDENT_APP_URL, profile.residentAppUrl),
+    appUrl,
+  ),
+  securityEnforcement: parseSecurityEnforcement(
+    pick(import.meta.env.VITE_SECURITY_ENFORCEMENT, profile.securityEnforcement),
+  ),
+  platformUrl: pick(import.meta.env.VITE_PLATFORM_URL, profile.platformUrl) || null,
+  appStage,
+  telegramBotUsername: pick(import.meta.env.VITE_TELEGRAM_BOT_USERNAME, profile.telegramBotUsername),
 };
 
 /** Returns the current deployment stage. */

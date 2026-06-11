@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from '@/shared/lib/supabase';
+import { env } from '@/shared/lib/env';
 import { reportError } from '@/shared/lib/errorReporting';
 import {
   type AppNotification,
@@ -198,9 +199,7 @@ export function fanOutEmail(n: AppNotification, bearerToken: string): void {
   void (async () => {
     try {
       const origin =
-        typeof window !== 'undefined'
-          ? window.location.origin
-          : (import.meta.env.VITE_APP_URL ?? '');
+        typeof window !== 'undefined' ? window.location.origin : env.appUrl;
       await fetch(`${origin}/.netlify/functions/notify-email`, {
         method: 'POST',
         headers: {

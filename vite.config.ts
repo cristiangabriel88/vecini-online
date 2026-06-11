@@ -9,6 +9,7 @@ import { resolve } from 'node:path';
 import { execSync } from 'node:child_process';
 import type { Plugin } from 'vite';
 import { buildHeadersFileContent } from './scripts/cspHeaders';
+import { resolveDeploy, getProfile } from './src/config/app.config';
 
 function resolveReleaseId(): string {
   if (process.env.VITE_APP_RELEASE) return process.env.VITE_APP_RELEASE;
@@ -19,12 +20,12 @@ function resolveReleaseId(): string {
   }
 }
 
-function cspHeadersPlugin(appStage: string | undefined): Plugin {
+function cspHeadersPlugin(appStage: string, supabaseUrl: string): Plugin {
   return {
     name: 'csp-headers',
     apply: 'build',
     closeBundle() {
-      const content = buildHeadersFileContent(process.env.VITE_SUPABASE_URL, appStage);
+      const content = buildHeadersFileContent(supabaseUrl, appStage);
       writeFileSync(resolve('dist', '_headers'), content, 'utf-8');
     },
   };
@@ -35,14 +36,22 @@ export default defineConfig(({ mode }) => {
   // at config-evaluation time (not just in import.meta.env in the browser bundle).
   const env = loadEnv(mode, process.cwd(), '');
 
+  // Resolve the deploy target through the single switch in src/config/app.config.ts
+  // (env var wins, else the ACTIVE_OVERRIDE constant, else prod) so build tooling
+  // and the runtime bundle always agree on the stage.
+  const stage = resolveDeploy(env.VITE_APP_STAGE);
+  // CSP connect-src needs the project's Supabase origin: prefer a build-time env
+  // value, else the committed profile default for the resolved stage.
+  const supabaseUrl = env.VITE_SUPABASE_URL || getProfile(stage).supabaseUrl;
+
   // DEV (Pi) stage uses a self-destroying SW so stale caches never
   // accumulate during rapid iteration. PROD and DEMO get full precaching.
-  const isDevStage = env.VITE_APP_STAGE === 'dev';
+  const isDevStage = stage === 'dev';
 
   return {
     plugins: [
       react(),
-      cspHeadersPlugin(env.VITE_APP_STAGE),
+      cspHeadersPlugin(stage, supabaseUrl),
       // Emit dist/stats.html treemap on every build; uploaded as a CI artifact (T260).
       visualizer({ filename: 'dist/stats.html', gzipSize: true, open: false }) as Plugin,
       // PWA plugin is always included so `virtual:pwa-register/react` resolves in
@@ -93,7 +102,7 @@ export default defineConfig(({ mode }) => {
       // uploaded to the private Supabase Storage bucket by
       // scripts/upload-sourcemaps.mjs so the platform console can symbolicate
       // minified stack traces (T258b). DEMO has no functions so maps are skipped.
-      sourcemap: env.VITE_APP_STAGE !== 'demo' ? 'hidden' : false,
+      sourcemap: stage !== 'demo' ? 'hidden' : false,
       rollupOptions: {
         // Multi-page build: the resident/admin app (index.html) and the separate
         // superadmin console (platform.html, served on its own subdomain). Keeping
