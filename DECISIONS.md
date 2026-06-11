@@ -497,60 +497,23 @@ Compact, machine-readable log of non-trivial choices. Newest first. Format:
 ## 2026-05-22
 
 ### GDPR consent & legal surface — scope, ordering, lawful bases (T05)
-- choice: reordered ahead of T01-T04. Legal copy in typed content module (`legalContent.ts`), not i18n JSON. Notification consent reuses cookie-consent categories: `essential` -> always; `community` -> `preferences`; `marketing` -> `marketing`.
-- why: T01-T04 (live auth/2FA/session/RLS) only meaningfully verifiable against provisioned Supabase; T05 is pure FE + demo-backed store, fully exercisable now. Privacy/Terms/Cookies are long paragraph documents — typed module clearer than hand-maintained arrays.
-- blast radius: live channels (T14/T15) must call `mayNotify(record, kind)` gate = T26.
+- choice: reordered ahead of T01-T04 (T05 is pure FE + demo-backed store, fully exercisable offline; T01-T04 need a provisioned Supabase). Legal copy in a typed content module (`legalContent.ts`), not i18n JSON, since Privacy/Terms/Cookies are long paragraph documents. Notification consent reuses cookie-consent categories: `essential`->always, `community`->`preferences`, `marketing`->`marketing`. Live channels (T14/T15) must call the `mayNotify(record, kind)` gate (= T26).
+- lawful basis per category: identity/contact/apartment/building-life (meters, tickets, votes, attendance, bookings, documents, messages) = art. 6(1)(b)+6(1)(c) Legea 196/2018; security alerts (F03) + audit log = art. 6(1)(f) legitimate interest; directory (F36), birthdays (F63), car plate, custom fields, non-essential cookies/analytics/marketing, optional notifications = art. 6(1)(a) consent; children (F64) aggregate-only, never identifying.
 
-### Lawful basis per data category (T05)
-- choice: Identity/contact/apartment/building-life (meters, tickets, votes, attendance, bookings, documents, messages) = art. 6(1)(b) + 6(1)(c) Legea 196/2018. Security alerts (F03) + audit log = art. 6(1)(f) legitimate interest (vital for emergencies). Directory (F36), birthdays (F63), car plate, custom fields, non-essential cookies/analytics/marketing, optional notifications = art. 6(1)(a) consent. Children (F64) aggregate-only, never identifying.
+### F10 AGA digitală — PV + quorum + per-apartment voting
+- choice: proces-verbal as downloadable plain text, always Romanian regardless of UI language (a client PDF engine blows the bundle budget for one legal document; server-side render is a later isolated swap — done T37). Quorum + voting modeled per-apartment: meeting carries `represented_apartments` + `my_rsvp` (`presentApartments` adds the current apartment on `prezent`/`procura`); each item carries `votes` + `my_vote` (`itemTally` folds the current vote); outcomes require quorum then `MajorityRule` (`simple`/`absolute`/`qualified_2_3`, reused from the polls engine).
+- blast radius: RSVP + voting independent in demo (presence not forced before vote); backend `aga_votes` insert policy scopes voting to an `in_desfasurare` assembly within the asociație.
 
-### F10 AGA digitală — PV scope + quorum modeling
-- choice: proces-verbal as downloadable plain text (not PDF). Always Romanian regardless of UI language.
-- why: client PDF engine (pdfmake/jsPDF, ~hundreds of KB) blows bundle budget for one document. PV is a legal document.
-- blast radius: swapping Blob for server-side PDF render = later isolated change.
-
-### F10 quorum + voting modeled per-apartment
-- choice: meeting carries `represented_apartments` + `my_rsvp`; `presentApartments` adds current apartment when `prezent`/`procura`. Each item carries `votes` + `my_vote`; `itemTally` folds current vote. Outcomes require quorum then `MajorityRule`: `simple`/`absolute`/`qualified_2_3`.
-- why: reused polls engine's `MajorityRule`.
-- blast radius: RSVP + voting independent in demo (don't force presence before vote); backend `aga_votes` insert policy scopes voting to `in_desfasurare` assembly within asociație.
-
-### Product name = vecini.online
-- choice: `vecini.online` everywhere; no other brand in codebase/docs/package name/storage keys; `vecini.*` localStorage prefix.
-- why: product name is a branding decision; repo authoritative over older spec text.
-
-### Scope: production-shaped foundation, not all 65 features
-- choice: fully implemented UI: F01, F03, F08, F09, F17, F56 + admin feature-flag panel, apartment registry, 5-step onboarding wizard, auth/login, home, hubs, profile. Database: all 65 features' tables + RLS. Telegram webhook with secret + initData validation. Other ~59 features registered, toggleable; opening shows "registered, page not in this build" notice.
-- why: avoid fake data; keep feature-flag system honest while making roadmap visible.
-- blast radius: documented per-feature in `FEATURES.md` tracking table.
-
-### Demo mode = no backend required
-- choice: `isSupabaseConfigured` detects missing creds; runs offline with Zustand stores seeded from `src/shared/demo/demoData.ts`. No mock data in Supabase path; seed only in `supabase/seed.sql` + client demo module gated behind not-configured check.
-
-### State management
-- choice: server/async = React Query; demo = per-feature Zustand stores seeded from `demoData.ts`. Feature flags persisted in `featureStore` keyed by asociație (`byAsociatie: Record<asociatieId, flags>`), seeded with `RECOMMENDED_FEATURES` (T43). Resolved via `useAsociatieFlags()` from `authStore.currentAsociatieId`. Pure resolution in `featureFlagsLogic`. Persisted at `vecini.features` with `version: 2` migrate carrying pre-T43 flat map onto demo asociație. Live: hydrate from `asociatie_features` (= T56).
-
-### i18n structure
-- choice: single `translation` namespace per locale (`ro.json`, `en.json`) with nested keys. Romanian source of truth; English covers admin surface.
-- alternatives rejected: one file per feature.
-
-### Rich text + XSS
-- choice: all stored HTML passes through `sanitizeHtml` (DOMPurify) strict allowlist before `dangerouslySetInnerHTML`.
-- blast radius: announcements.
-
-### Bundle splitting
-- choice: `manualChunks` separates `react`, `@supabase/supabase-js`, React Query, i18n vendors; feature pages lazy-loaded. `Icon` imports only lucide icons referenced by registry (full `icons` map added ~700 KB).
-- blast radius: initial route ~190 KB gzipped, under 250 KB budget.
-
-### TypeScript build
-- choice: explicit `tsc -p tsconfig.app.json` + `tsconfig.node.json` `--noEmit`. Netlify function reuses `src/shared/lib/telegramAuth.ts` via relative import.
-- alternatives rejected: `tsc -b` project references (composite/`noEmit` friction).
-- blast radius: signature logic unit-tested once.
-
-### Tooling versions
-- choice: Vitest v3 (shares Vite 6); Vitest 2 pulled nested Vite 5 conflict.
-
-### Testing environment limitation
-- note: Playwright binaries cannot download in build sandbox (`cdn.playwright.dev` outside allowlist); specs in `tests/e2e/` run locally/CI. Unit tests (Vitest) run + pass.
+### Foundational architecture + tooling (condensed 2026-06-11)
+- **Product name** = `vecini.online` everywhere (codebase/docs/package/storage keys; `vecini.*` localStorage prefix); repo authoritative over older spec text.
+- **Initial scope**: production-shaped foundation, not all 65 features at once — full UI for F01/F03/F08/F09/F17/F56 + feature-flag panel + apartment registry + onboarding wizard + auth/home/hubs/profile; all 65 features' tables + RLS in the DB; other ~59 registered + toggleable showing "page not in this build". Avoids fake data; per-feature status tracked in `FEATURES.md`.
+- **Demo mode = no backend**: `isSupabaseConfigured` detects missing creds; runs offline on Zustand stores seeded from `src/shared/demo/demoData.ts`. No mock data on the Supabase path; seed only in `supabase/seed.sql` + the demo module behind the not-configured check.
+- **State management**: async = React Query; demo = per-feature Zustand seeded from `demoData.ts`. Feature flags persisted in `featureStore.byAsociatie`, seeded `RECOMMENDED_FEATURES` (T43), resolved via `useAsociatieFlags()`, pure logic in `featureFlagsLogic`, persist v2 migrate; live hydrate from `asociatie_features` (T56).
+- **i18n**: single `translation` namespace per locale (`ro.json`/`en.json`), nested keys, Romanian source of truth (not one-file-per-feature).
+- **Rich text + XSS**: all stored HTML through `sanitizeHtml` (DOMPurify strict allowlist) before `dangerouslySetInnerHTML`.
+- **Bundle splitting**: `manualChunks` separates react / supabase-js / React Query / i18n vendors; feature pages lazy-loaded; `Icon` imports only registry-referenced lucide icons (full map = +700 KB). Initial route ~190 KB gzipped, under the 250 KB budget.
+- **TypeScript build**: explicit `tsc -p tsconfig.app.json` + `tsconfig.node.json --noEmit` (not `tsc -b` project refs); Netlify functions reuse `src/shared/lib/*` via relative imports.
+- **Tooling**: Vitest v3 (shares Vite 6; Vitest 2 pulled a nested Vite 5 conflict). Playwright binaries can't download in the build sandbox, so `tests/e2e/` run locally/CI while Vitest runs everywhere.
 
 ### Live Supabase auth wiring (T01)
 - choice: email + password only first-party method (magic-link/OAuth out of scope). Sign-up assumes "Confirm email" ON; no-session return treated as "check your email". Password reset via `resetPasswordForEmail` redirect to `<VITE_APP_URL>/reset-parola`; resulting `PASSWORD_RECOVERY` (via `detectSessionInUrl`) sets `recovery` flag.
@@ -572,28 +535,10 @@ Compact, machine-readable log of non-trivial choices. Newest first. Format:
 - why: Supabase URL is env-specific; header is static in `netlify.toml`.
 - blast radius: live cross-tenant checks against Postgres = T08; table-by-table coverage = T35; build-time tightening + violation reporting = T39. `npm audit` 0 vulnerabilities.
 
-## Appendix: earlier blocks placed retrospectively
+## Appendix: earlier blocks placed retrospectively (condensed 2026-06-11)
 
-The two blocks below were captured at the bottom of the original DECISIONS.md without dated headers. T123 was implemented 2026-05-26 (before T124 above); T88-T100 was a 2026-05-23 planning pass for tasks later resolved on 2026-05-24/25/26. Kept separate to preserve the original "bottom of file" ordering.
+Undated blocks captured at the bottom of the original DECISIONS.md, kept terse for the record. T123 implemented 2026-05-26 (before T124 above); T88-T100 was a 2026-05-23 planning pass for tasks later resolved on 2026-05-24/25/26.
 
-### T123 Secure tokenized onboarding links (2026-05-26, precedes T128 hashed-at-rest)
-- choice: token = 256-bit CSPRNG rendered as 64 lower-case hex; generated client-side for offline path. Short 8-char `generateInviteCode` kept as manual-entry fallback. One `ONBOARDING_REDEEM_PATH` constant + one `buildOnboardingLink` in `src/shared/lib/inviteCode.ts`; `buildInviteLink` (locatar, in `inviteLogic`) and `buildSetupLink` (admin, in `platformProvisioningLogic`) are thin wrappers. Builders take `baseUrl` param (callers pass `env.appUrl`). TTL fixed 24h via `ONBOARDING_LINK_TTL_MS` + `onboardingExpiry`; standing admin invites may pick longer.
-- why: hex (not base64url) trivially URL-safe + unambiguous; `crypto.getRandomValues` gives real entropy. Link rules in one place; T124 can move route target once. Builders pure + unit-testable. 24h fixed limits blast radius of leaked link.
-- blast radius: at-rest hashing = T128. Path currently `/onboarding/alatura` (existing working route); nothing consumes `?token=` until T124. Surfaced platform-origin issue = T133. `24h` preset added at top of `EXPIRY_PRESETS_MS`.
-
-### Session persistence + idle timeout (2026-05-26, same block as T123)
-- choice: default `sessionStorage` (cleared on browser close); "remember me" opts into `localStorage` with 30-day absolute cap enforced in `authStore.init`. `useIdleTimeout` hook in `AppLayout` signs out non-remembered sessions after 30 min inactivity. Superadmin console always non-remembered. Single `rememberStorage` adapter (`sessionPersistence.ts`, fixed at client creation).
-- why: previous setup kept every session in localStorage forever; too sticky for app holding financial + GDPR data on shared admin devices.
-- blast radius: existing localStorage sessions not force-logged-out; reads consult both stores, migrate to sessionStorage on next token refresh.
-
-### T88-T100 owner-requested capability areas (2026-05-23 planning pass, no code)
-- choice (T88/T89 documents): real file upload on F33 (admin/comitet upload; every member views + downloads). Offline = size-capped, type-allowlisted base64 data URL. Live (T89) = per-asociatie Supabase Storage bucket + signed URLs + Storage RLS.
-- why: owner's "page where admin loads building's contracts" is F33 Document arhivă's scope; rather than parallel feature, add file upload. Splitting offline (T88) from Storage (T89) follows MVP rule (overnight work must never require provisioning).
-- choice (T90 QR): use `qrcode.react` (against usual dependency-light ethos). QR encodes redeem link (`/onboarding/alatura` deep link), not bare code. Note: T90 implementation later overrode to existing `qrcode` package — see T90 above.
-- choice (T91-T100 superadmin): separate app on own subdomain, not a route in main app.
-  - real security boundary = DB RLS + server-side `super_admin` re-checks (T91/T92), not FE.
-  - separate origin worth it for session isolation: XSS in resident/admin app cannot read superadmin session token.
-  - alternatives rejected: same-origin `/platforma` route (shared session storage = weakest); brand-new repo (duplicates Supabase client/types/i18n/build, falls outside backlog loop).
-  - same monorepo under `src/platform/*`, own Vite build + demo mode, separate subdomain (T93).
-  - privileged ops server-side: account creation + impersonation via Netlify functions + service role re-verifying `super_admin` (T92/T98). Mandatory non-removable MFA (T100).
-  - division of labour: superadmin creates asociatii + provisions admins (T94); each admin adds residents via invite lifecycle (T41/T42). Oversight read-only cross-tenant: T95 audit viewer, T96 platform error feed, T97 usage/health, T98 audited read-only impersonation. Admin↔superadmin messenger (T99) reuses F04 thread/message shape.
+- **T123 tokenized onboarding links** (2026-05-26): onboarding token = 256-bit CSPRNG as 64 lower-case hex (URL-safe, real entropy); 8-char `generateInviteCode` kept as manual fallback. One `ONBOARDING_REDEEM_PATH` + `buildOnboardingLink` in `inviteCode.ts`; `buildInviteLink`/`buildSetupLink` are thin `baseUrl`-param wrappers. TTL fixed 24h (`ONBOARDING_LINK_TTL_MS`). At-rest hashing followed as T128; platform-origin issue surfaced as T133.
+- **Session persistence + idle timeout** (2026-05-26): default `sessionStorage` (cleared on browser close); "remember me" opts into `localStorage` with a 30-day absolute cap; `useIdleTimeout` signs out non-remembered sessions after 30 min idle; superadmin console always non-remembered. Single `rememberStorage` adapter (`sessionPersistence.ts`). Existing localStorage sessions migrate on next refresh, not force-logged-out.
+- **T88-T100 planning pass** (2026-05-23, no code): F33 gets real file upload (admin/comitet upload, members view/download; offline = capped allowlisted data URL, live = per-asociatie Storage bucket + signed URLs + RLS, split T88/T89). T90 QR encodes the redeem link (final impl used the existing `qrcode` package — see T90 above). Superadmin = separate app on its own subdomain (`src/platform/*`, own Vite build + demo mode, T93), real boundary = DB RLS + server-side `super_admin` re-checks (T91/T92), origin isolation protects the session token from resident-app XSS; same-origin route and separate-repo both rejected. Privileged ops via service-role Netlify functions (T92/T98) + mandatory non-removable MFA (T100). Division of labour: superadmin provisions asociatii + admins (T94), admins invite residents (T41/T42); read-only cross-tenant oversight = T95 audit viewer / T96 error feed / T97 usage / T98 audited impersonation; admin↔superadmin messenger (T99) reuses the F04 thread shape.
