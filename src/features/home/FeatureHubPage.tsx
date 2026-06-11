@@ -30,10 +30,13 @@ export function FeatureHubPage({
   actions = false,
   categories,
   title,
+  fromHub = false,
 }: {
   actions?: boolean;
   categories?: FeatureCategory[];
   title?: string;
+  /** When true, Links carry state so feature pages can show a back button. */
+  fromHub?: boolean;
 }) {
   const { t } = useTranslation();
   const flags = useAsociatieFlags();
@@ -92,7 +95,12 @@ export function FeatureHubPage({
                   <div className="hub-section__collapse-inner">
                     <div className="hub-grid">
                       {items.map((f) => (
-                        <Link key={f.key} to={`/app/${f.path}`} className="hub-card">
+                        <Link
+                          key={f.key}
+                          to={`/app/${f.path}`}
+                          state={fromHub ? { fromFunctionalitati: true } : undefined}
+                          className="hub-card"
+                        >
                           <span className="hub-card__icon">
                             <Icon name={f.icon} size={22} />
                           </span>

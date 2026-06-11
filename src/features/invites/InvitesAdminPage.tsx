@@ -73,6 +73,8 @@ export default function InvitesAdminPage() {
 
   /** Set of invite IDs whose QR panel is currently open. */
   const [openQrs, setOpenQrs] = useState<Set<string>>(() => new Set());
+  /** Set of invite IDs whose link text is currently visible. */
+  const [openLinks, setOpenLinks] = useState<Set<string>>(() => new Set());
 
   // DEV/DEMO: email outbox panel (MAIL_MODE=log)
   const [outboxOpen, setOutboxOpen] = useState(false);
@@ -254,6 +256,15 @@ export default function InvitesAdminPage() {
     });
   };
 
+  const toggleLink = (id: string) => {
+    setOpenLinks((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
   const apartmentLabel = (id: string | null) => {
     if (!id) return null;
     const apt = apartments.find((a) => a.id === id);
@@ -338,24 +349,28 @@ export default function InvitesAdminPage() {
             const link = buildInviteLink(invite, env.residentAppUrl);
             return (
               <Card key={invite.id}>
-                <div className="flex flex-wrap items-center gap-3">
-                  {invite.apartmentId && (
-                    <span className="badge badge--neutral text-xl font-bold px-4 py-1.5 tracking-wide">
-                      {apartmentLabel(invite.apartmentId)}
-                    </span>
-                  )}
-                  <Badge tone={STATUS_TONE[status]}>{t(`invites.status_${status}`)}</Badge>
-                  {/* <Badge tone="primary">{t(`invites.role_${invite.role}`)}</Badge> */}
-                  {!invite.singleUse && (
-                    <Badge tone="neutral">{t('invites.reusable')}</Badge>
-                  )}
-                  <div className="ml-auto flex gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {invite.apartmentId && (
+                      <span className="badge badge--neutral text-xl font-bold px-4 py-1.5 tracking-wide">
+                        {apartmentLabel(invite.apartmentId)}
+                      </span>
+                    )}
+                    <Badge tone={STATUS_TONE[status]}>{t(`invites.status_${status}`)}</Badge>
+                    {/* <Badge tone="primary">{t(`invites.role_${invite.role}`)}</Badge> */}
+                    {!invite.singleUse && (
+                      <Badge tone="neutral">{t('invites.reusable')}</Badge>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2 sm:ml-auto">
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => copy(link, t('invites.linkCopied'))}
+                      onClick={() => toggleLink(invite.id)}
+                      aria-expanded={openLinks.has(invite.id)}
                     >
-                      <Link2 className="h-4 w-4" /> {t('invites.copyLink')}
+                      <Link2 className="h-4 w-4" />
+                      {openLinks.has(invite.id) ? t('invites.hideLink') : t('invites.showLink')}
                     </Button>
                     <Button
                       variant="ghost"
@@ -379,7 +394,18 @@ export default function InvitesAdminPage() {
                     )}
                   </div>
                 </div>
-                <p className="mt-2 break-all font-mono text-xs text-muted">{link}</p>
+                {openLinks.has(invite.id) && (
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <p className="break-all font-mono text-xs text-muted flex-1 min-w-0">{link}</p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copy(link, t('invites.linkCopied'))}
+                    >
+                      <Link2 className="h-4 w-4" /> {t('invites.copyLink')}
+                    </Button>
+                  </div>
+                )}
                 <p className="mt-2 text-sm text-muted">
                   {t('invites.createdOn', { date: formatDate(invite.createdAt) })}
                   {' · '}

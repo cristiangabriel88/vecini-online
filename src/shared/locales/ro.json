@@ -377,7 +377,8 @@
     "members": "Membri",
     "audit": "Jurnal audit",
     "notifications": "Notificări",
-    "security": "Securitate"
+    "security": "Securitate",
+    "backToFeatures": "Înapoi la funcționalități"
   },
   "quickCreate": {
     "title": "Creează rapid",
@@ -1266,6 +1267,8 @@
     "noAsociatie": "Selectează mai întâi o asociație activă.",
     "showQr": "Afișează QR",
     "hideQr": "Ascunde QR",
+    "showLink": "Afișează link",
+    "hideLink": "Ascunde link",
     "outboxToggle": "Outbox (DEV)",
     "outboxTitle": "Emailuri înregistrate (MAIL_MODE=log)",
     "outboxEmpty": "Niciun email înregistrat încă."

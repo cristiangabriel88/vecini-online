@@ -377,7 +377,8 @@
     "members": "Members",
     "audit": "Audit log",
     "notifications": "Notifications",
-    "security": "Security"
+    "security": "Security",
+    "backToFeatures": "Back to features"
   },
   "quickCreate": {
     "title": "Quick create",
@@ -1266,6 +1267,8 @@
     "noAsociatie": "Select an active association first.",
     "showQr": "Show QR",
     "hideQr": "Hide QR",
+    "showLink": "Show link",
+    "hideLink": "Hide link",
     "outboxToggle": "Outbox (DEV)",
     "outboxTitle": "Logged emails (MAIL_MODE=log)",
     "outboxEmpty": "No emails logged yet."

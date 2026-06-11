@@ -1,7 +1,7 @@
 import { memo, useEffect, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate, NavLink, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Home, Menu, User, Bell, Moon, Sun, Settings, Search, ChevronDown, Info, Phone, Siren, ArrowUpRight, Globe, ScrollText, Building2, LayoutDashboard, Activity, TriangleAlert, UserCog, MessagesSquare, Plus, type LucideIcon } from 'lucide-react';
+import { Home, Menu, User, Bell, Moon, Sun, Settings, Search, ChevronDown, Info, Phone, Siren, ArrowUpRight, Globe, ScrollText, Building2, LayoutDashboard, Activity, TriangleAlert, UserCog, MessagesSquare, Plus, LayoutGrid, ArrowLeft, type LucideIcon } from 'lucide-react';
 import { CommandPalette } from '@/shared/search/CommandPalette';
 import { FEATURES, FEATURE_CATEGORIES, categoryLabel, featureTitle, type FeatureCategory } from '@/shared/features/registry';
 import { useAsociatieFlags } from '@/shared/features/featureStore';
@@ -342,9 +342,6 @@ const BottomNav = memo(function BottomNav() {
   const isPlatformSuperAdmin = useAuthStore((s) => s.isPlatformSuperAdmin);
   const role = useAuthStore((s) => s.activeRole)();
   const isAdmin = isAdminRole(role);
-  const { userId } = useMyIdentity();
-  const currentAsociatieId = useAuthStore((s) => s.currentAsociatieId) ?? '';
-  const unread = useNotificationStore((s) => s.unreadCount(userId, currentAsociatieId));
   const [createOpen, setCreateOpen] = useState(false);
 
   // The superadmin's mobile nav mirrors its console (overview, asociații,
@@ -375,7 +372,7 @@ const BottomNav = memo(function BottomNav() {
     : { to: '/app/mai-mult', label: t('nav.more'), icon: Menu, active: isActive('mai-mult') };
   const left: BottomNavLink[] = [
     { to: '/app', label: t('nav.home'), icon: Home, active: isActive() },
-    { to: '/app/comunicare', label: t('nav.comunicare'), icon: MessagesSquare, active: isActive('comunicare'), badge: unread },
+    { to: '/app/functionalitati', label: t('nav.features'), icon: LayoutGrid, active: isActive('functionalitati') },
   ];
   const right: BottomNavLink[] = [
     roleSlot,
@@ -543,6 +540,37 @@ const Topbar = memo(function Topbar() {
   );
 });
 
+function BackToHub() {
+  const { t } = useTranslation();
+  const location = useLocation();
+  const navigate = useNavigate();
+  if (!(location.state as { fromFunctionalitati?: boolean } | null)?.fromFunctionalitati) return null;
+  return (
+    <div className="md:hidden mb-3">
+      <button
+        type="button"
+        onClick={() => navigate('/app/functionalitati')}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          fontSize: 13,
+          fontWeight: 500,
+          color: 'var(--text-muted)',
+          background: 'none',
+          border: 'none',
+          padding: '4px 0',
+          cursor: 'pointer',
+          lineHeight: 1,
+        }}
+      >
+        <ArrowLeft size={15} />
+        {t('nav.backToFeatures')}
+      </button>
+    </div>
+  );
+}
+
 const APP_VERSION = '0.1.0';
 
 function Footer() {
@@ -622,6 +650,7 @@ export function AppLayout() {
       <Sidebar />
       <main id="main-content" className="main">
         <div className="main__inner" key={pathname}>
+          <BackToHub />
           <ErrorBoundary source="route" resetKeys={[pathname]}>
             <FeatureRouteGuard>
               <Outlet />

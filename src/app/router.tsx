@@ -263,6 +263,7 @@ export const router = createBrowserRouter([
       { path: 'comunicare', element: <S><FeatureHubPage categories={['communication']} /></S> },
       { path: 'actiuni', element: <S><FeatureHubPage actions /></S> },
       { path: 'mai-mult', element: <S><FeatureHubPage /></S> },
+      { path: 'functionalitati', element: <S><FeatureHubPage fromHub /></S> },
       { path: 'profil', element: <S><ProfilePage /></S> },
       { path: 'securitate', element: <S><SecurityPage /></S> },
       { path: 'notificari', element: <S><NotificationsPage /></S> },
