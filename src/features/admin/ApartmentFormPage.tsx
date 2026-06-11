@@ -20,7 +20,7 @@ import { useInviteStore } from '@/shared/store/inviteStore';
 import { recordAudit } from '@/shared/store/auditStore';
 import { isValidEmail } from '@/features/auth/authLogic';
 import { isApartmentRegistered, onboardingExpiry } from '@/features/invites/inviteLogic';
-import { sendInviteEmail } from '@/features/invites/inviteEmailApi';
+import { inviteEmailErrorKey, sendInviteEmail } from '@/features/invites/inviteEmailApi';
 import { writeInviteToLive } from '@/features/invites/inviteWriteApi';
 import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import type { Apartment, ApartmentPerson } from '@/shared/types/domain';
@@ -200,17 +200,24 @@ export default function ApartmentFormPage() {
       before: null,
       after: invite.role,
     });
-    // Persist the invite to the live backend so the redemption RPC can find it.
-    // Best-effort: a failed write does not block email delivery.
+    // Persist the invite to the live backend so the redemption RPC and the
+    // invite-email function can find the row. A failed write would make the
+    // email function return 404, so surface it instead of a doomed send.
     if (isSupabaseConfigured) {
-      await writeInviteToLive(invite);
+      const writeResult = await writeInviteToLive(invite);
+      if (!writeResult.ok) {
+        console.warn('[invite-email] write failed:', writeResult.error);
+        toast.error(t(inviteEmailErrorKey('invite-not-found')));
+        return;
+      }
     }
     const result = await sendInviteEmail({
       invite,
       locale: i18n.language,
     });
     if (!result.ok) {
-      toast.error(t('apartments.emailFailed'));
+      console.warn('[invite-email] send failed:', result.error);
+      toast.error(t(inviteEmailErrorKey(result.error)));
       return;
     }
     markEmailSent(invite.id);

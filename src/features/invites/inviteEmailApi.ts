@@ -32,6 +32,46 @@ export interface SendInviteEmailResult {
 
 const INVITE_EMAIL_FUNCTION = '/.netlify/functions/invite-email';
 
+/**
+ * Map a non-PII error code returned by `sendInviteEmail` (client guard or the
+ * `invite-email` Netlify function) to an i18n key under `invites.emailError.*`.
+ * Unknown codes fall back to the generic message so the UI always shows
+ * something actionable. Used by every surface that sends an invite so a failed
+ * send tells the admin *why* (mis-configured email backend, expired session,
+ * rate limit, ...) instead of a blanket "try again".
+ */
+export function inviteEmailErrorKey(error?: string): string {
+  switch (error) {
+    case 'email-not-configured':
+    case 'backend-not-configured':
+      return 'invites.emailError.notConfigured';
+    case 'no-session':
+    case 'unauthorized':
+    case 'missing-authorization':
+    case 'invalid-authorization':
+    case 'invalid-token':
+      return 'invites.emailError.session';
+    case 'forbidden':
+      return 'invites.emailError.forbidden';
+    case 'rate-limited':
+      return 'invites.emailError.rateLimited';
+    case 'invite-not-found':
+      return 'invites.emailError.notFound';
+    case 'invite-revoked':
+    case 'invite-consumed':
+    case 'invite-expired':
+      return 'invites.emailError.invalid';
+    case 'no-recipient':
+      return 'invites.emailError.noRecipient';
+    case 'network-error':
+      return 'invites.emailError.network';
+    case 'send-failed':
+      return 'invites.emailError.sendFailed';
+    default:
+      return 'invites.emailError.generic';
+  }
+}
+
 export async function sendInviteEmail(input: SendInviteEmailInput): Promise<SendInviteEmailResult> {
   if (!input.invite.inviteeEmail?.trim()) return { ok: false, error: 'no-recipient' };
 

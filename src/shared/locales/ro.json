@@ -1240,6 +1240,18 @@
     "emailSentOn": "Email trimis pe {{date}}",
     "emailDeliveredOn": "Livrat pe {{date}}",
     "emailFailed": "Nu am putut trimite invitația pe email. Încearcă din nou.",
+    "emailError": {
+      "generic": "Nu am putut trimite invitația pe email. Încearcă din nou.",
+      "notConfigured": "Trimiterea de emailuri nu este configurată pe server. Contactează administratorul platformei.",
+      "session": "Sesiunea a expirat. Reautentifică-te și încearcă din nou.",
+      "forbidden": "Nu ai permisiunea de a trimite invitații pentru această asociație.",
+      "rateLimited": "Prea multe invitații trimise. Așteaptă câteva minute și încearcă din nou.",
+      "notFound": "Invitația nu a putut fi salvată pe server. Încearcă din nou.",
+      "invalid": "Această invitație nu mai este validă.",
+      "noRecipient": "Adaugă o adresă de email pentru invitat.",
+      "network": "Eroare de rețea. Verifică conexiunea și încearcă din nou.",
+      "sendFailed": "Furnizorul de email a respins mesajul. Verifică adresa și încearcă din nou."
+    },
     "revoke": "Revocă",
     "status_ok": "Activ",
     "status_expired": "Expirat",

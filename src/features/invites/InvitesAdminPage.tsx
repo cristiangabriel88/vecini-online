@@ -27,7 +27,7 @@ import {
   onboardingExpiry,
   validateInvite,
 } from '@/features/invites/inviteLogic';
-import { sendInviteEmail } from '@/features/invites/inviteEmailApi';
+import { inviteEmailErrorKey, sendInviteEmail } from '@/features/invites/inviteEmailApi';
 import { hydrateInviteDelivery, writeInviteToLive } from '@/features/invites/inviteWriteApi';
 import { isSupabaseConfigured, supabase } from '@/shared/lib/supabase';
 import type { Role } from '@/shared/types/domain';
@@ -175,14 +175,21 @@ export default function InvitesAdminPage() {
         inviteeEmail: email,
       });
       recordAudit({ action: 'invite.issued', entity: 'invite', entity_label: invite.code, before: null, after: invite.role });
-      // Persist to the live backend so the redemption RPC can find it.
-      // Best-effort: a failed write does not block email delivery.
+      // Persist to the live backend so the redemption RPC and the invite-email
+      // function can find the row. If this write fails the email function would
+      // return 404, so surface the failure here instead of attempting a doomed send.
       if (isSupabaseConfigured) {
-        await writeInviteToLive(invite);
+        const writeResult = await writeInviteToLive(invite);
+        if (!writeResult.ok) {
+          console.warn('[invite-email] write failed:', writeResult.error);
+          toast.error(t(inviteEmailErrorKey('invite-not-found')));
+          return;
+        }
       }
       const result = await sendInviteEmail({ invite, locale: i18n.language });
       if (!result.ok) {
-        toast.error(t('invites.emailFailed'));
+        console.warn('[invite-email] send failed:', result.error);
+        toast.error(t(inviteEmailErrorKey(result.error)));
         return;
       }
       markEmailSent(invite.id);
@@ -214,7 +221,8 @@ export default function InvitesAdminPage() {
       locale: i18n.language,
     });
     if (!result.ok) {
-      toast.error(t('invites.emailFailed'));
+      console.warn('[invite-email] send failed:', result.error);
+      toast.error(t(inviteEmailErrorKey(result.error)));
       return;
     }
     markEmailSent(invite.id);

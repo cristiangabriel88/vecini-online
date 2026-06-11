@@ -1240,6 +1240,18 @@
     "emailSentOn": "Emailed on {{date}}",
     "emailDeliveredOn": "Delivered on {{date}}",
     "emailFailed": "Could not send the invitation email. Please try again.",
+    "emailError": {
+      "generic": "Could not send the invitation email. Please try again.",
+      "notConfigured": "Email delivery is not configured on the server. Contact the platform administrator.",
+      "session": "Your session has expired. Sign in again and retry.",
+      "forbidden": "You do not have permission to send invitations for this association.",
+      "rateLimited": "Too many invitations sent. Wait a few minutes and try again.",
+      "notFound": "The invitation could not be saved on the server. Please try again.",
+      "invalid": "This invitation is no longer valid.",
+      "noRecipient": "Add an email address for the invitee.",
+      "network": "Network error. Check your connection and try again.",
+      "sendFailed": "The email provider rejected the message. Check the address and try again."
+    },
     "revoke": "Revoke",
     "status_ok": "Active",
     "status_expired": "Expired",

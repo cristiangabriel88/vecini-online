@@ -23,7 +23,7 @@ import { useInviteStore } from '@/shared/store/inviteStore';
 import type { Apartment, ApartmentPerson } from '@/shared/types/domain';
 import type { InviteCode } from '@/features/invites/inviteLogic';
 import { apartmentShortLabel } from '@/features/apartment/apartmentLogic';
-import { sendInviteEmail } from '@/features/invites/inviteEmailApi';
+import { inviteEmailErrorKey, sendInviteEmail } from '@/features/invites/inviteEmailApi';
 import { writeInviteToLive } from '@/features/invites/inviteWriteApi';
 import { onboardingExpiry } from '@/features/invites/inviteLogic';
 import { isSupabaseConfigured } from '@/shared/lib/supabase';
@@ -336,11 +336,13 @@ export default function ApartmentsPage() {
       if (isSupabaseConfigured) {
         const writeResult = await writeInviteToLive(invite);
         if (!writeResult.ok) {
+          console.warn('[invite-email] write failed:', writeResult.error);
           failedCount++;
           continue;
         }
       }
       const result = await sendInviteEmail({ invite, locale: i18n.language });
+      if (!result.ok) console.warn('[invite-email] send failed:', result.error);
       if (result.ok) {
         markEmailSent(invite.id);
         recordAudit({
@@ -395,13 +397,15 @@ export default function ApartmentsPage() {
     if (isSupabaseConfigured) {
       const writeResult = await writeInviteToLive(invite);
       if (!writeResult.ok) {
-        toast.error(t('apartments.emailFailed'));
+        console.warn('[invite-email] write failed:', writeResult.error);
+        toast.error(t(inviteEmailErrorKey('invite-not-found')));
         return;
       }
     }
     const result = await sendInviteEmail({ invite, locale: i18n.language });
     if (!result.ok) {
-      toast.error(t('apartments.emailFailed'));
+      console.warn('[invite-email] send failed:', result.error);
+      toast.error(t(inviteEmailErrorKey(result.error)));
       return;
     }
     markEmailSent(invite.id);
