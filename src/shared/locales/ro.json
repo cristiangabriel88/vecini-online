@@ -225,6 +225,12 @@
       "breached": "Această parolă apare în liste de parole compromise. Alege alta.",
       "containsEmail": "Parola nu trebuie să conțină adresa ta de email."
     },
+    "changePassword": {
+      "title": "Schimbă parola",
+      "body": "Introdu parola curentă înainte de a seta una nouă.",
+      "currentLabel": "Parola curentă",
+      "success": "Parola ta a fost schimbată."
+    },
     "sessions": {
       "title": "Sesiuni active",
       "body": "Te poți deconecta de pe toate dispozitivele dintr-o dată. Util dacă ți-ai pierdut un dispozitiv sau bănuiești un acces neautorizat.",
@@ -515,6 +521,7 @@
     "noAsociatieBody": "Selectează sau creează o asociație pentru a gestiona funcționalitățile acesteia.",
     "selectAll": "Activează toate",
     "deselectAll": "Dezactivează toate",
+    "sectionToggle": "Activează toată secțiunea",
     "masterToggleLabel": "Toate funcționalitățile",
     "masterToggleDesc": "Activează sau dezactivează toate funcționalitățile simultan",
     "requestCount_one": "{{count}} locatar",
@@ -1036,6 +1043,7 @@
   },
   "apartments": {
     "title": "Apartamente",
+    "titleMobile": "Registrul apartamentelor",
     "subtitle": "Registrul apartamentelor din asociație. Adaugă, editează și gestionează unitățile clădirii.",
     "scara": "Scara",
     "selectEntrance": "Alege scara",

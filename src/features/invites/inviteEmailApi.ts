@@ -100,6 +100,7 @@ export async function sendInviteEmail(input: SendInviteEmailInput): Promise<Send
       }),
     });
     if (res.ok) return { ok: true };
+    if (res.status === 404) return { ok: false, error: 'backend-not-configured' };
     const body = await res.json().catch(() => ({})) as Record<string, unknown>;
     return { ok: false, error: typeof body.error === 'string' ? body.error : 'send-failed' };
   } catch {

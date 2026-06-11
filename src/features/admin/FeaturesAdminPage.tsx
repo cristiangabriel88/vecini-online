@@ -208,9 +208,9 @@ export default function FeaturesAdminPage() {
           <section key={cat}>
             <div className="mb-2 flex items-center justify-between">
               <h2 className="text-lg font-semibold">{categoryLabel(t, cat)}</h2>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 pr-3">
                 <span className="select-none text-sm text-muted">
-                  {isCategoryAllEnabled(cat) ? t('features.deselectAll') : t('features.selectAll')}
+                  {t('features.sectionToggle')}
                 </span>
                 <Switch
                   label={`${categoryLabel(t, cat)}: ${isCategoryAllEnabled(cat) ? t('features.deselectAll') : t('features.selectAll')}`}

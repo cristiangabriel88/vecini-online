@@ -16,6 +16,7 @@ import {
   MessageCircle,
   CheckCircle2,
   AlertTriangle,
+  Lock,
 } from 'lucide-react';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { EmptyState } from '@/shared/components/EmptyState';
@@ -32,6 +33,9 @@ import { isSupabaseConfigured } from '@/shared/lib/supabase';
 import { formatDateTime } from '@/shared/lib/format';
 import { isValidTotpFormat, mfaErrorKey, requiresMfa } from './mfaLogic';
 import { maskEmail, maskTelegram, isValidOtpFormat, type MfaChannel } from './otpChannelLogic';
+import { mapAuthError } from './authLogic';
+import { evaluatePassword } from './passwordPolicy';
+import { PasswordStrengthMeter } from './PasswordStrengthMeter';
 
 /** Round a remaining-lockout duration up to whole minutes for the message. */
 function lockoutMinutes(ms: number): number {
@@ -61,6 +65,7 @@ export default function SecurityPage() {
   const session = useAuthStore((s) => s.session);
   const role = useAuthStore((s) => s.activeRole)();
   const signOutEverywhere = useAuthStore((s) => s.signOutEverywhere);
+  const changePassword = useAuthStore((s) => s.changePassword);
   const events = useSecurityStore((s) => s.events);
 
   const {
@@ -94,6 +99,10 @@ export default function SecurityPage() {
 
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
+  const [pwdCurrent, setPwdCurrent] = useState('');
+  const [pwdNew, setPwdNew] = useState('');
+  const [pwdConfirm, setPwdConfirm] = useState('');
+  const [pwdBusy, setPwdBusy] = useState(false);
   // Email 2FA setup-confirm flow (T295): enabling email requires entering a code
   // sent to the account address, proving the inbox works before it counts.
   const [emailSetupStage, setEmailSetupStage] = useState<'idle' | 'codeSent'>('idle');
@@ -116,6 +125,31 @@ export default function SecurityPage() {
   const [stepUpDemoConfirmToken, setStepUpDemoConfirmToken] = useState<string | null>(null);
   const [stepUpResendCountdown, setStepUpResendCountdown] = useState(0);
   const stepUpResendTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const pwdAssessment = evaluatePassword(pwdNew, profile?.email ?? '');
+  const showPwdNewError = pwdNew.length > 0 && !pwdAssessment.ok;
+  const pwdMismatch = pwdConfirm.length > 0 && pwdNew !== pwdConfirm;
+  const canChangePassword =
+    pwdCurrent.length > 0 && pwdAssessment.ok && pwdNew === pwdConfirm && pwdNew.length > 0;
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canChangePassword) return;
+    setPwdBusy(true);
+    try {
+      const { error } = await changePassword(pwdCurrent, pwdNew);
+      if (error) {
+        toast.error(t(`auth.err.${mapAuthError(error)}`));
+        return;
+      }
+      toast.success(t('auth.changePassword.success'));
+      setPwdCurrent('');
+      setPwdNew('');
+      setPwdConfirm('');
+    } finally {
+      setPwdBusy(false);
+    }
+  };
 
   const onSignOutEverywhere = async () => {
     setConfirmSignOutAll(false);
@@ -915,6 +949,48 @@ export default function SecurityPage() {
                 </Button>
               </li>
             </ul>
+          </Card>
+        )}
+
+        {/* Change password */}
+        {!draft && !recoveryCodes && (
+          <Card title={t('auth.changePassword.title')}>
+            <p className="text-sm text-muted">{t('auth.changePassword.body')}</p>
+            <form onSubmit={handleChangePassword} className="mt-4 space-y-3">
+              <Input
+                label={t('auth.changePassword.currentLabel')}
+                type="password"
+                autoComplete="current-password"
+                value={pwdCurrent}
+                onChange={(e) => setPwdCurrent(e.target.value)}
+                required
+              />
+              <div className="space-y-1">
+                <Input
+                  label={t('auth.newPassword')}
+                  type="password"
+                  autoComplete="new-password"
+                  value={pwdNew}
+                  onChange={(e) => setPwdNew(e.target.value)}
+                  hint={pwdNew.length === 0 ? t('auth.passwordHint') : undefined}
+                  error={showPwdNewError ? t(`auth.pwd.${pwdAssessment.issues[0]}`) : undefined}
+                  required
+                />
+                {pwdNew.length > 0 && <PasswordStrengthMeter assessment={pwdAssessment} />}
+              </div>
+              <Input
+                label={t('auth.confirmPassword')}
+                type="password"
+                autoComplete="new-password"
+                value={pwdConfirm}
+                onChange={(e) => setPwdConfirm(e.target.value)}
+                error={pwdMismatch ? t('auth.err.passwordMismatch') : undefined}
+                required
+              />
+              <Button type="submit" loading={pwdBusy} disabled={!canChangePassword}>
+                <Lock className="h-4 w-4" /> {t('auth.savePassword')}
+              </Button>
+            </form>
           </Card>
         )}
 

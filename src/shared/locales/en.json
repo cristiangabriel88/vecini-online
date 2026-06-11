@@ -225,6 +225,12 @@
       "breached": "This password appears in known breach lists. Choose another.",
       "containsEmail": "Your password must not contain your email address."
     },
+    "changePassword": {
+      "title": "Change password",
+      "body": "Verify your current password before setting a new one.",
+      "currentLabel": "Current password",
+      "success": "Your password has been changed."
+    },
     "sessions": {
       "title": "Active sessions",
       "body": "You can sign out of every device at once. Useful if you lost a device or suspect unauthorised access.",
@@ -515,6 +521,7 @@
     "noAsociatieBody": "Select or create an association first to manage its features.",
     "selectAll": "Enable all",
     "deselectAll": "Disable all",
+    "sectionToggle": "Enable entire section",
     "masterToggleLabel": "All features",
     "masterToggleDesc": "Enable or disable all features at once",
     "requestCount_one": "{{count}} resident",
@@ -1036,6 +1043,7 @@
   },
   "apartments": {
     "title": "Apartments",
+    "titleMobile": "Apartment Registry",
     "subtitle": "The association's apartment registry. Add, edit and manage the building's units.",
     "scara": "Entrance",
     "selectEntrance": "Select entrance",

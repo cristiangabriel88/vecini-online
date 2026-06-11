@@ -617,14 +617,18 @@ export default function ApartmentsPage() {
     <div>
       <PageHeader
         title={t('apartments.title')}
+        mobileTitle={t('apartments.titleMobile')}
         subtitle={t('apartments.subtitle')}
+        hideSubtitleOnMobile
         action={
           apartments.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2">
               {/* Download template split-button with CSV / Excel dropdown */}
-              <div className="relative" ref={downloadDropdownRef}>
+              <div className="relative w-full sm:w-auto" ref={downloadDropdownRef}>
                 <Button
                   variant="secondary"
+                  size="sm"
+                  className="w-full sm:w-auto"
                   onClick={() => setShowDownloadDropdown((v) => !v)}
                   aria-expanded={showDownloadDropdown}
                   aria-haspopup="menu"
@@ -667,18 +671,20 @@ export default function ApartmentsPage() {
                 )}
               </div>
 
-              <Button variant="secondary" onClick={handleExportApartmentsExcel} loading={isExportingXlsx}>
+              <Button variant="secondary" size="sm" className="w-full sm:w-auto" onClick={handleExportApartmentsExcel} loading={isExportingXlsx}>
                 <FileSpreadsheet className="h-4 w-4" /> {t('apartments.exportList')}
               </Button>
 
               <Button
+                size="sm"
+                className="w-full sm:w-auto"
                 onClick={handleImportClick}
                 loading={isImporting}
                 aria-label={t('apartments.importList')}
               >
                 <Upload className="h-4 w-4" /> {t('apartments.importList')}
               </Button>
-              <Button onClick={() => navigate('/app/admin/apartamente/adauga')}>
+              <Button size="sm" className="w-full sm:w-auto" onClick={() => navigate('/app/admin/apartamente/adauga')}>
                 <Plus className="h-4 w-4" /> {t('apartments.addApartments')}
               </Button>
             </div>

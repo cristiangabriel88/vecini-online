@@ -123,6 +123,7 @@ interface AuthState {
   resendVerification: (email: string) => Promise<AuthResult>;
   requestPasswordReset: (email: string) => Promise<AuthResult>;
   updatePassword: (password: string) => Promise<AuthResult>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<AuthResult>;
   signOut: () => Promise<void>;
   /** Revoke every session for this account everywhere (global sign-out). */
   signOutEverywhere: () => Promise<void>;
@@ -477,6 +478,23 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       useSecurityStore.getState().log('passwordChanged', email);
     }
     return { error: error ? error.message : null };
+  },
+
+  changePassword: async (currentPassword, newPassword) => {
+    const email = get().session?.user?.email ?? null;
+    if (!isSupabaseConfigured) {
+      useSecurityStore.getState().log('passwordChanged', email);
+      return { error: null };
+    }
+    if (!email) return { error: 'No active session' };
+    // Re-authenticate to confirm the caller knows the current password before updating.
+    const { error: authError } = await supabase.auth.signInWithPassword({ email, password: currentPassword });
+    if (authError) return { error: authError.message };
+    const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+    if (!updateError) {
+      useSecurityStore.getState().log('passwordChanged', email);
+    }
+    return { error: updateError ? updateError.message : null };
   },
 
   signOut: async () => {
