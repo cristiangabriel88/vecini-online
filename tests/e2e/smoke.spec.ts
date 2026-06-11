@@ -169,10 +169,9 @@ test('F63: resident can list their birthday', async ({ page }) => {
 test('T42: resident joins an asociație with an issued invite code', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/admin/invitatii');
-  await page.getByRole('button', { name: /Generează codul/i }).click();
-  // The invite card shows the code and the full token link.
-  const code = (await page.locator('code').first().innerText()).trim();
-  expect(code).toMatch(/^[A-Z2-9]{8}$/);
+  await page.getByLabel('Email invitat').fill('vecin.nou@example.com');
+  await page.getByRole('button', { name: /Trimite invitația/i }).click();
+  // The freshly issued invite tops the list with its full token link.
   const link = (await page.locator('p.break-all').first().innerText()).trim();
   expect(link).toContain('/configurare-cont?token=');
   const target = new URL(link).pathname + new URL(link).search;
@@ -180,7 +179,8 @@ test('T42: resident joins an asociație with an issued invite code', async ({ pa
   await page.goto(target);
   await expect(page.getByText(/invitație validă/i)).toBeVisible();
   await page.getByLabel('Nume complet').fill('Vecin Nou');
-  await page.getByLabel('Email').fill('vecin.nou@example.com');
+  // The email is pre-filled from the invite and locked.
+  await expect(page.getByLabel('Email')).toHaveValue('vecin.nou@example.com');
   await page.getByLabel('Parolă', { exact: true }).fill('Munte-Albastru-91');
   await page.getByLabel(/Confirmă parola/i).fill('Munte-Albastru-91');
   await page.getByRole('button', { name: /Creează contul/i }).click();
@@ -198,7 +198,8 @@ test('T42/T124: an invalid invite token is rejected with a clear message', async
 test('T124: an onboarding link opens the account-creation landing and is single-use', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/admin/invitatii');
-  await page.getByRole('button', { name: /Generează codul/i }).click();
+  await page.getByLabel('Email invitat').fill('vecin.link@example.com');
+  await page.getByRole('button', { name: /Trimite invitația/i }).click();
   const link = (await page.locator('p.break-all').first().innerText()).trim();
   expect(link).toContain('/configurare-cont?token=');
   const target = new URL(link).pathname + new URL(link).search;
@@ -207,7 +208,10 @@ test('T124: an onboarding link opens the account-creation landing and is single-
   await page.goto(target);
   await expect(page.getByText(/invitație validă/i)).toBeVisible();
   await page.getByLabel('Nume complet').fill('Vecin Link');
-  await page.getByLabel('Email').fill('vecin.link@example.com');
+  // The invited email is pre-filled and read-only.
+  const emailField = page.getByLabel('Email');
+  await expect(emailField).toHaveValue('vecin.link@example.com');
+  await expect(emailField).toHaveJSProperty('readOnly', true);
   await page.getByLabel('Parolă', { exact: true }).fill('Munte-Albastru-91');
   await page.getByLabel(/Confirmă parola/i).fill('Munte-Albastru-91');
   await page.getByRole('button', { name: /Creează contul/i }).click();
@@ -565,14 +569,16 @@ test('T54: the full MVP loop works end-to-end in demo mode', async ({ page }) =>
   // 3. Create/join: an admin issues an invite, a user redeems it and lands back
   //    in an active tenant context.
   await page.goto('/app/admin/invitatii');
-  await page.getByRole('button', { name: /Generează codul/i }).click();
+  await page.getByLabel('Email invitat').fill('bucla.mvp@example.com');
+  await page.getByRole('button', { name: /Trimite invitația/i }).click();
   const mvpLink = (await page.locator('p.break-all').first().innerText()).trim();
   expect(mvpLink).toContain('/configurare-cont?token=');
   const mvpTarget = new URL(mvpLink).pathname + new URL(mvpLink).search;
   await page.goto(mvpTarget);
   await expect(page.getByText(/invitație validă/i)).toBeVisible();
   await page.getByLabel('Nume complet').fill('Vecin MVP');
-  await page.getByLabel('Email').fill('bucla.mvp@example.com');
+  // Email is pre-filled from the invite and locked.
+  await expect(page.getByLabel('Email')).toHaveValue('bucla.mvp@example.com');
   await page.getByLabel('Parolă', { exact: true }).fill('Munte-Albastru-91');
   await page.getByLabel(/Confirmă parola/i).fill('Munte-Albastru-91');
   await page.getByRole('button', { name: /Creează contul/i }).click();
@@ -670,7 +676,9 @@ test('T11 (F66): resident edits their profile and adds a custom field', async ({
 test('T126: admin sees a "joined" notification after a resident redeems an invite', async ({ page }) => {
   await enterDemo(page);
   await page.goto('/app/admin/invitatii');
-  await page.getByRole('button', { name: /Generează codul/i }).click();
+  await page.getByLabel('Nume invitat').fill('Vecin T126');
+  await page.getByLabel('Email invitat').fill('nou.t126@example.com');
+  await page.getByRole('button', { name: /Trimite invitația/i }).click();
   const link = (await page.locator('p.break-all').first().innerText()).trim();
   expect(link).toContain('/configurare-cont?token=');
   const target = new URL(link).pathname + new URL(link).search;
@@ -678,7 +686,8 @@ test('T126: admin sees a "joined" notification after a resident redeems an invit
   await page.goto(target);
   await expect(page.getByText(/invitație validă/i)).toBeVisible();
   await page.getByLabel('Nume complet').fill('Vecin T126');
-  await page.getByLabel('Email').fill('nou.t126@example.com');
+  // Email is pre-filled from the invite and locked.
+  await expect(page.getByLabel('Email')).toHaveValue('nou.t126@example.com');
   await page.getByLabel('Parolă', { exact: true }).fill('Munte-Albastru-91');
   await page.getByLabel(/Confirmă parola/i).fill('Munte-Albastru-91');
   await page.getByRole('button', { name: /Creează contul/i }).click();
@@ -693,8 +702,7 @@ test('T126: admin sees a "joined" notification after a resident redeems an invit
   // badge and the inbox should list the "joined" event.
   await page.goto('/app/notificari');
   await expect(page.getByRole('heading', { name: 'Notificări', level: 1 })).toBeVisible();
-  // The membership.joined notice appears (the invitee name may vary since the
-  // code is freshly issued with no inviteeName; the role is "proprietar").
+  // The membership.joined notice appears for the invited resident.
   await expect(page.locator('main').getByText(/s-a alăturat/i).first()).toBeVisible();
 });
 
@@ -878,16 +886,17 @@ test('T284: full onboarding chain -- admin setup -> wizard -> invite resident ->
 
   // Step 5: Issue a resident invite from the Invites admin page.
   await page.goto('/app/admin/invitatii');
-  await page.getByRole('button', { name: /Generează codul/i }).click();
+  await page.getByLabel(/Email invitat|Invitee email/i).fill('locatar-t284@example.com');
+  await page.getByRole('button', { name: /Trimite invitația|Send invitation/i }).click();
   const inviteLink = (await page.locator('p.break-all').first().innerText()).trim();
   expect(inviteLink).toContain('/configurare-cont?token=');
   const inviteTarget = new URL(inviteLink).pathname + new URL(inviteLink).search;
 
-  // Step 6: Resident redeems the invite.
+  // Step 6: Resident redeems the invite. The email is pre-filled and locked.
   await page.goto(inviteTarget);
   await expect(page.getByText(/invitație validă|valid invitation/i)).toBeVisible();
   await page.getByLabel(/Nume complet|Full name/i).fill('Locatar T284');
-  await page.getByLabel(/Email/i).fill('locatar-t284@example.com');
+  await expect(page.getByLabel(/^Email$/i)).toHaveValue('locatar-t284@example.com');
   await page.getByLabel(/^Parolă$|^Password$/i).fill('Munte-Albastru-91');
   await page.getByLabel(/Confirmă parola|Confirm password/i).fill('Munte-Albastru-91');
   await page.getByRole('button', { name: /Creează contul|Create account/i }).click();

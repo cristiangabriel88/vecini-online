@@ -3,6 +3,14 @@
 Compact, machine-readable log of non-trivial choices. Newest first. Format:
 - choice / why / alternatives rejected (when non-obvious) / blast radius.
 
+## 2026-06-11
+
+### Invites are email-only; admin links use the resident origin; invited email is locked
+- choice: (1) the admin Invitatii page (`InvitesAdminPage`) no longer has a standalone "Genereaza codul" button that mints an unaddressed code; it now has a single "invite a resident" form (name + email + optional apartment + role) whose one submit both mints the invite and sends the email, mirroring the canonical `ApartmentFormPage.onConfirmInvite` mint -> write-to-live -> email -> markEmailSent pattern. A code never exists without an email send. (2) The admin invite link + QR are now built from `env.residentAppUrl` (was `env.appUrl`); on the platform/hub origin `appUrl` resolves to the hub, so a scanned admin QR was opening `hub.vecini.online`. `residentAppUrl` always resolves to the resident origin, matching the T133 fix already applied on the superadmin console. (3) The account-creation page (`AccountSetupPage`) pre-fills and **locks** the invited email; the offline `resolveOnboarding` now carries `inviteeEmail` so the lock works in demo/E2E too. (4) 2FA scope stays privileged-only (admin/presedinte/comitet/cenzor forced post-login via `useMfaEnforcement`); plain residents are not gated -- per the owner's explicit choice.
+- why: the owner repeatedly asked for exactly one onboarding model -- superadmin emails admins, admins email residents, redemption via link/QR with the email already filled in -- and reported a real bug where an admin-issued QR opened the hub. Standalone code generation and the hub-origin link both contradicted that model.
+- alternatives rejected: (a) keep the generate button and just relabel it -- still mints unaddressed codes, which the owner rejected; (b) fix the hub origin only via Netlify env vars -- fragile and origin-dependent; building from `residentAppUrl` is deterministic on every origin; (c) require 2FA for all residents -- heavier UX, owner chose privileged-only.
+- blast radius: `src/features/invites/InvitesAdminPage.tsx`, `src/features/onboarding/{AccountSetupPage.tsx,accountSetupLogic.ts}`, `src/shared/locales/{ro,en}.json` (new invite-form + `setup.emailLockedHint` keys, removed `invites.{issueTitle,issue,code,issued}`), `tests/e2e/smoke.spec.ts` (5 invite flows), `tests/unit/accountSetupLogic.test.ts`, docs (`ONBOARDING_FLOW.md`, `ARCHITECTURE.md`, `DATA_MODEL.md`, `FEATURES.md`). No migration.
+
 ## 2026-06-10
 
 ### Production audit fixes: invite-token hashing, mirror-id adoption, comunicare error handling

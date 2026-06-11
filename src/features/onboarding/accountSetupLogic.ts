@@ -99,6 +99,9 @@ export function resolveOnboarding(
       asociatieId: invite.asociatieId,
       asociatieName: null,
       role: invite.role,
+      // Carry the invited address so the account-setup form can pre-fill and
+      // lock the email offline too, mirroring the live RPC (T128).
+      inviteeEmail: invite.inviteeEmail,
     };
   }
   const token = normalizeInviteToken(value);

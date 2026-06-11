@@ -6,6 +6,8 @@ import { Link2, Mail, QrCode as QrCodeIcon, Ticket, Trash2 } from 'lucide-react'
 import { PageHeader } from '@/shared/components/PageHeader';
 import { Card } from '@/shared/components/Card';
 import { Button } from '@/shared/components/Button';
+import { Input } from '@/shared/components/Input';
+import { Select } from '@/shared/components/Select';
 import { Badge } from '@/shared/components/Badge';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { QrCode } from '@/shared/components/QrCode';
@@ -14,17 +16,19 @@ import { env, isProd } from '@/shared/lib/env';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useInviteStore } from '@/shared/store/inviteStore';
 import { recordAudit } from '@/shared/store/auditStore';
+import { isValidEmail } from '@/features/auth/authLogic';
 import { useAsociatieApartments } from '@/features/admin/apartmentsStore';
 import {
-  type InviteCode,
   type InviteStatus,
+  INVITABLE_ROLES,
   buildInviteLink,
   canEmailInvite,
   expiryFromPreset,
+  onboardingExpiry,
   validateInvite,
 } from '@/features/invites/inviteLogic';
 import { sendInviteEmail } from '@/features/invites/inviteEmailApi';
-import { hydrateInviteDelivery } from '@/features/invites/inviteWriteApi';
+import { hydrateInviteDelivery, writeInviteToLive } from '@/features/invites/inviteWriteApi';
 import { isSupabaseConfigured, supabase } from '@/shared/lib/supabase';
 import type { Role } from '@/shared/types/domain';
 
@@ -60,8 +64,12 @@ export default function InvitesAdminPage() {
   const revoke = useInviteStore((s) => s.revoke);
   const markEmailSent = useInviteStore((s) => s.markEmailSent);
 
-  /** Quick-issue: the freshly generated invite shown after clicking "Generează codul". */
-  const [newInvite, setNewInvite] = useState<InviteCode | null>(null);
+  /** Invite-a-resident form: every code is minted as part of sending an email. */
+  const [inviteName, setInviteName] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteApartmentId, setInviteApartmentId] = useState('');
+  const [inviteRole, setInviteRole] = useState<Role>('proprietar');
+  const [sending, setSending] = useState(false);
 
   /** Set of invite IDs whose QR panel is currently open. */
   const [openQrs, setOpenQrs] = useState<Set<string>>(() => new Set());
@@ -143,21 +151,50 @@ export default function InvitesAdminPage() {
     );
   }
 
-  const issueNew = () => {
-    if (!asociatieId) return;
-    const invite = issue({
-      asociatieId,
-      asociatieName,
-      role: 'proprietar',
-      apartmentId: null,
-      expiresAt: null,
-      singleUse: true,
-      createdBy: userId,
-      inviteeName: null,
-      inviteeEmail: null,
-    });
-    recordAudit({ action: 'invite.issued', entity: 'invite', entity_label: invite.code, before: null, after: invite.role });
-    setNewInvite(invite);
+  // Mint the invite and deliver it by email in a single action: a code never
+  // exists without an email being sent. The minted invite still lands in the
+  // list below, where it can be resent if the send fails.
+  const submitInvite = async () => {
+    if (!asociatieId || sending) return;
+    const email = inviteEmail.trim();
+    if (!isValidEmail(email)) {
+      toast.error(t('invites.emailInvalid'));
+      return;
+    }
+    setSending(true);
+    try {
+      const invite = issue({
+        asociatieId,
+        asociatieName,
+        role: inviteRole,
+        apartmentId: inviteApartmentId || null,
+        expiresAt: onboardingExpiry(),
+        singleUse: true,
+        createdBy: userId,
+        inviteeName: inviteName.trim() || null,
+        inviteeEmail: email,
+      });
+      recordAudit({ action: 'invite.issued', entity: 'invite', entity_label: invite.code, before: null, after: invite.role });
+      // Persist to the live backend so the redemption RPC can find it.
+      // Best-effort: a failed write does not block email delivery.
+      if (isSupabaseConfigured) {
+        await writeInviteToLive(invite);
+      }
+      const result = await sendInviteEmail({ invite, locale: i18n.language });
+      if (!result.ok) {
+        toast.error(t('invites.emailFailed'));
+        return;
+      }
+      markEmailSent(invite.id);
+      recordAudit({ action: 'invite.email_sent', entity: 'invite', entity_label: invite.code, before: null, after: null });
+      toast.success(t('invites.emailSent', { email }));
+      setInviteName('');
+      setInviteEmail('');
+      setInviteApartmentId('');
+      setInviteRole('proprietar');
+    } finally {
+      setSending(false);
+    }
   };
 
   const onRevoke = (id: string, code: string) => {
@@ -219,16 +256,69 @@ export default function InvitesAdminPage() {
     <div>
       <PageHeader title={t('invites.title')} subtitle={t('invites.subtitle')} />
 
-      <h2 className="mb-3 text-lg font-semibold">{t('invites.issueTitle')}</h2>
-      <div className="mb-6">
-        <Button onClick={issueNew}>{t('invites.issue')}</Button>
-        {newInvite && (
-          <Card className="mt-3 space-y-1">
-            <p className="text-sm">{t('invites.code')}: <code className="rounded bg-muted px-1 font-mono text-sm">{newInvite.code}</code></p>
-            <p className="break-all text-xs text-muted">{buildInviteLink(newInvite, env.appUrl)}</p>
-          </Card>
-        )}
-      </div>
+      <h2 className="mb-3 text-lg font-semibold">{t('invites.inviteResidentTitle')}</h2>
+      <Card className="mb-6">
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void submitInvite();
+          }}
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Input
+              label={t('invites.inviteeName')}
+              type="text"
+              autoComplete="name"
+              value={inviteName}
+              onChange={(e) => setInviteName(e.target.value)}
+            />
+            <Input
+              label={t('invites.inviteeEmail')}
+              type="email"
+              autoComplete="email"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              error={
+                inviteEmail.trim().length > 0 && !isValidEmail(inviteEmail.trim())
+                  ? t('invites.emailInvalid')
+                  : undefined
+              }
+              required
+            />
+            <Select
+              label={t('invites.apartmentOptional')}
+              value={inviteApartmentId}
+              onChange={(e) => setInviteApartmentId(e.target.value)}
+            >
+              <option value="">{t('invites.anyApartment')}</option>
+              {apartments.map((apt) => (
+                <option key={apt.id} value={apt.id}>
+                  {t('invites.aptShort', { number: apt.numar_apartament, scara: apt.scara })}
+                </option>
+              ))}
+            </Select>
+            <Select
+              label={t('invites.role')}
+              value={inviteRole}
+              onChange={(e) => setInviteRole(e.target.value as Role)}
+            >
+              {INVITABLE_ROLES.map((r) => (
+                <option key={r} value={r}>
+                  {t(`invites.role_${r}`)}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <Button
+            type="submit"
+            loading={sending}
+            disabled={!isValidEmail(inviteEmail.trim()) || sending}
+          >
+            <Mail className="h-4 w-4" /> {t('invites.sendInvite')}
+          </Button>
+        </form>
+      </Card>
 
       <h2 className="mb-2 text-lg font-semibold">{t('invites.listTitle')}</h2>
       {list.length === 0 ? (
@@ -237,7 +327,7 @@ export default function InvitesAdminPage() {
         <div className="space-y-3">
           {list.map((invite) => {
             const status = validateInvite(invite);
-            const link = buildInviteLink(invite, env.appUrl);
+            const link = buildInviteLink(invite, env.residentAppUrl);
             return (
               <Card key={invite.id}>
                 <div className="flex flex-wrap items-center gap-3">

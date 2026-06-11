@@ -94,15 +94,21 @@ moved_out_at date
 ```
 
 ### `invite_codes`
-For binding a Telegram user to an apartment.
+Backs email-invite onboarding (admin setup links + resident invites). Every row is created as part of sending an email; redemption is via the opaque `token` deep link (the short `code` is a display-only reference, not an entry method). See `ONBOARDING_FLOW.md`.
 ```sql
 id uuid pk
 asociatie_id uuid not null
-apartment_id uuid references apartments(id)
-code text unique not null           -- 8-char alphanumeric
-expires_at timestamptz
+apartment_id uuid references apartments(id)   -- optional pre-link to an apartment
+code text not null                  -- 8-char alphanumeric, shown for reference only
+token text not null                 -- opaque high-entropy deep-link token (sha256 at rest, T128)
+role text not null                  -- role granted on redemption (proprietar/chirias/comitet/cenzor/presedinte)
+kind text not null                  -- 'resident_invite' | 'admin_setup'
+single_use boolean default true
+invitee_name text, invitee_email text   -- recipient the invite was emailed to
+expires_at timestamptz              -- 24h for onboarding links
 consumed_at timestamptz
 consumed_by_user_id uuid references users(id)
+revoked_at timestamptz
 created_at, created_by uuid references users(id)
 ```
 

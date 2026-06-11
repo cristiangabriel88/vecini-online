@@ -36,9 +36,10 @@ layered on behind `isSupabaseConfigured` as a separate activation step.
    - address
    - contact phone + email
    - first admin name + email
-3. The superadmin generates a **secure setup link + QR** for the admin. The link
-   carries an opaque high-entropy token; the QR encodes the same link. A short
-   8-char code is also shown as a **manual-entry fallback**.
+3. Provisioning **emails the admin** a **secure setup link + QR**. The link
+   carries an opaque high-entropy token; the QR encodes the same link, pointing
+   at the resident app origin (`vecini.online`), never the hub. A short 8-char
+   code is shown for reference only and is never typed in to redeem.
 4. The link/QR is valid for **24h (fixed)**, single-use.
 
 Live: a service-role Netlify function re-verifies `is_super_admin()` server-side,
@@ -48,7 +49,7 @@ creates the asociație with the identity fields, and issues the hashed setup tok
 ## Stage B — Admin onboards via the setup link
 
 1. The admin opens the setup link (or scans the QR), landing on the
-   "create your account" page (the fallback code also reaches it).
+   "create your account" page.
 2. The admin enters their email and **sets a password twice** (the shared password
    policy applies; see `src/features/auth/passwordPolicy.ts`).
 3. On submit the token is consumed (single-use, replay-safe, 24h check) and the
@@ -60,18 +61,20 @@ creates the asociație with the identity fields, and issues the hashed setup tok
 
 ## Stage C — Admin invites locatari
 
-1. The admin opens Invitații (`/app/admin/invitatii`) and issues a per-locatar
-   invite: the granted role (proprietar / chirias / comitet / cenzor / presedinte;
-   never `admin`) and an optional apartment link.
-2. The invite is rendered as a **secure link + QR** (24h fixed for onboarding) with
-   a short fallback code, exactly like the admin setup link.
+1. The admin opens Invitații (`/app/admin/invitatii`) and **sends a per-locatar
+   email invite**: recipient name + email, the granted role (proprietar / chirias /
+   comitet / cenzor / presedinte; never `admin`) and an optional apartment link.
+   The page sends invites by email only; there is no standalone code generation.
+2. The invite is delivered by email as a **secure link + QR** (24h fixed,
+   single-use), both targeting the resident origin (`vecini.online`); the short
+   code is shown for reference in the email and the Invitații list, never typed in.
 
 ## Stage D — Locatar onboards via the invite link
 
 1. The locatar opens the link (or scans the QR), landing on the same
    "create your account" page.
-2. The locatar enters their email, **sets a password twice**, and configures their
-   account.
+2. The locatar's **invited email is pre-filled and locked**; they **set a password
+   twice** and configure their account.
 3. The token is consumed (single-use, 24h, replay-safe); the account is created on
    redemption with the code's role and the apartment link (where the code carries
    one) written server-side.
@@ -83,7 +86,9 @@ creates the asociație with the identity fields, and issues the hashed setup tok
 ## Token & security model
 
 - **Opaque token in the link** — high-entropy, not the short code. The QR encodes
-  the link. The short 8-char code (`generateInviteCode`) remains a manual fallback.
+  the link, always targeting the resident app origin (`vecini.online`), never the
+  hub. The short 8-char code (`generateInviteCode`) is shown for reference (email +
+  Invitații list) but is never an entry method.
 - **Hashed at rest (live)** — onboarding/invite tokens are stored hashed, never in
   plaintext; lookup is constant-time and redemption attempts are rate-limited
   (**T128**). Offline keeps an equivalent local token for demo.

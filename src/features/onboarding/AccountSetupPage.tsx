@@ -92,6 +92,11 @@ export default function AccountSetupPage() {
     ? liveResolved
     : offlineResolved;
 
+  // When the invitation carries the recipient's address, the account must be
+  // created with exactly that email (the live redeem RPC rejects a mismatch),
+  // so the field is pre-filled and locked.
+  const emailLocked = resolved?.status === 'ok' && Boolean(resolved.inviteeEmail);
+
   // Resolve the token via the live RPC when Supabase is available.
   useEffect(() => {
     if (!isSupabaseConfigured || !tokenParam) {
@@ -340,6 +345,8 @@ export default function AccountSetupPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             error={form.emailInvalid ? t('setup.err_email') : undefined}
+            hint={emailLocked ? t('setup.emailLockedHint') : undefined}
+            readOnly={emailLocked}
             disabled={isSupabaseConfigured && resolving}
             required
           />

@@ -59,6 +59,22 @@ describe('resolveOnboarding', () => {
     });
   });
 
+  it('carries the invited email so the setup form can pre-fill and lock it offline', () => {
+    const invite = createInvite(
+      { asociatieId: 'asoc-9', role: 'proprietar', inviteeEmail: 'vecin@example.com' },
+      [],
+      NOW,
+    );
+    const resolved = resolveOnboarding(invite.token, [invite], [], NOW);
+    expect(resolved?.inviteeEmail).toBe('vecin@example.com');
+  });
+
+  it('reports a null invited email for a code minted without a recipient', () => {
+    const invite = createInvite({ asociatieId: 'asoc-9' }, [], NOW);
+    const resolved = resolveOnboarding(invite.token, [invite], [], NOW);
+    expect(resolved?.inviteeEmail).toBeNull();
+  });
+
   it('resolves a locatar invite by its short code as the manual fallback', () => {
     const invite = createInvite({ asociatieId: 'asoc-9', role: 'proprietar' }, [], NOW);
     const resolved = resolveOnboarding(invite.code.toLowerCase(), [invite], [], NOW);

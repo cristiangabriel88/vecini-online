@@ -112,18 +112,16 @@ This means even if frontend code has bugs, the database refuses unauthorized rea
 
 One person can have multiple roles (e.g., proprietar in one apartment, comitet member of the asociație).
 
-### Apartment linking
+### Onboarding & apartment linking
 
-The trust anchor of the entire system is binding a Telegram user identity to a specific apartament.
+The single onboarding model is **email invite + secure token link**. There is no standalone code generation and no printed-slip / Telegram `/start <code>` flow. The authoritative, end-to-end description lives in `ONBOARDING_FLOW.md`; the summary:
 
-Flow:
-1. Admin imports CSV with apartment list (`scara, etaj, numar_apartament, nume_proprietar, suprafata, cota_parte`).
-2. System generates a unique 8-character alphanumeric invite code per apartament.
-3. Admin prints invite slips (the app generates a PDF) and distributes them physically (under doors or at AGA).
-4. Resident opens the Telegram bot, sends `/start <code>`, bot verifies the code, marks it consumed, links `telegram_user_id` → `apartament_id`.
-5. From that point, the resident's Telegram account is the apartment's authenticated identity. A resident can also create a web account linked to the same apartament.
+1. The **superadmin** (the one platform operator, on the `hub.vecini.online` console) provisions an asociație and its first **admin**, who receives an email invite. The admin clicks the link, creates an account (password set twice), and goes through the onboarding wizard.
+2. The **admin** imports the apartment list (`scara, etaj, numar_apartament, nume_proprietar, suprafata, cota_parte`) and invites residents from the Invitații page or the apartment surface. Every invite is **sent by email**; minting a code only happens as part of that send.
+3. The email carries a secure deep link (an opaque high-entropy token) and a QR encoding the same link, both pointing at the resident app origin (`vecini.online`), never the hub. A short 8-char code is shown for reference (email + Invitații list) but is never typed in to redeem.
+4. The resident clicks the link or scans the QR, lands on the account-creation page with their **invited email pre-filled and locked**, sets a password twice, and the token is consumed (single-use, 24h, replay-safe), linking their new account to the apartment and role the invite granted.
 
-Co-owners can both link if the admin enables `multi_owner_login` for that asociație.
+Only the single superadmin ever reaches the hub; admins and residents stay on the resident origin. Optional Telegram linking (binding `telegram_user_id` to an account) is a separate, later step handled in the resident app, not the onboarding path.
 
 ## Feature flag system
 

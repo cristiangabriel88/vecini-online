@@ -741,19 +741,25 @@ Status legend (two axes — built, and wired live):
 ### Invite codes & QR (onboarding) ✅
 - **Audience:** admin / comitet (issue); anyone with a token link (redeem)
 - **Description:** The onboarding plumbing that lets an admin grow their asociatie.
-  From `/app/admin/invitatii` an admin issues invites scoped to the active
-  asociatie (granted role, optional apartment link, 24h expiry, single-use flag),
-  lists / copies / revokes them; a resident redeems via the secure `?token=` deep
-  link in the invite email. Each invite carries an **opaque high-entropy token**
-  (T123) and a **secure deep link** (`/configurare-cont?token=...`, built from
-  `VITE_APP_URL`). The superadmin provisioning setup link likewise carries a 24h
-  token, built from `VITE_RESIDENT_APP_URL` (falling back to `VITE_APP_URL`, T133)
-  so a link minted on the platform subdomain targets the resident/admin origin. An
-  admin **delivers invitations by email** (T147): both the apartment edit surface
+  From `/app/admin/invitatii` an admin **sends an email invite** from a single form
+  (recipient name + email, granted role, optional apartment link); minting a code
+  only happens as part of that send, so there is **no standalone "generate code"
+  button**. The page also lists / copies / revokes issued invites and shows their
+  QR. A resident redeems via the secure `?token=` deep link in the invite email or
+  by scanning its QR. Each invite carries an **opaque high-entropy token** (T123)
+  and a **secure deep link** (`/configurare-cont?token=...`). Both the resident
+  invite link/QR and the superadmin provisioning setup link are built from
+  `env.residentAppUrl` (`VITE_RESIDENT_APP_URL`, falling back to `VITE_APP_URL`,
+  T133) so a link generated on the platform subdomain (or any origin) always
+  targets the resident/admin origin (`vecini.online`) and never the hub. An admin
+  **delivers invitations by email** (T147): both the apartment edit surface
   ("Trimite pe email") and the invites surface send a bilingual (RO/EN) email
   carrying the onboarding link, keyed off the recipient's locale, stamping the
   invite as sent (`emailSentAt`); offline the dispatch is simulated, live it goes
-  through the Resend-backed `invite-email` Netlify function.
+  through the Resend-backed `invite-email` Netlify function. On redemption the
+  invited **email is pre-filled and locked** on the account-creation page, so the
+  account is always created with the address the invite was sent to (the live
+  redeem RPC rejects a mismatch).
 - **MVP change (T157):** Short alphanumeric codes removed from UI. `InvitesAdminPage`
   no longer shows the code chip or "Copiaza codul" button. `AccountSetupPage` no
   longer has a code-entry text field — token-URL only. The `code` field still
